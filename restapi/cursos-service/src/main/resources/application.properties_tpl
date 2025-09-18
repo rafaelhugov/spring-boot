@@ -1,0 +1,14 @@
+spring.application.name=cursos-service
+
+server.port=${PORT:8080}
+
+spring.datasource.url=${PG_URL:jdbc:postgresql://10.128.0.7:5434/DESENVOLVIMENTO}
+spring.datasource.username=${PG_USERNAME:postgres}
+spring.datasource.password=${PG_PASSWORD:senha}
+
+spring.jpa.properties.hibernate.default_schema=cursos
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+
+cors.allowed-origins=${CORS}

@@ -1,0 +1,19 @@
+version: '3.7'
+
+services:
+  cobranca-api:
+    container_name: cobranca-api
+    image: gavriel.mppb.mp.br:5000/cobranca-api:1.0
+    restart: no
+    mem_limit: 1g
+    ports:
+      - 9003:9003
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: localhost
+      DB_PORT: 5401
+      DB_NAME: MPE
+      DB_USERNAME: usuario
+      DB_PASSWORD: senha
+      AUTH_SERVICE_URL: https://auth-api.mppb.mp.br/
+    network_mode: host
