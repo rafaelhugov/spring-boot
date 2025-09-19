@@ -2,6 +2,7 @@ package mppb.microservices.fundoapi.infrastructure.errorhandler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import mppb.microservices.common.error.AppException;
 import mppb.microservices.common.error.BusinessRuleException;
 import mppb.microservices.common.error.MessageParametersException;
@@ -13,7 +14,6 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -46,7 +46,7 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(value = BusinessRuleException.class)
     public ResponseEntity<ProblemDetail> handleBusinessRuleException(BusinessRuleException exception) {
-        return createProblemDetail(HttpStatus.CONFLICT, "Regra de negócio violada", exception);
+        return createProblemDetail(HttpStatus.CONFLICT, "Regra de negócio violada", exception, null);
     }
 
     @ExceptionHandler(value = NoResourceFoundException.class)
@@ -65,17 +65,22 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(value = NotFoundException.class)
     public ResponseEntity<ProblemDetail> handleNotFoundException(NotFoundException exception) {
-        return createProblemDetail(HttpStatus.NOT_FOUND, "Recurso não encontrado", exception);
+        return createProblemDetail(HttpStatus.NOT_FOUND, "Recurso não encontrado", exception, null);
     }
 
     @ExceptionHandler(value = ClientApiException.class)
     public ResponseEntity<ProblemDetail> handleClientApiException(ClientApiException exception) {
-        return createProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, "Serviço externo indisponível", exception);
+        return createProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, "Serviço externo indisponível", exception, null);
     }
 
     @ExceptionHandler(value = AppException.class)
     public ResponseEntity<ProblemDetail> handleAppException(AppException exception) {
-        return createProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno no servidor", exception);
+        return createProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Erro genérico da aplicação", exception, null);
+    }
+
+    @ExceptionHandler(value = Exception.class, produces = "application/json")
+    public ResponseEntity<ProblemDetail> handleGenericException(Exception exception) {
+        return createProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno no servidor", exception, "Ocorreu um erro inesperado no sistema. Por favor, tente novamente mais tarde.");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -94,17 +99,19 @@ public class ApiExceptionHandler {
         return ResponseEntity.of(problemDetail).build();
     }
 
-    private ResponseEntity<ProblemDetail> createProblemDetail(HttpStatus status, String title, Exception exception) {
+    private ResponseEntity<ProblemDetail> createProblemDetail(HttpStatus status, String title, Exception exception, String detail) {
         ProblemDetail problemDetail = ProblemDetail.forStatus(status);
         problemDetail.setTitle(title);
-        if(exception instanceof MessageParametersException){
-            MessageParametersException msgException = (MessageParametersException) exception;
-            String detail = resolveMessage(msgException.getKey(), msgException.getParameters());
+
+        if(detail != null ){
             problemDetail.setDetail(detail);
+        } else if (exception instanceof MessageParametersException) {
+            MessageParametersException msgException = (MessageParametersException) exception;
+            String detailException = resolveMessage(msgException.getKey(), msgException.getParameters());
+            problemDetail.setDetail(detailException);
         } else {
             problemDetail.setDetail(exception.getMessage());
         }
-
 
         addExtraProperties(problemDetail, exception);
         return ResponseEntity.of(problemDetail).build();

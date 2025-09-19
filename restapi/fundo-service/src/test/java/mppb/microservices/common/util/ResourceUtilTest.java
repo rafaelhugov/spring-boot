@@ -1,6 +1,6 @@
 package mppb.microservices.common.util;
 
-import mppb.microservices.common.error.AppException;
+import mppb.microservices.common.error.NotFoundException;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -29,7 +29,7 @@ public class ResourceUtilTest {
     @Test
     void shouldFailIfDirectoryInvalid() {
         var file = new File("not_a_directory");
-        assertThrows(AppException.class, () -> IoUtil.checkDirectory(file));
+        assertThrows(NotFoundException.class, () -> IoUtil.checkDirectory(file));
     }
 
     @Test

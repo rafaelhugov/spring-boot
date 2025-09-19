@@ -105,6 +105,13 @@ public class SampleController extends AbstractController {
         throw new BusinessRuleException("teste000", new String[]{"(valor de teste)"});
     }
 
+    @GetMapping(value="/nullpointer", produces =  MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Page<AreaDto>> nullPointerException() {
+        Object a = null;
+        a.toString();
+        return null;
+    }
+
     @Operation(summary = "Obtém áreas", description = "Retorna uma lista áreas.")
     @GetMapping(value="", produces =  MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Page<AreaDto>> buscaAreas(@Valid @ModelAttribute AreaSearchRequestDto areaSearchDto, Pageable pageable) {

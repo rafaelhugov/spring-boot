@@ -1,9 +1,6 @@
 package mppb.microservices.common.error;
 
-import lombok.NoArgsConstructor;
-
-@NoArgsConstructor
-public class ValidationException extends AppException {
+public class ValidationException extends BusinessRuleException{
 
     public ValidationException(String msg){
         super(msg);
@@ -12,4 +9,15 @@ public class ValidationException extends AppException {
     public ValidationException(String msg, String[] args){
         super(msg, args);
     }
+
+    public ValidationException(Throwable causa, String key) {
+        super(causa, key);
+    }
+
+    public ValidationException(Throwable causa, String key,
+                               Object... parameters) {
+        super(causa, key, parameters);
+
+    }
+
 }

@@ -4,8 +4,10 @@ import com.google.zxing.WriterException;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.extern.log4j.Log4j2;
+
 import mppb.microservices.common.error.AppException;
 import mppb.microservices.common.error.BusinessRuleException;
+import mppb.microservices.common.error.NotFoundException;
 import mppb.microservices.common.error.ValidationException;
 import mppb.microservices.common.error.feign.ClientApiException;
 import mppb.microservices.common.infrastructure.report.JasperService;
@@ -239,7 +241,7 @@ public class BoletoService extends AbstractService<Boleto, Long> {
                 } else if(boleto.getSolicitacao().getTipo().equals(TipoSolicitacaoEnum.FDD)){
                     bbCobrancaFddService.alterarDataVencimento(boleto.getNossoNumero(), boleto.getSolicitacao().getFundo().getConvenio(), novoVencimento);
                 } else {
-                    throw new BusinessRuleException("Tipo de solicitação não existente.");
+                    throw new NotFoundException("Tipo de solicitação não existente.");
                 }
                 save(boleto);
                 boleto.setFaltaPersistir(false);
@@ -272,7 +274,7 @@ public class BoletoService extends AbstractService<Boleto, Long> {
                 } else if(boleto.getSolicitacao().getTipo().equals(TipoSolicitacaoEnum.FDD)){
                     bbCobrancaFddService.alterarValorNominal(boleto.getNossoNumero(), boleto.getSolicitacao().getFundo().getConvenio(), novoValor);
                 } else {
-                    throw new BusinessRuleException("Tipo de solicitação não existente.");
+                    throw new NotFoundException("Tipo de solicitação não existente.");
                 }
                 // salva caso mude o valor via api do BB
                 save(boleto);
@@ -412,7 +414,7 @@ public class BoletoService extends AbstractService<Boleto, Long> {
 
     private void fillParams(Boleto boleto, Map<String, Object> parametros) {
         if(boleto.getSolicitacao().getFundo() == null){
-            throw new ValidationException("Necessário que solicitação esteja associada a um fundo.");
+            throw new BusinessRuleException("Necessário que solicitação esteja associada a um fundo.");
         }
         Fundo fundo = boleto.getSolicitacao().getFundo();
 
@@ -483,14 +485,14 @@ public class BoletoService extends AbstractService<Boleto, Long> {
             java.awt.Image backgroundImage = ImageIO.read(new ClassPathResource("reports/img/boletofundo.png").getInputStream());
             parametros.put("backgroundImage", backgroundImage);
         } catch (IOException e) {
-            throw new AppException(e, "boletofundo.png não encontrado.");
+            throw new NotFoundException(e, "boletofundo.png não encontrado.");
         }
 
         try {
             java.awt.Image backgroundImage = ImageIO.read(new ClassPathResource("reports/img/recibopagador.png").getInputStream());
             parametros.put("backgroundImage2", backgroundImage);
         } catch (IOException e) {
-            throw new AppException(e, "recibopagador.png não encontrado.");
+            throw new NotFoundException(e, "recibopagador.png não encontrado.");
         }
 
     }

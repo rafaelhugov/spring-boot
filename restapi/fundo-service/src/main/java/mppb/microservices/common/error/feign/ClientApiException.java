@@ -1,12 +1,11 @@
 package mppb.microservices.common.error.feign;
 
 import lombok.NoArgsConstructor;
+
 import mppb.microservices.common.error.AppException;
 
 @NoArgsConstructor
 public class ClientApiException extends AppException {
-
-
 
     private int status;
 

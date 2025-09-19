@@ -1,6 +1,8 @@
 package mppb.microservices.common.util;
 
+
 import mppb.microservices.common.error.AppException;
+import mppb.microservices.common.error.NotFoundException;
 
 import java.io.*;
 import java.net.*;
@@ -151,7 +153,7 @@ public class IoUtil {
 
 	 static void checkDirectory(File directory) {
 		if (directory == null || !directory.isDirectory()) {
-			throw new AppException("This path must be a directory: '" + directory.getAbsolutePath() + "'.");
+			throw new NotFoundException("This path must be a directory: '" + directory.getAbsolutePath() + "'.");
 		}
 	}
 
@@ -159,7 +161,7 @@ public class IoUtil {
 		try {
 			return new File(getResource(path).toURI());
 		} catch (Exception e) {
-			throw new AppException(e);
+			throw new NotFoundException(e);
 		}
 	}
 
