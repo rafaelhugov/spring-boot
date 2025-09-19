@@ -8,6 +8,8 @@ import mppb.microservices.common.error.BusinessRuleException;
 import mppb.microservices.common.error.MessageParametersException;
 import mppb.microservices.common.error.NotFoundException;
 import mppb.microservices.common.error.feign.ClientApiException;
+import mppb.microservices.common.infrastructure.env.RuntimeEnv;
+import org.modelmapper.internal.util.Lists;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -22,8 +24,9 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.Instant;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -32,17 +35,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ApiExceptionHandler {
 
+    private final String ERRORS_PROPERTY = "errors";
+
+    private final String TRACE_PROPERTY = "trace";
+
+    private final String TIMESTAMP_PROPERTY = "timestamp";
+
     private final MessageSource messageSource;
 
-    @Value("${spring.profiles.active:}")
-    private String activeProfiles;
-
-    private boolean isProdProfileActive() {
-        if (activeProfiles == null || activeProfiles.isEmpty()) {
-            return false;
-        }
-        return Arrays.asList(activeProfiles.split(",")).contains("prod");
-    }
+    private final RuntimeEnv runtimeEnv;
 
     @ExceptionHandler(value = BusinessRuleException.class)
     public ResponseEntity<ProblemDetail> handleBusinessRuleException(BusinessRuleException exception) {
@@ -51,15 +52,7 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(value = NoResourceFoundException.class)
     public ResponseEntity<ProblemDetail> handleNoResourceFoundException(NoResourceFoundException exception) {
-        //return createProblemDetail(HttpStatus.NOT_FOUND, "Recurso não encontrado", exception);
-        ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
-        problemDetail.setTitle("Recurso não encontrado");
-        problemDetail.setDetail("O endpoint solicitado não existe.");
-
-
-        addExtraProperties(problemDetail, exception);
-
-        return ResponseEntity.of(problemDetail).build();
+        return createProblemDetail(HttpStatus.NOT_FOUND, "Recurso não encontrado", exception, null);
     }
 
 
@@ -89,11 +82,14 @@ public class ApiExceptionHandler {
         problemDetail.setTitle("Erros de validação");
         problemDetail.setDetail("A requisição contém dados inválidos.");
 
-        List<FieldErrorDetail> fieldErrors = exception.getBindingResult().getFieldErrors().stream()
-                .map(error -> new FieldErrorDetail(error.getField(), messageSource.getMessage(error, LocaleContextHolder.getLocale())))
+        List<Map<String, String>> errors = exception.getBindingResult().getFieldErrors().stream()
+                .map(error -> Map.of(
+                        "field", error.getField(),
+                        "msg", messageSource.getMessage(error, LocaleContextHolder.getLocale())
+                ))
                 .collect(Collectors.toList());
 
-        problemDetail.setProperty("fieldErrors", fieldErrors);
+        problemDetail.setProperty(ERRORS_PROPERTY, errors); // Alterado de "fieldErrors" para "errors"
         addExtraProperties(problemDetail, exception);
 
         return ResponseEntity.of(problemDetail).build();
@@ -113,6 +109,15 @@ public class ApiExceptionHandler {
             problemDetail.setDetail(exception.getMessage());
         }
 
+        List errors = new ArrayList();
+        if(problemDetail.getDetail() != null){
+            errors =  List.of(Map.of(
+                    "msg", problemDetail.getDetail())
+            );
+        }
+
+        problemDetail.setProperty(ERRORS_PROPERTY, errors);
+
         addExtraProperties(problemDetail, exception);
         return ResponseEntity.of(problemDetail).build();
     }
@@ -121,9 +126,9 @@ public class ApiExceptionHandler {
         if (exception == null) {
             return;
         }
-        problemDetail.setProperty("timestamp", Instant.now());
-        if (!isProdProfileActive()) {
-            problemDetail.setProperty("trace", getStackTraceAsString(exception));
+        problemDetail.setProperty(TIMESTAMP_PROPERTY, Instant.now());
+        if (runtimeEnv.shouldIncludeTrace()) {
+            problemDetail.setProperty(TRACE_PROPERTY, getStackTraceAsString(exception));
         }
     }
 

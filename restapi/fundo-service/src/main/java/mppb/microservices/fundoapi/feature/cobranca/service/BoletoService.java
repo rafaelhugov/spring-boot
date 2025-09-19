@@ -12,7 +12,7 @@ import mppb.microservices.common.error.ValidationException;
 import mppb.microservices.common.error.feign.ClientApiException;
 import mppb.microservices.common.infrastructure.report.JasperService;
 import mppb.microservices.common.service.AbstractService;
-import mppb.microservices.common.util.NumeroUtil;
+import mppb.microservices.common.util.NumberUtil;
 import mppb.microservices.common.util.PdfUtil;
 import mppb.microservices.fundoapi.feature.client.bb.api.BbCobrancaFddService;
 import mppb.microservices.fundoapi.feature.client.bb.api.BbCobrancaFedcService;
@@ -500,9 +500,9 @@ public class BoletoService extends AbstractService<Boleto, Long> {
     private String agenciaCodigo(Long agencia, Long conta) {
 
         String agenciaCodigo = "";
-        agenciaCodigo +=  agencia + "-" + NumeroUtil.calcularDVModulo11(agencia);
+        agenciaCodigo +=  agencia + "-" + NumberUtil.calcularDVModulo11(agencia);
         agenciaCodigo += " / ";
-        agenciaCodigo +=  conta + "-" + NumeroUtil.calcularDVModulo11(conta );
+        agenciaCodigo +=  conta + "-" + NumberUtil.calcularDVModulo11(conta );
 
         return agenciaCodigo;
     }

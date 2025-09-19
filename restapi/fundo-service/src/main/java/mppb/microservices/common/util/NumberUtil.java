@@ -1,6 +1,6 @@
 package mppb.microservices.common.util;
 
-public class NumeroUtil {
+public class NumberUtil {
 
     public static  String calcularDVModulo11(Long numeroBase) {
         if (numeroBase == null) {
