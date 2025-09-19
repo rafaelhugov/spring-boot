@@ -3,7 +3,7 @@ package mppb.microservices.common.error;
 
 import java.io.Serializable;
 
-public class MessageParamtetersExceptionImpl extends RuntimeException implements Serializable, MessageParametersException {
+public class MessageParametersExceptionImpl extends RuntimeException implements Serializable, MessageParametersException {
 
     /**
      * N�mero serial da classe.
@@ -28,7 +28,7 @@ public class MessageParamtetersExceptionImpl extends RuntimeException implements
     /**
      * Construtor default.
      */
-    public MessageParamtetersExceptionImpl() {
+    public MessageParametersExceptionImpl() {
         super();
     }
 
@@ -36,7 +36,7 @@ public class MessageParamtetersExceptionImpl extends RuntimeException implements
      * Construtor com apenas a chave da mensagem de erro.
      * @param key A chave da mensagem.
      */
-    public MessageParamtetersExceptionImpl(String key) {
+    public MessageParametersExceptionImpl(String key) {
         this(null, key, new Object[] {});
     }
 
@@ -45,11 +45,11 @@ public class MessageParamtetersExceptionImpl extends RuntimeException implements
      * @param causa A causa do erro.
      * @param key A chave da mensagem.
      */
-    public MessageParamtetersExceptionImpl(Throwable causa, String key) {
+    public MessageParametersExceptionImpl(Throwable causa, String key) {
         this(causa, key, new Object[] {});
     }
 
-    public MessageParamtetersExceptionImpl(Throwable causa, String key, Exception e) {
+    public MessageParametersExceptionImpl(Throwable causa, String key, Exception e) {
         this(causa, key, new Object[] {}, e);
     }
 
@@ -57,7 +57,7 @@ public class MessageParamtetersExceptionImpl extends RuntimeException implements
      * Constr�i um PrincipalException com a chave da mensagem e a causa.
      * @param causa A causa do erro.
      */
-    public MessageParamtetersExceptionImpl(Throwable causa) {
+    public MessageParametersExceptionImpl(Throwable causa) {
         this(causa, null, new Object[] {});
     }
 
@@ -68,8 +68,8 @@ public class MessageParamtetersExceptionImpl extends RuntimeException implements
      * @param key A chave da mensagem.
      * @param parameters Os par�metros da mensagem.
      */
-    public MessageParamtetersExceptionImpl(Throwable causa, String key,
-                                           Object... parameters) {
+    public MessageParametersExceptionImpl(Throwable causa, String key,
+                                          Object... parameters) {
         super(key, causa);
         this.causa = causa;
         this.mensagem = key;
@@ -100,7 +100,7 @@ public class MessageParamtetersExceptionImpl extends RuntimeException implements
      * @param key A chave da mensagem.
      * @param parametros Os par�metros da mensagem.
      */
-    public MessageParamtetersExceptionImpl(String key, Object... parametros) {
+    public MessageParametersExceptionImpl(String key, Object... parametros) {
         this(null, key, parametros);
     }
 
