@@ -1,6 +1,6 @@
 package mppb.microservices.common.error;
 
-public class AppException extends MessageParamtetersExceptionImpl {
+public class AppException extends MessageParametersExceptionImpl {
     private static final long serialVersionUID = 1515675097655844799L;
 
 
