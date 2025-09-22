@@ -9,9 +9,9 @@
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
   <groupId>mppb.microservices.fundo</groupId>
-  <artifactId>cobranca-api</artifactId>
+  <artifactId>cobranca-service</artifactId>
   <version>1.2.0</version>
-  <name>cobranca-api</name>
+  <name>cobranca-service</name>
   <description>Demo project for Spring Boot</description>
   <url/>
   <properties>
