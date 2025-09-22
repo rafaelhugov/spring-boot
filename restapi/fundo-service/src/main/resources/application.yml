@@ -1,12 +1,14 @@
-
+aplicacao:
+  name: @project.name@
+  version: @project.version@
+  description: @project.description@
+  openapi:
+    url: http://localhost:${server.port}/
 
 server:
   port: ${PORT:9002}
 auth-service:
   url: "${API_URL:https://auth-api.mppb.mp.br}"
-aplicacao:
-  openapi:
-    url: http://localhost:${server.port}/
 microsservicos:
   bb:
     cobranca:

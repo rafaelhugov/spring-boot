@@ -10,9 +10,14 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenAPIConfig {
 
-    private static final String API_TITLE = "Projeto fundo-api";
-    private static final String API_DESCRIPTION = "Documentação da API do Projeto fundo-api";
-    private static final String API_VERSION = "1.0.0";
+    @Value("${aplicacao.name}")
+    private String projectName;
+
+    @Value("${aplicacao.version}")
+    private String projectVersion;
+
+    @Value("${aplicacao.description}")
+    private String projectDescription;
 
     @Value("${aplicacao.openapi.url}")
     private String apiUrl;
@@ -20,7 +25,7 @@ public class OpenAPIConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         OpenAPI openAPI = new OpenAPI();
-        openAPI.info(new Info().title(API_TITLE).description(API_DESCRIPTION).version(API_VERSION));
+        openAPI.info(new Info().title(projectName).description(projectDescription).version(projectVersion));
         openAPI.addServersItem(new Server().url(apiUrl).description("URL do serviço."));
         return openAPI;
     }

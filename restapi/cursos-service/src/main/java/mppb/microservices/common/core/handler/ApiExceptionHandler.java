@@ -1,4 +1,4 @@
-package mppb.microservices.fundoapi.infrastructure.errorhandler;
+package mppb.microservices.common.core.handler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
