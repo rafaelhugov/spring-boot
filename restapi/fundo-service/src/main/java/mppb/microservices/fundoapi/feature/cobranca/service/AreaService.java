@@ -1,7 +1,7 @@
 package mppb.microservices.fundoapi.feature.cobranca.service;
 
 import jakarta.persistence.EntityManager;
-import mppb.microservices.common.service.AbstractService;
+import mppb.microservices.common.core.service.AbstractService;
 import mppb.microservices.fundoapi.feature.cobranca.dto.AreaDto;
 import mppb.microservices.fundoapi.feature.cobranca.entity.Area;
 import mppb.microservices.fundoapi.feature.cobranca.projection.AreaSelectProjection;

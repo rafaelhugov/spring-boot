@@ -5,7 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.*;
-import mppb.microservices.common.util.Constants;
+import mppb.microservices.common.core.util.Constants;
 
 @Getter
 @Setter

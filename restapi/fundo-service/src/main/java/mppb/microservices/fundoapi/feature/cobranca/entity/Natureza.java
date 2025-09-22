@@ -2,7 +2,7 @@ package mppb.microservices.fundoapi.feature.cobranca.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import mppb.microservices.common.util.Constants;
+import mppb.microservices.common.core.util.Constants;
 import mppb.microservices.fundoapi.feature.cobranca.converter.enums.TipoSolicitacaoEnumConverter;
 import mppb.microservices.fundoapi.feature.cobranca.enums.TipoSolicitacaoEnum;
 

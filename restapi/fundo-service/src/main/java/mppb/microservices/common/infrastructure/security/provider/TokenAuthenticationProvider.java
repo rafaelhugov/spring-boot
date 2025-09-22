@@ -2,11 +2,11 @@ package mppb.microservices.common.infrastructure.security.provider;
 
 
 
-import mppb.microservices.common.client.authapi.AuthServiceClient;
-import mppb.microservices.common.client.authapi.dto.AcessoDataResponseTO;
-import mppb.microservices.common.client.authapi.dto.ConsultaAutorizacaoRequestTO;
-import mppb.microservices.common.client.authapi.dto.ConsultaAutorizacaoResponseTO;
-import mppb.microservices.common.client.authapi.dto.UsuarioAutorizadoResponseTO;
+import mppb.microservices.common.infrastructure.client.authapi.AuthServiceClient;
+import mppb.microservices.common.infrastructure.client.authapi.dto.AcessoDataResponseDto;
+import mppb.microservices.common.infrastructure.client.authapi.dto.ConsultaAutorizacaoRequestDto;
+import mppb.microservices.common.infrastructure.client.authapi.dto.ConsultaAutorizacaoResponseDto;
+import mppb.microservices.common.infrastructure.client.authapi.dto.UsuarioAutorizadoResponseDto;
 import mppb.microservices.common.infrastructure.security.authorization.TokenAuthentication;
 import mppb.microservices.common.infrastructure.security.util.SecurityUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,10 +40,10 @@ public class TokenAuthenticationProvider implements AuthenticationProvider {
         }
 
         try {
-            ConsultaAutorizacaoResponseTO consultaAutorizacaoResponseTO = authServiceClient
-                    .consultaAutorizacao(new ConsultaAutorizacaoRequestTO(token, siglaSistema));
-            UsuarioAutorizadoResponseTO usuario = consultaAutorizacaoResponseTO.getUsuario();
-            AcessoDataResponseTO acessoData = consultaAutorizacaoResponseTO.getAcessoData();
+            ConsultaAutorizacaoResponseDto consultaAutorizacaoResponseTO = authServiceClient
+                    .consultaAutorizacao(new ConsultaAutorizacaoRequestDto(token, siglaSistema));
+            UsuarioAutorizadoResponseDto usuario = consultaAutorizacaoResponseTO.getUsuario();
+            AcessoDataResponseDto acessoData = consultaAutorizacaoResponseTO.getAcessoData();
 
             return new TokenAuthentication(token, usuario, acessoData, null, SecurityUtils.getAuthorities(acessoData));
         } catch (FeignException exception) {

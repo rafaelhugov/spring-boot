@@ -9,17 +9,17 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import mppb.microservices.common.error.BusinessRuleException;
+import mppb.microservices.common.core.error.BusinessRuleException;
 import mppb.microservices.common.infrastructure.report.JasperService;
 import mppb.microservices.common.infrastructure.security.authorization.TokenAuthentication;
-import mppb.microservices.common.controller.AbstractController;
-import mppb.microservices.common.util.Constants;
-import mppb.microservices.fundoapi.feature.client.bb.api.BbCobrancaFedcService;
+import mppb.microservices.common.core.controller.AbstractController;
+import mppb.microservices.common.core.util.Constants;
+import mppb.microservices.fundoapi.infrastructure.client.bb.api.BbCobrancaFedcService;
 import mppb.microservices.fundoapi.feature.cobranca.converter.AreaConverter;
 import mppb.microservices.fundoapi.feature.cobranca.dto.AreaDto;
 import mppb.microservices.fundoapi.feature.cobranca.dto.ValorCorrigidoDto;
-import mppb.microservices.fundoapi.feature.cobranca.dto.request.AreaSearchRequestDto;
-import mppb.microservices.fundoapi.feature.cobranca.dto.response.AutenticacaoDto;
+import mppb.microservices.fundoapi.feature.cobranca.dto.AreaFilterRequestDto;
+import mppb.microservices.fundoapi.feature.cobranca.dto.AutenticacaoResponseDto;
 import mppb.microservices.fundoapi.feature.cobranca.entity.Area;
 import mppb.microservices.fundoapi.feature.cobranca.projection.AreaSelectProjection;
 import mppb.microservices.fundoapi.feature.cobranca.service.AreaService;
@@ -58,7 +58,7 @@ public class SampleController extends AbstractController {
     private final BbCobrancaFedcService bbCobrancaService;
 
 
-    @GetMapping("/corrigir")
+    @GetMapping(value="/corrigir", produces =  MediaType.APPLICATION_JSON_VALUE)
     public ValorCorrigidoDto corrigirValor(
             @RequestParam Double valorInicial,
             @RequestParam LocalDate dataInicial,
@@ -68,7 +68,7 @@ public class SampleController extends AbstractController {
     }
 
 
-    @PatchMapping("/alterarVencimentoBoleto")
+    @PatchMapping(value="/alterarVencimentoBoleto", produces =  MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> alterarVencimento(@RequestParam String nossoNumero,
                                                @RequestParam Long numeroConvenio,
                                                @RequestParam LocalDate novaDataVencimento) {
@@ -84,7 +84,7 @@ public class SampleController extends AbstractController {
         }
     }
 
-    @PatchMapping("/alterarValorNominal")
+    @PatchMapping(value="/alterarValorNominal", produces =  MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> alterarValorNominal(@RequestParam String nossoNumero,
                                                 @RequestParam Long numeroConvenio,
                                                 @RequestParam Double novoValorNominal) {
@@ -114,7 +114,7 @@ public class SampleController extends AbstractController {
 
     @Operation(summary = "Obtém áreas", description = "Retorna uma lista áreas.")
     @GetMapping(value="", produces =  MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Page<AreaDto>> buscaAreas(@Valid @ModelAttribute AreaSearchRequestDto areaSearchDto, Pageable pageable) {
+    public ResponseEntity<Page<AreaDto>> buscaAreas(@Valid @ModelAttribute AreaFilterRequestDto areaSearchDto, Pageable pageable) {
         Page<Area> areas = Optional.ofNullable(areaSearchDto.getTermo())
                 .filter(termo -> !termo.isBlank())
                 .map(termo -> areaService.findByNomeContainingIgnoreCase(termo, pageable))
@@ -125,7 +125,7 @@ public class SampleController extends AbstractController {
 
     @Operation(summary = "Busca o response do usuário autenticado", description = "Retorna info sobre tokens.")
     @GetMapping(value="/response", produces =  MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<AutenticacaoDto> tokenAutenticacao(@Parameter(hidden = true) TokenAuthentication auth) {
+    public ResponseEntity<AutenticacaoResponseDto> tokenAutenticacao(@Parameter(hidden = true) TokenAuthentication auth) {
         if(auth == null){
             return ResponseEntity.notFound().build();
         }
@@ -136,7 +136,7 @@ public class SampleController extends AbstractController {
 
         Map.of("token", auth.getToken(), "usuario", Map.of("nome", usuarioNome, "id", usuarioId, "login" , login));
 
-        return ResponseEntity.ok(AutenticacaoDto.builder().token(token).usuarioId(usuarioId).usuarioLogin(login).usuarioNome(usuarioNome).build());
+        return ResponseEntity.ok(AutenticacaoResponseDto.builder().token(token).usuarioId(usuarioId).usuarioLogin(login).usuarioNome(usuarioNome).build());
     }
 
     @Operation(summary = "Jsom de um mapa java", description = "Retorna json de um mapa.")
