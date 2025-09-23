@@ -7,8 +7,10 @@ import mppb.microservices.common.core.controller.AbstractController;
 import mppb.microservices.common.core.converter.EntityConverter;
 import mppb.microservices.cursosapi.feature.lookup.converter.ModalidadeConverter;
 import mppb.microservices.cursosapi.feature.lookup.dto.ModalidadeDto;
+import mppb.microservices.cursosapi.feature.lookup.dto.PapelMinistranteDto;
 import mppb.microservices.cursosapi.feature.lookup.dto.PublicoAlvoDto;
 import mppb.microservices.cursosapi.feature.lookup.dto.TipoEventoDto;
+import mppb.microservices.cursosapi.feature.lookup.entities.PapelMinistrante;
 import mppb.microservices.cursosapi.feature.lookup.entities.PublicoAlvo;
 import mppb.microservices.cursosapi.feature.lookup.entities.TipoEvento;
 import mppb.microservices.cursosapi.feature.lookup.service.LookupService;
@@ -35,6 +37,7 @@ public class LookupController extends AbstractController {
     private final ModalidadeConverter modalidadeConverter;
     private final EntityConverter<TipoEventoDto, TipoEvento> tipoEventoConverter;
     private final EntityConverter<PublicoAlvoDto, PublicoAlvo> publicoAlvoConverter;
+    private final EntityConverter<PapelMinistranteDto, PapelMinistrante> papelMinistranteConverter;
 
     @GetMapping(value = "/modalidades", produces =  MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ModalidadeDto>> listModalidades() {
@@ -49,6 +52,11 @@ public class LookupController extends AbstractController {
     @GetMapping(value = "/publico-alvo", produces =  MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<PublicoAlvoDto>> listPublicoAlvo() {
         return ResponseEntity.ok(lookupService.findAllPublicoAlvo().stream().map(publicoAlvoConverter::toDto).toList());
+    }
+
+    @GetMapping(value = "/papeis-ministrante", produces =  MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<PapelMinistranteDto>> listPapeisPalestrante() {
+        return ResponseEntity.ok(lookupService.findAllPapelMinistrante().stream().map(papelMinistranteConverter::toDto).toList());
     }
 
 }
