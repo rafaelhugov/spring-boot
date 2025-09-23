@@ -1,33 +1,17 @@
-aplicacao:
+server:
+  port: ${PORT:9002}
+
+project:
   name: @project.name@
   version: @project.version@
   description: @project.description@
   openapi:
-    url: http://localhost:${server.port}/
+    url: ${PROJECT_OPENAPI_URL:http://localhost:${server.port}/}
 
-server:
-  port: ${PORT:9002}
-auth-service:
-  url: "${API_URL:https://auth-api.mppb.mp.br}"
+api:
+  auth:
+    url: "${API_URL:https://auth-api.mppb.mp.br}"
 
-microsservicos:
-  bb:
-    cobranca:
-      url: "${BBCOBRANCA_API_URL}"
-    oauth:
-      token-url: "${BBCOBRANCA_API_OAUTH_TOKEN_API}"
-    fundos:
-      FDD:
-        gw-dev-app-key: ${BBCOBRANCA_API_FDD_GWDEVAPPKEY}
-        client-id: "${BBCOBRANCA_API_FDD_CLIENT_ID}"
-        client-secret: "${BBCOBRANCA_API_FDD_CLIENT_SECRET}"
-      FEDC:
-        gw-dev-app-key: ${BBCOBRANCA_API_FEDC_GWDEVAPPKEY}
-        client-id: "${BBCOBRANCA_API_FEDC_CLIENT_ID}"
-        client-secret: "${BBCOBRANCA_API_FEDC_CLIENT_SECRET}"
-  bc:
-    selic:
-      url: ${BCSELIC_API_URL}
 spring:
   profiles:
     # prod = usar em produção (secure)
@@ -52,10 +36,10 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: none
-    show-sql: true
+    show-sql: ${JPA_SHOW_SQL:true}
     properties:
       hibernate:
-        format_sql: false
+        format_sql: ${JPA_FORMAT_SQL:false}
   servlet:
     multipart:
       max-file-size: ${MAX_FILE_SIZE:5MB}

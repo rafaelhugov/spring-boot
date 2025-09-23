@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import jakarta.validation.Valid;
 
-@FeignClient(name = "auth-service", url = "${auth-service.url:http://localhost:9001}", path = "/acesso")
+@FeignClient(name = "auth-service", url = "${api.auth.url:http://localhost:9001}", path = "/acesso")
 public interface AuthServiceClient {
 
     @PostMapping("/autoriza")

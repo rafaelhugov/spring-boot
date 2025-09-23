@@ -1,13 +1,16 @@
 package mppb.microservices.cursosapi.feature.lookup.entities;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
+import mppb.microservices.common.core.util.Esquemas;
 
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
-@Table(name = "publico_alvo")
-@Data
-@EqualsAndHashCode(of = "id") // Importante para o funcionamento do Set
+@Table(name = "publico_alvo", schema = Esquemas.SCHEMA_CURSOS) // Nome da tabela atualizado
+@Builder
 public class PublicoAlvo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

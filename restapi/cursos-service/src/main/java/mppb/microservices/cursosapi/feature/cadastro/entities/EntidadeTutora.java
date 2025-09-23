@@ -1,4 +1,4 @@
-package mppb.microservices.cursosapi.feature.cadastros.entities;
+package mppb.microservices.cursosapi.feature.cadastro.entities;
 
 import jakarta.persistence.*;
 import lombok.*;

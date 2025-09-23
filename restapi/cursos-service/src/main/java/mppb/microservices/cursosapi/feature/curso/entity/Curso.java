@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.*;
 import mppb.microservices.common.core.entity.AbstractEntity;
 import mppb.microservices.common.core.util.Esquemas;
-import mppb.microservices.cursosapi.feature.cadastros.entities.EntidadeTutora;
+import mppb.microservices.cursosapi.feature.cadastro.entities.EntidadeTutora;
 import mppb.microservices.cursosapi.feature.lookup.entities.Modalidade;
 import mppb.microservices.cursosapi.feature.lookup.entities.PublicoAlvo;
 import mppb.microservices.cursosapi.feature.lookup.entities.TipoEvento;

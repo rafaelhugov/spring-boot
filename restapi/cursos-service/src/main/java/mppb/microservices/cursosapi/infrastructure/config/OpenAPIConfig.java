@@ -10,16 +10,16 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenAPIConfig {
 
-    @Value("${aplicacao.name}")
+    @Value("${project.name}")
     private String projectName;
 
-    @Value("${aplicacao.version}")
+    @Value("${project.version}")
     private String projectVersion;
 
-    @Value("${aplicacao.description}")
+    @Value("${project.description}")
     private String projectDescription;
 
-    @Value("${aplicacao.openapi.url}")
+    @Value("${project.openapi.url}")
     private String apiUrl;
 
     @Bean

@@ -45,7 +45,7 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(value = BusinessRuleException.class)
     public ResponseEntity<ProblemDetail> handleBusinessRuleException(BusinessRuleException exception) {
-        return createProblemDetail(HttpStatus.CONFLICT, "Regra de negócio violada", exception, null);
+        return createProblemDetail(HttpStatus.UNPROCESSABLE_ENTITY, "Regra de negócio violada", exception, null);
     }
 
     @ExceptionHandler(value = NoResourceFoundException.class)
@@ -53,15 +53,24 @@ public class ApiExceptionHandler {
         return createProblemDetail(HttpStatus.NOT_FOUND, "Recurso não encontrado", exception, null);
     }
 
-
     @ExceptionHandler(value = NotFoundException.class)
     public ResponseEntity<ProblemDetail> handleNotFoundException(NotFoundException exception) {
         return createProblemDetail(HttpStatus.NOT_FOUND, "Recurso não encontrado", exception, null);
     }
 
+    @ExceptionHandler(value = feign.RetryableException.class)
+    public ResponseEntity<ProblemDetail> handleRetryableException(feign.RetryableException exception) {
+        return createProblemDetail(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "Serviço externo indisponível",
+                exception,
+                "O serviço dependente não pôde ser contatado. Por favor, tente novamente mais tarde."
+        );
+    }
+
     @ExceptionHandler(value = ClientApiException.class)
     public ResponseEntity<ProblemDetail> handleClientApiException(ClientApiException exception) {
-        return createProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, "Serviço externo indisponível", exception, null);
+        return createProblemDetail(HttpStatus.BAD_GATEWAY, "Erro em serviço externo", exception, null);
     }
 
     @ExceptionHandler(value = AppException.class)

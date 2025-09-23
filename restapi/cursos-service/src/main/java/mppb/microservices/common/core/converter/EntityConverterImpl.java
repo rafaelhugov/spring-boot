@@ -1,21 +1,17 @@
 package mppb.microservices.common.core.converter;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
-import org.modelmapper.PropertyMap;
 import org.modelmapper.spi.DestinationSetter;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @RequiredArgsConstructor
-public abstract class AbstractConverter<D, E> {
+public abstract class EntityConverterImpl<D, E> implements  EntityConverter <D, E>{
 
     protected final ModelMapper modelMapper;
 
@@ -23,7 +19,7 @@ public abstract class AbstractConverter<D, E> {
     private final Class<E> entityClass;
 
     @SuppressWarnings("unchecked")
-    public AbstractConverter(ModelMapper modelMapper) {
+    public EntityConverterImpl(ModelMapper modelMapper) {
         this.modelMapper = modelMapper;
 
         // Magia da reflexão acontece aqui! ✨
