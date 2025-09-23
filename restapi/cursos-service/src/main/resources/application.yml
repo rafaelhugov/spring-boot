@@ -66,6 +66,7 @@ spring:
     serialization:
       write-dates-as-timestamps: false
     date-format: yyyy-MM-dd
+
 cors:
   enabled: ${CORS_ENABLED:false}
   access-control-headers:

@@ -37,8 +37,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         if(!runtimeEnv.shouldRequireAuthToken()){
-            return http.httpBasic(Customizer.withDefaults()).csrf(csrf -> csrf.disable()).build();
+            return http.httpBasic(Customizer.withDefaults()).csrf(csrf -> csrf.disable())
+                    .headers(headers -> headers.cacheControl(cache -> cache.disable()))
+                    .build();
         }
+
+
 
         return http.httpBasic(Customizer.withDefaults()).csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

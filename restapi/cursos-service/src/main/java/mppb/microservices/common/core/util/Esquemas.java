@@ -1,0 +1,12 @@
+package mppb.microservices.common.core.util;
+
+public class Esquemas {
+
+    public static final String SCHEMA_PUBLIC = "public";
+    public static final String SCHEMA_CURSOS = "cursos";
+    public static final String SCHEMA_FUNDODD = "fundodd";
+    public static final String SCHEMA_RECURSOSHUMANOS = "recursoshumanos";
+    public static final String SCHEMA_DIARIOOFICIAL = "diariooficial";
+    public static final String SCHEMA_PROTOCOLO = "protocolo";
+
+}

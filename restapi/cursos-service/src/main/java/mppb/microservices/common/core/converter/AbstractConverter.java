@@ -7,6 +7,9 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.modelmapper.spi.DestinationSetter;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -18,6 +21,19 @@ public abstract class AbstractConverter<D, E> {
 
     private final Class<D> dtoClass;
     private final Class<E> entityClass;
+
+    @SuppressWarnings("unchecked")
+    public AbstractConverter(ModelMapper modelMapper) {
+        this.modelMapper = modelMapper;
+
+        // Magia da reflexão acontece aqui! ✨
+        Type genericSuperclass = getClass().getGenericSuperclass();
+        ParameterizedType parameterizedType = (ParameterizedType) genericSuperclass;
+        Type[] typeArgs = parameterizedType.getActualTypeArguments();
+
+        this.dtoClass = (Class<D>) typeArgs[0];
+        this.entityClass = (Class<E>) typeArgs[1];
+    }
 
     public D toDto(E entity) {
         return modelMapper.map(entity, dtoClass);

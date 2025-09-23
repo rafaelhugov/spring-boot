@@ -2,7 +2,7 @@ version: '3.7'
 
 services:
   cobranca-api:
-    container_name: cursos-api
+    container_name: curso-api
     image: gavriel.mppb.mp.br:5000/cobranca-api:1.0
     restart: no
     mem_limit: 1g
