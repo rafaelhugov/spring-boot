@@ -1,6 +1,7 @@
 package mppb.microservices.cursosapi.feature.lookup.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import mppb.microservices.common.core.service.AbstractService;
 import mppb.microservices.cursosapi.feature.lookup.entities.Modalidade;
 import mppb.microservices.cursosapi.feature.lookup.entities.PapelMinistrante;
@@ -18,6 +19,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class LookupService {
 
     private final ModalidadeRepository modalidadeRepository;

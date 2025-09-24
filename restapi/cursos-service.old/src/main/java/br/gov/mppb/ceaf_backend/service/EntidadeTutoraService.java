@@ -1,10 +1,12 @@
 package br.gov.mppb.ceaf_backend.service;
 import br.gov.mppb.ceaf_backend.domain.EntidadeTutora;
 import br.gov.mppb.ceaf_backend.repository.EntidadeTutoraRepository;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
+@Log4j2
 public class EntidadeTutoraService {
 
     private final EntidadeTutoraRepository entidadeTutoraRepository;

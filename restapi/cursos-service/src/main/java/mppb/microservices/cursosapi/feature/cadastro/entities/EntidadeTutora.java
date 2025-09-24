@@ -10,7 +10,7 @@ import mppb.microservices.common.core.util.Esquemas;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "entidade_tutora", schema = Esquemas.SCHEMA_CURSOS) // Nome da tabela atualizado
+@Table(name = "entidadetutora", schema = Esquemas.SCHEMA_CURSOS) // Nome da tabela atualizado
 @Builder
 public class EntidadeTutora  extends AbstractEntity<Long>  {
     @Id
