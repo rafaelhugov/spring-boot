@@ -10,7 +10,7 @@ import mppb.microservices.cursosapi.feature.lookup.entities.PapelMinistrante;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "ministrante", schema = Esquemas.SCHEMA_CURSOS) // Nome da tabela atualizado
+@Table(name = "ministrante", schema = Esquemas.SCHEMA_CURSOS)
 @Builder
 public class Ministrante {
 
@@ -32,7 +32,7 @@ public class Ministrante {
     private PapelMinistrante papel;
 
     @Transient
-    private String tipo = "interno"; // 'interno' ou 'externo'
+    private String tipo = "interno";
 
     @Transient
     private String cargo;

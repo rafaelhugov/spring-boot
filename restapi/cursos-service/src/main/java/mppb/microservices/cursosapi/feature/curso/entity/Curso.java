@@ -21,7 +21,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "curso", schema = Esquemas.SCHEMA_CURSOS) // Nome da tabela atualizado
+@Table(name = "curso", schema = Esquemas.SCHEMA_CURSOS)
 @Builder
 public class Curso extends AbstractEntity<Long> {
 
@@ -87,12 +87,12 @@ public class Curso extends AbstractEntity<Long> {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "cursopublico", // Nome da tabela atualizado
-            schema = "curso",      // Schema atualizado
+            name = "cursopublico",
+            schema = "curso",
             joinColumns = @JoinColumn(name = "id_curso"),
             inverseJoinColumns = @JoinColumn(name = "id_publicoalvo")
     )
-    private Set<PublicoAlvo> publicosAlvo = new HashSet<>();
+    private Set<PublicoAlvo> publicosAlvo ;
 
     @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, fetch = FetchType.EAGER)
     @JoinTable(
@@ -101,5 +101,5 @@ public class Curso extends AbstractEntity<Long> {
             joinColumns = @JoinColumn(name = "id_curso"),
             inverseJoinColumns = @JoinColumn(name = "id_ministrante")
     )
-    private Set<Ministrante> ministrantes = new HashSet<>();
+    private Set<Ministrante> ministrantes ;
 }

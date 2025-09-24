@@ -24,6 +24,7 @@ public class ServidorController {
 
     private final ServidorService servidorService;
 
+    // TODO remover /buscar, pois deveria ser apenas "/" para seguir OpenAPI
     @GetMapping(value = "/buscar", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Busca servidores por nome", description = "Retorna uma lista de até 10 servidores cujo nome contém o termo pesquisado.")
     public ResponseEntity<List<ServidorProjection>> buscarServidoresPorNome(
@@ -33,6 +34,7 @@ public class ServidorController {
         List<ServidorProjection> servidores = servidorService.buscarServidoresPorNome(nome);
         return ResponseEntity.ok(servidores);
     }
+
 
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Busca um servidor por ID", description = "Retorna os dados de um servidor específico a partir do seu ID.")

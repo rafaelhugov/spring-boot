@@ -9,7 +9,7 @@ import lombok.*;
 @ToString
 @Builder
 public class ServidorDto {
-    private String tipoCargoNome; // NOVO CAMPO
+    private String tipoCargoNome;
     private Integer id;
     private String matricula;
     private String nome;

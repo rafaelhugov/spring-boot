@@ -27,7 +27,7 @@ public interface ServidorRepository extends JpaRepository<Servidor, Long> {
             ORDER BY servidor_nome
             LIMIT 10
             """,
-            nativeQuery = true // Essencial para executar SQL nativo!
+            nativeQuery = true
     )
      List<ServidorProjection> buscarServidoresPorNome(@Param("nome") String nome);
 
