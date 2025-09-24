@@ -9,7 +9,7 @@ import mppb.microservices.common.core.util.Esquemas;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "publico_alvo", schema = Esquemas.SCHEMA_CURSOS) // Nome da tabela atualizado
+@Table(name = "publicoalvo", schema = Esquemas.SCHEMA_CURSOS) // Nome da tabela atualizado
 @Builder
 public class PublicoAlvo {
     @Id
@@ -19,6 +19,6 @@ public class PublicoAlvo {
     @Column(name = "nome", nullable = false)
     private String nome;
 
-    @Column(name = "interno_externo", nullable = false, length = 1)
+    @Column(name = "internoexterno", nullable = false, length = 1)
     private String internoExterno;
 }

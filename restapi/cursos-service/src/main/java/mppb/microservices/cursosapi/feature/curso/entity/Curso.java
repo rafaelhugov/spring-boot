@@ -36,50 +36,50 @@ public class Curso extends AbstractEntity<Long> {
     private String descricao;
 
     @ManyToOne
-    @JoinColumn(name = "id_tipo_evento")
+    @JoinColumn(name = "id_tipoevento")
     private TipoEvento tipoEvento;
 
     @ManyToOne
-    @JoinColumn(name = "id_entidade_tutora")
+    @JoinColumn(name = "id_entidadetutora")
     private EntidadeTutora entidadeTutora;
 
     @CreationTimestamp
-    @Column(name = "data_criacao", updatable = false)
+    @Column(name = "datacriacao", updatable = false)
     private LocalDateTime dataCriacao;
 
-    @Column(name = "inscricao_data_inicial")
+    @Column(name = "inscricaodatainicial")
     private LocalDateTime inscricaoDataInicial;
 
-    @Column(name = "inscricao_data_final")
+    @Column(name = "inscricaodatafinal")
     private LocalDateTime inscricaoDataFinal;
 
-    @Column(name = "realizacao_data_inicial")
+    @Column(name = "realizacaodatainicial")
     private LocalDateTime realizacaoDataInicial;
 
-    @Column(name = "realizacao_data_final")
+    @Column(name = "realizacaodatafinal")
     private LocalDateTime realizacaoDataFinal;
 
     @Pattern(regexp = "^\\d+:[0-5]\\d:[0-5]\\d$", message = "Formato de carga horária inválido. Use o formato HH:MM:SS.")
     @Column(name = "carga_horaria", length = 8)
     private String cargaHoraria;
 
-    @Column(name = "percentual_ch_aprovacao")
+    @Column(name = "percentualchaprovacao")
     private Integer percentualChAprovacao;
 
-    @Column(name = "detalha_carga_horaria")
+    @Column(name = "detalhacargahoraria")
     private String detalhaCargaHoraria;
 
-    @Column(name = "link_programacao")
+    @Column(name = "linkprogramacao")
     private String linkProgramacao;
 
     @ManyToOne
     @JoinColumn(name = "id_modalidade")
     private Modalidade modalidade;
 
-    @Column(name = "fl_progressao_funcional", length = 1)
+    @Column(name = "progressaofuncional", length = 1)
     private String flProgressaoFuncional;
 
-    @Column(name = "hash_inscricao", unique = true)
+    @Column(name = "hashinscricao", unique = true)
     private UUID hashInscricao;
 
     @Transient
@@ -87,16 +87,16 @@ public class Curso extends AbstractEntity<Long> {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "cursos_publico", // Nome da tabela atualizado
+            name = "cursopublico", // Nome da tabela atualizado
             schema = "curso",      // Schema atualizado
             joinColumns = @JoinColumn(name = "id_curso"),
-            inverseJoinColumns = @JoinColumn(name = "id_publico_alvo")
+            inverseJoinColumns = @JoinColumn(name = "id_publicoalvo")
     )
     private Set<PublicoAlvo> publicosAlvo = new HashSet<>();
 
     @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, fetch = FetchType.EAGER)
     @JoinTable(
-            name = "cursos_ministrantes",
+            name = "cursoministrante",
             schema = "curso",
             joinColumns = @JoinColumn(name = "id_curso"),
             inverseJoinColumns = @JoinColumn(name = "id_ministrante")

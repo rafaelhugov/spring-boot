@@ -9,7 +9,7 @@ import mppb.microservices.common.core.util.Esquemas;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "tipo_evento", schema = Esquemas.SCHEMA_CURSOS) // Nome da tabela atualizado
+@Table(name = "tipoevento", schema = Esquemas.SCHEMA_CURSOS) // Nome da tabela atualizado
 @Builder
 public class TipoEvento {
     @Id

@@ -24,14 +24,13 @@ public class Ministrante {
     @Column(name = "nome")
     private String nome;
 
-    @Column(name = "nome_orgao_externo")
+    @Column(name = "nomeorgaoexterno")
     private String nomeOrgaoExterno;
 
     @ManyToOne
     @JoinColumn(name = "id_papel")
     private PapelMinistrante papel;
 
-    // Campo temporário para ajudar na comunicação com o frontend
     @Transient
     private String tipo = "interno"; // 'interno' ou 'externo'
 

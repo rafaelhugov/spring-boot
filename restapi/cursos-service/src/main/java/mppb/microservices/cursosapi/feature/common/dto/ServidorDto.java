@@ -1,0 +1,17 @@
+package mppb.microservices.cursosapi.feature.common.dto;
+
+import lombok.*;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+@Builder
+public class ServidorDto {
+    private String tipoCargoNome; // NOVO CAMPO
+    private Integer id;
+    private String matricula;
+    private String nome;
+    private String cargo;
+}
