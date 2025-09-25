@@ -17,7 +17,7 @@ spring:
     # prod = usar em produção (secure)
     # dev = usar em desenvolvimento (trace)
     # insecure = dispensa exigência de token de autorização nas chamadas.
-    # trace = força incluir trace na resposta http de erros
+    # trace = força incluir trace na resposta http de erros em qualquer ambiente (mesmo prod)
     active: ${SPRING_PROFILES_ACTIVE:dev}
   http:
     encoding:
