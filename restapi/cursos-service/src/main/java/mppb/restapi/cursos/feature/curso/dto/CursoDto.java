@@ -51,17 +51,14 @@ public class CursoDto {
     @JsonView(CursoView.Listagem.class)
     private ModalidadeDto modalidade;
 
-    // TODO retirar fl
-    private String flProgressaoFuncional;
+    private String progressaoFuncional;
 
     private String hashInscricao;
 
-    // TODO retirar atribuicao
-    private Boolean gerarLink = true;
-
     @JsonView(CursoView.Listagem.class)
     private List<PublicoAlvoDto> publicosAlvo ;
-// TODO remover ministrantes daqui
+
+    // TODO remover ministrantes daqui
     @JsonView(CursoView.Listagem.class)
     private List<Object> ministrantes ;
 

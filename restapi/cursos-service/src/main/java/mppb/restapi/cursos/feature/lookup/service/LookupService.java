@@ -1,5 +1,7 @@
 package mppb.restapi.cursos.feature.lookup.service;
 
+import mppb.restapi.cursos.feature.cadastro.entities.EntidadeTutora;
+import mppb.restapi.cursos.feature.cadastro.repository.EntidadeTutoraRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -13,6 +15,7 @@ import mppb.restapi.cursos.feature.lookup.repository.PublicoAlvoRepository;
 import mppb.restapi.cursos.feature.lookup.repository.TipoEventoRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -25,6 +28,7 @@ public class LookupService {
     private final TipoEventoRepository tipoEventoRepository;
     private final PublicoAlvoRepository publicoAlvoRepository;
     private final PapelMinistranteRepository papelMinistranteRepository;
+    private final EntidadeTutoraRepository entidadeTutoraRepository;
 
     @Transactional(readOnly = true)
     public List<Modalidade> findAllModalidades() {
@@ -45,4 +49,10 @@ public class LookupService {
     public List<PapelMinistrante> findAllPapelMinistrante() {
         return papelMinistranteRepository.findAll();
     }
+
+    @Transactional(readOnly = true)
+    public List<EntidadeTutora> findAllEntidadesTutoras() {
+        return entidadeTutoraRepository.findAll();
+    }
+
 }

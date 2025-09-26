@@ -25,8 +25,7 @@ public class ServidorController extends AbstractController {
 
     private final ServidorService servidorService;
 
-    // TODO remover o verbo "buscar"
-    @GetMapping(value = "/buscar", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Busca servidores por nome", description = "Retorna uma lista de até 10 servidores cujo nome contém o termo pesquisado.")
     public ResponseEntity<List<ServidorProjection>> buscarServidoresPorNome(
             @Parameter(description = "Termo de busca para o nome do servidor.", required = true, example = "joao silva")

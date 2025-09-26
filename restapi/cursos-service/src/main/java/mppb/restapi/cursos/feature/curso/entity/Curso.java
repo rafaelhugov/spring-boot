@@ -76,8 +76,7 @@ public class Curso extends AbstractEntity<Long> {
     private Modalidade modalidade;
 
     @Column(name = "progressaofuncional", length = 1)
-    // TODO retirar fl
-    private String flProgressaoFuncional;
+    private String progressaoFuncional;
 
     @Column(name = "hashinscricao", unique = true)
     private UUID hashInscricao;

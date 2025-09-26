@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.core.converter.DtoConverter;
 import mppb.restapi.common.core.controller.AbstractController;
+import mppb.restapi.cursos.feature.cadastro.dto.EntidadeTutoraDto;
+import mppb.restapi.cursos.feature.cadastro.entities.EntidadeTutora;
 import mppb.restapi.cursos.feature.lookup.converter.ModalidadeConverter;
 import mppb.restapi.cursos.feature.lookup.dto.ModalidadeDto;
 import mppb.restapi.cursos.feature.lookup.dto.PapelMinistranteDto;
@@ -26,8 +28,8 @@ import java.util.List;
 
 @Validated
 @RestController
-// TODO ajustar /api/lookup
-@RequestMapping(Constants.API_PREFIX + "/")
+
+@RequestMapping(Constants.API_PREFIX + "/lookup")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Lookup", description = "Retorna lista de seleção.")
@@ -38,6 +40,7 @@ public class LookupController extends AbstractController {
     private final DtoConverter<TipoEventoDto, TipoEvento> tipoEventoConverter;
     private final DtoConverter<PublicoAlvoDto, PublicoAlvo> publicoAlvoConverter;
     private final DtoConverter<PapelMinistranteDto, PapelMinistrante> papelMinistranteConverter;
+    private final DtoConverter<EntidadeTutoraDto, EntidadeTutora> entidadeTutoraConverter;
 
     @GetMapping(value = "/modalidades", produces =  MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ModalidadeDto>> listModalidades() {
@@ -49,12 +52,16 @@ public class LookupController extends AbstractController {
         return ResponseEntity.ok(lookupService.findAllTiposEvento().stream().map(tipoEventoConverter::toDto).toList());
     }
 
+    @GetMapping(value = "/entidades-tutoras", produces =  MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<EntidadeTutoraDto>> listEntidadesTutoras() {
+        return ResponseEntity.ok(lookupService.findAllEntidadesTutoras().stream().map(entidadeTutoraConverter::toDto).toList());
+    }
+
     @GetMapping(value = "/publico-alvo", produces =  MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<PublicoAlvoDto>> listPublicoAlvo() {
         return ResponseEntity.ok(lookupService.findAllPublicoAlvo().stream().map(publicoAlvoConverter::toDto).toList());
     }
 
-    // TODO ajustar /papeis-ministrante
     @GetMapping(value = "/papeis-ministrantes", produces =  MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<PapelMinistranteDto>> listPapeisPalestrante() {
         return ResponseEntity.ok(lookupService.findAllPapelMinistrante().stream().map(papelMinistranteConverter::toDto).toList());
