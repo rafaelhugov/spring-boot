@@ -21,6 +21,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Validated
 @RestController
 @RequestMapping(Constants.API_PREFIX + "/cursos")
@@ -33,11 +35,18 @@ public class CursoController extends AbstractController {
 
     private final DtoConverter<CursoDto, Curso> cursoConverter;
 
+//    @Operation(summary = "Obtém cursos", description = "Retorna cursos paginados.")
+//    @GetMapping(value="", produces =  MediaType.APPLICATION_JSON_VALUE)
+//    @JsonView(CursoView.Listagem.class)
+//    public ResponseEntity<Page<CursoDto>> getPages(Pageable pageable) {
+//        return ResponseEntity.ok(cursoService.findAll(pageable).map(cursoConverter::toDto));
+//    }
+
     @Operation(summary = "Obtém cursos", description = "Retorna cursos paginados.")
     @GetMapping(value="", produces =  MediaType.APPLICATION_JSON_VALUE)
     @JsonView(CursoView.Listagem.class)
-    public ResponseEntity<Page<CursoDto>> getPages(Pageable pageable) {
-        return ResponseEntity.ok(cursoService.findAll(pageable).map(cursoConverter::toDto));
+    public ResponseEntity<List<CursoDto>> getPages() {
+        return ResponseEntity.ok(cursoService.findAll().stream().map(cursoConverter::toDto).toList());
     }
 
     @Operation(summary = "Obtém curso", description = "Retorna curso.")

@@ -26,7 +26,8 @@ import java.util.List;
 
 @Validated
 @RestController
-@RequestMapping(Constants.API_PREFIX + "/lookup")
+// TODO ajustar /api/lookup
+@RequestMapping(Constants.API_PREFIX + "/")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Lookup", description = "Retorna lista de seleção.")
@@ -53,7 +54,8 @@ public class LookupController extends AbstractController {
         return ResponseEntity.ok(lookupService.findAllPublicoAlvo().stream().map(publicoAlvoConverter::toDto).toList());
     }
 
-    @GetMapping(value = "/papeis-ministrante", produces =  MediaType.APPLICATION_JSON_VALUE)
+    // TODO ajustar /papeis-ministrante
+    @GetMapping(value = "/papeis-ministrantes", produces =  MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<PapelMinistranteDto>> listPapeisPalestrante() {
         return ResponseEntity.ok(lookupService.findAllPapelMinistrante().stream().map(papelMinistranteConverter::toDto).toList());
     }

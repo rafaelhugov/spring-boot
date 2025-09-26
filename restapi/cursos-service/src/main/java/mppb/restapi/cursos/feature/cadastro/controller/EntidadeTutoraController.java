@@ -18,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Validated
 @RestController
 @RequestMapping(Constants.API_PREFIX + "/entidades-tutoras")
@@ -29,10 +31,17 @@ public class EntidadeTutoraController extends AbstractController {
     private final EntidadeTutoraService entidadeTutoraService;
     private final DtoConverter<EntidadeTutoraDto, EntidadeTutora> entidadeTutoraConverter;
 
+//    @Operation(summary = "Obtém entidades tutoras", description = "Retorna entidades tutoras paginadas.")
+//    @GetMapping(value="", produces =  MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<Page<EntidadeTutoraDto>> getPages(Pageable pageable) {
+//        return ResponseEntity.ok(entidadeTutoraService.findAll(pageable).map(entidadeTutoraConverter::toDto));
+//    }
+
+    // TODO remover isso reativar acima
     @Operation(summary = "Obtém entidades tutoras", description = "Retorna entidades tutoras paginadas.")
     @GetMapping(value="", produces =  MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Page<EntidadeTutoraDto>> getPages(Pageable pageable) {
-        return ResponseEntity.ok(entidadeTutoraService.findAll(pageable).map(entidadeTutoraConverter::toDto));
+    public ResponseEntity<List<EntidadeTutoraDto>> getPages() {
+        return ResponseEntity.ok(entidadeTutoraService.findAll().stream().map(entidadeTutoraConverter::toDto).toList());
     }
 
     @PostMapping
