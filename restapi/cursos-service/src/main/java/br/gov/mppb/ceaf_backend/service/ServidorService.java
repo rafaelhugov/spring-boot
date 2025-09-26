@@ -41,7 +41,7 @@ public class ServidorService {
     }
 
 
-    public Optional<ServidorDTO> buscarServidorPorId(Integer id) {
+    public Optional<ServidorDTO> buscarServidorPorId(Long id) {
         String sql = "select distinct tipocargo_nome, servidor_id, servidor_matricula, servidor_nome, cargo_nome " +
                 "from diariooficial.mapa_por_membro_vw " +
                 "where servidor_id = :id limit 1";

@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Entity
-@Table(name = "publico_alvo")
+@Table(name = "publicoalvo")
 @Data
 @EqualsAndHashCode(of = "id") // Importante para o funcionamento do Set
 public class PublicoAlvo {
@@ -16,6 +16,6 @@ public class PublicoAlvo {
     @Column(name = "nome", nullable = false)
     private String nome;
 
-    @Column(name = "interno_externo", nullable = false, length = 1)
+    @Column(name = "internoexterno", nullable = false, length = 1)
     private String internoExterno;
 }
