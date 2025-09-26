@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
  * @param <D> O tipo do DTO.
  * @param <E> O tipo da Entidade.
  */
-public interface EntityConverter<D, E> {
+public interface DtoConverter<D, E> {
 
     /**
      * Converte uma Entidade para seu respectivo DTO.

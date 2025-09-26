@@ -1,6 +1,8 @@
 package mppb.restapi.cursos.feature.lookup.dto;
 
 import lombok.*;
+import mppb.restapi.cursos.feature.lookup.entities.PapelMinistrante;
+import mppb.restapi.cursos.feature.lookup.entities.PublicoAlvo;
 
 @Getter
 @Setter

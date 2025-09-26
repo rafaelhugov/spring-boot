@@ -1,5 +1,6 @@
 package mppb.restapi.cursos.feature.lookup.service;
 
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import mppb.restapi.cursos.feature.lookup.entities.Modalidade;
@@ -17,6 +18,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Log4j2
+@Transactional
 public class LookupService {
 
     private final ModalidadeRepository modalidadeRepository;
@@ -24,18 +26,22 @@ public class LookupService {
     private final PublicoAlvoRepository publicoAlvoRepository;
     private final PapelMinistranteRepository papelMinistranteRepository;
 
+    @Transactional(readOnly = true)
     public List<Modalidade> findAllModalidades() {
         return modalidadeRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public List<TipoEvento> findAllTiposEvento()  {
         return tipoEventoRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public List<PublicoAlvo> findAllPublicoAlvo() {
         return publicoAlvoRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public List<PapelMinistrante> findAllPapelMinistrante() {
         return papelMinistranteRepository.findAll();
     }

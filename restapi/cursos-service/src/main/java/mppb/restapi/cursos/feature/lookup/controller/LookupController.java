@@ -3,7 +3,7 @@ package mppb.restapi.cursos.feature.lookup.controller;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import mppb.restapi.common.core.converter.EntityConverter;
+import mppb.restapi.common.core.converter.DtoConverter;
 import mppb.restapi.common.core.controller.AbstractController;
 import mppb.restapi.cursos.feature.lookup.converter.ModalidadeConverter;
 import mppb.restapi.cursos.feature.lookup.dto.ModalidadeDto;
@@ -29,14 +29,14 @@ import java.util.List;
 @RequestMapping(Constants.API_PREFIX + "/lookup")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Controlador lookup", description = "Retorna lista de seleção.")
+@Tag(name = "Lookup", description = "Retorna lista de seleção.")
 public class LookupController extends AbstractController {
 
     private final LookupService lookupService;
     private final ModalidadeConverter modalidadeConverter;
-    private final EntityConverter<TipoEventoDto, TipoEvento> tipoEventoConverter;
-    private final EntityConverter<PublicoAlvoDto, PublicoAlvo> publicoAlvoConverter;
-    private final EntityConverter<PapelMinistranteDto, PapelMinistrante> papelMinistranteConverter;
+    private final DtoConverter<TipoEventoDto, TipoEvento> tipoEventoConverter;
+    private final DtoConverter<PublicoAlvoDto, PublicoAlvo> publicoAlvoConverter;
+    private final DtoConverter<PapelMinistranteDto, PapelMinistrante> papelMinistranteConverter;
 
     @GetMapping(value = "/modalidades", produces =  MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ModalidadeDto>> listModalidades() {

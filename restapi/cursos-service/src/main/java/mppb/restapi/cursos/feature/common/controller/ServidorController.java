@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import mppb.restapi.common.core.controller.AbstractController;
 import mppb.restapi.cursos.feature.common.projection.ServidorProjection;
 import mppb.restapi.cursos.feature.common.service.ServidorService;
 import mppb.restapi.cursos.infrastructure.util.Constants;
@@ -20,11 +21,12 @@ import java.util.List;
 @RequestMapping(Constants.API_PREFIX + "/servidores")
 @RequiredArgsConstructor
 @Tag(name = "Servidores", description = "Endpoints para consulta de servidores.")
-public class ServidorController {
+public class ServidorController extends AbstractController {
 
     private final ServidorService servidorService;
 
-    @GetMapping(value = "/", produces = MediaType.APPLICATION_JSON_VALUE)
+    // TODO remover o verbo "buscar"
+    @GetMapping(value = "/buscar", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Busca servidores por nome", description = "Retorna uma lista de até 10 servidores cujo nome contém o termo pesquisado.")
     public ResponseEntity<List<ServidorProjection>> buscarServidoresPorNome(
             @Parameter(description = "Termo de busca para o nome do servidor.", required = true, example = "joao silva")

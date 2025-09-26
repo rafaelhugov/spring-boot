@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.core.controller.AbstractController;
-import mppb.restapi.common.core.converter.EntityConverter;
+import mppb.restapi.common.core.converter.DtoConverter;
 import mppb.restapi.cursos.feature.cadastro.dto.EntidadeTutoraDto;
 import mppb.restapi.cursos.feature.cadastro.entities.EntidadeTutora;
 import mppb.restapi.cursos.feature.cadastro.service.EntidadeTutoraService;
@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 public class EntidadeTutoraController extends AbstractController {
 
     private final EntidadeTutoraService entidadeTutoraService;
-    private final EntityConverter<EntidadeTutoraDto, EntidadeTutora> entidadeTutoraConverter;
+    private final DtoConverter<EntidadeTutoraDto, EntidadeTutora> entidadeTutoraConverter;
 
     @Operation(summary = "Obtém entidades tutoras", description = "Retorna entidades tutoras paginadas.")
     @GetMapping(value="", produces =  MediaType.APPLICATION_JSON_VALUE)

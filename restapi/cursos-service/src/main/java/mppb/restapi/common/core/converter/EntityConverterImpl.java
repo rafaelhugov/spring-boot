@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.function.Function;
 
 @RequiredArgsConstructor
-public abstract class EntityConverterImpl<D, E> implements  EntityConverter <D, E>{
+public  class EntityConverterImpl<D, E> implements DtoConverter<D, E> {
 
     protected final ModelMapper modelMapper;
 

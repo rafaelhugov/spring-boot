@@ -1,6 +1,6 @@
 package mppb.restapi.cursos.feature.lookup.converter.config;
 
-import mppb.restapi.common.core.converter.EntityConverter;
+import mppb.restapi.common.core.converter.DtoConverter;
 import mppb.restapi.common.core.converter.EntityConverterImpl;
 import mppb.restapi.cursos.feature.lookup.dto.PapelMinistranteDto;
 import mppb.restapi.cursos.feature.lookup.dto.PublicoAlvoDto;
@@ -16,17 +16,17 @@ import org.springframework.context.annotation.Configuration;
 public class LookupConverterConfig {
 
     @Bean
-    public EntityConverter<TipoEventoDto, TipoEvento> tipoEventoConverter(ModelMapper modelMapper) {
+    public DtoConverter<TipoEventoDto, TipoEvento> tipoEventoConverter(ModelMapper modelMapper) {
         return new EntityConverterImpl<TipoEventoDto, TipoEvento>(modelMapper) {};
     }
 
     @Bean
-    public EntityConverter<PublicoAlvoDto, PublicoAlvo> publicoAlvoConverter(ModelMapper modelMapper) {
+    public DtoConverter<PublicoAlvoDto, PublicoAlvo> publicoAlvoConverter(ModelMapper modelMapper) {
         return new EntityConverterImpl<PublicoAlvoDto, PublicoAlvo>(modelMapper) {};
     }
 
     @Bean
-    public EntityConverter<PapelMinistranteDto, PapelMinistrante> papelMinistranteConverter(ModelMapper modelMapper) {
+    public DtoConverter<PapelMinistranteDto, PapelMinistrante> papelMinistranteConverter(ModelMapper modelMapper) {
         return new EntityConverterImpl<PapelMinistranteDto, PapelMinistrante>(modelMapper) {};
     }
 }

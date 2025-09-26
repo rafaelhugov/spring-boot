@@ -32,6 +32,7 @@ public class Ministrante {
     private PapelMinistrante papel;
 
     @Transient
+    //TODO criar enum
     private String tipo = "interno";
 
     @Transient

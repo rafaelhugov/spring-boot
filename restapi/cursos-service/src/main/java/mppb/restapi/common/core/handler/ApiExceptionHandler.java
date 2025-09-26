@@ -9,6 +9,7 @@ import mppb.restapi.common.core.error.MessageParametersException;
 import mppb.restapi.common.core.error.NotFoundException;
 import mppb.restapi.common.core.error.feign.ClientApiException;
 import mppb.restapi.common.infrastructure.env.RuntimeEnv;
+import org.modelmapper.MappingException;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
@@ -73,6 +74,13 @@ public class ApiExceptionHandler {
         return createProblemDetail(HttpStatus.BAD_GATEWAY, "Erro em serviço externo", exception, null);
     }
 
+
+
+    @ExceptionHandler(value = MappingException.class)
+    public ResponseEntity<ProblemDetail> handleMappingException(MappingException exception) {
+        return createProblemDetail(HttpStatus.BAD_REQUEST, "Erro no mapeamento dos dados", exception, null );
+    }
+
     @ExceptionHandler(value = AppException.class)
     public ResponseEntity<ProblemDetail> handleAppException(AppException exception) {
         return createProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Erro genérico da aplicação", exception, null);
@@ -112,8 +120,10 @@ public class ApiExceptionHandler {
             MessageParametersException msgException = (MessageParametersException) exception;
             String detailException = resolveMessage(msgException.getKey(), msgException.getParameters());
             problemDetail.setDetail(detailException);
-        } else {
+        } else if (exception instanceof AppException) {
             problemDetail.setDetail(exception.getMessage());
+        } else {
+            problemDetail.setDetail(title);
         }
 
         List errors = new ArrayList();
@@ -146,7 +156,7 @@ public class ApiExceptionHandler {
                         try {
                             return messageSource.getMessage(k, params, LocaleContextHolder.getLocale());
                         } catch (Exception e) {
-                            log.error(e.getMessage(), e);
+                           // log.error(e.getMessage(), e);
                             return messageSource.getMessage("msg", new Object[]{key}, LocaleContextHolder.getLocale());
                         }
                     })

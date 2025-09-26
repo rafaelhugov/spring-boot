@@ -24,9 +24,9 @@ import java.util.UUID;
 @Builder
 public class Curso extends AbstractEntity<Long> {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+//    @Id
+//    @GeneratedValue(strategy = GenerationType.IDENTITY)
+//    private Long id;
 
     @Column(name = "titulo", nullable = false)
     private String titulo;
@@ -59,7 +59,7 @@ public class Curso extends AbstractEntity<Long> {
     private LocalDateTime realizacaoDataFinal;
 
     @Pattern(regexp = "^\\d+:[0-5]\\d:[0-5]\\d$", message = "Formato de carga horária inválido. Use o formato HH:MM:SS.")
-    @Column(name = "carga_horaria", length = 8)
+    @Column(name = "cargahoraria", length = 8)
     private String cargaHoraria;
 
     @Column(name = "percentualchaprovacao")
@@ -76,17 +76,14 @@ public class Curso extends AbstractEntity<Long> {
     private Modalidade modalidade;
 
     @Column(name = "progressaofuncional", length = 1)
-    private String flProgressaoFuncional;
+    private String progressaoFuncional;
 
     @Column(name = "hashinscricao", unique = true)
     private UUID hashInscricao;
 
-    @Transient
-    private boolean gerarLink;
-
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "cursopublico",
+            name = "cursopublicoalvo",
             schema = "curso",
             joinColumns = @JoinColumn(name = "id_curso"),
             inverseJoinColumns = @JoinColumn(name = "id_publicoalvo")

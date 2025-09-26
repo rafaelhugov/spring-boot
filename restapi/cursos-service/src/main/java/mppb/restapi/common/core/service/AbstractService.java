@@ -10,8 +10,8 @@ import java.util.Optional;
 
 public class AbstractService<I, ID> {
 
-    private final EntityManager entityManager;
-    private final JpaRepository<I, ID> repository;
+    protected final EntityManager entityManager;
+    protected final JpaRepository<I, ID> repository;
 
     public AbstractService(EntityManager entityManager, JpaRepository<I, ID> repository){
         this.entityManager = entityManager;
