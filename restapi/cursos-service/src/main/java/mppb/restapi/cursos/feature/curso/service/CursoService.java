@@ -10,8 +10,12 @@ import mppb.restapi.cursos.feature.curso.entity.Curso;
 import mppb.restapi.cursos.feature.curso.entity.Ministrante;
 import mppb.restapi.cursos.feature.curso.repository.CursoRepository;
 import mppb.restapi.cursos.feature.curso.repository.MinistranteRepository;
+import mppb.restapi.cursos.feature.curso.specification.CursoSpecification;
 import mppb.restapi.cursos.feature.lookup.repository.ModalidadeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.AuditorAware;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +34,9 @@ public class CursoService extends AbstractService<Curso, Long>{
     private final ServidorService servidorService;
     private final CursoRepository cursoRepository;
 
+    @Autowired
+    private CursoSpecification specification;
+
     public CursoService(EntityManager entityManager, CursoRepository cursoRepository, MinistranteRepository ministranteRepository, ServidorService servidorService){
         super(entityManager, cursoRepository);
         this.ministranteRepository = ministranteRepository;
@@ -37,6 +44,9 @@ public class CursoService extends AbstractService<Curso, Long>{
         this.cursoRepository = cursoRepository;
     }
 
+    public Page<Curso> findAll(String titulo, Long modalidadeId, Long publicoAlvoId, Pageable pageable) {
+        return cursoRepository.findAll(specification.comFiltros(titulo, modalidadeId, publicoAlvoId), pageable);
+    }
 
     @Override
     @Transactional(readOnly = true)

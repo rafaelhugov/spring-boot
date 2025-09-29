@@ -38,8 +38,12 @@ public class CursoController extends AbstractController {
     @Operation(summary = "Obtém cursos", description = "Retorna cursos paginados.")
     @GetMapping(value="", produces =  MediaType.APPLICATION_JSON_VALUE)
     @JsonView(CursoView.Listagem.class)
-    public ResponseEntity<Page<CursoDto>> getPages(Pageable pageable) {
-        return ResponseEntity.ok(cursoService.findAll(pageable).map(cursoConverter::toDto));
+    public ResponseEntity<Page<CursoDto>> getPages(
+                                                   @RequestParam(required = false) String titulo,
+                                                   @RequestParam(required = false) Long modalidadeId,
+                                                   @RequestParam(required = false) Long publicoAlvoId,
+                                                   Pageable pageable) {
+        return ResponseEntity.ok(cursoService.findAll(titulo, modalidadeId, publicoAlvoId, pageable).map(cursoConverter::toDto));
     }
 
 //    @Operation(summary = "Obtém cursos", description = "Retorna cursos paginados.")

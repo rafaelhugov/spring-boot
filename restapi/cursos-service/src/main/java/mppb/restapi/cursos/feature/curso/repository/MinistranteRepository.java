@@ -1,6 +1,6 @@
 package mppb.restapi.cursos.feature.curso.repository;
 
+import mppb.restapi.common.core.repository.BaseRepository;
 import mppb.restapi.cursos.feature.curso.entity.Ministrante;
-import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface MinistranteRepository extends JpaRepository<Ministrante, Long> {}
+public interface MinistranteRepository extends BaseRepository<Ministrante, Long> {}

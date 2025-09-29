@@ -2,12 +2,15 @@ package mppb.restapi.common.core.service;
 
 import jakarta.persistence.EntityManager;
 import mppb.restapi.common.core.error.NotFoundException;
+import mppb.restapi.common.core.repository.BaseRepository;
 import mppb.restapi.common.core.repository.SoftDeleteRepository;
 import mppb.restapi.common.feature.autorizacao.entities.Usuario;
+import mppb.restapi.cursos.feature.curso.entity.Curso;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
@@ -17,12 +20,12 @@ import java.util.Optional;
 public class AbstractService<I, ID> {
 
     protected final EntityManager entityManager;
-    protected final JpaRepository<I, ID> repository;
+    protected final BaseRepository<I, ID> repository;
 
     @Autowired
     private AuditorAware<Usuario> auditorAware;
 
-    public AbstractService(EntityManager entityManager, JpaRepository<I, ID> repository){
+    public AbstractService(EntityManager entityManager, BaseRepository<I, ID> repository){
         this.entityManager = entityManager;
         this.repository = repository;
     }
@@ -33,6 +36,10 @@ public class AbstractService<I, ID> {
 
     public Page<I> findAll(Pageable pageable) {
         return repository.findAll(pageable);
+    }
+
+    public Page<I> findAll(Specification specification, Pageable pageable) {
+        return repository.findAll(specification, pageable);
     }
 
     public Optional<I> findById(ID id) {

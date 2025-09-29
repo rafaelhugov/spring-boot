@@ -12,7 +12,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 
 @NoRepositoryBean
-public interface SoftDeleteRepository<T extends AuditableEntity<ID>, ID> extends JpaRepository<T, ID> {
+public interface SoftDeleteRepository<T extends AuditableEntity<ID>, ID> extends BaseRepository<T, ID> {
 
 
     @Modifying

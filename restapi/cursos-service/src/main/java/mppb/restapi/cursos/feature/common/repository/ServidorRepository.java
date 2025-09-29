@@ -1,5 +1,6 @@
 package mppb.restapi.cursos.feature.common.repository;
 
+import mppb.restapi.common.core.repository.BaseRepository;
 import mppb.restapi.cursos.feature.common.entities.Servidor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,7 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ServidorRepository extends JpaRepository<Servidor, Long> {
+public interface ServidorRepository extends BaseRepository<Servidor, Long> {
 
     @Query(
             value = """
