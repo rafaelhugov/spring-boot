@@ -24,10 +24,6 @@ import java.util.UUID;
 @Builder
 public class Curso extends AbstractEntity<Long> {
 
-//    @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
-//    private Long id;
-
     @Column(name = "titulo", nullable = false)
     private String titulo;
 

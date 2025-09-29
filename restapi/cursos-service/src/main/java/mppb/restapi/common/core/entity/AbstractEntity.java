@@ -16,6 +16,10 @@ public abstract class AbstractEntity<ID> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private ID id;
 
+    public AbstractEntity(){
+
+    }
+
     @Override
     public boolean equals(Object obj) {
         if(!(obj instanceof AbstractEntity)){

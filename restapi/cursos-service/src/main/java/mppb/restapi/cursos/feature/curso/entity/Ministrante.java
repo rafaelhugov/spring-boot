@@ -2,6 +2,7 @@ package mppb.restapi.cursos.feature.curso.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import mppb.restapi.common.core.entity.AbstractEntity;
 import mppb.restapi.common.core.util.Esquemas;
 import mppb.restapi.cursos.feature.lookup.entities.PapelMinistrante;
 
@@ -12,11 +13,7 @@ import mppb.restapi.cursos.feature.lookup.entities.PapelMinistrante;
 @Entity
 @Table(name = "ministrante", schema = Esquemas.SCHEMA_CURSOS)
 @Builder
-public class Ministrante {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+public class Ministrante extends AbstractEntity<Long> {
 
     @Column(name = "id_servidor")
     private Integer idServidor;
