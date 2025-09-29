@@ -11,7 +11,7 @@
   <groupId>mppb.microservices.fundo</groupId>
   <artifactId>cursos-service</artifactId>
   <version>0.2.0</version>
-  <name>cobranca-service</name>
+  <name>cursos-service</name>
   <description>Demo project for Spring Boot</description>
   <url/>
   <properties>
