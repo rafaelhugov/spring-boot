@@ -4,6 +4,11 @@ import jakarta.persistence.EntityManager;
 import mppb.restapi.common.core.service.AbstractService;
 import mppb.restapi.cursos.feature.cadastro.entities.EntidadeTutora;
 import mppb.restapi.cursos.feature.cadastro.repository.EntidadeTutoraRepository;
+import mppb.restapi.cursos.feature.curso.entity.Curso;
+import mppb.restapi.cursos.feature.lookup.specification.EntidadeTutoraSpecification;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,8 +16,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class EntidadeTutoraService extends AbstractService<EntidadeTutora, Long> {
 
+    private EntidadeTutoraRepository entidadeTutoraRepository;
+
+    @Autowired
+    private EntidadeTutoraSpecification specification;
+
     public EntidadeTutoraService(EntityManager entityManager, EntidadeTutoraRepository entidadeTutoraRepository) {
         super(entityManager, entidadeTutoraRepository);
+        this.entidadeTutoraRepository = entidadeTutoraRepository;
     }
+
+    public Page<EntidadeTutora> findAll(String nome, Pageable pageable) {
+        return entidadeTutoraRepository.findAll(specification.comFiltros(nome), pageable);
+    }
+
 
 }

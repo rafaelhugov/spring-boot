@@ -33,15 +33,9 @@ public class EntidadeTutoraController extends AbstractController {
 
     @Operation(summary = "Obtém entidades tutoras", description = "Retorna entidades tutoras paginadas.")
     @GetMapping(value="", produces =  MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Page<EntidadeTutoraDto>> getPages(Pageable pageable) {
-        return ResponseEntity.ok(entidadeTutoraService.findAll(pageable).map(entidadeTutoraConverter::toDto));
+    public ResponseEntity<Page<EntidadeTutoraDto>> getPages(Pageable pageable, @RequestParam(required = false) String nome) {
+        return ResponseEntity.ok(entidadeTutoraService.findAll(nome, pageable).map(entidadeTutoraConverter::toDto));
     }
-
-//    @Operation(summary = "Obtém entidades tutoras", description = "Retorna entidades tutoras paginadas.")
-//    @GetMapping(value="", produces =  MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseEntity<List<EntidadeTutoraDto>> getPages() {
-//        return ResponseEntity.ok(entidadeTutoraService.findAll().stream().map(entidadeTutoraConverter::toDto).toList());
-//    }
 
     @PostMapping
     public ResponseEntity<EntidadeTutoraDto> create(@RequestBody EntidadeTutoraDto areaDto) {
