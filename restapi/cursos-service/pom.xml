@@ -12,7 +12,7 @@
   <artifactId>cursos-service</artifactId>
   <version>0.2.0</version>
   <name>cursos-service</name>
-  <description>Demo project for Spring Boot</description>
+  <description>API para o sistema de cursos e eventos do MPPB.</description>
   <url/>
   <properties>
     <java.version>21</java.version>
