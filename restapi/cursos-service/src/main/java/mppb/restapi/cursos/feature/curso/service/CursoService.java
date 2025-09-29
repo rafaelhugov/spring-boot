@@ -4,12 +4,14 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import mppb.restapi.common.core.service.AbstractService;
+import mppb.restapi.common.feature.autorizacao.entities.Usuario;
 import mppb.restapi.cursos.feature.common.service.ServidorService;
 import mppb.restapi.cursos.feature.curso.entity.Curso;
 import mppb.restapi.cursos.feature.curso.entity.Ministrante;
 import mppb.restapi.cursos.feature.curso.repository.CursoRepository;
 import mppb.restapi.cursos.feature.curso.repository.MinistranteRepository;
 import mppb.restapi.cursos.feature.lookup.repository.ModalidadeRepository;
+import org.springframework.data.domain.AuditorAware;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
