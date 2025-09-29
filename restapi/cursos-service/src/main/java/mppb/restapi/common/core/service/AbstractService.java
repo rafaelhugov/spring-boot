@@ -1,6 +1,7 @@
 package mppb.restapi.common.core.service;
 
 import jakarta.persistence.EntityManager;
+import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.core.error.NotFoundException;
 import mppb.restapi.common.core.repository.BaseRepository;
 import mppb.restapi.common.core.repository.SoftDeleteRepository;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 public class AbstractService<I, ID> {
 
     protected final EntityManager entityManager;

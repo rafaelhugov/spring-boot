@@ -1,5 +1,12 @@
 package mppb.restapi.cursos.feature.common.service;
 
+import jakarta.persistence.EntityManager;
+import mppb.restapi.common.core.service.AbstractService;
+import mppb.restapi.cursos.feature.common.entities.Servidor;
+import mppb.restapi.cursos.feature.curso.entity.Curso;
+import mppb.restapi.cursos.feature.curso.repository.CursoRepository;
+import mppb.restapi.cursos.feature.curso.repository.MinistranteRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import mppb.restapi.cursos.feature.common.projection.ServidorProjection;
 import mppb.restapi.cursos.feature.common.repository.ServidorRepository;
@@ -10,11 +17,12 @@ import java.util.Optional;
 
 @Service
 @Transactional
-public class ServidorService {
+public class ServidorService extends AbstractService<Servidor, Long> {
 
     private final ServidorRepository servidorRepository;
 
-    public ServidorService(ServidorRepository servidorRepository) {
+    public ServidorService(EntityManager entityManager, CursoRepository cursoRepository, ServidorRepository servidorRepository){
+        super(entityManager, servidorRepository);
         this.servidorRepository = servidorRepository;
     }
 

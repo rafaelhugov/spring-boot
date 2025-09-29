@@ -1,19 +1,15 @@
 package mppb.restapi.cursos.feature.curso.service;
 
 import jakarta.persistence.EntityManager;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.core.service.AbstractService;
-import mppb.restapi.common.feature.autorizacao.entities.Usuario;
 import mppb.restapi.cursos.feature.common.service.ServidorService;
 import mppb.restapi.cursos.feature.curso.entity.Curso;
 import mppb.restapi.cursos.feature.curso.entity.Ministrante;
 import mppb.restapi.cursos.feature.curso.repository.CursoRepository;
 import mppb.restapi.cursos.feature.curso.repository.MinistranteRepository;
 import mppb.restapi.cursos.feature.curso.specification.CursoSpecification;
-import mppb.restapi.cursos.feature.lookup.repository.ModalidadeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,7 +22,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Service
-@Log4j2
+@Slf4j
 @Transactional
 public class CursoService extends AbstractService<Curso, Long>{
 
@@ -34,18 +30,18 @@ public class CursoService extends AbstractService<Curso, Long>{
     private final ServidorService servidorService;
     private final CursoRepository cursoRepository;
 
-    @Autowired
-    private CursoSpecification specification;
+    private final CursoSpecification cursoSpecification;
 
-    public CursoService(EntityManager entityManager, CursoRepository cursoRepository, MinistranteRepository ministranteRepository, ServidorService servidorService){
+    public CursoService(EntityManager entityManager, CursoRepository cursoRepository, MinistranteRepository ministranteRepository, ServidorService servidorService, CursoSpecification cursoSpecification){
         super(entityManager, cursoRepository);
         this.ministranteRepository = ministranteRepository;
         this.servidorService  = servidorService;
         this.cursoRepository = cursoRepository;
+        this.cursoSpecification = cursoSpecification;
     }
 
     public Page<Curso> findAll(String titulo, Long modalidadeId, Long publicoAlvoId, Pageable pageable) {
-        return cursoRepository.findAll(specification.comFiltros(titulo, modalidadeId, publicoAlvoId), pageable);
+        return cursoRepository.findAll(cursoSpecification.comFiltros(titulo, modalidadeId, publicoAlvoId), pageable);
     }
 
     @Override

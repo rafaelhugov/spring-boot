@@ -1,6 +1,7 @@
 package mppb.restapi.cursos.infrastructure.config;
 
 
+import lombok.RequiredArgsConstructor;
 import mppb.restapi.common.infrastructure.env.RuntimeEnv;
 import mppb.restapi.common.infrastructure.security.filter.CustomBasicAuthenticationFilter;
 import mppb.restapi.common.infrastructure.security.filter.CustomUsernamePasswordAuthenticationFilter;
@@ -17,6 +18,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 
 @EnableWebSecurity
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final String PUBLIC_URLS[] = {"/favicon.ico",
@@ -24,14 +26,11 @@ public class SecurityConfig {
             "/v3/api-docs",
     };
 
-    @Autowired
-    private RuntimeEnv runtimeEnv;
+    private final RuntimeEnv runtimeEnv;
 
-    @Autowired
-    private CustomBasicAuthenticationFilter customBasicAuthenticationFilter;
+    private final CustomBasicAuthenticationFilter customBasicAuthenticationFilter;
 
-    @Autowired
-    private CustomUsernamePasswordAuthenticationFilter customUsernamePasswordAuthenticationFilter;
+    private final CustomUsernamePasswordAuthenticationFilter customUsernamePasswordAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

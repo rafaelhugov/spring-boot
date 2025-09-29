@@ -18,12 +18,12 @@ public class EntidadeTutoraService extends AbstractService<EntidadeTutora, Long>
 
     private EntidadeTutoraRepository entidadeTutoraRepository;
 
-    @Autowired
-    private EntidadeTutoraSpecification specification;
+    private final EntidadeTutoraSpecification specification;
 
-    public EntidadeTutoraService(EntityManager entityManager, EntidadeTutoraRepository entidadeTutoraRepository) {
+    public EntidadeTutoraService(EntityManager entityManager, EntidadeTutoraRepository entidadeTutoraRepository, EntidadeTutoraSpecification specification) {
         super(entityManager, entidadeTutoraRepository);
         this.entidadeTutoraRepository = entidadeTutoraRepository;
+        this.specification = specification;
     }
 
     public Page<EntidadeTutora> findAll(String nome, Pageable pageable) {

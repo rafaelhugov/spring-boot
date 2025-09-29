@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.core.controller.AbstractController;
 import mppb.restapi.cursos.feature.common.projection.ServidorProjection;
 import mppb.restapi.cursos.feature.common.service.ServidorService;
@@ -20,6 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping(Constants.API_PREFIX + "/servidores")
 @RequiredArgsConstructor
+@Slf4j
 @Tag(name = "Servidores", description = "Endpoints para consulta de servidores.")
 public class ServidorController extends AbstractController {
 

@@ -3,6 +3,7 @@ package mppb.restapi.cursos.infrastructure.config;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

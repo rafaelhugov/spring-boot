@@ -1,10 +1,10 @@
 package mppb.restapi.cursos.feature.lookup.service;
 
+import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.cursos.feature.cadastro.entities.EntidadeTutora;
 import mppb.restapi.cursos.feature.cadastro.repository.EntidadeTutoraRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 import mppb.restapi.cursos.feature.lookup.entities.Modalidade;
 import mppb.restapi.cursos.feature.lookup.entities.PapelMinistrante;
 import mppb.restapi.cursos.feature.lookup.entities.PublicoAlvo;
@@ -20,7 +20,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-@Log4j2
+@Slf4j
 @Transactional
 public class LookupService {
 
