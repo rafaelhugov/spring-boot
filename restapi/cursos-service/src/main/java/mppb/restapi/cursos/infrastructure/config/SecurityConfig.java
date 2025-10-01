@@ -8,6 +8,7 @@ import mppb.restapi.common.infrastructure.security.filter.CustomUsernamePassword
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -43,10 +44,11 @@ public class SecurityConfig {
 
 
 
-        return http.httpBasic(Customizer.withDefaults()).csrf(csrf -> csrf.disable())
+        return http.cors(Customizer.withDefaults()).httpBasic(Customizer.withDefaults()).csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(req -> {
                     req.requestMatchers(PUBLIC_URLS).permitAll();
+                    req.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
                     req.anyRequest().authenticated();
                 }).addFilterBefore(customBasicAuthenticationFilter, BasicAuthenticationFilter.class)
                 .addFilterBefore(customUsernamePasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
