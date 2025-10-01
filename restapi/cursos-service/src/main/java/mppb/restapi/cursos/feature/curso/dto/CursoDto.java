@@ -25,6 +25,7 @@ import java.util.List;
 public class CursoDto {
 
     @JsonView(CursoView.Listagem.class)
+    @ValidId
     private Long id;
 
     @JsonView(CursoView.Listagem.class)
@@ -37,8 +38,7 @@ public class CursoDto {
     @NotNull
     private TipoEventoDto tipoEvento;
 
-    @Valid
-    @ConvertGroup.List({@ConvertGroup(from = Creation.class, to = Update.class), @ConvertGroup(to = Update.class)})
+    @ValidNestedDto
     private EntidadeTutoraDto entidadeTutora;
 
     private LocalDateTime dataCriacao;
@@ -49,8 +49,6 @@ public class CursoDto {
 
     // TODO: Adicionar validação para garantir que a data final seja após a data inicial.
     // Isso requer uma anotação de validação a nível de classe, que podemos implementar depois.
-
-
     private LocalDateTime realizacaoDataInicial;
 
     private LocalDateTime realizacaoDataFinal;

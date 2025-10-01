@@ -14,8 +14,7 @@ import mppb.restapi.common.core.validation.*;
 @Builder
 public class EntidadeTutoraDto {
 
-    @NotNull(groups = Update.class, message = "ID da entidade tutora é obrigatório.")
-    @Null(groups = Creation.class)
+    @ValidId
     private Long id;
 
     @NotBlank
