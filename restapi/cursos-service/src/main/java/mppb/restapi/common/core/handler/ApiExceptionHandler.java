@@ -105,7 +105,7 @@ public class ApiExceptionHandler {
                 .collect(Collectors.toList());
 
         problemDetail.setProperty(ERRORS_PROPERTY, errors); // Alterado de "fieldErrors" para "errors"
-        addExtraProperties(problemDetail, exception);
+        addExtraProperties(problemDetail, exception, false);
 
         return ResponseEntity.of(problemDetail).build();
     }
@@ -140,11 +140,15 @@ public class ApiExceptionHandler {
     }
 
     private void addExtraProperties(ProblemDetail problemDetail, Exception exception) {
+        addExtraProperties(problemDetail, exception, true);
+    }
+
+    private void addExtraProperties(ProblemDetail problemDetail, Exception exception, boolean includeTrace) {
         if (exception == null) {
             return;
         }
         problemDetail.setProperty(TIMESTAMP_PROPERTY, Instant.now());
-        if (runtimeEnv.shouldIncludeTrace()) {
+        if (includeTrace && runtimeEnv.shouldIncludeTrace()) {
             problemDetail.setProperty(TRACE_PROPERTY, getStackTraceAsString(exception));
         }
     }

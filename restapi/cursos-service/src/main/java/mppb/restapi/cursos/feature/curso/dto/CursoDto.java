@@ -9,6 +9,7 @@ import jakarta.validation.groups.Default;
 import lombok.*;
 import mppb.restapi.common.core.validation.*;
 import mppb.restapi.common.core.validation.groups.Creation;
+import mppb.restapi.common.core.validation.groups.Delete;
 import mppb.restapi.common.core.validation.groups.Update;
 import mppb.restapi.cursos.feature.cadastro.dto.EntidadeTutoraDto;
 import mppb.restapi.cursos.feature.lookup.dto.ModalidadeDto;
@@ -28,6 +29,8 @@ public class CursoDto {
 
     @JsonView(CursoView.Listagem.class)
     @ValidId
+    @NotNull(groups = {Update.class, Delete.class})
+    @Null(groups = Creation.class)
     private Long id;
 
     @JsonView(CursoView.Listagem.class)
