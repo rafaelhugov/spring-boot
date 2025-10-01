@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Null;
 import lombok.*;
 import mppb.restapi.common.core.validation.*;
+import mppb.restapi.common.core.validation.groups.Creation;
+import mppb.restapi.common.core.validation.groups.Delete;
+import mppb.restapi.common.core.validation.groups.Update;
 
 @Getter
 @Setter
@@ -14,7 +17,8 @@ import mppb.restapi.common.core.validation.*;
 @Builder
 public class EntidadeTutoraDto {
 
-    @ValidId
+    @NotNull(groups = {Update.class, Delete.class})
+    @Null(groups = Creation.class)
     private Long id;
 
     @NotBlank

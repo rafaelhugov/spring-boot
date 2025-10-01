@@ -8,6 +8,8 @@ import jakarta.validation.groups.ConvertGroup;
 import jakarta.validation.groups.Default;
 import lombok.*;
 import mppb.restapi.common.core.validation.*;
+import mppb.restapi.common.core.validation.groups.Creation;
+import mppb.restapi.common.core.validation.groups.Update;
 import mppb.restapi.cursos.feature.cadastro.dto.EntidadeTutoraDto;
 import mppb.restapi.cursos.feature.lookup.dto.ModalidadeDto;
 import mppb.restapi.cursos.feature.lookup.dto.PublicoAlvoDto;
@@ -38,7 +40,11 @@ public class CursoDto {
     @NotNull
     private TipoEventoDto tipoEvento;
 
-    @ValidNestedDto
+    @Valid
+    @ConvertGroup.List({
+            @ConvertGroup(from = Creation.class, to = Update.class),
+            @ConvertGroup(from = Default.class, to = Update.class)
+    })
     private EntidadeTutoraDto entidadeTutora;
 
     private LocalDateTime dataCriacao;

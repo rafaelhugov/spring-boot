@@ -3,12 +3,13 @@ package mppb.restapi.cursos.feature.curso.controller;
 import com.fasterxml.jackson.annotation.JsonView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.groups.Default;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.core.controller.AbstractController;
 import mppb.restapi.common.core.converter.DtoConverter;
 import mppb.restapi.common.core.error.NotFoundException;
-import mppb.restapi.common.core.validation.groups.CreationSequence;
+import mppb.restapi.common.core.validation.groups.Creation;
 import mppb.restapi.common.core.validation.groups.UpdateSequence;
 import mppb.restapi.cursos.feature.curso.dto.CursoDto;
 import mppb.restapi.cursos.feature.curso.dto.CursoView;
@@ -53,7 +54,7 @@ public class CursoController extends AbstractController {
     }
 
     @PostMapping
-    public ResponseEntity<CursoDto> create(@Validated(CreationSequence.class) @RequestBody CursoDto cursoDto) {
+    public ResponseEntity<CursoDto> create(@Validated({Creation.class, Default.class}) @RequestBody CursoDto cursoDto) {
         Curso createdEntity = cursoService.save(cursoConverter.toEntity(cursoDto));
         return new ResponseEntity<>(cursoConverter.toDto(createdEntity), HttpStatus.CREATED);
     }
