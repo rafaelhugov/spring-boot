@@ -9,8 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.core.controller.AbstractController;
 import mppb.restapi.common.core.converter.DtoConverter;
 import mppb.restapi.common.core.error.NotFoundException;
-import mppb.restapi.common.core.validation.groups.Creation;
-import mppb.restapi.common.core.validation.groups.UpdateSequence;
+import mppb.restapi.common.core.validation.groups.Update;
 import mppb.restapi.cursos.feature.curso.dto.CursoDto;
 import mppb.restapi.cursos.feature.curso.dto.CursoView;
 import mppb.restapi.cursos.feature.curso.entity.Curso;
@@ -54,13 +53,13 @@ public class CursoController extends AbstractController {
     }
 
     @PostMapping
-    public ResponseEntity<CursoDto> create(@Validated({Creation.class, Default.class}) @RequestBody CursoDto cursoDto) {
+    public ResponseEntity<CursoDto> create(@Validated({Default.class}) @RequestBody CursoDto cursoDto) {
         Curso createdEntity = cursoService.save(cursoConverter.toEntity(cursoDto));
         return new ResponseEntity<>(cursoConverter.toDto(createdEntity), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<CursoDto> update(@PathVariable Long id, @Validated(UpdateSequence.class) @RequestBody CursoDto cursoDto) {
+    public ResponseEntity<CursoDto> update(@PathVariable Long id, @Validated(Update.class) @RequestBody CursoDto cursoDto) {
         return cursoService.findById(id)
                 .map(existing -> {
                     cursoDto.setId(id); // Garante que o ID do path é o mesmo do objeto

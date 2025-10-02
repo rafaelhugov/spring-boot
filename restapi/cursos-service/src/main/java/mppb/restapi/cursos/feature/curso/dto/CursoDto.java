@@ -1,15 +1,12 @@
 package mppb.restapi.cursos.feature.curso.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import jakarta.validation.groups.ConvertGroup;
 import jakarta.validation.groups.Default;
 import lombok.*;
-import mppb.restapi.common.core.validation.*;
-import mppb.restapi.common.core.validation.groups.Creation;
-import mppb.restapi.common.core.validation.groups.Delete;
+import mppb.restapi.common.core.validation.groups.Create;
 import mppb.restapi.common.core.validation.groups.Update;
 import mppb.restapi.cursos.feature.cadastro.dto.EntidadeTutoraDto;
 import mppb.restapi.cursos.feature.lookup.dto.ModalidadeDto;
@@ -28,9 +25,8 @@ import java.util.List;
 public class CursoDto {
 
     @JsonView(CursoView.Listagem.class)
-    @ValidId
-    @NotNull(groups = {Update.class, Delete.class})
-    @Null(groups = Creation.class)
+    @NotNull(groups = {Update.class})
+    @Null(groups = Create.class)
     private Long id;
 
     @JsonView(CursoView.Listagem.class)
@@ -45,8 +41,8 @@ public class CursoDto {
 
     @Valid
     @ConvertGroup.List({
-            @ConvertGroup(from = Creation.class, to = Update.class),
-            @ConvertGroup(from = Default.class, to = Update.class)
+            @ConvertGroup(from = Create.class, to = Update.class),
+            @ConvertGroup(to = Update.class)
     })
     private EntidadeTutoraDto entidadeTutora;
 

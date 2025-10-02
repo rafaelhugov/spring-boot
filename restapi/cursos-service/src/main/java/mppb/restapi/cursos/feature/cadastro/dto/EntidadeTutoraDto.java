@@ -3,10 +3,9 @@ package mppb.restapi.cursos.feature.cadastro.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Null;
+import jakarta.validation.groups.Default;
 import lombok.*;
-import mppb.restapi.common.core.validation.*;
-import mppb.restapi.common.core.validation.groups.Creation;
-import mppb.restapi.common.core.validation.groups.Delete;
+import mppb.restapi.common.core.validation.groups.Create;
 import mppb.restapi.common.core.validation.groups.Update;
 
 @Getter
@@ -17,8 +16,8 @@ import mppb.restapi.common.core.validation.groups.Update;
 @Builder
 public class EntidadeTutoraDto {
 
-    @NotNull(groups = {Update.class, Delete.class})
-    @Null(groups = Creation.class)
+    @NotNull(groups = Update.class)
+    @Null(groups = Create.class)
     private Long id;
 
     @NotBlank
