@@ -5,15 +5,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-public class ServidorProjection {
-    private Integer id;
-    private String matricula;
-    private String nome;
-    private String cargo;
-    private String tipoCargoNome;
+public interface ServidorProjection {
+
+    Integer getId();
+    String getNome();
+    String getCargoNome();
+    String getTipoCargoNome();
+    String getServidorMatricula();
+    String getSituacao();
 
 }

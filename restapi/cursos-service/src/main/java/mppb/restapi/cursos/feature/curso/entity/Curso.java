@@ -77,7 +77,7 @@ public class Curso extends AbstractEntity<Long> {
     @Column(name = "hashinscricao", unique = true)
     private UUID hashInscricao;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "cursopublicoalvo",
             schema = "curso",
@@ -86,12 +86,7 @@ public class Curso extends AbstractEntity<Long> {
     )
     private Set<PublicoAlvo> publicosAlvo ;
 
-    @ManyToMany(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "cursoministrante",
-            schema = "curso",
-            joinColumns = @JoinColumn(name = "id_curso"),
-            inverseJoinColumns = @JoinColumn(name = "id_ministrante")
-    )
-    private Set<Ministrante> ministrantes ;
+//    @OneToMany(mappedBy = "curso", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+//    private Set<CursoMinistrante> ministrantesAssociados;
+
 }

@@ -2,69 +2,93 @@ package mppb.restapi.cursos.feature.curso.service;
 
 import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
+import mppb.restapi.common.core.error.BusinessRuleException;
+import mppb.restapi.common.core.error.NotFoundException;
 import mppb.restapi.common.core.service.AbstractService;
-import mppb.restapi.cursos.feature.common.service.ServidorService;
+import mppb.restapi.cursos.feature.curso.converter.CursoConverter;
+import mppb.restapi.cursos.feature.curso.converter.CursoMinistranteConverter;
+import mppb.restapi.cursos.feature.curso.dto.AssociarMinistranteDto;
+import mppb.restapi.cursos.feature.curso.dto.AtualizarPapelMinistranteDto;
+import mppb.restapi.cursos.feature.curso.dto.CursoDto;
+import mppb.restapi.cursos.feature.curso.dto.CursoMinistranteDto;
 import mppb.restapi.cursos.feature.curso.entity.Curso;
-import mppb.restapi.cursos.feature.curso.entity.Ministrante;
+import mppb.restapi.cursos.feature.curso.entity.CursoMinistrante;
+import mppb.restapi.cursos.feature.curso.repository.CursoMinistranteRepository;
 import mppb.restapi.cursos.feature.curso.repository.CursoRepository;
-import mppb.restapi.cursos.feature.curso.repository.MinistranteRepository;
 import mppb.restapi.cursos.feature.curso.specification.CursoSpecification;
-import org.springframework.beans.factory.annotation.Autowired;
+import mppb.restapi.cursos.feature.lookup.entities.PapelMinistrante;
+import mppb.restapi.cursos.feature.lookup.repository.PapelMinistranteRepository;
+import mppb.restapi.cursos.feature.ministrante.entity.Ministrante;
+import mppb.restapi.cursos.feature.ministrante.service.MinistranteService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @Transactional
-public class CursoService extends AbstractService<Curso, Long>{
+public class CursoService extends AbstractService<Curso, Long> {
 
-    private final MinistranteRepository ministranteRepository;
-    private final ServidorService servidorService;
+    // Repositórios e Specifications
     private final CursoRepository cursoRepository;
-
+    private final CursoMinistranteRepository cursoMinistranteRepository;
+    private final PapelMinistranteRepository papelMinistranteRepository;
     private final CursoSpecification cursoSpecification;
 
-    public CursoService(EntityManager entityManager, CursoRepository cursoRepository, MinistranteRepository ministranteRepository, ServidorService servidorService, CursoSpecification cursoSpecification){
+    // Services
+    private final MinistranteService ministranteService;
+
+    // Converters
+    private final CursoMinistranteConverter cursoMinistranteConverter;
+    private final CursoConverter cursoConverter;
+
+
+    public CursoService(EntityManager entityManager, CursoRepository cursoRepository, CursoMinistranteRepository cursoMinistranteRepository, PapelMinistranteRepository papelMinistranteRepository, CursoSpecification cursoSpecification, MinistranteService ministranteService, CursoMinistranteConverter cursoMinistranteConverter, CursoConverter cursoConverter) {
         super(entityManager, cursoRepository);
-        this.ministranteRepository = ministranteRepository;
-        this.servidorService  = servidorService;
         this.cursoRepository = cursoRepository;
+        this.cursoMinistranteRepository = cursoMinistranteRepository;
+        this.papelMinistranteRepository = papelMinistranteRepository;
         this.cursoSpecification = cursoSpecification;
+        this.ministranteService = ministranteService;
+        this.cursoMinistranteConverter = cursoMinistranteConverter;
+        this.cursoConverter = cursoConverter; // Injetando o novo converter
     }
 
     public Page<Curso> findAll(String titulo, Long modalidadeId, Long publicoAlvoId, Pageable pageable) {
         return cursoRepository.findAll(cursoSpecification.comFiltros(titulo, modalidadeId, publicoAlvoId), pageable);
     }
 
-    @Override
+    /**
+     * Busca um curso por seu ID e retorna um DTO enriquecido com a lista de ministrantes.
+     * Este método substitui o uso direto de findById(id) no controller quando os detalhes completos são necessários.
+     *
+     * @param cursoId O ID do curso a ser buscado.
+     * @return Um CursoDto completo com todos os detalhes, incluindo ministrantes.
+     * @throws NotFoundException se o curso não for encontrado.
+     */
     @Transactional(readOnly = true)
-    public Optional<Curso> findById(Long id) {
-        Optional<Curso> cursoOpt = cursoRepository.findById(id);
+    public CursoDto findDetalhesById(Long cursoId) {
+        // 1. Busca a entidade principal (Curso)
+        Curso curso = cursoRepository.findById(cursoId)
+                .orElseThrow(() -> new NotFoundException("Curso não encontrado com o id: " + cursoId));
 
-        cursoOpt.ifPresent(curso -> {
-            curso.getMinistrantes().forEach(ministrante -> {
-                if (ministrante.getIdServidor() != null) {
-                    ministrante.setTipo("interno");
-                    servidorService.buscarServidorPorId(ministrante.getIdServidor())
-                            .ifPresent(servidorDTO -> {
-                                ministrante.setNome(servidorDTO.getNome());
-                                ministrante.setCargo(servidorDTO.getTipoCargoNome()); // Preenche o cargo
-                            });
-                } else {
-                    ministrante.setTipo("externo");
-                }
-            });
-        });
+        // 2. Busca a lista de ministrantes associados de forma explícita
+        List<CursoMinistranteDto> ministrantesDto = findAllMinistrantesByCursoId(cursoId);
 
-        return cursoOpt;
+        // 3. Converte a entidade Curso para o seu DTO principal
+        CursoDto cursoDto = cursoConverter.toDto(curso);
+
+        // 4. Popula a lista de ministrantes no DTO
+        cursoDto.setMinistrantes(ministrantesDto);
+
+        return cursoDto;
     }
 
     @Override
@@ -72,23 +96,115 @@ public class CursoService extends AbstractService<Curso, Long>{
         if (curso.getHashInscricao() == null) {
             curso.setHashInscricao(UUID.randomUUID());
         }
-
-        Set<Ministrante> ministrantesGerenciados = new HashSet<>();
-        if (curso.getMinistrantes() != null) {
-            for (Ministrante min : curso.getMinistrantes()) {
-                if ("interno".equals(min.getTipo())) {
-                    min.setNome(null);
-                    min.setNomeOrgaoExterno(null);
-                } else { // externo
-                    min.setIdServidor(null);
-                }
-                ministrantesGerenciados.add(ministranteRepository.save(min));
-            }
-        }
-        curso.setMinistrantes(ministrantesGerenciados);
-
+        // A lógica de gerenciamento de ministrantes foi removida daqui, pois agora é tratada em endpoints específicos.
         return cursoRepository.save(curso);
     }
+
+    //    @Override
+//    public void deleteById(Long aLong) {
+//        super.deleteById(aLong);
+//    }
+
+    @Override
+    @Transactional
+    public void deleteById(Long cursoId) {
+        // 1. Valida se o curso existe antes de prosseguir.
+        // Isso também garante que não estamos tentando operar com um ID inválido.
+        if (!cursoRepository.existsById(cursoId)) {
+            throw new NotFoundException("Não é possível deletar. Curso não encontrado com o id: " + cursoId);
+        }
+
+        // 2. Busca todas as associações de ministrantes para este curso.
+        List<CursoMinistrante> associacoes = cursoMinistranteRepository.findByCursoId(cursoId);
+
+        // 3. Se existirem associações, deleta todas elas.
+        // Isso "limpa" as referências na tabela cursoministrante.
+        if (!associacoes.isEmpty()) {
+            cursoMinistranteRepository.deleteAll(associacoes);
+        }
+
+        // 4. Agora que as dependências foram removidas, deleta o curso principal.
+        // Esta chamada é do repositório base do AbstractService.
+        super.deleteById(cursoId);
+    }
+
+
+    // --- MÉTODOS PARA GESTÃO DE MINISTRANTES ---
+
+    @Transactional(readOnly = true)
+    public List<CursoMinistranteDto> findAllMinistrantesByCursoId(Long cursoId) {
+        if (!cursoRepository.existsById(cursoId)) {
+            throw new NotFoundException("Curso não encontrado: " + cursoId);
+        }
+
+        List<CursoMinistrante> associacoes = cursoMinistranteRepository.findByCursoId(cursoId);
+
+        return associacoes.stream()
+                .map(associacao -> ministranteService.toEnrichedDto(associacao))
+                .collect(Collectors.toList());
+    }
+
+    public CursoMinistranteDto addMinistranteToCurso(Long cursoId, AssociarMinistranteDto dto) {
+        Curso curso = cursoRepository.findById(cursoId)
+                .orElseThrow(() -> new NotFoundException("Curso não encontrado: " + cursoId));
+
+        // --- LÓGICA DO PAPEL REINTEGRADA ---
+        PapelMinistrante papel = papelMinistranteRepository.findById(dto.getPapelId())
+                .orElseThrow(() -> new NotFoundException("Papel de ministrante não encontrado: " + dto.getPapelId()));
+
+        Ministrante ministranteParaAssociar = ministranteService.findOrCreateMinistrante(dto);
+
+        if (cursoMinistranteRepository.existsByCursoAndMinistrante(curso, ministranteParaAssociar)) {
+            throw new BusinessRuleException("Este ministrante já está associado a este curso.");
+        }
+
+        CursoMinistrante novaAssociacao = new CursoMinistrante();
+        novaAssociacao.setCurso(curso);
+        novaAssociacao.setMinistrante(ministranteParaAssociar);
+        novaAssociacao.setPapel(papel); // O papel agora é associado corretamente
+
+        CursoMinistrante associacaoSalva = cursoMinistranteRepository.save(novaAssociacao);
+
+        return ministranteService.toEnrichedDto(associacaoSalva);
+    }
+
+    public void removeMinistranteFromCurso(Long cursoId, Long associacaoId) {
+        CursoMinistrante associacao = cursoMinistranteRepository.findByIdAndCursoId(associacaoId, cursoId)
+                .orElseThrow(() -> new NotFoundException("Associação de ministrante não encontrada para este curso."));
+
+        cursoMinistranteRepository.delete(associacao);
+    }
+
+
+    /**
+     * Atualiza o papel de um ministrante em uma associação existente com um curso.
+     *
+     * @param cursoId O ID do curso, para garantir que a associação pertence ao curso correto.
+     * @param associacaoId O ID da associação (CursoMinistrante) a ser atualizada.
+     * @param dto O DTO contendo o ID do novo papel a ser atribuído.
+     * @return O DTO da associação atualizada e enriquecida.
+     * @throws NotFoundException se o curso, a associação ou o novo papel não forem encontrados.
+     */
+    public CursoMinistranteDto atualizarPapelMinistrante(Long cursoId, Long associacaoId, AtualizarPapelMinistranteDto dto) {
+        // 1. Busca a associação, validando se ela pertence ao curso informado para garantir a integridade.
+        CursoMinistrante associacao = cursoMinistranteRepository.findByIdAndCursoId(associacaoId, cursoId)
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Associação de ministrante com ID %d não encontrada para o curso com ID %d.", associacaoId, cursoId)
+                ));
+
+        // 2. Busca a nova entidade de Papel.
+        PapelMinistrante novoPapel = papelMinistranteRepository.findById(dto.getPapelId())
+                .orElseThrow(() -> new NotFoundException("Papel de ministrante não encontrado: " + dto.getPapelId()));
+
+        // 3. Atualiza o papel na associação.
+        associacao.setPapel(novoPapel);
+
+        // 4. A persistência é gerenciada pela transação (@Transactional), então um save() explícito não é necessário
+        //    para a atualização. O Hibernate detecta a mudança e a salva no banco de dados.
+        //    Apenas retornamos o DTO da entidade atualizada em memória.
+        return ministranteService.toEnrichedDto(associacao);
+    }
+
 
     @Transactional(readOnly = true)
     public Optional<Curso> findByHashInscricao(UUID hash) {
@@ -116,3 +232,4 @@ public class CursoService extends AbstractService<Curso, Long>{
         return true; // Por enquanto, sempre retorna válido.
     }
 }
+

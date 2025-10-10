@@ -3,6 +3,7 @@ package mppb.restapi.cursos.feature.curso.controller;
 import com.fasterxml.jackson.annotation.JsonView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.groups.Default;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,8 +11,7 @@ import mppb.restapi.common.core.controller.AbstractController;
 import mppb.restapi.common.core.converter.DtoConverter;
 import mppb.restapi.common.core.error.NotFoundException;
 import mppb.restapi.common.core.validation.groups.Update;
-import mppb.restapi.cursos.feature.curso.dto.CursoDto;
-import mppb.restapi.cursos.feature.curso.dto.CursoView;
+import mppb.restapi.cursos.feature.curso.dto.*;
 import mppb.restapi.cursos.feature.curso.entity.Curso;
 import mppb.restapi.cursos.feature.curso.service.CursoService;
 import mppb.restapi.cursos.infrastructure.util.Constants;
@@ -22,6 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 @Validated
 @RestController
@@ -48,8 +49,9 @@ public class CursoController extends AbstractController {
 
     @Operation(summary = "Obtém curso", description = "Retorna curso.")
     @GetMapping(value="/{id}", produces =  MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CursoDto> get(@PathVariable Long id) {
-        return ResponseEntity.ok(cursoService.findById(id).map(cursoConverter::toDto).orElseThrow(() ->new NotFoundException("Curso não encontrado: " + id)));
+    public ResponseEntity<CursoDto> findDetalhesById(@PathVariable Long id) {
+        CursoDto cursoDto = cursoService.findDetalhesById(id);
+        return ResponseEntity.ok(cursoDto);
     }
 
     @PostMapping
@@ -77,4 +79,46 @@ public class CursoController extends AbstractController {
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+    // --- ENDPOINTS PARA GESTÃO DE MINISTRANTES ---
+
+    @Operation(summary = "Lista os ministrantes de um curso", description = "Retorna a lista de ministrantes associados a um curso específico, com seus respectivos papéis.")
+    @GetMapping(value = "/{cursoId}/ministrantes", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<CursoMinistranteDto>> getMinistrantesDoCurso(@PathVariable Long cursoId) {
+        return ResponseEntity.ok(cursoService.findAllMinistrantesByCursoId(cursoId));
+    }
+
+    @Operation(summary = "Adiciona um ministrante a um curso", description = "Associa um ministrante existente a um curso, definindo seu papel.")
+    @PostMapping(value = "/{cursoId}/ministrantes", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CursoMinistranteDto> addMinistranteAoCurso(@PathVariable Long cursoId, @Valid @RequestBody AssociarMinistranteDto request) { // <-- ATUALIZADO
+        CursoMinistranteDto associacao = cursoService.addMinistranteToCurso(cursoId, request);
+        return new ResponseEntity<>(associacao, HttpStatus.CREATED);
+    }
+
+    @Operation(summary = "Remove um ministrante de um curso", description = "Remove a associação de um ministrante com um curso.")
+    @DeleteMapping("/{cursoId}/ministrantes/{associacaoId}")
+    public ResponseEntity<Void> removeMinistranteDoCurso(@PathVariable Long cursoId, @PathVariable Long associacaoId) {
+        cursoService.removeMinistranteFromCurso(cursoId, associacaoId);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Atualiza o papel de um ministrante em uma associação específica com um curso.
+     *
+     * @param cursoId O ID do curso ao qual a associação pertence.
+     * @param associacaoId O ID da associação (CursoMinistrante) a ser atualizada.
+     * @param dto O corpo da requisição contendo o ID do novo papel.
+     * @return Um ResponseEntity contendo o DTO da associação atualizada.
+     */
+    @Operation(summary = "Atualiza o papel de um ministrante em um curso", description = "Altera o papel de um ministrante em uma associação específica, retornando a associação atualizada.")
+    @PutMapping("/{cursoId}/ministrantes/{associacaoId}")
+    public ResponseEntity<CursoMinistranteDto> atualizarPapelDoMinistrante(
+            @PathVariable Long cursoId,
+            @PathVariable Long associacaoId,
+            @RequestBody @Valid AtualizarPapelMinistranteDto dto) {
+
+        CursoMinistranteDto associacaoAtualizada = cursoService.atualizarPapelMinistrante(cursoId, associacaoId, dto);
+        return ResponseEntity.ok(associacaoAtualizada);
+    }
+
 }

@@ -79,23 +79,9 @@ public class CursoDto {
 
     @JsonView(CursoView.Listagem.class)
     @NotEmpty(message = "Ao menos um público-alvo deve ser selecionado.")
-    private List<PublicoAlvoDto> publicosAlvo ;
+    private List<PublicoAlvoDto> publicosAlvo;
 
-    // TODO remover ministrantes daqui
-    @JsonView(CursoView.Listagem.class)
-    private List<Object> ministrantes ;
+    private List<CursoMinistranteDto> ministrantes;
 
-    /*
-    @AssertTrue(message = "A entidade tutora selecionada é inválida (não contém um ID).")
-    @JsonIgnore // Ignora este método na serialização/desserialização do JSON
-    private boolean isEntidadeTutora() {
-        // Se o objeto for nulo, a anotação @NotNull no campo já vai tratar disso.
-        // Este método só precisa de validar o caso em que o objeto existe, mas o seu ID é nulo.
-        if (entidadeTutora == null) {
-            return true; // Deixa o @NotNull fazer o seu trabalho
-        }
-        return entidadeTutora.getId() != null;
-    }
-    */
 
 }
