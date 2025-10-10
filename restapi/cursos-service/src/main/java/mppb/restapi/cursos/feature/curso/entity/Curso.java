@@ -10,6 +10,7 @@ import mppb.restapi.cursos.feature.lookup.entities.Modalidade;
 import mppb.restapi.cursos.feature.lookup.entities.PublicoAlvo;
 import mppb.restapi.cursos.feature.lookup.entities.TipoEvento;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -86,7 +87,17 @@ public class Curso extends AbstractEntity<Long> {
     )
     private Set<PublicoAlvo> publicosAlvo ;
 
-//    @OneToMany(mappedBy = "curso", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-//    private Set<CursoMinistrante> ministrantesAssociados;
+    @Column(name = "datamodificacao")
+    private LocalDateTime dataModificacao;
+
+    @PrePersist
+    private void onPrePersist() {
+        this.dataModificacao = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    private void onPreUpdate() {
+        this.dataModificacao = LocalDateTime.now();
+    }
 
 }

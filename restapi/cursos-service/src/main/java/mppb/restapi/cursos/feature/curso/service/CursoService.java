@@ -21,7 +21,11 @@ import mppb.restapi.cursos.feature.lookup.repository.PapelMinistranteRepository;
 import mppb.restapi.cursos.feature.ministrante.entity.Ministrante;
 import mppb.restapi.cursos.feature.ministrante.service.MinistranteService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.JpaSort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +34,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
 
 @Service
 @Slf4j
@@ -61,8 +66,27 @@ public class CursoService extends AbstractService<Curso, Long> {
         this.cursoConverter = cursoConverter; // Injetando o novo converter
     }
 
+    /**
+     * Busca cursos usando filtros e uma paginação com ordenação padrão
+     */
     public Page<Curso> findAll(String titulo, Long modalidadeId, Long publicoAlvoId, Pageable pageable) {
-        return cursoRepository.findAll(cursoSpecification.comFiltros(titulo, modalidadeId, publicoAlvoId), pageable);
+        Specification<Curso> filterSpec = cursoSpecification.comFiltros(titulo, modalidadeId, publicoAlvoId);
+        Pageable pageableComOrdenacao = criarPageableComOrdenacaoPadrao(pageable);
+
+        return cursoRepository.findAll(filterSpec, pageableComOrdenacao);
+    }
+
+    /**
+     * Cria um novo objeto Pageable que inclui a regra de negócio de ordenação padrão.
+     * @param pageable O Pageable original recebido na requisição.
+     * @return Um novo Pageable com a ordenação aplicada.
+     */
+    private Pageable criarPageableComOrdenacaoPadrao(Pageable pageable) {
+        Sort sort = Sort.by(
+                Sort.Order.desc("dataModificacao"),
+                Sort.Order.desc("dataCriacao")
+        );
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
     }
 
     /**
