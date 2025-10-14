@@ -3,6 +3,7 @@ package mppb.restapi.cursos.feature.lookup.service;
 import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.cursos.feature.cadastro.entities.EntidadeTutora;
 import mppb.restapi.cursos.feature.cadastro.repository.EntidadeTutoraRepository;
+import mppb.restapi.cursos.feature.inscricao.enums.SituacaoInscricaoEnum;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import mppb.restapi.cursos.feature.lookup.entities.Modalidade;
@@ -55,4 +56,7 @@ public class LookupService {
         return entidadeTutoraRepository.findAll();
     }
 
+    public List<SituacaoInscricaoEnum> findAllSituacoesInscricao() {
+        return Arrays.asList(SituacaoInscricaoEnum.values());
+    }
 }

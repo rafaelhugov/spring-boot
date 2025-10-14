@@ -124,11 +124,6 @@ public class CursoService extends AbstractService<Curso, Long> {
         return cursoRepository.save(curso);
     }
 
-    //    @Override
-//    public void deleteById(Long aLong) {
-//        super.deleteById(aLong);
-//    }
-
     @Override
     @Transactional
     public void deleteById(Long cursoId) {

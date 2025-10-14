@@ -7,11 +7,9 @@ import mppb.restapi.common.core.converter.DtoConverter;
 import mppb.restapi.common.core.controller.AbstractController;
 import mppb.restapi.cursos.feature.cadastro.dto.EntidadeTutoraDto;
 import mppb.restapi.cursos.feature.cadastro.entities.EntidadeTutora;
+import mppb.restapi.cursos.feature.inscricao.enums.SituacaoInscricaoEnum;
 import mppb.restapi.cursos.feature.lookup.converter.ModalidadeConverter;
-import mppb.restapi.cursos.feature.lookup.dto.ModalidadeDto;
-import mppb.restapi.cursos.feature.lookup.dto.PapelMinistranteDto;
-import mppb.restapi.cursos.feature.lookup.dto.PublicoAlvoDto;
-import mppb.restapi.cursos.feature.lookup.dto.TipoEventoDto;
+import mppb.restapi.cursos.feature.lookup.dto.*;
 import mppb.restapi.cursos.feature.lookup.entities.PapelMinistrante;
 import mppb.restapi.cursos.feature.lookup.entities.PublicoAlvo;
 import mppb.restapi.cursos.feature.lookup.entities.TipoEvento;
@@ -42,6 +40,7 @@ public class LookupController extends AbstractController {
     private final DtoConverter<PapelMinistranteDto, PapelMinistrante> papelMinistranteConverter;
     private final DtoConverter<EntidadeTutoraDto, EntidadeTutora> entidadeTutoraConverter;
 
+
     @GetMapping(value = "/modalidades", produces =  MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ModalidadeDto>> listModalidades() {
         return ResponseEntity.ok(lookupService.findAllModalidades().stream().map(modalidadeConverter::toDto).toList());
@@ -65,6 +64,15 @@ public class LookupController extends AbstractController {
     @GetMapping(value = "/papeis-ministrantes", produces =  MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<PapelMinistranteDto>> listPapeisPalestrante() {
         return ResponseEntity.ok(lookupService.findAllPapelMinistrante().stream().map(papelMinistranteConverter::toDto).toList());
+    }
+
+    @GetMapping(value = "/situacoes-inscricao", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<SituacaoInscricaoDto>> listSituacoesInscricao() {
+        return ResponseEntity.ok(
+                lookupService.findAllSituacoesInscricao().stream()
+                        .map(inscricao -> new SituacaoInscricaoDto(inscricao.getCodigo(), inscricao.getDescricao()))
+                        .toList()
+        );
     }
 
 }
