@@ -42,6 +42,7 @@ public class EmailService {
     @Transactional(readOnly = true)
     public void enviarEmailConfirmacao(Inscricao inscricao, InscricaoConfirmacaoToken token) {
 
+        //TODO colocar essa variavel como constante
         String emailFrom = configuracaoService.get("global.instituicao.email_ceaf");
         String frontendBaseUrl = sistemaService.findUrlBySigla(siglaSistema);
         Integer validadeMinutos = configuracaoService.getAsInteger("cursos.inscricao.token-validade-minutos");
@@ -112,12 +113,12 @@ public class EmailService {
                     <li><strong>Carga Horária:</strong> %s</li>
                     %s
                 </ul>
-                <p>Fique atento a futuros e-mails com mais informações, incluindo o link de acesso (caso seja on-line).</p>
+                <p>Fique atento a futuros e-mails com mais informações.</p>
                 """,
                     tituloCurso,
                     dataRealizacao,
                     cargaHoraria,
-                    linkProgramacao.isBlank() ? "" : String.format("<li><strong>Link da Programação:</strong> <a href=\"%1$s\">%1$s</a></li>", linkProgramacao)
+                    linkProgramacao.isBlank() ? "" : String.format("<li><strong>Link da videochamada:</strong> <a href=\"%1$s\">%1$s</a></li>", linkProgramacao)
             );
 
             // 2. Constrói o e-mail final usando o template
@@ -142,7 +143,7 @@ public class EmailService {
 
         String footer = """
             <br>
-            <p>Atenciosamente,<br>CEAF/MPPB</p>
+            <p>Atenciosamente,<br>Equipe CEAF/MPPB</p>
             """;
 
         return header + conteudoPrincipal + footer;

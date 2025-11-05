@@ -71,6 +71,7 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
             servidorService.buscarServidorPorId(participante.getIdServidor()).ifPresent(servidor -> {
                 dto.setNome(servidor.getNome());
                 dto.setCargo(servidor.getTipoCargoNome());
+                dto.setEmail(servidor.getEmail());
             });
         }
         return dto;

@@ -44,7 +44,14 @@ public interface ServidorRepository extends BaseRepository<Servidor, Long> {
                 p.nome,
                 f.nome                                                  AS cargoNome,
                 CASE WHEN tc.tipo = 'S' THEN 'Servidor' ELSE 'Membro' END AS tipocargoNome,
-                CASE WHEN s.ativo = 'A' THEN 'ATIVO' ELSE 'INATIVO' END   AS situacao
+                CASE WHEN s.ativo = 'A' THEN 'ATIVO' ELSE 'INATIVO' END   AS situacao,
+                (
+                  select u.login
+                  from autorizacao.usuario u
+                  where u.matricula = s.matricula and u.ativo = true
+                  order by id desc
+                  limit 1
+                ) || '@mppb.mp.br' as email
             FROM servidor s
             JOIN pessoa p ON p.id = s.id_pessoa
             JOIN recursoshumanos.funcao f ON f.id = s.id_cargo
