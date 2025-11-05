@@ -11,6 +11,7 @@ import mppb.restapi.common.core.controller.AbstractController;
 import mppb.restapi.common.core.converter.DtoConverter;
 import mppb.restapi.common.core.error.NotFoundException;
 import mppb.restapi.common.core.validation.groups.Update;
+import mppb.restapi.common.infrastructure.security.authorization.TokenAuthentication;
 import mppb.restapi.cursos.feature.curso.dto.*;
 import mppb.restapi.cursos.feature.curso.entity.Curso;
 import mppb.restapi.cursos.feature.curso.service.CursoService;
@@ -20,6 +21,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -30,6 +32,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Cursos", description = "Gerencia as operações relacionadas a cursos")
+@PreAuthorize("hasAuthority('cursos.manter.cursos')")
 public class CursoController extends AbstractController {
 
     private final CursoService cursoService;

@@ -22,32 +22,33 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Inscrição", description = "Gerencia as operações relacionadas à inscrição")
+//TODO remover classe
 public class InscricaoPublicaController extends AbstractController {
 
     private final CursoService cursoService;
 
     private final CursoConverter cursoConverter;
 
-    @GetMapping("/{hash}")
-    public ResponseEntity<CursoDto> getCursoParaInscricao(@PathVariable UUID hash) {
-        return cursoService.findByHashInscricao(hash)
-                .map(cursoConverter::toDto)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
+//    @GetMapping("/{hash}")
+//    public ResponseEntity<CursoDto> getCursoParaInscricao(@PathVariable UUID hash) {
+//        return cursoService.findByHashInscricao(hash)
+//                .map(cursoConverter::toDto)
+//                .map(ResponseEntity::ok)
+//                .orElse(ResponseEntity.notFound().build());
+//    }
 
-    @PostMapping("/{hash}")
-    public ResponseEntity<String> realizarInscricao(@PathVariable UUID hash, @RequestBody Map<String, String> participante) {
-        return cursoService.findByHashInscricao(hash).map(curso -> {
-            if (!cursoService.isPeriodoInscricaoValido(curso)) {
-                return ResponseEntity.badRequest().body("Período de inscrições encerrado.");
-            }
-            if (!cursoService.isPublicoAlvoValido(participante.get("email"), curso)) {
-                return ResponseEntity.badRequest().body("Você não pertence ao público-alvo deste curso.");
-            }
-            System.out.println("Inscrição recebida para o curso " + curso.getTitulo() + ": " + participante);
-            return ResponseEntity.ok("Inscrição realizada com sucesso!");
-        }).orElse(ResponseEntity.notFound().build());
-    }
+//    @PostMapping("/{hash}")
+//    public ResponseEntity<String> realizarInscricao(@PathVariable UUID hash, @RequestBody Map<String, String> participante) {
+//        return cursoService.findByHashInscricao(hash).map(curso -> {
+//            if (!cursoService.isPeriodoInscricaoValido(curso)) {
+//                return ResponseEntity.badRequest().body("Período de inscrições encerrado.");
+//            }
+//            if (!cursoService.isPublicoAlvoValido(participante.get("email"), curso)) {
+//                return ResponseEntity.badRequest().body("Você não pertence ao público-alvo deste curso.");
+//            }
+//            System.out.println("Inscrição recebida para o curso " + curso.getTitulo() + ": " + participante);
+//            return ResponseEntity.ok("Inscrição realizada com sucesso!");
+//        }).orElse(ResponseEntity.notFound().build());
+//    }
 
 }

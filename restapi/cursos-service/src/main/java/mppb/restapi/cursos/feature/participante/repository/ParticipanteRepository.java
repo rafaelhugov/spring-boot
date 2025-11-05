@@ -42,4 +42,6 @@ public interface ParticipanteRepository extends BaseRepository<Participante, Lon
      *
      */
     List<Participante> findAllByTipoAndNomeContainingIgnoreCase(TipoParticipanteEnum tipo, String nome);
+
+    Optional<Participante> findByCpfAndTipo(String cpf, TipoParticipanteEnum tipoParticipanteEnum);
 }

@@ -8,6 +8,9 @@ project:
   openapi:
     url: ${PROJECT_OPENAPI_URL:http://localhost:${server.port}/}
 
+sistema:
+  sigla: CURSOS
+
 api:
   auth:
     url: "${API_URL:https://auth-api.mppb.mp.br}"

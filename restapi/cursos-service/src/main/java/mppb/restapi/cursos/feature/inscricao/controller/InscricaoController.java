@@ -19,12 +19,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/cursos/{cursoId}/inscricoes")
 @RequiredArgsConstructor
 @Slf4j
+// TODO mover metodos relativos a cursos para o cursoController
+// TODO nome dessa classe está confundindo com InscricaoAutenticadaController, ao mover os métodos, considerar unifcá-las
+@PreAuthorize("hasAuthority('cursos.manter.cursos')")
 public class InscricaoController {
 
     private final InscricaoService inscricaoService;

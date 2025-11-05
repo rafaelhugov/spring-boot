@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 @Getter
 public enum SituacaoInscricaoEnum {
 
+    PENDENTE_CONFIRMACAO('P', "PENDENTE CONFIRMACAO"),
     INSCRITO('I', "INSCRITO"),
     APROVADO('A', "APROVADO"),
     REPROVADO('R', "REPROVADO"),

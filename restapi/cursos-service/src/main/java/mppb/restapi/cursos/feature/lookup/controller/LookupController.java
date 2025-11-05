@@ -17,6 +17,7 @@ import mppb.restapi.cursos.feature.lookup.service.LookupService;
 import mppb.restapi.cursos.infrastructure.util.Constants;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,11 +27,12 @@ import java.util.List;
 
 @Validated
 @RestController
-
 @RequestMapping(Constants.API_PREFIX + "/lookup")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Lookup", description = "Retorna lista de seleção.")
+@PreAuthorize("hasAuthority('cursos.cadastros')")
+//TODO cachear esse controller
 public class LookupController extends AbstractController {
 
     private final LookupService lookupService;

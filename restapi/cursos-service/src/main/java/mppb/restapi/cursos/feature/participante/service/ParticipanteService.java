@@ -4,12 +4,14 @@ import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.core.error.BusinessRuleException;
 import mppb.restapi.common.core.service.AbstractService;
+import mppb.restapi.common.core.util.StringUtil;
 import mppb.restapi.cursos.feature.common.projection.ServidorProjection;
 import mppb.restapi.cursos.feature.common.service.ServidorService;
 import mppb.restapi.cursos.feature.participante.converter.ParticipanteConverter;
 import mppb.restapi.cursos.feature.participante.dto.CriarInscricaoDto;
 import mppb.restapi.cursos.feature.participante.dto.ParticipanteDto;
 import mppb.restapi.cursos.feature.participante.dto.ParticipanteSearchResultDto;
+import mppb.restapi.cursos.feature.participante.dto.ParticipanteVerificacaoDto;
 import mppb.restapi.cursos.feature.participante.entity.Participante;
 import mppb.restapi.cursos.feature.participante.enums.TipoParticipanteEnum;
 import mppb.restapi.cursos.feature.participante.repository.ParticipanteRepository;
@@ -18,11 +20,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
 @Transactional
+// TODO revisar métodos dessa classe com a InscricaoService, podem ter regras repetidas ou misturadas
 public class ParticipanteService extends AbstractService<Participante, Long> {
 
     private final ParticipanteRepository participanteRepository;
@@ -95,7 +99,7 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
             }
         }
     }
-
+    
     private Participante createAndSaveInternal(Integer idServidor) {
         Participante p = new Participante();
         p.setIdServidor(idServidor);
