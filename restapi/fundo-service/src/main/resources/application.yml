@@ -1,12 +1,14 @@
-
+aplicacao:
+  name: @project.name@
+  version: @project.version@
+  description: @project.description@
+  openapi:
+    url: http://localhost:${server.port}/
 
 server:
   port: ${PORT:9002}
 auth-service:
   url: "${API_URL:https://auth-api.mppb.mp.br}"
-aplicacao:
-  openapi:
-    url: http://localhost:${server.port}/
 microsservicos:
   bb:
     cobranca:
@@ -27,7 +29,11 @@ microsservicos:
       url: ${BCSELIC_API_URL}
 spring:
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev} # prod, dev, secure
+    # prod = usar em produção (secure)
+    # dev = usar em desenvolvimento (trace)
+    # insecure = dispensa exigência de token de autorização nas chamadas.
+    # trace = força incluir trace na resposta http de erros
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   http:
     encoding:
       enabled: true
@@ -39,7 +45,8 @@ spring:
     password: ${PG_PASSWORD:senha}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 1
+      maximum-pool-size: ${POOL_MAX:1}
+      minimum-idle: ${POOL_MIN:1}
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:

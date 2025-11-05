@@ -5,20 +5,20 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.extern.log4j.Log4j2;
 
-import mppb.microservices.common.error.AppException;
-import mppb.microservices.common.error.BusinessRuleException;
-import mppb.microservices.common.error.NotFoundException;
-import mppb.microservices.common.error.ValidationException;
-import mppb.microservices.common.error.feign.ClientApiException;
+import mppb.microservices.common.core.error.AppException;
+import mppb.microservices.common.core.error.BusinessRuleException;
+import mppb.microservices.common.core.error.NotFoundException;
+import mppb.microservices.common.core.error.ValidationException;
+import mppb.microservices.common.core.error.feign.ClientApiException;
 import mppb.microservices.common.infrastructure.report.JasperService;
-import mppb.microservices.common.service.AbstractService;
-import mppb.microservices.common.util.NumeroUtil;
-import mppb.microservices.common.util.PdfUtil;
-import mppb.microservices.fundoapi.feature.client.bb.api.BbCobrancaFddService;
-import mppb.microservices.fundoapi.feature.client.bb.api.BbCobrancaFedcService;
-import mppb.microservices.fundoapi.feature.client.bb.dto.request.BbBoletoRequestDto;
-import mppb.microservices.fundoapi.feature.client.bb.dto.request.BbPagadorDto;
-import mppb.microservices.fundoapi.feature.client.bb.dto.response.BbBoletoResponseDto;
+import mppb.microservices.common.core.service.AbstractService;
+import mppb.microservices.common.core.util.NumberUtil;
+import mppb.microservices.common.core.util.PdfUtil;
+import mppb.microservices.fundoapi.infrastructure.client.bb.api.BbCobrancaFddService;
+import mppb.microservices.fundoapi.infrastructure.client.bb.api.BbCobrancaFedcService;
+import mppb.microservices.fundoapi.infrastructure.client.bb.dto.request.BbBoletoRequestDto;
+import mppb.microservices.fundoapi.infrastructure.client.bb.dto.request.BbPagadorDto;
+import mppb.microservices.fundoapi.infrastructure.client.bb.dto.response.BbBoletoResponseDto;
 import mppb.microservices.fundoapi.feature.cobranca.dto.ValorCorrigidoDto;
 import mppb.microservices.fundoapi.feature.cobranca.entity.Boleto;
 import mppb.microservices.fundoapi.feature.cobranca.entity.Fundo;
@@ -500,9 +500,9 @@ public class BoletoService extends AbstractService<Boleto, Long> {
     private String agenciaCodigo(Long agencia, Long conta) {
 
         String agenciaCodigo = "";
-        agenciaCodigo +=  agencia + "-" + NumeroUtil.calcularDVModulo11(agencia);
+        agenciaCodigo +=  agencia + "-" + NumberUtil.calcularDVModulo11(agencia);
         agenciaCodigo += " / ";
-        agenciaCodigo +=  conta + "-" + NumeroUtil.calcularDVModulo11(conta );
+        agenciaCodigo +=  conta + "-" + NumberUtil.calcularDVModulo11(conta );
 
         return agenciaCodigo;
     }

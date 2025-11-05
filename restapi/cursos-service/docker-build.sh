@@ -22,3 +22,5 @@ docker build \
   -t localhost:5000/cursos-api:$VERSION \
   -t localhost:5000/cursos-api:latest \
   .
+
+

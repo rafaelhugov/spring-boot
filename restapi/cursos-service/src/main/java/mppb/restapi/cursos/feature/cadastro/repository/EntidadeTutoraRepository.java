@@ -1,0 +1,9 @@
+package mppb.restapi.cursos.feature.cadastro.repository;
+
+import mppb.restapi.common.core.repository.SoftDeleteRepository;
+import mppb.restapi.cursos.feature.cadastro.entities.EntidadeTutora;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface EntidadeTutoraRepository extends SoftDeleteRepository<EntidadeTutora, Long> {}

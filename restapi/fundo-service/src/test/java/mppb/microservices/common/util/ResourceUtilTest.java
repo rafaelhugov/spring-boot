@@ -1,6 +1,7 @@
 package mppb.microservices.common.util;
 
-import mppb.microservices.common.error.NotFoundException;
+import mppb.microservices.common.core.error.NotFoundException;
+import mppb.microservices.common.core.util.IoUtil;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;

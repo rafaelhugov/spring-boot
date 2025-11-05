@@ -2,7 +2,7 @@ package mppb.microservices.fundoapi.feature.cobranca.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import mppb.microservices.common.util.Constants;
+import mppb.microservices.common.core.util.Constants;
 import mppb.microservices.fundoapi.feature.common.entities.Comarca;
 import mppb.microservices.fundoapi.feature.common.entities.Estado;
 import mppb.microservices.fundoapi.feature.common.entities.Municipio;

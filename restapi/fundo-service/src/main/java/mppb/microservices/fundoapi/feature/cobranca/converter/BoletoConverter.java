@@ -1,6 +1,6 @@
 package mppb.microservices.fundoapi.feature.cobranca.converter;
 
-import mppb.microservices.common.converter.AbstractConverter;
+import mppb.microservices.common.core.converter.AbstractConverter;
 import mppb.microservices.fundoapi.feature.cobranca.dto.BoletoDto;
 import mppb.microservices.fundoapi.feature.cobranca.entity.Boleto;
 import org.modelmapper.ModelMapper;

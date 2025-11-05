@@ -5,14 +5,14 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import mppb.microservices.common.client.authapi.dto.AcessoDataResponseTO;
+import mppb.microservices.common.infrastructure.client.authapi.dto.AcessoDataResponseDto;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 
 public class SecurityUtils {
 
-    public static Collection<? extends GrantedAuthority> getAuthorities(AcessoDataResponseTO acessoData) {
+    public static Collection<? extends GrantedAuthority> getAuthorities(AcessoDataResponseDto acessoData) {
         if (acessoData.getFuncionalidadesPermitidas() == null) {
             return null;
         }
