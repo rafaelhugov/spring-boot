@@ -3,12 +3,14 @@ package mppb.restapi.cursos.feature.participante.service;
 import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.core.error.BusinessRuleException;
+import mppb.restapi.common.core.error.NotFoundException;
 import mppb.restapi.common.core.service.AbstractService;
 import mppb.restapi.common.core.util.StringUtil;
 import mppb.restapi.cursos.feature.common.projection.ServidorProjection;
 import mppb.restapi.cursos.feature.common.service.ServidorService;
 import mppb.restapi.cursos.feature.participante.converter.ParticipanteConverter;
 import mppb.restapi.cursos.feature.participante.dto.CriarInscricaoDto;
+import mppb.restapi.cursos.feature.participante.dto.InscricaoPublicaDto;
 import mppb.restapi.cursos.feature.participante.dto.ParticipanteDto;
 import mppb.restapi.cursos.feature.participante.dto.ParticipanteSearchResultDto;
 import mppb.restapi.cursos.feature.participante.dto.ParticipanteVerificacaoDto;
@@ -80,6 +82,7 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
     /**
      * Encontra um participante existente ou cria um novo com base nos dados fornecidos.
      * Esta é a lógica central para evitar a duplicação de participantes.
+     * (Usado pelo fluxo de Admin e Interno).
      *
      * @param dto O DTO contendo os dados do participante a ser inscrito.
      * @return A entidade Participante (existente ou recém-criada).
@@ -90,31 +93,63 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
                 throw new BusinessRuleException("O ID do servidor é obrigatório para participantes internos.");
             }
             return participanteRepository.findByIdServidor(dto.getIdServidor())
-                    .orElseGet(() -> createAndSaveInternal(dto.getIdServidor()));
+                    .orElseGet(() -> createAndSaveInterno(dto.getIdServidor())); // RENOMEADO
         } else { // EXTERNO
+            // Esta lógica de 'participanteId' vs 'create' é usada pelo fluxo de Admin
             if (dto.getParticipanteId() != null) {
                 return participanteRepository.findById(dto.getParticipanteId())
                         .orElseThrow(() -> new BusinessRuleException("Participante externo não encontrado: " + dto.getParticipanteId()));
             } else {
-                return createAndSaveExternal(dto);
+                return createAndSaveExterno(dto); // RENOMEADO
             }
         }
     }
-    
-    private Participante createAndSaveInternal(Integer idServidor) {
+
+    /**
+     * Centraliza a lógica de criação de participante externo vinda do fluxo de inscrição pública.
+     *
+     * @param dto O DTO vindo do formulário de inscrição pública.
+     * @return A entidade Participante (existente ou recém-criada).
+     */
+    public Participante findOrCreateParticipanteExterno(InscricaoPublicaDto dto) {
+        // 1. Reutilizar participante se o ID foi fornecido
+        if (dto.getParticipanteId() != null) {
+            return this.findById(dto.getParticipanteId())
+                    .orElseThrow(() -> new NotFoundException("Participante não encontrado para reutilização."));
+        }
+
+        // 2. Validar e converter o DTO
+        if (!StringUtils.hasText(dto.getNome()) || !StringUtils.hasText(dto.getEmail())) {
+            throw new BusinessRuleException("Nome e E-mail são obrigatórios para um novo cadastro.");
+        }
+
+        CriarInscricaoDto payload = new CriarInscricaoDto();
+        payload.setTipo(TipoParticipanteEnum.EXTERNO.name());
+        payload.setNome(dto.getNome());
+        payload.setCpf(dto.getCpf().replaceAll("\\D", ""));
+        payload.setEmail(dto.getEmail());
+        payload.setTelefone(dto.getTelefone() != null ? dto.getTelefone().replaceAll("\\D", "") : null);
+
+        // 3. Reutiliza a lógica de criação/validação de CPF duplicado
+        return createAndSaveExterno(payload); 
+    }
+
+    private Participante createAndSaveInterno(Integer idServidor) {
         Participante p = new Participante();
         p.setIdServidor(idServidor);
         p.setTipo(TipoParticipanteEnum.INTERNO);
         return repository.save(p);
     }
 
-    private Participante createAndSaveExternal(CriarInscricaoDto dto) {
+    private Participante createAndSaveExterno(CriarInscricaoDto dto) {
         if (dto.getCpf() == null || dto.getCpf().isBlank()) {
             throw new BusinessRuleException("O CPF é obrigatório para participantes externos.");
         }
+
         if (participanteRepository.existsByCpf(dto.getCpf())) {
             throw new BusinessRuleException("Já existe um participante cadastrado com este CPF.");
         }
+
         Participante p = new Participante();
         p.setNome(dto.getNome());
         p.setCpf(dto.getCpf());

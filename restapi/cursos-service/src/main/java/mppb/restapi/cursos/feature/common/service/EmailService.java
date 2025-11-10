@@ -113,7 +113,7 @@ public class EmailService {
                     <li><strong>Carga Horária:</strong> %s</li>
                     %s
                 </ul>
-                <p>Fique atento a futuros e-mails com mais informações.</p>
+                <p>Enviaremos e-mail em caso de novas informações ou mudanças na programação.</p>
                 """,
                     tituloCurso,
                     dataRealizacao,

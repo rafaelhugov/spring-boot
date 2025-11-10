@@ -19,23 +19,23 @@ import java.util.UUID;
 @RestController
 @RequestMapping(Constants.API_PREFIX + "/inscricoes")
 @RequiredArgsConstructor
-@Tag(name = "Inscrições", description = "Endpoints autenticados para a inscrição do próprio utilizador")
+@Tag(name = "Inscrições para membros/servidores", description = "Endpoints autenticados para tratamento de inscrições de participantes internos (membro/servidor)")
 //TODO mover os metodos para o InscricaoController
-public class InscricaoAutenticadaController {
+public class InscricaoInternoController {
 
     private final InscricaoService inscricaoService;
 
     /**
-     * Endpoint seguro para o utilizador interno (servidor/membro) confirmar a sua
+     * Endpoint seguro para o participante interno (membro/servidor) confirmar a sua
      * própria inscrição num curso.
      *
      * @param hash O hash do curso.
      * @return O DTO da inscrição criada.
      */
-    @Operation(summary = "Realiza a inscrição do utilizador interno logado",
-            description = "Este endpoint requer a permissão 'cursos.acesso' e inscreve o utilizador autenticado no curso especificado pelo hash.",
+    @Operation(summary = "Realiza a inscrição do participante interno logado",
+            description = "Este endpoint requer a permissão 'cursos.acesso' e inscreve o participante autenticado no curso especificado pelo hash.",
             security = @SecurityRequirement(name = "bearerAuth")) // Assume que a sua segurança OpenAPI chama-se 'bearerAuth'
-    @PostMapping("/{hash}")
+    @PostMapping("/{hash}/interno")
     @PreAuthorize("hasAuthority('cursos.acesso')") // Protegido pela permissão base
     public ResponseEntity<InscricaoDto> inscreverInterno(@PathVariable UUID hash) {
         InscricaoDto inscricaoSalva = inscricaoService.realizarInscricaoInterna(hash);

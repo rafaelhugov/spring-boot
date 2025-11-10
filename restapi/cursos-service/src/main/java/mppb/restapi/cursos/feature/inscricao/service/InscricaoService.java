@@ -34,7 +34,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -54,8 +53,8 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
     private final CursoService cursoService;
     private final ServidorService servidorService;
     private final ParticipanteRepository participanteRepository;
-    private final EmailService emailService; // Injeção Adicionada
-    private final ConfiguracaoService configuracaoService; // Injeção Adicionada
+    private final EmailService emailService;
+    private final ConfiguracaoService configuracaoService;
 
     public InscricaoService(EntityManager entityManager,
                             InscricaoRepository inscricaoRepository,
@@ -66,8 +65,8 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
                             CursoService cursoService,
                             ServidorService servidorService,
                             ParticipanteRepository participanteRepository,
-                            EmailService emailService, // Adicionado
-                            ConfiguracaoService configuracaoService) { // Adicionado
+                            EmailService emailService,
+                            ConfiguracaoService configuracaoService) {
         super(entityManager, inscricaoRepository);
         this.inscricaoRepository = inscricaoRepository;
         this.cursoRepository = cursoRepository;
@@ -77,8 +76,8 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         this.cursoService = cursoService;
         this.servidorService = servidorService;
         this.participanteRepository = participanteRepository;
-        this.emailService = emailService; // Adicionado
-        this.configuracaoService = configuracaoService; // Adicionado
+        this.emailService = emailService;
+        this.configuracaoService = configuracaoService;
     }
 
     // =================================================================================
@@ -159,7 +158,9 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
      */
     public InscricaoDto realizarInscricaoPublica(UUID hash, InscricaoPublicaDto dto) {
         Curso curso = getCursoByHashAndValidarPeriodo(hash);
-        Participante participante = getOrCreateParticipante(dto);
+
+        // Delega a lógica de criação/busca de participante
+        Participante participante = participanteService.findOrCreateParticipanteExterno(dto);
 
         // --- LÓGICA DE REENVIO ---
         Optional<Inscricao> inscricaoExistenteOpt = inscricaoRepository.findByCursoAndParticipante(curso, participante);
@@ -318,27 +319,6 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
     }
 
     /**
-     * Obtém um participante existente ou cria um novo com base nos dados do formulário público.
-     */
-    private Participante getOrCreateParticipante(InscricaoPublicaDto dto) {
-        if (dto.getParticipanteId() != null) {
-            return participanteService.findById(dto.getParticipanteId())
-                    .orElseThrow(() -> new NotFoundException("Participante não encontrado para reutilização."));
-        } else {
-            if (!StringUtils.hasText(dto.getNome()) || !StringUtils.hasText(dto.getEmail())) {
-                throw new BusinessRuleException("Nome e E-mail são obrigatórios para um novo cadastro.");
-            }
-            CriarInscricaoDto payload = new CriarInscricaoDto();
-            payload.setTipo(TipoParticipanteEnum.EXTERNO.name());
-            payload.setNome(dto.getNome());
-            payload.setCpf(dto.getCpf().replaceAll("\\D", ""));
-            payload.setEmail(dto.getEmail());
-            payload.setTelefone(dto.getTelefone() != null ? dto.getTelefone().replaceAll("\\D", "") : null);
-            return participanteService.findOrCreateParticipante(payload);
-        }
-    }
-
-    /**
      * Cria e persiste uma nova inscrição com o status PENDENTE_CONFIRMACAO.
      */
     private Inscricao criarInscricaoPendente(Curso curso, Participante participante) {
@@ -369,4 +349,3 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         emailService.enviarEmailConfirmacao(inscricao, token);
     }
 }
-

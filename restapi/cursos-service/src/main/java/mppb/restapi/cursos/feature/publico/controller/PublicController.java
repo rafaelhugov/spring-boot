@@ -23,7 +23,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping(Constants.API_PREFIX + "/public")
 @RequiredArgsConstructor
-@Tag(name = "Público", description = "Endpoints públicos para inscrição em cursos")
+@Tag(name = "Público", description = "Endpoints públicos")
 public class PublicController {
 
     private final CursoService cursoService;
@@ -37,27 +37,26 @@ public class PublicController {
     @Operation(summary = "Obtém detalhes públicos de um curso", description = "Retorna os detalhes de um curso para a página de inscrição, usando o hash do link.")
     @GetMapping("/cursos/{hash}")
     public ResponseEntity<CursoPublicoDto> getCursoPublico(@PathVariable UUID hash) {
-        // Renomeado para findByHashInscricao conforme solicitado anteriormente
         CursoPublicoDto cursoDto = cursoService.findByHashInscricao(hash);
         return ResponseEntity.ok(cursoDto);
     }
 
-    @Operation(summary = "Realiza a inscrição em um curso", description = "Submete os dados de um participante para inscrição em um curso através do link público.")
-    @PostMapping("/inscricoes/{hash}")
-    public ResponseEntity<InscricaoDto> inscrever(@PathVariable UUID hash,
+    @Operation(summary = "Realiza a inscrição de um participante externo", description = "Submete os dados de um participante externo para inscrição em um curso através do link público.")
+    @PostMapping("/inscricoes/{hash}/externo")
+    public ResponseEntity<InscricaoDto> inscreverExterno(@PathVariable UUID hash,
                                                   @Valid @RequestBody InscricaoPublicaDto dto) {
         InscricaoDto inscricaoSalva = inscricaoService.realizarInscricaoPublica(hash, dto);
         return new ResponseEntity<>(inscricaoSalva, HttpStatus.CREATED);
     }
 
     /**
-     * Verifica a situação de um participante por CPF para um curso específico
+     * Verifica a situação de um participante externo por CPF para um curso específico
      * @param cpf O CPF a ser verificado.
-     * @return Um DTO com o ID do participante e o e-mail mascarado se encontrado, ou 404 Not Found caso contrário.
+     * @return Um DTO com o ID do participante externo e o e-mail mascarado se encontrado, ou 404 Not Found caso contrário.
      */
-    @Operation(summary = "Verifica a situação de um participante por CPF para um curso específico")
-    @GetMapping("/cursos/{hash}/verificar-participante")
-    public ResponseEntity<ParticipanteVerificacaoDto> verificarParticipante(
+    @Operation(summary = "Verifica a situação de um participante externo por CPF para um curso específico")
+    @GetMapping("/cursos/{hash}/verificar-participante-externo")
+    public ResponseEntity<ParticipanteVerificacaoDto> verificarParticipanteExterno(
             @PathVariable UUID hash,
             @RequestParam String cpf) {
 
@@ -66,13 +65,13 @@ public class PublicController {
     }
 
     /**
-     * Confirma uma inscrição a partir do token enviado por e-mail.
+     * Confirma uma inscrição do participante externo a partir do token enviado por e-mail.
      * @param token O token de confirmação.
      * @return Uma resposta de sucesso se o token for válido.
      */
-    @Operation(summary = "Confirma uma inscrição por e-mail", description = "Valida o token recebido e, se for válido, efetiva a inscrição do participante.")
+    @Operation(summary = "Confirma uma inscrição do participante externo por e-mail", description = "Valida o token recebido e, se for válido, efetiva a inscrição do participante externo.")
     @GetMapping("/inscricoes/confirmar/{token}")
-    public ResponseEntity<Void> confirmarInscricao(@PathVariable String token) {
+    public ResponseEntity<Void> confirmarInscricaoExterno(@PathVariable String token) {
         inscricaoService.confirmarInscricao(token);
         // Retorna um 200 OK sem corpo, indicando que a operação foi bem-sucedida.
         // O frontend será responsável por mostrar a mensagem de sucesso ao utilizador.
