@@ -32,4 +32,15 @@ public class ServidorService extends AbstractService<Servidor, Long> {
     public Optional<ServidorProjection> buscarServidorPorId(Integer id) {
         return servidorRepository.buscarServidorPorId(id);
     }
+
+    @Transactional(readOnly = true)
+    public Optional<ServidorProjection> buscarPorCpf(String cpf) {
+        return servidorRepository.buscarServidorPorCpf(cpf);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Integer> findIdServidorByLogin(String login) {
+        return servidorRepository.findIdServidorByLogin(login);
+    }
+
 }

@@ -5,11 +5,13 @@ import lombok.RequiredArgsConstructor;
 import mppb.restapi.common.infrastructure.env.RuntimeEnv;
 import mppb.restapi.common.infrastructure.security.filter.CustomBasicAuthenticationFilter;
 import mppb.restapi.common.infrastructure.security.filter.CustomUsernamePasswordAuthenticationFilter;
+import mppb.restapi.cursos.infrastructure.util.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -20,12 +22,16 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @EnableWebSecurity
 @Configuration
 @RequiredArgsConstructor
+@EnableMethodSecurity
 public class SecurityConfig {
 
-    private final String PUBLIC_URLS[] = {"/favicon.ico",
-            "/public/**",  "/swagger-ui/index.html", "/swagger-ui.html", "/swagger-ui/**",
+    private final String PUBLIC_URLS[] = {
+            "/favicon.ico",
+            "/" + Constants.API_PREFIX + "/public/**", // Ex: "/api/public/**"
+            "/swagger-ui/index.html", "/swagger-ui.html", "/swagger-ui/**",
             "/v3/api-docs",
     };
+
 
     private final RuntimeEnv runtimeEnv;
 

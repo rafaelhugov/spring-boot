@@ -9,6 +9,7 @@ import mppb.restapi.cursos.feature.participante.dto.ParticipanteView;
 import mppb.restapi.cursos.feature.participante.service.ParticipanteService;
 import mppb.restapi.cursos.infrastructure.util.Constants;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +24,7 @@ import java.util.List;
 @RequestMapping(Constants.API_PREFIX + "/participantes")
 @RequiredArgsConstructor
 @Tag(name = "Participantes", description = "Gerencia as operações relacionadas a participantes")
+@PreAuthorize("hasAuthority('cursos.manter.cursos')")
 public class ParticipanteController {
 
     private final ParticipanteService participanteService;

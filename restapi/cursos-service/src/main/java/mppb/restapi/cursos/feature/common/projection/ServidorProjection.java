@@ -13,5 +13,6 @@ public interface ServidorProjection {
     String getTipoCargoNome();
     String getServidorMatricula();
     String getSituacao();
+    String getEmail();
 
 }

@@ -7,10 +7,7 @@ import mppb.restapi.common.core.error.NotFoundException;
 import mppb.restapi.common.core.service.AbstractService;
 import mppb.restapi.cursos.feature.curso.converter.CursoConverter;
 import mppb.restapi.cursos.feature.curso.converter.CursoMinistranteConverter;
-import mppb.restapi.cursos.feature.curso.dto.AssociarMinistranteDto;
-import mppb.restapi.cursos.feature.curso.dto.AtualizarPapelMinistranteDto;
-import mppb.restapi.cursos.feature.curso.dto.CursoDto;
-import mppb.restapi.cursos.feature.curso.dto.CursoMinistranteDto;
+import mppb.restapi.cursos.feature.curso.dto.*;
 import mppb.restapi.cursos.feature.curso.entity.Curso;
 import mppb.restapi.cursos.feature.curso.entity.CursoMinistrante;
 import mppb.restapi.cursos.feature.curso.repository.CursoMinistranteRepository;
@@ -225,10 +222,38 @@ public class CursoService extends AbstractService<Curso, Long> {
     }
 
 
+    /**
+     * Busca os detalhes públicos de um curso pelo seu hash de inscrição.
+     * @param hash O UUID do hash de inscrição.
+     * @return Um DTO com os detalhes públicos do curso.
+     */
     @Transactional(readOnly = true)
-    public Optional<Curso> findByHashInscricao(UUID hash) {
-        return cursoRepository.findByHashInscricao(hash);
+    public CursoPublicoDto findByHashInscricao(UUID hash) {
+        Curso curso = cursoRepository.findByHashInscricao(hash)
+                .orElseThrow(() -> new NotFoundException("Curso não encontrado ou o link de inscrição é inválido."));
+
+        // Mapeamento manual para o DTO público
+        CursoPublicoDto dto = new CursoPublicoDto();
+        dto.setTitulo(curso.getTitulo());
+        dto.setDescricao(curso.getDescricao());
+        dto.setInscricaoDataInicial(curso.getInscricaoDataInicial());
+        dto.setInscricaoDataFinal(curso.getInscricaoDataFinal());
+        dto.setRealizacaoDataInicial(curso.getRealizacaoDataInicial());
+        dto.setRealizacaoDataFinal(curso.getRealizacaoDataFinal());
+        dto.setCargaHoraria(curso.getCargaHoraria());
+        dto.setLinkProgramacao(curso.getLinkProgramacao());
+        if (curso.getModalidade() != null) {
+            dto.setModalidade(curso.getModalidade().getDescricao());
+        }
+
+        // Verifica na lista de públicos-alvo do curso se algum deles é do tipo 'E' (Externo).
+        boolean aceitaExterno = curso.getPublicosAlvo().stream()
+                .anyMatch(publicoAlvo -> "E".equals(publicoAlvo.getInternoExterno()));
+        dto.setAceitaInscricaoExterna(aceitaExterno);
+
+        return dto;
     }
+
 
     @Transactional(readOnly = true)
     public boolean isPeriodoInscricaoValido(Curso curso) {

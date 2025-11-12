@@ -9,5 +9,6 @@ public class Esquemas {
     public static final String SCHEMA_PROTOCOLO = "protocolo";
     public static final String SCHEMA_PUBLIC = "public";
     public static final String SCHEMA_RECURSOSHUMANOS = "recursoshumanos";
+    public static final String SCHEMA_ADMINISTRADOR = "administrador";
 
 }

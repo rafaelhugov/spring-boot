@@ -13,42 +13,6 @@ import java.util.Optional;
 @Repository
 public interface ServidorRepository extends BaseRepository<Servidor, Long> {
 
-//    @Query(
-//            value = """
-//            SELECT
-//               servidor_id             AS id,
-//               servidor_matricula      AS servidorMatricula,
-//               servidor_nome           AS nome,
-//               cargo_nome              AS cargoNome,
-//               tipocargo_nome          AS tipocargoNome,
-//               CASE WHEN ativo = 'A' THEN 'ATIVO' ELSE 'INATIVO' END AS situacao
-//            FROM diariooficial.mapa_por_membro_vw
-//            WHERE lower(funcaosemacentos(servidor_nome)) LIKE lower(concat('%', replace(funcaosemacentos(:nome), ' ', '%'), '%'))
-//            GROUP BY servidor_id, servidor_matricula, servidor_nome, cargo_nome, tipocargo_nome, ativo
-//            ORDER BY servidor_nome
-//            LIMIT 10
-//            """,
-//            nativeQuery = true
-//    )
-//    List<ServidorProjection> buscarServidoresPorNome(@Param("nome") String nome);
-
-
-//    @Query(
-//            value = """
-//            SELECT
-//               servidor_id             AS id,
-//               servidor_matricula      AS servidorMatricula,
-//               servidor_nome           AS nome,
-//               cargo_nome              AS cargoNome,
-//               tipocargo_nome          AS tipocargoNome,
-//               CASE WHEN ativo = 'A' THEN 'ATIVO' ELSE 'INATIVO' END AS situacao
-//            FROM diariooficial.mapa_por_membro_vw
-//            WHERE servidor_id = :id
-//            LIMIT 1
-//            """,
-//            nativeQuery = true
-//    )
-//    Optional<ServidorProjection> buscarServidorPorId(@Param("id") Integer id);
 
     @Query(
             value = """
@@ -80,7 +44,14 @@ public interface ServidorRepository extends BaseRepository<Servidor, Long> {
                 p.nome,
                 f.nome                                                  AS cargoNome,
                 CASE WHEN tc.tipo = 'S' THEN 'Servidor' ELSE 'Membro' END AS tipocargoNome,
-                CASE WHEN s.ativo = 'A' THEN 'ATIVO' ELSE 'INATIVO' END   AS situacao
+                CASE WHEN s.ativo = 'A' THEN 'ATIVO' ELSE 'INATIVO' END   AS situacao,
+                (
+                  select u.login
+                  from autorizacao.usuario u
+                  where u.matricula = s.matricula and u.ativo = true
+                  order by id desc
+                  limit 1
+                ) || '@mppb.mp.br' as email
             FROM servidor s
             JOIN pessoa p ON p.id = s.id_pessoa
             JOIN recursoshumanos.funcao f ON f.id = s.id_cargo
@@ -91,6 +62,37 @@ public interface ServidorRepository extends BaseRepository<Servidor, Long> {
             nativeQuery = true
     )
     Optional<ServidorProjection> buscarServidorPorId(@Param("id") Integer id);
+
+    @Query(value = """
+            SELECT
+                s.id as id,
+                s.matricula AS servidorMatricula,
+                p.nome as nome,
+                f.nome AS cargoNome,
+                CASE WHEN tc.tipo = 'S' THEN 'Servidor' ELSE 'Membro' END AS tipoCargoNome,
+                CASE WHEN s.ativo = 'A' THEN 'ATIVO' ELSE 'INATIVO' END AS situacao
+            FROM servidor s
+            JOIN pessoa p ON p.id = s.id_pessoa
+            JOIN pessoafisica pf ON pf.id_pessoa = p.id
+            JOIN recursoshumanos.funcao f ON f.id = s.id_cargo
+            JOIN recursoshumanos.tipocargo tc ON tc.id = f.id_tipocargo
+            WHERE pf.cpf = :cpf
+            LIMIT 1
+            """, nativeQuery = true)
+    Optional<ServidorProjection> buscarServidorPorCpf(@Param("cpf") String cpf);
+
+
+    /**
+     * Busca o ID de servidor (do RH) com base no login (do sistema de autenticação).
+     * Utiliza a view de mapeamento 'autorizacao.usuarioservidor_vw'.
+     * @param login O login do utilizador (ex: 'usuario.teste').
+     * @return Um Optional contendo o ID do servidor (Integer).
+     */
+    @Query(value = "SELECT id_servidor FROM autorizacao.usuarioservidor_vw WHERE login = :login LIMIT 1",
+            nativeQuery = true)
+    Optional<Integer> findIdServidorByLogin(@Param("login") String login);
+
+
 
 }
 

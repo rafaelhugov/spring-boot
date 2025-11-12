@@ -2,6 +2,7 @@ package mppb.restapi.common.infrastructure.security.provider;
 
 
 
+import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.infrastructure.client.authapi.AuthServiceClient;
 import mppb.restapi.common.infrastructure.client.authapi.dto.*;
 import mppb.restapi.common.infrastructure.security.authorization.TokenAuthentication;
@@ -12,11 +13,15 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import feign.FeignException;
 
+import java.util.Collection;
+
 @Component
+@Slf4j
 public class UsuarioSenhaAuthenticationProvider implements AuthenticationProvider {
 
     private final AuthServiceClient authServiceClient;

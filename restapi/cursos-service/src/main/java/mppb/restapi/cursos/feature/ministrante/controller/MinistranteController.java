@@ -23,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +36,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Ministrantes", description = "Gerencia as operações relacionadas a ministrantes")
+@PreAuthorize("hasAuthority('cursos.manter.cursos')")
 public class MinistranteController extends AbstractController {
 
     private final MinistranteService ministranteService;
