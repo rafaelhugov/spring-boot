@@ -21,8 +21,8 @@ if [ "" == "$DOCKER_IO_URL" ]; then
 fi
 
 docker build \
-  -t $DOCKER_IO_URL/cobranca-api:$VERSION \
-  -t $DOCKER_IO_URL/cobranca-api:latest \
-  -t localhost:5000/cobranca-api:$VERSION \
-  -t localhost:5000/cobranca-api:latest \
+  -t $DOCKER_IO_URL/cursos-api:$VERSION \
+  -t $DOCKER_IO_URL/cursos-api:latest \
+  -t localhost:5000/cursos-api:$VERSION \
+  -t localhost:5000/cursos-api:latest \
   .

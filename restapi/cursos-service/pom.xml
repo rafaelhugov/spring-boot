@@ -10,7 +10,7 @@
   </parent>
   <groupId>mppb.microservices.fundo</groupId>
   <artifactId>cursos-service</artifactId>
-  <version>0.2.0</version>
+  <version>0.2.3</version>
   <name>cursos-service</name>
   <description>API para o sistema de cursos e eventos do MPPB.</description>
   <url/>
