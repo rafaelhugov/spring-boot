@@ -2,8 +2,8 @@ package mppb.microservices.common.infrastructure.security.provider;
 
 
 
-import mppb.microservices.common.client.authapi.AuthServiceClient;
-import mppb.microservices.common.client.authapi.dto.*;
+import mppb.microservices.common.infrastructure.client.authapi.AuthServiceClient;
+import mppb.microservices.common.infrastructure.client.authapi.dto.*;
 import mppb.microservices.common.infrastructure.security.authorization.TokenAuthentication;
 import mppb.microservices.common.infrastructure.security.authorization.UsuarioSenhaAuthentication;
 import mppb.microservices.common.infrastructure.security.util.SecurityUtils;
@@ -42,14 +42,14 @@ public class UsuarioSenhaAuthenticationProvider implements AuthenticationProvide
             String login = credentials.split(":")[0];
             String senha = credentials.split(":")[1];
 
-            AutorizaResponseTO autorizaResponseTo = authServiceClient
-                    .autoriza(new AutorizaRequestTO(login, senha, siglaSistema));
+            AutorizaResponseDto autorizaResponseTo = authServiceClient
+                    .autoriza(new AutorizaRequestDto(login, senha, siglaSistema));
             String token = autorizaResponseTo.getToken();
 
-            ConsultaAutorizacaoResponseTO consultaAutorizacaoResponseTO = authServiceClient.consultaAutorizacao(new ConsultaAutorizacaoRequestTO(token, siglaSistema));
+            ConsultaAutorizacaoResponseDto consultaAutorizacaoResponseTO = authServiceClient.consultaAutorizacao(new ConsultaAutorizacaoRequestDto(token, siglaSistema));
 
-            UsuarioAutorizadoResponseTO usuario = consultaAutorizacaoResponseTO.getUsuario();
-            AcessoDataResponseTO acessoData = consultaAutorizacaoResponseTO.getAcessoData();
+            UsuarioAutorizadoResponseDto usuario = consultaAutorizacaoResponseTO.getUsuario();
+            AcessoDataResponseDto acessoData = consultaAutorizacaoResponseTO.getAcessoData();
 
             return new TokenAuthentication(token, usuario, acessoData, null, SecurityUtils.getAuthorities(acessoData));
         } catch (FeignException exception) {

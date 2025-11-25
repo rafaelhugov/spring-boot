@@ -1,7 +1,7 @@
 package mppb.microservices.fundoapi.feature.cobranca.service;
 
-import mppb.microservices.fundoapi.feature.client.bc.api.BcSelicService;
-import mppb.microservices.fundoapi.feature.client.bc.dto.BcValorSelicDto;
+import mppb.microservices.fundoapi.infrastructure.client.bc.api.BcSelicService;
+import mppb.microservices.fundoapi.infrastructure.client.bc.dto.BcValorSelicDto;
 import mppb.microservices.fundoapi.feature.cobranca.dto.ValorCorrigidoDto;
 import org.springframework.stereotype.Service;
 

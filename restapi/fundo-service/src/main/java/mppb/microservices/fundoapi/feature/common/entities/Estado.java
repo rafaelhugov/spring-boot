@@ -2,8 +2,8 @@ package mppb.microservices.fundoapi.feature.common.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import mppb.microservices.common.entity.AbstractEntity;
-import mppb.microservices.common.util.Constants;
+import mppb.microservices.common.core.entity.AbstractEntity;
+import mppb.microservices.common.core.util.Constants;
 
 @Getter
 @Setter

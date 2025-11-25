@@ -4,7 +4,7 @@ import mppb.microservices.fundoapi.feature.cobranca.dto.AreaDto;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 import mppb.microservices.fundoapi.feature.cobranca.entity.Area;
-import mppb.microservices.common.converter.AbstractConverter;
+import mppb.microservices.common.core.converter.AbstractConverter;
 
 @Component
 public class AreaConverter extends AbstractConverter<AreaDto, Area> {

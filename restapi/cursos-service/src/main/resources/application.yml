@@ -1,0 +1,61 @@
+server:
+  port: ${PORT:9002}
+
+project:
+  name: @project.name@
+  version: @project.version@
+  description: @project.description@
+  openapi:
+    url: ${PROJECT_OPENAPI_URL:http://localhost:${server.port}/}
+
+sistema:
+  sigla: CURSOS
+
+api:
+  auth:
+    url: "${API_URL:https://auth-api.mppb.mp.br}"
+
+spring:
+  profiles:
+    # prod = usar em produção (secure)
+    # dev = usar em desenvolvimento (trace)
+    # insecure = dispensa exigência de token de autorização nas chamadas.
+    # trace = força incluir trace na resposta http de erros em qualquer ambiente (mesmo prod)
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  http:
+    encoding:
+      enabled: true
+      charset: UTF-8
+      force: true
+  datasource:
+    url: jdbc:${PG_URL:postgresql://localhost:5432/local}
+    username: ${PG_USERNAME:postgres}
+    password: ${PG_PASSWORD:senha}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${POOL_MAX:1}
+      minimum-idle: ${POOL_MIN:1}
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+    show-sql: ${JPA_SHOW_SQL:true}
+    properties:
+      hibernate:
+        format_sql: ${JPA_FORMAT_SQL:false}
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:5MB}
+      max-request-size: ${MAX_REQUEST_SIZE:5MB}
+  jackson:
+    deserialization:
+      FAIL_ON_UNKNOWN_PROPERTIES: true
+    serialization:
+      write-dates-as-timestamps: false
+    date-format: yyyy-MM-dd
+
+cors:
+  enabled: ${CORS_ENABLED:false}
+  access-control-headers:
+    allow-origin: ${ACCESS_CONTROL_ALLOW_ORIGIN:*}
+    allow-credentials: ${ACCESS_CONTROL_ALLOW_CREDENTIALS:false}

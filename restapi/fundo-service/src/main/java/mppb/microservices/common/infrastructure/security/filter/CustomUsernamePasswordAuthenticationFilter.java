@@ -53,13 +53,13 @@ public class CustomUsernamePasswordAuthenticationFilter extends OncePerRequestFi
 //
 //		if (response != null) {
 //
-//			ConsultaAutorizacaoRequestTO param = new ConsultaAutorizacaoRequestTO();
+//			ConsultaAutorizacaoRequestDto param = new ConsultaAutorizacaoRequestDto();
 //			param.setToken(response);
 //			param.setSiglaSistema(siglaSistema);
 //
 //			authServiceClient.consultaAutorizacao(null);
 //
-//			UsuarioAutorizadoResponseTO usuario = new UsuarioAutorizadoResponseTO ();
+//			UsuarioAutorizadoResponseDto usuario = new UsuarioAutorizadoResponseDto ();
 //			usuario.setId(1L);
 //			usuario.setLogin("bruno");
 //			usuario.setNome("BRUNOO");

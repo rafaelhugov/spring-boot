@@ -17,8 +17,11 @@ fi
 
 
 docker build \
+  -t $DOCKER_IO_URL/cursos-api:$VERSION \
+  -t $DOCKER_IO_URL/cursos-api:latest \
   -t gavriel.mppb.mp.br:5000/cursos-api:$VERSION \
   -t gavriel.mppb.mp.br:5000/cursos-api:latest \
   -t localhost:5000/cursos-api:$VERSION \
   -t localhost:5000/cursos-api:latest \
   .
+

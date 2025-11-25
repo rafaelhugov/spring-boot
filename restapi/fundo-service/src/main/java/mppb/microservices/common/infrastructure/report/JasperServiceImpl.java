@@ -2,12 +2,12 @@ package mppb.microservices.common.infrastructure.report;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import mppb.microservices.common.error.AppException;
-import mppb.microservices.common.util.IoUtil;
+import mppb.microservices.common.core.error.AppException;
+import mppb.microservices.common.core.util.IoUtil;
 import net.sf.jasperreports.engine.*;
 import org.springframework.stereotype.Service;
 
-import  mppb.microservices.common.error.NotFoundException;
+import mppb.microservices.common.core.error.NotFoundException;
 
 import javax.sql.DataSource;
 import java.io.InputStream;

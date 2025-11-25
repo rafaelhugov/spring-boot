@@ -2,8 +2,8 @@ package mppb.microservices.common.infrastructure.security.authorization;
 
 import java.util.Collection;
 
-import mppb.microservices.common.client.authapi.dto.AcessoDataResponseTO;
-import mppb.microservices.common.client.authapi.dto.UsuarioAutorizadoResponseTO;
+import mppb.microservices.common.infrastructure.client.authapi.dto.AcessoDataResponseDto;
+import mppb.microservices.common.infrastructure.client.authapi.dto.UsuarioAutorizadoResponseDto;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -18,11 +18,11 @@ public class TokenAuthentication extends UsernamePasswordAuthenticationToken {
 
     private String token;
 
-    private UsuarioAutorizadoResponseTO usuario;
+    private UsuarioAutorizadoResponseDto usuario;
 
-    private AcessoDataResponseTO acessoData;
+    private AcessoDataResponseDto acessoData;
 
-    public TokenAuthentication(String token, UsuarioAutorizadoResponseTO usuario, AcessoDataResponseTO acessoData,
+    public TokenAuthentication(String token, UsuarioAutorizadoResponseDto usuario, AcessoDataResponseDto acessoData,
                                Object credentials, Collection<? extends GrantedAuthority> authorities) {
         super(usuario.getLogin(), credentials, authorities);
         this.token = token;
