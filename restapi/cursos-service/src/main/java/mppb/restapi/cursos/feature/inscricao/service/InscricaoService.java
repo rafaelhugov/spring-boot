@@ -115,7 +115,9 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
 
         Inscricao inscricaoSalva = inscricaoRepository.save(novaInscricao);
 
-        emailService.enviarEmailInscricaoRealizada(inscricaoSalva);
+        // Se o período de inscrição ainda estiver ativo, envia e-mail de confirmação para participante.
+        if (cursoService.isPeriodoInscricaoValido(curso))
+            emailService.enviarEmailInscricaoRealizada(inscricaoSalva);
 
         return toDto(inscricaoSalva);
     }
