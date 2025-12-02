@@ -159,6 +159,28 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
         return repository.save(p);
     }
 
+    /**
+     * Busca de participante pelo CPF (Interno ou Externo).
+     * @param cpf O CPF a ser procurado.
+     * @return A entidade Participante encontrada.
+     * @throws NotFoundException se o participante não for encontrado em nenhuma base.
+     */
+    @Transactional(readOnly = true)
+    public Participante identificarParticipantePorCpf(String cpf) {
+        String cpfLimpo = cpf.replaceAll("\\D", "");
+
+        // 1. Tenta achar servidor interno primeiro
+        Optional<ServidorProjection> servidor = servidorService.buscarPorCpf(cpfLimpo);
+        if (servidor.isPresent()) {
+            return participanteRepository.findByIdServidor(servidor.get().getId())
+                    .orElseThrow(() -> new NotFoundException("Servidor encontrado no RH, mas sem registo de participante (inscrição) neste sistema."));
+        }
+
+        // 2. Tenta achar externo
+        return participanteRepository.findByCpfAndTipo(cpfLimpo, TipoParticipanteEnum.EXTERNO)
+                .orElseThrow(() -> new NotFoundException("Participante não encontrado com este CPF."));
+    }
+
     // --- Métodos de conversão para o DTO de busca ---
 
     private ParticipanteSearchResultDto convertServidorToSearchResult(ServidorProjection servidor) {

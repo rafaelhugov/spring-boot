@@ -44,11 +44,11 @@ public class EntidadeTutoraController extends AbstractController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EntidadeTutoraDto> update(@PathVariable Long id, @RequestBody EntidadeTutoraDto areaDto) {
+    public ResponseEntity<EntidadeTutoraDto> update(@PathVariable Long id, @RequestBody EntidadeTutoraDto entidadeTutoraDto) {
         return entidadeTutoraService.findById(id)
                 .map(existing -> {
-                    areaDto.setId(id); // Garante que o ID do path é o mesmo do objeto
-                    EntidadeTutora updatedEntity = entidadeTutoraService.save(entidadeTutoraConverter.toEntity(areaDto));
+                    entidadeTutoraDto.setId(id); // Garante que o ID do path é o mesmo do objeto
+                    EntidadeTutora updatedEntity = entidadeTutoraService.save(entidadeTutoraConverter.toEntity(entidadeTutoraDto));
                     return ResponseEntity.ok(entidadeTutoraConverter.toDto(updatedEntity));
                 }).orElse(ResponseEntity.notFound().build());
     }
@@ -56,7 +56,7 @@ public class EntidadeTutoraController extends AbstractController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Object> delete(@PathVariable Long id) {
         return entidadeTutoraService.findById(id)
-                .map(area -> {
+                .map(entidadeTutora -> {
                     entidadeTutoraService.deleteById(id);
                     return ResponseEntity.noContent().build();
                 })

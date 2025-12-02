@@ -12,9 +12,19 @@ import mppb.restapi.common.core.converter.DtoConverter;
 import mppb.restapi.common.core.error.NotFoundException;
 import mppb.restapi.common.core.validation.groups.Update;
 import mppb.restapi.common.infrastructure.security.authorization.TokenAuthentication;
+import mppb.restapi.cursos.feature.cadastro.dto.EntidadeTutoraDto;
+import mppb.restapi.cursos.feature.cadastro.entities.EntidadeTutora;
 import mppb.restapi.cursos.feature.curso.dto.*;
 import mppb.restapi.cursos.feature.curso.entity.Curso;
 import mppb.restapi.cursos.feature.curso.service.CursoService;
+import mppb.restapi.cursos.feature.frequencia.converter.FrequenciaConverter;
+import mppb.restapi.cursos.feature.frequencia.dto.AulaDto;
+import mppb.restapi.cursos.feature.frequencia.dto.ChamadaDto;
+import mppb.restapi.cursos.feature.frequencia.dto.FrequenciaDto;
+import mppb.restapi.cursos.feature.frequencia.entity.Aula;
+import mppb.restapi.cursos.feature.frequencia.entity.Chamada;
+import mppb.restapi.cursos.feature.frequencia.service.AulaService;
+import mppb.restapi.cursos.feature.frequencia.service.FrequenciaService;
 import mppb.restapi.cursos.feature.inscricao.dto.AtualizarSituacaoDto;
 import mppb.restapi.cursos.feature.inscricao.dto.InscricaoDto;
 import mppb.restapi.cursos.feature.inscricao.entity.Inscricao;
@@ -30,6 +40,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Validated
 @RestController
@@ -41,23 +52,30 @@ import java.util.List;
 public class CursoController extends AbstractController {
 
     private final CursoService cursoService;
-    private final DtoConverter<CursoDto, Curso> cursoConverter;
     private final InscricaoService inscricaoService;
+    private final AulaService aulaService;
+    private final FrequenciaService frequenciaService;
+
+    private final DtoConverter<CursoDto, Curso> cursoConverter;
+    private final DtoConverter<AulaDto, Aula> aulaConverter;
+    private final DtoConverter<ChamadaDto, Chamada> chamadaConverter;
+
+
 
     // --- ENDPOINTS DE GESTÃO DE CURSOS ---
     @Operation(summary = "Lista os cursos", description = "Listamge dos cursos (paginados).")
-    @GetMapping(value="", produces =  MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "", produces = MediaType.APPLICATION_JSON_VALUE)
     @JsonView(CursoView.Listagem.class)
     public ResponseEntity<Page<CursoDto>> getPages(
-                                                   @RequestParam(required = false) String titulo,
-                                                   @RequestParam(required = false) Long modalidadeId,
-                                                   @RequestParam(required = false) Long publicoAlvoId,
-                                                   Pageable pageable) {
+            @RequestParam(required = false) String titulo,
+            @RequestParam(required = false) Long modalidadeId,
+            @RequestParam(required = false) Long publicoAlvoId,
+            Pageable pageable) {
         return ResponseEntity.ok(cursoService.findAll(titulo, modalidadeId, publicoAlvoId, pageable).map(cursoConverter::toDto));
     }
 
     @Operation(summary = "Obtém curso", description = "Retorna informações do curso.")
-    @GetMapping(value="/{id}", produces =  MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CursoDto> findDetalhesById(@PathVariable Long id) {
         CursoDto cursoDto = cursoService.findDetalhesById(id);
         return ResponseEntity.ok(cursoDto);
@@ -117,9 +135,9 @@ public class CursoController extends AbstractController {
     /**
      * Atualiza o papel de um ministrante em uma associação específica com um curso.
      *
-     * @param cursoId O ID do curso ao qual a associação pertence.
+     * @param cursoId      O ID do curso ao qual a associação pertence.
      * @param associacaoId O ID da associação (CursoMinistrante) a ser atualizada.
-     * @param dto O corpo da requisição contendo o ID do novo papel.
+     * @param dto          O corpo da requisição contendo o ID do novo papel.
      * @return Um ResponseEntity contendo o DTO da associação atualizada.
      */
     @Operation(summary = "Atualiza o papel de um ministrante em um curso", description = "Altera o papel de um ministrante em uma associação específica, retornando a associação atualizada.")
@@ -136,7 +154,7 @@ public class CursoController extends AbstractController {
     // --- ENDPOINTS PARA GESTÃO DE PARTICIPANTES DO CURSO ---
 
     @Operation(summary = "Obtém os participantes de um curso", description = "Retorna os participantes inscritos de forma paginada.")
-    @GetMapping(value="/{cursoId}/participantes", produces =  MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{cursoId}/participantes", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Page<InscricaoDto>> findAll(@PathVariable Long cursoId, Pageable pageable) {
         Page<Inscricao> inscricaoPage = inscricaoService.findAllByCursoId(cursoId, pageable);
         return ResponseEntity.ok(inscricaoPage.map(inscricaoService::toDto));
@@ -165,5 +183,75 @@ public class CursoController extends AbstractController {
                                                  @PathVariable Long inscricaoId) {
         inscricaoService.remover(cursoId, inscricaoId);
         return ResponseEntity.noContent().build();
+    }
+
+
+    // ENDPOINTS PARA GESTÃO DE AULAS (FREQUÊNCIA) ---
+
+    @Operation(summary = "Lista as aulas do curso", description = "Retorna a lista de aulas cadastradas para um curso, ordenadas cronologicamente.")
+    @GetMapping("/{cursoId}/aulas")
+    public ResponseEntity<List<AulaDto>> listarAulas(@PathVariable Long cursoId) {
+        List<AulaDto> aulas = aulaService.findAllByCursoId(cursoId);
+        return ResponseEntity.ok(aulas);
+    }
+
+    @Operation(summary = "Cria uma nova aula para o curso", description = "Adiciona uma nova aula com datas e horários definidos.")
+    @PostMapping("/{cursoId}/aulas")
+    public ResponseEntity<AulaDto> criarAula(@PathVariable Long cursoId, @RequestBody @Valid AulaDto dto) {
+        Aula aula = aulaConverter.toEntity(dto);
+        Aula aulaSalva = aulaService.createAula(cursoId, aula);
+        return ResponseEntity.status(HttpStatus.CREATED).body(aulaConverter.toDto(aulaSalva));
+    }
+
+    @Operation(summary = "Atualiza uma aula existente")
+    @PutMapping("/{cursoId}/aulas/{aulaId}")
+    public ResponseEntity<AulaDto> atualizarAula(@PathVariable Long cursoId, @PathVariable Long aulaId, @RequestBody AulaDto aulaDto) {
+        return aulaService.findById(aulaId)
+                .map(aula -> {
+                    aulaDto.setId(aulaId); // Garante que o ID do path é o mesmo do objeto
+
+                    Aula from = aulaConverter.toEntity(aulaDto);
+
+                    aulaConverter.map(from, aula);
+
+                    Aula updatedEntity = aulaService.save(aula);
+                    return ResponseEntity.ok(aulaConverter.toDto(updatedEntity));
+                }).orElse(ResponseEntity.notFound().build());
+       // AulaDto updatedDto = aulaService.update(cursoId, aulaId, aulaDto);
+      //  return ResponseEntity.ok(updatedDto);
+    }
+
+    @Operation(summary = "Remove uma aula existente")
+    @DeleteMapping("/{cursoId}/aulas/{aulaId}")
+    public ResponseEntity<Object> removerAula(@PathVariable Long cursoId, @PathVariable Long aulaId) {
+        return aulaService.findById(aulaId)
+                .map(aula -> {
+                    aulaService.deleteById(aulaId);
+                    return ResponseEntity.noContent().build();
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @Operation(summary = "Gera uma nova chamada (QR Code) para a aula", description = "Cria uma nova Chamada com um token único para registo de presença.")
+    @PostMapping("/{cursoId}/aulas/{aulaId}/chamadas")
+    public ResponseEntity<ChamadaDto> gerarChamada(@PathVariable Long cursoId,
+                                                   @PathVariable Long aulaId,
+                                                   @RequestParam String tipo) {
+        Chamada chamada = aulaService.adicionarChamada(aulaId, tipo);
+        return ResponseEntity.status(HttpStatus.CREATED).body(chamadaConverter.toDto(chamada));
+    }
+
+    @Operation(summary = "Lista as frequências de um aula", description = "Busca as frequências de uma determinada aula do curso")
+    @GetMapping("/{cursoId}/aulas/{aulaId}/frequencia")
+    public ResponseEntity<List<FrequenciaDto>> getFrequencia(
+            @PathVariable Long cursoId,
+            @PathVariable Integer aulaId) {
+
+        List<FrequenciaDto> frequencias = frequenciaService.findAllByAulaId(aulaId)
+                .stream()
+                .map(frequenciaService::toDto)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(frequencias);
     }
 }

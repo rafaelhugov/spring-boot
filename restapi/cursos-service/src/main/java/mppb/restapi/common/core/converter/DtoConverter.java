@@ -60,4 +60,8 @@ public interface DtoConverter<D, E> {
                 .map(this::toEntity)
                 .collect(Collectors.toList());
     }
+
+     void map(E from, E to );
+
+
 }

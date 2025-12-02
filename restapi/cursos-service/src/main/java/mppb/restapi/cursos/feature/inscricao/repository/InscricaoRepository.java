@@ -3,6 +3,7 @@ package mppb.restapi.cursos.feature.inscricao.repository;
 import mppb.restapi.common.core.repository.BaseRepository;
 import mppb.restapi.cursos.feature.curso.entity.Curso;
 import mppb.restapi.cursos.feature.inscricao.entity.Inscricao;
+import mppb.restapi.cursos.feature.inscricao.enums.SituacaoInscricaoEnum;
 import mppb.restapi.cursos.feature.participante.entity.Participante;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
