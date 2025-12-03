@@ -1,6 +1,7 @@
 package mppb.restapi.common.core.converter;
 
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.Conditions;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.spi.DestinationSetter;
@@ -49,6 +50,12 @@ public  class EntityConverterImpl<D, E> implements DtoConverter<D, E> {
         return dtos.stream()
                 .map(this::toEntity)
                 .toList();
+    }
+
+    public void map(E from, E to) {
+        modelMapper.getConfiguration()
+                .setPropertyCondition(Conditions.isNotNull());
+        modelMapper.map(from, to);
     }
 
     protected <S, T, E extends Enum<E>> void mapEnumField(

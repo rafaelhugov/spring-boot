@@ -48,5 +48,10 @@ public class InscricaoConverter implements DtoConverter<InscricaoDto, Inscricao>
         }
         return modelMapper.map(dto, Inscricao.class);
     }
+
+    @Override
+    public void map(Inscricao from, Inscricao to) {
+
+    }
 }
 
