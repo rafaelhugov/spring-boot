@@ -22,7 +22,6 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @EnableWebSecurity
 @Configuration
 @RequiredArgsConstructor
-@EnableMethodSecurity
 public class SecurityConfig {
 
     private final String PUBLIC_URLS[] = {
