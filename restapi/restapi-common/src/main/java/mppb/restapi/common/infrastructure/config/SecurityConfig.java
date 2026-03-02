@@ -1,17 +1,15 @@
-package mppb.restapi.mobile.infrastructure.config;
+package mppb.restapi.cursos.infrastructure.config;
 
 
 import lombok.RequiredArgsConstructor;
 import mppb.restapi.common.infrastructure.env.RuntimeEnv;
 import mppb.restapi.common.infrastructure.security.filter.CustomBasicAuthenticationFilter;
 import mppb.restapi.common.infrastructure.security.filter.CustomUsernamePasswordAuthenticationFilter;
-import mppb.restapi.mobile.infrastructure.util.Constants;
-import org.springframework.beans.factory.annotation.Autowired;
+import mppb.restapi.cursos.infrastructure.util.Constants;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;

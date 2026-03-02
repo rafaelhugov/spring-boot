@@ -1,4 +1,4 @@
-package mppb.restapi.mobile.infrastructure.config;
+package mppb.restapi.cursos.infrastructure.config;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;

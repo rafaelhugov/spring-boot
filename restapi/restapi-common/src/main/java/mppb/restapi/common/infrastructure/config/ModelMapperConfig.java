@@ -1,4 +1,4 @@
-package mppb.restapi.mobile.infrastructure.config;
+package mppb.restapi.cursos.infrastructure.config;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
