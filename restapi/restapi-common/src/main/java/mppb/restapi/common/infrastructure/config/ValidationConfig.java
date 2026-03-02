@@ -1,4 +1,4 @@
-package mppb.restapi.mobile.infrastructure.config;
+package mppb.restapi.cursos.infrastructure.config;
 
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;

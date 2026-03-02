@@ -1,8 +1,7 @@
-package mppb.restapi.mobile.infrastructure.config;
+package mppb.restapi.cursos.infrastructure.config;
 
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.Module;
-import lombok.RequiredArgsConstructor;
 import mppb.restapi.common.core.jackson.PageJsonSerializer;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Page;
