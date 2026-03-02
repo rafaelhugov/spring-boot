@@ -1,0 +1,369 @@
+<!-- Created with Jaspersoft Studio version 7.0.2.final using JasperReports Library version 7.0.2-31532122640f516c6d17238ae0e41a08113d5ac0  -->
+<jasperReport name="BoletoTemplate" language="java" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="123e4567-e89b-12d3-a456-426614174000">
+	<parameter name="numeroBoleto" class="java.lang.String"/>
+	<parameter name="dataVencimento" class="java.time.LocalDate"/>
+	<parameter name="beneficiarioNome" class="java.lang.String">
+		<defaultValueExpression><![CDATA["Fundo dos Direitos Difusos - FDD"]]></defaultValueExpression>
+	</parameter>
+	<parameter name="beneficiarioAgendaCodigo" class="java.lang.String"/>
+	<parameter name="dataDocumento" class="java.time.LocalDate"/>
+	<parameter name="numeroDocumento" class="java.lang.String"/>
+	<parameter name="especieDoc" class="java.lang.String"/>
+	<parameter name="aceite" class="java.lang.String"/>
+	<parameter name="dataProcessamento" class="java.time.LocalDate"/>
+	<parameter name="nossoNumero" class="java.lang.String"/>
+	<parameter name="usoBanco" class="java.lang.String"/>
+	<parameter name="carteira" class="java.lang.String"/>
+	<parameter name="especie" class="java.lang.String"/>
+	<parameter name="quantidade" class="java.lang.String"/>
+	<parameter name="xValor" class="java.lang.String"/>
+	<parameter name="valorDocumento" class="java.lang.Double"/>
+	<parameter name="informacoes" class="java.lang.String"/>
+	<parameter name="descontoAbatimento" class="java.lang.String"/>
+	<parameter name="jurosMulta" class="java.lang.String"/>
+	<parameter name="valorCobrado" class="java.lang.String"/>
+	<parameter name="nomePagadorLinha1" class="java.lang.String"/>
+	<parameter name="nomePagadorLinha2" class="java.lang.String"/>
+	<parameter name="nomePagadorLinha3" class="java.lang.String"/>
+	<parameter name="codigoBarras" class="java.awt.Image"/>
+	<parameter name="pix" class="java.awt.Image"/>
+	<parameter name="backgroundImage2" class="java.awt.Image"/>
+	<parameter name="backgroundImage" class="java.awt.Image"/>
+	<parameter name="beneficiarioEndereco" class="java.lang.String"/>
+	<detail>
+		<band height="502">
+			<element kind="image" uuid="416c5868-65fe-46cc-84d0-08ac07040e85" x="-20" y="166" width="595" height="330">
+				<expression><![CDATA[$P{backgroundImage}]]></expression>
+			</element>
+			<element kind="textField" uuid="e55f850b-fa4b-4dcf-8500-eec51d1dd88f" x="100" y="176" width="443" height="20" fontSize="12.0" textAdjust="ScaleFont" bold="true" hTextAlign="Right">
+				<expression><![CDATA[$P{numeroBoleto}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="ca216ab8-2cf5-4784-b212-db0b309db55e" x="1" y="235" width="79" height="10" fontSize="6.0">
+				<expression><![CDATA["Data do Documento"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="8831a235-6110-41f6-8bf0-fca9083d3267" x="1" y="253" width="79" height="10" fontSize="6.0">
+				<expression><![CDATA["Uso do Banco"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="a36ff9d1-f8b8-49e7-b5c6-9e2b2a03eebd" x="84" y="235" width="79" height="10" fontSize="6.0">
+				<expression><![CDATA["Nr. Documento"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="6b8494c2-9905-4f31-8d38-fbc4536d7f1e" x="84" y="253" width="79" height="10" fontSize="6.0">
+				<expression><![CDATA["Carteira"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="289f7028-bc49-448a-b64f-fd1f6efead03" x="175" y="235" width="56" height="17" fontSize="6.0">
+				<expression><![CDATA["Espécie DOC"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="cfb9f456-0e97-4dd7-b636-aeafc1c72c50" x="175" y="253" width="56" height="17" fontSize="6.0">
+				<expression><![CDATA["Espécie"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="46f0305e-7f48-4d1d-82c8-87f9e37fa7aa" x="234" y="235" width="47" height="17" fontSize="6.0">
+				<expression><![CDATA["Aceite"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="0ea56102-b4a2-46f3-9a96-cec321e8e153" x="234" y="253" width="47" height="17" fontSize="6.0">
+				<expression><![CDATA["Quantidade"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="98935ed3-4cbf-45ca-8189-d06a964aa386" x="288" y="235" width="83" height="17" fontSize="6.0">
+				<expression><![CDATA["Data do Processamento"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="5bf885ca-969a-4a1b-af9b-364802fe14e0" x="288" y="253" width="83" height="17" fontSize="6.0">
+				<expression><![CDATA["xValor"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="a32eb386-2114-4798-9d8c-532728a0f39a" x="381" y="197" width="149" height="17" fontSize="6.0">
+				<expression><![CDATA["Data de Vencimento"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="83c51156-f13c-4ea7-b136-787e2c999096" x="381" y="216" width="149" height="17" fontSize="6.0">
+				<expression><![CDATA["Agência/Código do Beneficiário"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="7451201e-8229-4c2c-8444-613d9b09963a" x="381" y="235" width="83" height="17" fontSize="6.0">
+				<expression><![CDATA["Nosso Número"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="f346c3d1-6f11-4281-9c16-467050795056" x="381" y="253" width="149" height="17" fontSize="6.0">
+				<expression><![CDATA["(=) Valor do Documento"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="5bc8a1b6-d534-42c4-9abe-079b0dc6f113" x="381" y="273" width="109" height="17" fontSize="6.0">
+				<expression><![CDATA["(-) Desconto/Abatimento"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="b6a49417-e4c3-47f0-8133-1e99c87906bd" x="381" y="305" width="109" height="17" fontSize="6.0">
+				<expression><![CDATA["(+) Juros/Multa"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="ad39d8fc-1d2b-4f87-b207-a9978c6f3e44" x="382" y="335" width="109" height="17" fontSize="6.0">
+				<expression><![CDATA["(=) Valor Cobrado"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="d127e8ec-111b-4172-9a05-19bff63d6849" x="1" y="272" width="229" height="10" fontSize="6.0">
+				<expression><![CDATA["Informações de Responsabilidade do Beneficiário"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="d59156e5-fe93-4ad2-a3b8-3f861a75954d" x="-3" y="364" width="229" height="16" fontSize="6.0">
+				<expression><![CDATA["Nome do Pagador/CPF/CNPJ/Endereço"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="16061eab-120c-4d9d-b0a4-07de82f343cf" x="-3" y="405" width="229" height="16" fontSize="6.0">
+				<expression><![CDATA["Sacador/Avalista"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="219d5d34-9502-4005-a35f-3e391f326f32" x="378" y="386" width="86" height="17" fontSize="6.0">
+				<expression><![CDATA["Autenticação Mecânica"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="0f0a5436-1c90-4b8b-97e5-911b4ef138a0" x="468" y="386" width="102" height="17" fontSize="6.0" bold="true">
+				<expression><![CDATA["Ficha de Compensação"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="82844d81-c323-4d7c-886e-94672744962e" x="1" y="215" width="149" height="10" fontSize="6.0">
+				<expression><![CDATA["Nome do Beneficiário/CPF/CNPJ"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="12d06202-9872-4fc3-9fd7-dde866f7f80a" x="1" y="196" width="149" height="10" fontSize="6.0">
+				<expression><![CDATA["Local de Pagamento"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="f6aecd33-8476-4ea3-b8f4-38a280d03c12" x="1" y="204" width="286" height="15" fontSize="8.0" bold="true">
+				<expression><![CDATA["Pagável em qualquer banco."]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="bcc406b2-8e84-416d-878e-5b11fe3974a8" stretchType="ElementGroupHeight" x="1" y="222" width="369" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{beneficiarioNome}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="3ab27ed6-a7ba-4911-b987-8aabab2f8097" stretchType="ElementGroupHeight" x="1" y="242" width="79" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{dataDocumento}.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="57e24c63-798b-4558-8dc5-c7d5ba858c2b" stretchType="ElementGroupHeight" x="85" y="242" width="100" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{numeroDocumento} == null ? "" : $P{numeroDocumento}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="f87136c6-d150-4e0c-9677-cf655bb1c4b9" stretchType="ElementGroupHeight" x="175" y="242" width="56" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{especieDoc}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="1ecb88a1-13c5-4ef7-9d92-cf9b60081f52" stretchType="ElementGroupHeight" x="233" y="242" width="56" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{aceite}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="209c4426-1616-41c7-b541-5cc6c48d648f" stretchType="ElementGroupHeight" x="288" y="242" width="79" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{dataProcessamento}.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="be810417-7d90-40a5-8b37-5114932f9294" stretchType="ElementGroupHeight" x="1" y="260" width="79" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{usoBanco}== null ? "" :$P{usoBanco}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="d65003a4-7f41-409b-9914-892d2037b10e" stretchType="ElementGroupHeight" x="83" y="260" width="79" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{carteira}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="418b59ad-f3ac-4dd6-91e4-f47a60f0fff8" stretchType="ElementGroupHeight" x="175" y="260" width="54" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{especie}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="e864f83b-9fdb-4ed1-a494-f87465c79acd" stretchType="ElementGroupHeight" x="234" y="260" width="54" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{quantidade}== null ? "" :$P{quantidade}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="1bcfdbfd-2b33-487e-82fa-7f21923a8017" stretchType="ElementGroupHeight" x="288" y="260" width="79" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{xValor}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="56b9c02e-b759-4458-907c-73b31f0e0482" stretchType="ElementGroupHeight" x="382" y="204" width="118" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{dataVencimento}.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="3da38eba-a522-4db3-a32c-9822e7354407" stretchType="ElementGroupHeight" x="381" y="223" width="149" height="16" fontSize="8.0">
+				<expression><![CDATA[$P{beneficiarioAgendaCodigo}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="3170180c-5a90-475f-ae23-aeed084998b6" stretchType="ElementGroupHeight" x="382" y="242" width="149" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{nossoNumero}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="41775c5d-dd18-4281-b31b-1ebf91d22629" stretchType="ElementGroupHeight" x="382" y="260" width="149" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{valorDocumento} == null ? "" :
+    java.text.NumberFormat.getCurrencyInstance(new java.util.Locale("pt", "BR")).format($P{valorDocumento})
+]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="2d60dca3-79a0-4522-b3e3-1d2e2cb4b922" stretchType="ElementGroupHeight" x="382" y="283" width="149" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{descontoAbatimento} == null ? "" : java.lang.String.format(new java.util.Locale("pt", "BR"), "%.2f", $P{descontoAbatimento})
+]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="d05d4af2-41b5-49cf-8c9a-66990fff3fdf" stretchType="ElementGroupHeight" x="382" y="316" width="149" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{jurosMulta} == null ? "" : java.lang.String.format(new java.util.Locale("pt", "BR"), "%.2f", $P{jurosMulta})
+]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="507c507f-b381-4ffd-a559-5554354c43c1" stretchType="ElementGroupHeight" x="382" y="345" width="149" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{valorCobrado} == null ? "" : java.lang.String.format(new java.util.Locale("pt", "BR"), "%.2f", $P{valorCobrado})
+]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="a3cbc252-6908-43a2-915e-4dd5e3810248" stretchType="ElementGroupHeight" x="1" y="372" width="369" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{nomePagadorLinha1}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="5e468a7c-aeb7-400f-916b-3299155c98d1" stretchType="ElementGroupHeight" x="1" y="383" width="369" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{nomePagadorLinha2}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="38ee87bb-8f23-4b2d-9544-410db8f40af9" stretchType="ElementGroupHeight" x="1" y="393" width="369" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{nomePagadorLinha3}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="image" uuid="40984b6b-f27d-4c85-9bdb-ebf9ae45e70c" x="-7" y="436" width="416" height="50">
+				<expression><![CDATA[$P{codigoBarras}]]></expression>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+			</element>
+			<element kind="image" uuid="e80ebbbb-20e1-43c3-b945-0208fe16ad8a" x="429" y="403" width="101" height="95">
+				<expression><![CDATA[$P{pix}]]></expression>
+			</element>
+			<element kind="textField" uuid="29b3a10c-7fb8-4b75-9541-c215307e8e65" x="111" y="176" width="68" height="20" fontSize="12.0" bold="true" hTextAlign="Right">
+				<expression><![CDATA["001-9"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="38bd79e1-630d-4e7a-9d83-e649995adc01" stretchType="ElementGroupHeight" x="1" y="286" width="369" height="75" fontSize="8.0">
+				<expression><![CDATA[$P{informacoes}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="image" uuid="8982d2d1-462f-42be-9a24-49f0c840fa2e" x="-10" y="0" width="557" height="150">
+				<expression><![CDATA[$P{backgroundImage2}]]></expression>
+				<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="14027ffd-3619-45c9-93ef-b897842f1ddd" x="441" y="6" width="102" height="17" fontSize="6.0" bold="true" hTextAlign="Right">
+				<expression><![CDATA["Recibo do pagador"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="c616ac08-48e4-4549-94f3-76c286246b6f" x="109" y="18" width="68" height="20" fontSize="12.0" bold="true" hTextAlign="Right">
+				<expression><![CDATA["001-9"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="59078883-7f05-40fa-aa1c-09de7954fba9" x="100" y="18" width="443" height="20" fontSize="12.0" textAdjust="ScaleFont" bold="true" hTextAlign="Right">
+				<expression><![CDATA[$P{numeroBoleto}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="a8cdf023-8a60-425e-9195-bdd0d679daf7" x="0" y="35" width="253" height="10" fontSize="6.0">
+				<expression><![CDATA["Nome do Pagador/CPF/CNPJ/Endereço"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="fe2351be-5cfb-430e-8be3-3628e8c834cf" x="0" y="62" width="253" height="10" fontSize="6.0">
+				<expression><![CDATA["Sacador/Avalista"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="0810411c-3017-4b0b-810f-d907cea4b51f" x="0" y="72" width="113" height="10" fontSize="6.0">
+				<expression><![CDATA["Nosso-Número"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="404752db-0705-4000-8f9a-73f0ccbc5c31" x="123" y="72" width="113" height="10" fontSize="6.0">
+				<expression><![CDATA["Nr. Documento"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="1ca16ea1-159b-4e77-9051-486f9ee6eb5c" x="231" y="72" width="113" height="10" fontSize="6.0">
+				<expression><![CDATA["Data de Vencimento"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="83080e75-20b7-4919-b34d-acc4f0d1c3c5" x="340" y="72" width="113" height="10" fontSize="6.0">
+				<expression><![CDATA["Valor do Documento"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="3ea7fb76-86f4-4e22-8765-d8a3f1a5e8c2" x="449" y="72" width="113" height="10" fontSize="6.0">
+				<expression><![CDATA["(=) Valor Pago"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="0a21f556-7203-47ee-9586-6b1d8bbaa67c" x="0" y="90" width="253" height="10" fontSize="6.0">
+				<expression><![CDATA["Nome do Beneficiário/CPF/CNPJ/Endereço"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="13cc6d25-3f66-465f-afd9-35698d997b93" x="0" y="128" width="253" height="10" fontSize="6.0">
+				<expression><![CDATA["Agência/Código do Beneficiário"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="e81db8d3-85c7-4984-bf77-35d6628ce8a7" x="378" y="129" width="86" height="17" fontSize="6.0">
+				<expression><![CDATA["Autenticação Mecânica"]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="a411b14f-e955-4796-acd4-ff673d4fd8b3" stretchType="ElementGroupHeight" x="2" y="42" width="369" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{nomePagadorLinha1}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="5da3af2d-91ba-4013-8612-6d1e04b5f5be" stretchType="ElementGroupHeight" x="2" y="52" width="529" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{nomePagadorLinha2} +" " + $P{nomePagadorLinha3}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="70b74288-02e8-4bdf-974f-0823f49b2178" stretchType="ElementGroupHeight" x="0" y="78" width="100" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{nossoNumero} == null ? "" : $P{nossoNumero}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="31d3af83-1cd8-446d-b684-bd9479c2bba8" stretchType="ElementGroupHeight" x="123" y="79" width="100" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{numeroDocumento} == null ? "" : $P{numeroDocumento}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="6e6f723d-0dd2-4572-9a8d-f29a48907856" stretchType="ElementGroupHeight" x="233" y="78" width="100" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{dataVencimento}.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="9d6519c2-1d99-42c0-8e3f-d8865155ecb0" stretchType="ElementGroupHeight" x="341" y="78" width="149" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{valorDocumento} == null ? "" :
+    java.text.NumberFormat.getCurrencyInstance(new java.util.Locale("pt", "BR")).format($P{valorDocumento})
+]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="1d613f81-4e8a-4766-a714-6f774b6f38b8" stretchType="ElementGroupHeight" x="449" y="78" width="130" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{valorCobrado} == null ? "" : java.lang.String.format(new java.util.Locale("pt", "BR"), "%.2f", $P{valorCobrado})
+]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="ace2c5ad-86fb-4c63-9c0d-14d341e97cf7" stretchType="ElementGroupHeight" x="1" y="98" width="369" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{beneficiarioNome}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<element kind="textField" uuid="52b58d96-97c3-4718-9578-0fdda53f099f" stretchType="ElementGroupHeight" x="1" y="136" width="149" height="16" fontSize="8.0">
+				<expression><![CDATA[$P{beneficiarioAgendaCodigo}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<property name="com.jaspersoft.studio.unit.y" value="px"/>
+			</element>
+			<element kind="textField" uuid="5c720870-df2b-4fbe-953b-88224e276171" stretchType="ElementGroupHeight" x="1" y="114" width="369" height="15" fontSize="8.0">
+				<expression><![CDATA[$P{beneficiarioEndereco}]]></expression>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			</element>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+	</detail>
+</jasperReport>
