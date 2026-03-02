@@ -25,7 +25,7 @@ import mppb.restapi.cursos.feature.inscricao.dto.InscricaoDto;
 import mppb.restapi.cursos.feature.inscricao.entity.Inscricao;
 import mppb.restapi.cursos.feature.inscricao.service.InscricaoService;
 import mppb.restapi.cursos.feature.participante.dto.CriarInscricaoDto;
-import mppb.restapi.cursos.infrastructure.util.Constants;
+import mppb.restapi.common.infrastructure.util.Constants;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;

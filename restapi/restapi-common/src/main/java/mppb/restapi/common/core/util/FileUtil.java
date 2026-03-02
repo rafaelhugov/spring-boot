@@ -15,7 +15,7 @@ public final class FileUtil {
 	}
 
 	public static String readStream(InputStream stream, String newline) throws IOException {
-		try (stream; var reader = new BufferedReader(new InputStreamReader(stream))) {
+		try (InputStream is = stream; BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
 			return readReader(reader, newline);
 		}
 	}
@@ -28,17 +28,16 @@ public final class FileUtil {
 		}
 
 		// remove \n \r finais
-		var text = sb.toString().stripTrailing();
-		return text;
+		return sb.toString().stripTrailing();
 	}
 
 	public static String readUrl(URL url, String newline) throws IOException {
-		try (var stream = url.openStream()) {
+		try (InputStream stream = url.openStream()) {
 			return readStream(stream, newline);
 		}
 	}
 
-	public static String readFile(File file, String newline) throws IOException {
+	public static String readFile(File file) throws IOException {
 		return Files.readString(file.toPath());
 	}
 }

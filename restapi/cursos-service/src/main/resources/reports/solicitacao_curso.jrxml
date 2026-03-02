@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="solicitacao_curso" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="7a5c9b42-1234-4065-9876-123456789abc">
+	
+	<style name="Title" fontName="Arial" fontSize="20" isBold="true" hTextAlign="Center" vTextAlign="Middle"/>
+	<style name="Header" fontName="Arial" fontSize="14" isBold="true"/>
+	<style name="Text" fontName="Arial" fontSize="12"/>
+	
+	<parameter name="NOME_CURSO" class="java.lang.String"/>
+	<parameter name="ESTIMATIVA_PARTICIPANTES" class="java.lang.Integer"/>
+	<parameter name="MODALIDADE" class="java.lang.String"/>
+	<parameter name="PUBLICO_ALVO" class="java.lang.String"/>
+	<parameter name="NOME_INTERESSADO" class="java.lang.String"/>
+	<parameter name="ORGAO_INTERESSADO" class="java.lang.String"/>
+	<parameter name="IDENTIFICA_ORGAO" class="java.lang.String"/>
+	<parameter name="ESPECIFICA_ORGAO" class="java.lang.String"/>
+	<parameter name="LOCAL_EVENTO" class="java.lang.String"/>
+	<parameter name="CARD_DIVULGACAO" class="java.lang.String"/>
+	<parameter name="COMUNICACAO_IMPRENSA" class="java.lang.String"/>
+	<parameter name="OFICIO_CONVITE" class="java.lang.String"/>
+	<parameter name="COFFEE_BREAK" class="java.lang.String"/>
+	<parameter name="KIT_PARTICIPANTE" class="java.lang.String"/>
+	<parameter name="PROGRAMACAO_IMPRESSA" class="java.lang.String"/>
+	<parameter name="TRASLADO_MINISTRANTE" class="java.lang.String"/>
+	<parameter name="PAGAMENTO_HONORARIO" class="java.lang.String"/>
+	<parameter name="PASSAGEM_AEREA" class="java.lang.String"/>
+	<parameter name="HOSPEDAGEM" class="java.lang.String"/>
+	<parameter name="OBSERVACOES_GERAIS" class="java.lang.String"/>
+	<parameter name="LISTA_AGENDAS" class="java.lang.String"/>
+	<parameter name="LISTA_MINISTRANTES" class="java.lang.String"/>
+	
+	<title>
+		<band height="60" splitType="Stretch">
+			<staticText>
+				<reportElement style="Title" x="0" y="0" width="555" height="40" uuid="12345678-abcd-1234-abcd-1234567890ab"/>
+				<text><![CDATA[SOLICITAÇÃO DE CURSO / EVENTO (PGA)]]></text>
+			</staticText>
+		</band>
+	</title>
+	
+	<detail>
+		<band height="550" splitType="Stretch">
+			<staticText>
+				<reportElement style="Header" x="0" y="0" width="555" height="20" uuid="55555555-4444-3333-2222-111111111111"/>
+				<text><![CDATA[1. IDENTIFICAÇÃO]]></text>
+			</staticText>
+			
+			<textField textAdjust="StretchHeight">
+				<reportElement style="Text" x="0" y="25" width="555" height="20" uuid="aaaa1111-bb22-cc33-dd44-ee55ff66aaa1"/>
+				<textFieldExpression><![CDATA["Nome: " + $P{NOME_EVENTO}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Text" x="0" y="45" width="280" height="20" uuid="aaaa1111-bb22-cc33-dd44-ee55ff66aaa2"/>
+				<textFieldExpression><![CDATA["Participantes: " + $P{ESTIMATIVA_PARTICIPANTES}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Text" x="280" y="45" width="275" height="20" uuid="aaaa1111-bb22-cc33-dd44-ee55ff66aaa3"/>
+				<textFieldExpression><![CDATA["Modalidade: " + $P{MODALIDADE}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Text" x="0" y="65" width="280" height="20" uuid="aaaa1111-bb22-cc33-dd44-ee55ff66aaa6"/>
+				<textFieldExpression><![CDATA["Público-Alvo: " + $P{PUBLICO_ALVO}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Text" x="280" y="65" width="275" height="20" uuid="aaaa1111-bb22-cc33-dd44-ee55ff66aaa7"/>
+				<textFieldExpression><![CDATA["Local: " + $P{LOCAL_EVENTO}]]></textFieldExpression>
+			</textField>
+
+			<staticText>
+				<reportElement style="Header" x="0" y="95" width="555" height="20" uuid="66666666-5555-4444-3333-222222222222"/>
+				<text><![CDATA[2. APOIO LOGÍSTICO CEAF]]></text>
+			</staticText>
+			<textField>
+				<reportElement style="Text" x="10" y="120" width="260" height="20" uuid="b1"/>
+				<textFieldExpression><![CDATA["[ " + $P{CARD_DIVULGACAO} + " ] Card Divulgação"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Text" x="280" y="120" width="260" height="20" uuid="b2"/>
+				<textFieldExpression><![CDATA["[ " + $P{COMUNICACAO_IMPRENSA} + " ] Com. Imprensa"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Text" x="10" y="140" width="260" height="20" uuid="b3"/>
+				<textFieldExpression><![CDATA["[ " + $P{OFICIO_CONVITE} + " ] Ofício Convite"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Text" x="280" y="140" width="260" height="20" uuid="b4"/>
+				<textFieldExpression><![CDATA["[ " + $P{COFFEE_BREAK} + " ] Coffee Break"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Text" x="10" y="160" width="260" height="20" uuid="b5"/>
+				<textFieldExpression><![CDATA["[ " + $P{KIT_PARTICIPANTE} + " ] Pastas/Canetas"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Text" x="280" y="160" width="260" height="20" uuid="b6"/>
+				<textFieldExpression><![CDATA["[ " + $P{TRASLADO_MINISTRANTE} + " ] Traslado"]]></textFieldExpression>
+			</textField>
+
+			<staticText>
+				<reportElement style="Header" x="0" y="190" width="555" height="20" uuid="h3"/>
+				<text><![CDATA[3. PROGRAMAÇÃO E AGENDAS]]></text>
+			</staticText>
+			<textField textAdjust="StretchHeight">
+				<reportElement style="Text" x="10" y="215" width="535" height="40" uuid="t1"/>
+				<textFieldExpression><![CDATA[$P{LISTA_AGENDAS}]]></textFieldExpression>
+			</textField>
+
+			<staticText>
+				<reportElement style="Header" x="0" y="265" width="555" height="20" uuid="h4"/>
+				<text><![CDATA[4. MINISTRANTES (Palestrantes/Mediadores)]]></text>
+			</staticText>
+			<textField textAdjust="StretchHeight">
+				<reportElement style="Text" x="10" y="290" width="535" height="60" uuid="t2"/>
+				<textFieldExpression><![CDATA[$P{LISTA_MINISTRANTES}]]></textFieldExpression>
+			</textField>
+
+			<staticText>
+				<reportElement style="Header" x="0" y="360" width="555" height="20" uuid="h5"/>
+				<text><![CDATA[5. ÔNUS FINANCEIRO]]></text>
+			</staticText>
+			<textField>
+				<reportElement style="Text" x="10" y="385" width="180" height="20" uuid="f1"/>
+				<textFieldExpression><![CDATA["Honorários: " + $P{PAGAMENTO_HONORARIO}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Text" x="190" y="385" width="180" height="20" uuid="f2"/>
+				<textFieldExpression><![CDATA["Passagens: " + $P{PASSAGEM_AEREA}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement style="Text" x="375" y="385" width="160" height="20" uuid="f3"/>
+				<textFieldExpression><![CDATA["Hospedagem: " + $P{HOSPEDAGEM}]]></textFieldExpression>
+			</textField>
+
+			<staticText>
+				<reportElement style="Header" x="0" y="415" width="555" height="20" uuid="h6"/>
+				<text><![CDATA[6. OBSERVAÇÕES / JUSTIFICATIVAS]]></text>
+			</staticText>
+			<textField textAdjust="StretchHeight">
+				<reportElement style="Text" x="10" y="440" width="535" height="40" uuid="t3"/>
+				<textFieldExpression><![CDATA[$P{OBSERVACOES_GERAIS}]]></textFieldExpression>
+			</textField>
+
+			<textField>
+				<reportElement x="0" y="500" width="555" height="20" uuid="footer"/>
+				<textElement textAlignment="Right"/>
+				<textFieldExpression><![CDATA["Gerado em: " + new java.util.Date()]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+</jasperReport>

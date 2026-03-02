@@ -9,7 +9,7 @@ import mppb.restapi.common.core.converter.DtoConverter;
 import mppb.restapi.cursos.feature.cadastro.dto.EntidadeTutoraDto;
 import mppb.restapi.cursos.feature.cadastro.entities.EntidadeTutora;
 import mppb.restapi.cursos.feature.cadastro.service.EntidadeTutoraService;
-import mppb.restapi.cursos.infrastructure.util.Constants;
+import mppb.restapi.common.infrastructure.util.Constants;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;

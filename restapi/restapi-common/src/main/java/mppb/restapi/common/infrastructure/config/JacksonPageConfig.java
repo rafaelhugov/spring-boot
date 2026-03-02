@@ -1,4 +1,4 @@
-package mppb.restapi.cursos.infrastructure.config;
+package mppb.restapi.common.infrastructure.config;
 
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.Module;

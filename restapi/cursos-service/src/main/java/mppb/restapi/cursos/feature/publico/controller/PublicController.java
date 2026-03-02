@@ -14,7 +14,7 @@ import mppb.restapi.cursos.feature.inscricao.dto.InscricaoDto;
 import mppb.restapi.cursos.feature.inscricao.service.InscricaoService;
 import mppb.restapi.cursos.feature.participante.dto.InscricaoPublicaDto;
 import mppb.restapi.cursos.feature.participante.dto.ParticipanteVerificacaoDto;
-import mppb.restapi.cursos.infrastructure.util.Constants;
+import mppb.restapi.common.infrastructure.util.Constants;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

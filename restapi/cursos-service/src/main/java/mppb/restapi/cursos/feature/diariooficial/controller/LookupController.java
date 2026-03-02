@@ -9,11 +9,14 @@ import mppb.restapi.cursos.feature.cadastro.dto.EntidadeTutoraDto;
 import mppb.restapi.cursos.feature.cadastro.entities.EntidadeTutora;
 import mppb.restapi.cursos.feature.lookup.converter.ModalidadeConverter;
 import mppb.restapi.cursos.feature.lookup.dto.*;
+import mppb.restapi.cursos.feature.lookup.entities.LocalEvento;
 import mppb.restapi.cursos.feature.lookup.entities.PapelMinistrante;
 import mppb.restapi.cursos.feature.lookup.entities.PublicoAlvo;
 import mppb.restapi.cursos.feature.lookup.entities.TipoEvento;
+import mppb.restapi.cursos.feature.lookup.converter.LocalEventoConverter;
+import mppb.restapi.cursos.feature.lookup.dto.LocalEventoDto;
 import mppb.restapi.cursos.feature.lookup.service.LookupService;
-import mppb.restapi.cursos.infrastructure.util.Constants;
+import mppb.restapi.common.infrastructure.util.Constants;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,7 +34,7 @@ import java.util.List;
 @Slf4j
 @Tag(name = "Lookup", description = "Retorna lista de seleção.")
 @PreAuthorize("hasAuthority('cursos.cadastros')")
-//TODO cachear esse controller
+// TODO cachear esse controller
 public class LookupController extends AbstractController {
 
     private final LookupService lookupService;
@@ -40,31 +43,33 @@ public class LookupController extends AbstractController {
     private final DtoConverter<PublicoAlvoDto, PublicoAlvo> publicoAlvoConverter;
     private final DtoConverter<PapelMinistranteDto, PapelMinistrante> papelMinistranteConverter;
     private final DtoConverter<EntidadeTutoraDto, EntidadeTutora> entidadeTutoraConverter;
+    private final DtoConverter<LocalEventoDto, LocalEvento> localEventoConverter;
 
-
-    @GetMapping(value = "/modalidades", produces =  MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/modalidades", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ModalidadeDto>> listModalidades() {
         return ResponseEntity.ok(lookupService.findAllModalidades().stream().map(modalidadeConverter::toDto).toList());
     }
 
-    @GetMapping(value = "/tipos-evento", produces =  MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/tipos-evento", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<TipoEventoDto>> listTiposEvento() {
         return ResponseEntity.ok(lookupService.findAllTiposEvento().stream().map(tipoEventoConverter::toDto).toList());
     }
 
-    @GetMapping(value = "/entidades-tutoras", produces =  MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/entidades-tutoras", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<EntidadeTutoraDto>> listEntidadesTutoras() {
-        return ResponseEntity.ok(lookupService.findAllEntidadesTutoras().stream().map(entidadeTutoraConverter::toDto).toList());
+        return ResponseEntity
+                .ok(lookupService.findAllEntidadesTutoras().stream().map(entidadeTutoraConverter::toDto).toList());
     }
 
-    @GetMapping(value = "/publico-alvo", produces =  MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/publico-alvo", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<PublicoAlvoDto>> listPublicoAlvo() {
         return ResponseEntity.ok(lookupService.findAllPublicoAlvo().stream().map(publicoAlvoConverter::toDto).toList());
     }
 
-    @GetMapping(value = "/papeis-ministrantes", produces =  MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/papeis-ministrantes", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<PapelMinistranteDto>> listPapeisPalestrante() {
-        return ResponseEntity.ok(lookupService.findAllPapelMinistrante().stream().map(papelMinistranteConverter::toDto).toList());
+        return ResponseEntity
+                .ok(lookupService.findAllPapelMinistrante().stream().map(papelMinistranteConverter::toDto).toList());
     }
 
     @GetMapping(value = "/situacoes-inscricao", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -72,8 +77,11 @@ public class LookupController extends AbstractController {
         return ResponseEntity.ok(
                 lookupService.findAllSituacoesInscricao().stream()
                         .map(inscricao -> new SituacaoInscricaoDto(inscricao.getCodigo(), inscricao.getDescricao()))
-                        .toList()
-        );
+                        .toList());
     }
 
+    @GetMapping(value = "/locais-evento", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<LocalEventoDto>> listLocaisEvento() {
+        return ResponseEntity.ok(lookupService.findAllLocalEvento().stream().map(localEventoConverter::toDto).toList());
+    }
 }

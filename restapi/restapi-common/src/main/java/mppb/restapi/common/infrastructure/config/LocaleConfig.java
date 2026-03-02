@@ -1,4 +1,4 @@
-package mppb.restapi.cursos.infrastructure.config;
+package mppb.restapi.common.infrastructure.config;
 
 import java.util.Locale;
 import java.util.TimeZone;

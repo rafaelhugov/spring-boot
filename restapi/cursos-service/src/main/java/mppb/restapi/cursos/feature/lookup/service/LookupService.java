@@ -6,10 +6,12 @@ import mppb.restapi.cursos.feature.cadastro.repository.EntidadeTutoraRepository;
 import mppb.restapi.cursos.feature.inscricao.enums.SituacaoInscricaoEnum;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
+import mppb.restapi.cursos.feature.lookup.entities.LocalEvento;
 import mppb.restapi.cursos.feature.lookup.entities.Modalidade;
 import mppb.restapi.cursos.feature.lookup.entities.PapelMinistrante;
 import mppb.restapi.cursos.feature.lookup.entities.PublicoAlvo;
 import mppb.restapi.cursos.feature.lookup.entities.TipoEvento;
+import mppb.restapi.cursos.feature.lookup.repository.LocalEventoRepository;
 import mppb.restapi.cursos.feature.lookup.repository.ModalidadeRepository;
 import mppb.restapi.cursos.feature.lookup.repository.PapelMinistranteRepository;
 import mppb.restapi.cursos.feature.lookup.repository.PublicoAlvoRepository;
@@ -30,6 +32,7 @@ public class LookupService {
     private final PublicoAlvoRepository publicoAlvoRepository;
     private final PapelMinistranteRepository papelMinistranteRepository;
     private final EntidadeTutoraRepository entidadeTutoraRepository;
+    private final LocalEventoRepository localEventoRepository;
 
     @Transactional(readOnly = true)
     public List<Modalidade> findAllModalidades() {
@@ -37,7 +40,7 @@ public class LookupService {
     }
 
     @Transactional(readOnly = true)
-    public List<TipoEvento> findAllTiposEvento()  {
+    public List<TipoEvento> findAllTiposEvento() {
         return tipoEventoRepository.findAll();
     }
 
@@ -58,5 +61,10 @@ public class LookupService {
 
     public List<SituacaoInscricaoEnum> findAllSituacoesInscricao() {
         return Arrays.asList(SituacaoInscricaoEnum.values());
+    }
+
+    @Transactional(readOnly = true)
+    public List<LocalEvento> findAllLocalEvento() {
+        return localEventoRepository.findAll();
     }
 }

@@ -1,4 +1,4 @@
-package mppb.restapi.cursos.infrastructure.config;
+package mppb.restapi.common.infrastructure.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;

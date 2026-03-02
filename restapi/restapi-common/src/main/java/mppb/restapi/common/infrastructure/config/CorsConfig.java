@@ -1,4 +1,4 @@
-package mppb.restapi.cursos.infrastructure.config;
+package mppb.restapi.common.infrastructure.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

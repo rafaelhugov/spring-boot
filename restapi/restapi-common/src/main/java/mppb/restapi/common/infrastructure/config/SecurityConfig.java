@@ -1,11 +1,11 @@
-package mppb.restapi.cursos.infrastructure.config;
+package mppb.restapi.common.infrastructure.config;
 
 
 import lombok.RequiredArgsConstructor;
 import mppb.restapi.common.infrastructure.env.RuntimeEnv;
 import mppb.restapi.common.infrastructure.security.filter.CustomBasicAuthenticationFilter;
 import mppb.restapi.common.infrastructure.security.filter.CustomUsernamePasswordAuthenticationFilter;
-import mppb.restapi.cursos.infrastructure.util.Constants;
+import mppb.restapi.common.infrastructure.util.Constants;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;

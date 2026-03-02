@@ -15,7 +15,7 @@ import mppb.restapi.cursos.feature.ministrante.dto.MinistranteSearchResultDto;
 import mppb.restapi.cursos.feature.ministrante.dto.MinistranteView;
 import mppb.restapi.cursos.feature.ministrante.entity.Ministrante;
 import mppb.restapi.cursos.feature.ministrante.service.MinistranteService;
-import mppb.restapi.cursos.infrastructure.util.Constants;
+import mppb.restapi.common.infrastructure.util.Constants;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;

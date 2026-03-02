@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import mppb.restapi.cursos.feature.participante.dto.ParticipanteSearchResultDto;
 import mppb.restapi.cursos.feature.participante.dto.ParticipanteView;
 import mppb.restapi.cursos.feature.participante.service.ParticipanteService;
-import mppb.restapi.cursos.infrastructure.util.Constants;
+import mppb.restapi.common.infrastructure.util.Constants;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;

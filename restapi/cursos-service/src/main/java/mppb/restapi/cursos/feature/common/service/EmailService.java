@@ -42,7 +42,7 @@ public class EmailService {
     @Transactional(readOnly = true)
     public void enviarEmailConfirmacao(Inscricao inscricao, InscricaoConfirmacaoToken token) {
 
-        //TODO colocar essa variavel como constante
+        // TODO colocar essa variavel como constante
         String emailFrom = configuracaoService.get("global.instituicao.email_ceaf");
         String frontendBaseUrl = sistemaService.findUrlBySigla(siglaSistema);
         Integer validadeMinutos = configuracaoService.getAsInteger("cursos.inscricao.token-validade-minutos");
@@ -56,18 +56,18 @@ public class EmailService {
             String urlConfirmacao = frontendBaseUrl + "/inscricao/confirmar-email/" + tokenString;
 
             // 1. Constrói apenas o *conteúdo* principal do e-mail
-            String conteudoPrincipal = String.format("""
-                <p>Recebemos a sua pré-inscrição para o curso: <strong>%s</strong>.</p>
-                <p>Para confirmar a sua inscrição, por favor, clique no link abaixo. Este link é válido por %d minutos.</p>
-                <p style="margin: 25px 0px;"><a href="%s" style="padding: 10px 15px; background-color: #a01d1e; color: #e6c376; text-decoration: none; border-radius: 5px; font-weight: bold;">
-                    Confirmar Minha Inscrição
-                </a></p>
-                <p>Se você não solicitou esta inscrição, por favor, ignore este e-mail.</p>
-                """,
+            String conteudoPrincipal = String.format(
+                    "<p>Recebemos a sua pré-inscrição para o curso: <strong>%s</strong>.</p>\n" +
+                            "<p>Para confirmar a sua inscrição, por favor, clique no link abaixo. Este link é válido por %d minutos.</p>\n"
+                            +
+                            "<p style=\"margin: 25px 0px;\"><a href=\"%s\" style=\"padding: 10px 15px; background-color: #a01d1e; color: #e6c376; text-decoration: none; border-radius: 5px; font-weight: bold;\">\n"
+                            +
+                            "    Confirmar Minha Inscrição\n" +
+                            "</a></p>\n" +
+                            "<p>Se você não solicitou esta inscrição, por favor, ignore este e-mail.</p>",
                     tituloCurso,
                     validadeMinutos,
-                    urlConfirmacao
-            );
+                    urlConfirmacao);
 
             // 2. Constrói o e-mail final usando o template
             String mensagemHtml = buildEmailTemplate(nomeDestinatario, conteudoPrincipal);
@@ -77,7 +77,8 @@ public class EmailService {
             log.info("E-mail de confirmação enviado para: {}", emailDestinatario);
 
         } catch (Exception e) {
-            log.error("Erro inesperado ao preparar e-mail de confirmação para {}: {}", inscricao.getParticipante().getEmail(), e.getMessage());
+            log.error("Erro inesperado ao preparar e-mail de confirmação para {}: {}",
+                    inscricao.getParticipante().getEmail(), e.getMessage());
         }
     }
 
@@ -95,8 +96,7 @@ public class EmailService {
 
         String dataRealizacao = formatarPeriodo(
                 inscricao.getCurso().getRealizacaoDataInicial(),
-                inscricao.getCurso().getRealizacaoDataFinal()
-        );
+                inscricao.getCurso().getRealizacaoDataFinal());
         String cargaHoraria = StringUtil.formatCargaHoraria(inscricao.getCurso().getCargaHoraria());
         String linkProgramacao = Objects.toString(inscricao.getCurso().getLinkProgramacao(), "");
 
@@ -104,22 +104,22 @@ public class EmailService {
 
         try {
             // 1. Constrói apenas o *conteúdo* principal
-            String conteudoPrincipal = String.format("""
-                <p>Sua inscrição no curso <strong>%s</strong> foi realizada com sucesso.</p>
-                <hr style="border: 0; border-top: 1px solid #eee;">
-                <p><strong>Detalhes do Curso:</strong></p>
-                <ul>
-                    <li><strong>Período de Realização:</strong> %s</li>
-                    <li><strong>Carga Horária:</strong> %s</li>
-                    %s
-                </ul>
-                <p>Enviaremos e-mail em caso de novas informações ou mudanças na programação.</p>
-                """,
+            String conteudoPrincipal = String.format(
+                    "<p>Sua inscrição no curso <strong>%s</strong> foi realizada com sucesso.</p>\n" +
+                            "<hr style=\"border: 0; border-top: 1px solid #eee;\">\n" +
+                            "<p><strong>Detalhes do Curso:</strong></p>\n" +
+                            "<ul>\n" +
+                            "    <li><strong>Período de Realização:</strong> %s</li>\n" +
+                            "    <li><strong>Carga Horária:</strong> %s</li>\n" +
+                            "    %s\n" +
+                            "</ul>\n" +
+                            "<p>Enviaremos e-mail em caso de novas informações ou mudanças na programação.</p>",
                     tituloCurso,
                     dataRealizacao,
                     cargaHoraria,
-                    linkProgramacao.isBlank() ? "" : String.format("<li><strong>Link da videochamada:</strong> <a href=\"%1$s\">%1$s</a></li>", linkProgramacao)
-            );
+                    linkProgramacao.isBlank() ? ""
+                            : String.format("<li><strong>Link da videochamada:</strong> <a href=\"%1$s\">%1$s</a></li>",
+                                    linkProgramacao));
 
             // 2. Constrói o e-mail final usando o template
             String mensagemHtml = buildEmailTemplate(nomeDestinatario, conteudoPrincipal);
@@ -129,7 +129,8 @@ public class EmailService {
             log.info("E-mail de Inscrição Realizada enviado para: {}", emailDestinatario);
 
         } catch (Exception e) {
-            log.error("Erro inesperado ao preparar e-mail de inscrição realizada para {}: {}", emailDestinatario, e.getMessage());
+            log.error("Erro inesperado ao preparar e-mail de inscrição realizada para {}: {}", emailDestinatario,
+                    e.getMessage());
         }
     }
 
@@ -141,10 +142,7 @@ public class EmailService {
 
         String header = String.format("<p>Olá, %s!</p>", nome);
 
-        String footer = """
-            <br>
-            <p>Atenciosamente,<br>Equipe CEAF/MPPB</p>
-            """;
+        String footer = "<br>\n<p>Atenciosamente,<br>Equipe CEAF/MPPB</p>\n";
 
         return header + conteudoPrincipal + footer;
     }
@@ -183,4 +181,3 @@ public class EmailService {
         return String.format("%s até %s", inicio.format(DATE_FORMATTER), fim.format(DATE_FORMATTER));
     }
 }
-
