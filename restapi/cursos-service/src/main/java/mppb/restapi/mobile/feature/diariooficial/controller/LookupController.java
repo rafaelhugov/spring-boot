@@ -1,4 +1,4 @@
-package mppb.restapi.mobile.feature.lookup.controller;
+package mppb.restapi.mobile.feature.diariooficial.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
