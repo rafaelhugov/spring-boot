@@ -1,6 +1,5 @@
 package mppb.microservices.common.core.util;
 
-
 import mppb.microservices.common.core.error.AppException;
 import mppb.microservices.common.core.error.NotFoundException;
 
@@ -26,9 +25,8 @@ public class IoUtil {
 		}
 	}
 
-
 	public static String getContentsFromURL(String urlString, String postParameters, String method,
-											String proxyHost, int proxyPort, String usuarioProxy, String password) throws IOException {
+			String proxyHost, int proxyPort, String usuarioProxy, String password) throws IOException {
 
 		if (urlString.startsWith("https:")) {
 			System.setProperty("https.protocols", "SSLv3");
@@ -88,9 +86,9 @@ public class IoUtil {
 
 	public static String resourceToString(URL url, String newline, String encoding) {
 		try (var openStream = url.openStream();
-			 var reader = encoding != null
-					 ? new BufferedReader(new InputStreamReader(openStream, encoding))
-					 : new BufferedReader(new InputStreamReader(openStream))) {
+				var reader = encoding != null
+						? new BufferedReader(new InputStreamReader(openStream, encoding))
+						: new BufferedReader(new InputStreamReader(openStream))) {
 
 			var buf = new StringBuilder();
 			String line;
@@ -148,10 +146,10 @@ public class IoUtil {
 		if (extension == null || file == null) {
 			return false;
 		}
-		return file.getName().toUpperCase().endsWith("."+extension.toUpperCase());
+		return file.getName().toUpperCase().endsWith("." + extension.toUpperCase());
 	}
 
-	 static void checkDirectory(File directory) {
+	public static void checkDirectory(File directory) {
 		if (directory == null || !directory.isDirectory()) {
 			throw new NotFoundException("This path must be a directory: '" + directory.getAbsolutePath() + "'.");
 		}
