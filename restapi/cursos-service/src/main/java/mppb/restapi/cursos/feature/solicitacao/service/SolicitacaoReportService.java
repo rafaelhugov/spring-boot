@@ -4,9 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.infrastructure.report.JasperService;
 import mppb.restapi.cursos.feature.solicitacao.entity.SolicitacaoCurso;
+import mppb.restapi.cursos.feature.solicitacao.entity.SolicitacaoAgenda;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -27,7 +31,7 @@ public class SolicitacaoReportService {
 
                 Map<String, Object> parametros = new HashMap<>();
 
-                // 1. Identificação do Interessado (Idealmente viria de um serviço de Servidor)
+                // 1. Identificação do Interessado
                 parametros.put("NOME_INTERESSADO", "ID Servidor: " + solicitacao.getIdServidorInteressado());
 
                 // 2. Informações Gerais do Evento
@@ -36,11 +40,20 @@ public class SolicitacaoReportService {
                 parametros.put("MODALIDADE",
                                 solicitacao.getModalidade() != null ? solicitacao.getModalidade().getDescricao()
                                                 : "N/A");
-                parametros.put("PUBLICO_ALVO",
-                                solicitacao.getPublicoAlvo() != null ? solicitacao.getPublicoAlvo().getNome() : "N/A");
+                String publicoAlvoStr = "N/A";
+                if (solicitacao.getPublicosAlvo() != null && !solicitacao.getPublicosAlvo().isEmpty()) {
+                        publicoAlvoStr = solicitacao.getPublicosAlvo().stream()
+                                        .map(mppb.restapi.cursos.feature.lookup.entities.PublicoAlvo::getNome)
+                                        .collect(java.util.stream.Collectors.joining(", "));
+                }
+                parametros.put("PUBLICO_ALVO", publicoAlvoStr);
 
-                parametros.put("IDENTIFICA_ORGAO", solicitacao.getIdentificacaoOrgaoMembros() ? "SIM" : "NÃO");
-                parametros.put("ESPECIFICA_ORGAO", solicitacao.getEspecificacaoOrgaoMembros());
+                parametros.put("IDENTIFICA_ORGAO",
+                                Boolean.TRUE.equals(solicitacao.getIdentificacaoOrgaoMembros()) ? "SIM" : "NÃO");
+                parametros.put("ESPECIFICA_ORGAO",
+                                solicitacao.getEspecificacaoOrgaoMembros() != null
+                                                ? solicitacao.getEspecificacaoOrgaoMembros()
+                                                : "");
 
                 // 3. Localização
                 String local = "Não informado";
@@ -52,43 +65,69 @@ public class SolicitacaoReportService {
                 }
                 parametros.put("LOCAL_EVENTO", local);
 
-                // 4. Apoio Logístico (Booleans -> String checkbox representation or just text)
-                parametros.put("CARD_DIVULGACAO", solicitacao.getCardDivulgacao() ? "✓" : "");
-                parametros.put("COMUNICACAO_IMPRENSA", solicitacao.getComunicacaoImprensa() ? "✓" : "");
-                parametros.put("OFICIO_CONVITE", solicitacao.getOficioConvite() ? "✓" : "");
-                parametros.put("COFFEE_BREAK", solicitacao.getCoffeeBreak() ? "✓" : "");
-                parametros.put("KIT_PARTICIPANTE", solicitacao.getKitParticipante() ? "✓" : "");
-                parametros.put("PROGRAMACAO_IMPRESSA", solicitacao.getProgramacaoImpressa() ? "✓" : "");
-                parametros.put("TRASLADO_MINISTRANTE", solicitacao.getTrasladoMinistrante() ? "✓" : "");
+                // 4. Apoio Logístico — [ ] unchecked / [X] checked
+                parametros.put("CARD_DIVULGACAO", Boolean.TRUE.equals(solicitacao.getCardDivulgacao()) ? "[X]" : "[ ]");
+                parametros.put("COMUNICACAO_IMPRENSA",
+                                Boolean.TRUE.equals(solicitacao.getComunicacaoImprensa()) ? "[X]" : "[ ]");
+                parametros.put("OFICIO_CONVITE", Boolean.TRUE.equals(solicitacao.getOficioConvite()) ? "[X]" : "[ ]");
+                parametros.put("COFFEE_BREAK", Boolean.TRUE.equals(solicitacao.getCoffeeBreak()) ? "[X]" : "[ ]");
+                parametros.put("KIT_PARTICIPANTE",
+                                Boolean.TRUE.equals(solicitacao.getKitParticipante()) ? "[X]" : "[ ]");
+                parametros.put("PROGRAMACAO_IMPRESSA",
+                                Boolean.TRUE.equals(solicitacao.getProgramacaoImpressa()) ? "[X]" : "[ ]");
+                parametros.put("TRASLADO_MINISTRANTE",
+                                Boolean.TRUE.equals(solicitacao.getTrasladoMinistrante()) ? "[X]" : "[ ]");
 
-                // 5. Financeiro
-                parametros.put("PAGAMENTO_HONORARIO", solicitacao.getPagamentoHonorario() ? "✓" : "");
-                parametros.put("PASSAGEM_AEREA", solicitacao.getPassagemAerea() ? "✓" : "");
-                parametros.put("HOSPEDAGEM", solicitacao.getHospedagem() ? "✓" : "");
+                // 5. Financeiro — [ ] unchecked / [X] checked
+                parametros.put("PAGAMENTO_HONORARIO",
+                                Boolean.TRUE.equals(solicitacao.getPagamentoHonorario()) ? "[X]" : "[ ]");
+                parametros.put("PASSAGEM_AEREA", Boolean.TRUE.equals(solicitacao.getPassagemAerea()) ? "[X]" : "[ ]");
+                parametros.put("HOSPEDAGEM", Boolean.TRUE.equals(solicitacao.getHospedagem()) ? "[X]" : "[ ]");
 
                 // 6. Observações
-                parametros.put("OBSERVACOES_GERAIS", solicitacao.getObservacoesGerais());
+                parametros.put("OBSERVACOES_GERAIS",
+                                solicitacao.getObservacoesGerais() != null ? solicitacao.getObservacoesGerais() : "");
 
-                // 7. Agendas (Formatado como String para o JRXML simplificado)
+                // 7. Agendas - grouped by date range, Brazilian date format
+                DateTimeFormatter dtFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                 StringBuilder sbAgenda = new StringBuilder();
                 if (solicitacao.getAgendas() != null) {
-                        solicitacao.getAgendas().forEach(a -> sbAgenda.append(String.format("- %s de %s às %s\n",
-                                        a.getDataEvento(), a.getHorarioInicio(), a.getHorarioFim())));
+                        // Group intervals by "dataInicio a dataFim"
+                        Map<String, List<SolicitacaoAgenda>> grouped = new LinkedHashMap<>();
+                        for (SolicitacaoAgenda a : solicitacao.getAgendas()) {
+                                String inicio = a.getDataInicio() != null ? a.getDataInicio().format(dtFmt) : "?";
+                                String fim = a.getDataFim() != null ? a.getDataFim().format(dtFmt) : "?";
+                                String key = inicio.equals(fim) ? inicio : inicio + " a " + fim;
+                                grouped.computeIfAbsent(key, k -> new java.util.ArrayList<>()).add(a);
+                        }
+                        grouped.forEach((periodo, agendas) -> {
+                                sbAgenda.append(periodo).append(":\n");
+                                agendas.forEach(a -> sbAgenda.append(String.format(
+                                                "  - %s às %s\n",
+                                                a.getHorarioInicio() != null ? a.getHorarioInicio().toString() : "?",
+                                                a.getHorarioFim() != null ? a.getHorarioFim().toString() : "?")));
+                        });
                 }
                 parametros.put("LISTA_AGENDAS", sbAgenda.toString());
 
-                // 8. Ministrantes
+                // 8. Ministrantes — name/role on line 1, email on line 2, phone on line 3
                 StringBuilder sbMin = new StringBuilder();
                 if (solicitacao.getMinistrantes() != null) {
-                        solicitacao.getMinistrantes().forEach(m -> sbMin.append(String.format(
-                                        "• %s (%s) - Contato: %s\n",
-                                        m.getNomeMinistrante(),
-                                        m.getPapelMinistrante() != null ? m.getPapelMinistrante().getNome()
-                                                        : "N/A",
-                                        m.getContatoInfo())));
+                        solicitacao.getMinistrantes().forEach(m -> {
+                                String papel = m.getPapelMinistrante() != null ? m.getPapelMinistrante().getNome()
+                                                : "N/A";
+                                sbMin.append(String.format("- %s  (%s)\n", m.getNomeMinistrante(), papel));
+                                if (m.getEmail() != null && !m.getEmail().isBlank()) {
+                                        sbMin.append(String.format("  E-mail: %s\n", m.getEmail()));
+                                }
+                                if (m.getTelefone() != null && !m.getTelefone().isBlank()) {
+                                        sbMin.append(String.format("  Tel: %s\n", m.getTelefone()));
+                                }
+                                sbMin.append("\n");
+                        });
                 }
                 parametros.put("LISTA_MINISTRANTES", sbMin.toString());
 
-                return jasperService.gerarPdfEmptyDatasource("solicitacao_curso.jrxml", parametros);
+                return jasperService.gerarPdfEmptyDatasource("solicitacao_curso.jasper", parametros);
         }
 }

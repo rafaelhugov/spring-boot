@@ -67,9 +67,9 @@ public class SolicitacaoCurso {
     @Column(name = "estimativa_participantes", nullable = false)
     private Integer estimativaParticipantes;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_publico_alvo")
-    private PublicoAlvo publicoAlvo;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "solicitacao_publico_alvo", schema = "curso", joinColumns = @JoinColumn(name = "id_solicitacao"), inverseJoinColumns = @JoinColumn(name = "id_publico_alvo"))
+    private List<PublicoAlvo> publicosAlvo = new ArrayList<>();
 
     @Column(name = "identificacao_orgao_membros")
     private Boolean identificacaoOrgaoMembros = false;

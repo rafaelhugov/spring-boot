@@ -21,8 +21,11 @@ public class SolicitacaoAgenda {
     @JoinColumn(name = "id_solicitacao", nullable = false)
     private SolicitacaoCurso solicitacao;
 
-    @Column(name = "data_evento", nullable = false)
-    private LocalDate dataEvento;
+    @Column(name = "data_inicio", nullable = false)
+    private LocalDate dataInicio;
+
+    @Column(name = "data_fim", nullable = false)
+    private LocalDate dataFim;
 
     @Column(name = "horario_inicio", nullable = false)
     private LocalTime horarioInicio;

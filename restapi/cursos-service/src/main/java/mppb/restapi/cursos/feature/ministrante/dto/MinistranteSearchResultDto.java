@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 
 /**
  * DTO para representar um resultado unificado da busca por ministrantes,
- * que pode ser tanto um servidor interno (ainda não cadastrado como ministrante)
+ * que pode ser tanto um servidor interno (ainda não cadastrado como
+ * ministrante)
  * quanto um ministrante externo já existente.
  */
 @Data
@@ -32,5 +33,10 @@ public class MinistranteSearchResultDto {
     private String cargo;
     private String servidorMatricula;
     private String situacao;
-}
+    private String email;
+    private String telefone;
 
+    // Arquivos
+    private Long idFoto;
+    private Long idCurriculo;
+}

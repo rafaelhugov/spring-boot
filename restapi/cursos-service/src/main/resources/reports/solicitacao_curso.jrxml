@@ -1,149 +1,253 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio -->
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="solicitacao_curso" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="7a5c9b42-1234-4065-9876-123456789abc">
-	
-	<style name="Title" fontName="Arial" fontSize="20" isBold="true" hTextAlign="Center" vTextAlign="Middle"/>
-	<style name="Header" fontName="Arial" fontSize="14" isBold="true"/>
-	<style name="Text" fontName="Arial" fontSize="12"/>
-	
-	<parameter name="NOME_CURSO" class="java.lang.String"/>
+<!-- Redesigned: 1-page fit, small header, unified list styles for section 3 & 6 -->
+<jasperReport name="solicitacao_curso" language="java"
+	pageWidth="595" pageHeight="842"
+	columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
+
+	<!-- ===================== STYLES ===================== -->
+	<style name="PageTitle"  fontName="SansSerif" fontSize="14" bold="true"  forecolor="#FFFFFF" hTextAlign="Left" vTextAlign="Middle"/>
+	<style name="SubTitle"   fontName="SansSerif" fontSize="9"               forecolor="#FFCDD2" hTextAlign="Left" vTextAlign="Middle"/>
+	<style name="SectionHdr" fontName="SansSerif" fontSize="10" bold="true"  forecolor="#FFFFFF" vTextAlign="Middle"/>
+	<style name="FieldLabel" fontName="SansSerif" fontSize="9" bold="true"  forecolor="#4e0000"/>
+	<style name="FieldValue" fontName="SansSerif" fontSize="9"              forecolor="#1a1a1a"/>
+	<style name="CheckOn"    fontName="SansSerif" fontSize="9" bold="true"  forecolor="#B71C1C"/>
+	<style name="Footer"     fontName="SansSerif" fontSize="8"  italic="true" forecolor="#9e9e9e" hTextAlign="Right"/>
+
+	<!-- ===================== PARAMETERS ===================== -->
+	<parameter name="NOME_EVENTO"              class="java.lang.String"/>
 	<parameter name="ESTIMATIVA_PARTICIPANTES" class="java.lang.Integer"/>
-	<parameter name="MODALIDADE" class="java.lang.String"/>
-	<parameter name="PUBLICO_ALVO" class="java.lang.String"/>
-	<parameter name="NOME_INTERESSADO" class="java.lang.String"/>
-	<parameter name="ORGAO_INTERESSADO" class="java.lang.String"/>
-	<parameter name="IDENTIFICA_ORGAO" class="java.lang.String"/>
-	<parameter name="ESPECIFICA_ORGAO" class="java.lang.String"/>
-	<parameter name="LOCAL_EVENTO" class="java.lang.String"/>
-	<parameter name="CARD_DIVULGACAO" class="java.lang.String"/>
-	<parameter name="COMUNICACAO_IMPRENSA" class="java.lang.String"/>
-	<parameter name="OFICIO_CONVITE" class="java.lang.String"/>
-	<parameter name="COFFEE_BREAK" class="java.lang.String"/>
-	<parameter name="KIT_PARTICIPANTE" class="java.lang.String"/>
-	<parameter name="PROGRAMACAO_IMPRESSA" class="java.lang.String"/>
-	<parameter name="TRASLADO_MINISTRANTE" class="java.lang.String"/>
-	<parameter name="PAGAMENTO_HONORARIO" class="java.lang.String"/>
-	<parameter name="PASSAGEM_AEREA" class="java.lang.String"/>
-	<parameter name="HOSPEDAGEM" class="java.lang.String"/>
-	<parameter name="OBSERVACOES_GERAIS" class="java.lang.String"/>
-	<parameter name="LISTA_AGENDAS" class="java.lang.String"/>
-	<parameter name="LISTA_MINISTRANTES" class="java.lang.String"/>
-	
-	<title>
-		<band height="60" splitType="Stretch">
-			<staticText>
-				<reportElement style="Title" x="0" y="0" width="555" height="40" uuid="12345678-abcd-1234-abcd-1234567890ab"/>
-				<text><![CDATA[SOLICITAÇÃO DE CURSO / EVENTO (PGA)]]></text>
-			</staticText>
-		</band>
+	<parameter name="MODALIDADE"               class="java.lang.String"/>
+	<parameter name="PUBLICO_ALVO"             class="java.lang.String"/>
+	<parameter name="LOCAL_EVENTO"             class="java.lang.String"/>
+	<parameter name="CARD_DIVULGACAO"          class="java.lang.String"/>
+	<parameter name="COMUNICACAO_IMPRENSA"     class="java.lang.String"/>
+	<parameter name="OFICIO_CONVITE"           class="java.lang.String"/>
+	<parameter name="COFFEE_BREAK"             class="java.lang.String"/>
+	<parameter name="KIT_PARTICIPANTE"         class="java.lang.String"/>
+	<parameter name="PROGRAMACAO_IMPRESSA"     class="java.lang.String"/>
+	<parameter name="TRASLADO_MINISTRANTE"     class="java.lang.String"/>
+	<parameter name="PAGAMENTO_HONORARIO"      class="java.lang.String"/>
+	<parameter name="PASSAGEM_AEREA"           class="java.lang.String"/>
+	<parameter name="HOSPEDAGEM"               class="java.lang.String"/>
+	<parameter name="OBSERVACOES_GERAIS"       class="java.lang.String"/>
+	<parameter name="LISTA_AGENDAS"            class="java.lang.String"/>
+	<parameter name="LISTA_MINISTRANTES"       class="java.lang.String"/>
+
+	<!-- ================== TITLE BAND ================== -->
+	<title height="45" splitType="Stretch">
+		<element kind="rectangle" x="0" y="0" width="555" height="40" forecolor="#B71C1C" backcolor="#B71C1C" mode="Opaque">
+			<pen lineWidth="0.0"/>
+		</element>
+		<element kind="rectangle" x="0" y="40" width="555" height="3" forecolor="#7F0000" backcolor="#7F0000" mode="Opaque">
+			<pen lineWidth="0.0"/>
+		</element>
+		<element kind="staticText" x="10" y="5" width="300" height="20" style="PageTitle">
+			<text><![CDATA[SOLICITAÇÃO DE CURSO / EVENTO]]></text>
+		</element>
+		<element kind="staticText" x="10" y="24" width="300" height="12" style="SubTitle">
+			<text><![CDATA[Programa de Gestão e Aperfeiçoamento (PGA)  |  MPPB]]></text>
+		</element>
+		<element kind="textField" x="355" y="10" width="190" height="20" style="PageTitle" hTextAlign="Right" fontSize="10">
+			<expression><![CDATA[new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date())]]></expression>
+		</element>
 	</title>
-	
+
+	<!-- ================== DETAIL BAND ================== -->
 	<detail>
-		<band height="550" splitType="Stretch">
-			<staticText>
-				<reportElement style="Header" x="0" y="0" width="555" height="20" uuid="55555555-4444-3333-2222-111111111111"/>
+		<band height="750" splitType="Stretch">
+
+			<!-- ── 1. IDENTIFICAÇÃO ──────────────────────────── -->
+			<element kind="rectangle" x="0" y="0" width="555" height="16" forecolor="#B71C1C" backcolor="#B71C1C" mode="Opaque">
+				<pen lineWidth="0.0"/>
+			</element>
+			<element kind="staticText" x="6" y="0" width="549" height="16" style="SectionHdr">
 				<text><![CDATA[1. IDENTIFICAÇÃO]]></text>
-			</staticText>
-			
-			<textField textAdjust="StretchHeight">
-				<reportElement style="Text" x="0" y="25" width="555" height="20" uuid="aaaa1111-bb22-cc33-dd44-ee55ff66aaa1"/>
-				<textFieldExpression><![CDATA["Nome: " + $P{NOME_EVENTO}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement style="Text" x="0" y="45" width="280" height="20" uuid="aaaa1111-bb22-cc33-dd44-ee55ff66aaa2"/>
-				<textFieldExpression><![CDATA["Participantes: " + $P{ESTIMATIVA_PARTICIPANTES}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement style="Text" x="280" y="45" width="275" height="20" uuid="aaaa1111-bb22-cc33-dd44-ee55ff66aaa3"/>
-				<textFieldExpression><![CDATA["Modalidade: " + $P{MODALIDADE}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement style="Text" x="0" y="65" width="280" height="20" uuid="aaaa1111-bb22-cc33-dd44-ee55ff66aaa6"/>
-				<textFieldExpression><![CDATA["Público-Alvo: " + $P{PUBLICO_ALVO}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement style="Text" x="280" y="65" width="275" height="20" uuid="aaaa1111-bb22-cc33-dd44-ee55ff66aaa7"/>
-				<textFieldExpression><![CDATA["Local: " + $P{LOCAL_EVENTO}]]></textFieldExpression>
-			</textField>
+			</element>
 
-			<staticText>
-				<reportElement style="Header" x="0" y="95" width="555" height="20" uuid="66666666-5555-4444-3333-222222222222"/>
-				<text><![CDATA[2. APOIO LOGÍSTICO CEAF]]></text>
-			</staticText>
-			<textField>
-				<reportElement style="Text" x="10" y="120" width="260" height="20" uuid="b1"/>
-				<textFieldExpression><![CDATA["[ " + $P{CARD_DIVULGACAO} + " ] Card Divulgação"]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement style="Text" x="280" y="120" width="260" height="20" uuid="b2"/>
-				<textFieldExpression><![CDATA["[ " + $P{COMUNICACAO_IMPRENSA} + " ] Com. Imprensa"]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement style="Text" x="10" y="140" width="260" height="20" uuid="b3"/>
-				<textFieldExpression><![CDATA["[ " + $P{OFICIO_CONVITE} + " ] Ofício Convite"]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement style="Text" x="280" y="140" width="260" height="20" uuid="b4"/>
-				<textFieldExpression><![CDATA["[ " + $P{COFFEE_BREAK} + " ] Coffee Break"]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement style="Text" x="10" y="160" width="260" height="20" uuid="b5"/>
-				<textFieldExpression><![CDATA["[ " + $P{KIT_PARTICIPANTE} + " ] Pastas/Canetas"]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement style="Text" x="280" y="160" width="260" height="20" uuid="b6"/>
-				<textFieldExpression><![CDATA["[ " + $P{TRASLADO_MINISTRANTE} + " ] Traslado"]]></textFieldExpression>
-			</textField>
+			<element kind="staticText"  x="0"   y="22" width="100"  height="12" style="FieldLabel">
+				<text><![CDATA[Nome do evento:]]></text>
+			</element>
+			<element kind="textField"   x="105" y="22" width="450" height="12" style="FieldValue" textAdjust="StretchHeight">
+				<expression><![CDATA[$P{NOME_EVENTO}]]></expression>
+			</element>
+			<element kind="staticText"  x="0"   y="38" width="155" height="12" style="FieldLabel">
+				<text><![CDATA[Estimativa de Participantes:]]></text>
+			</element>
+			<element kind="textField"   x="160" y="38" width="90" height="12" style="FieldValue">
+				<expression><![CDATA[$P{ESTIMATIVA_PARTICIPANTES}.toString()]]></expression>
+			</element>
+			<element kind="staticText"  x="270" y="38" width="75"  height="12" style="FieldLabel">
+				<text><![CDATA[Modalidade:]]></text>
+			</element>
+			<element kind="textField"   x="350" y="38" width="205" height="12" style="FieldValue">
+				<expression><![CDATA[$P{MODALIDADE}]]></expression>
+			</element>
+			<element kind="staticText"  x="0"   y="54" width="100" height="12" style="FieldLabel">
+				<text><![CDATA[Público-Alvo:]]></text>
+			</element>
+			<element kind="textField"   x="105" y="54" width="450" height="12" style="FieldValue">
+				<expression><![CDATA[$P{PUBLICO_ALVO}]]></expression>
+			</element>
+			<element kind="rectangle" x="0" y="70" width="555" height="1" forecolor="#FFCDD2" backcolor="#FFCDD2" mode="Opaque">
+				<pen lineWidth="0.0"/>
+			</element>
 
-			<staticText>
-				<reportElement style="Header" x="0" y="190" width="555" height="20" uuid="h3"/>
-				<text><![CDATA[3. PROGRAMAÇÃO E AGENDAS]]></text>
-			</staticText>
-			<textField textAdjust="StretchHeight">
-				<reportElement style="Text" x="10" y="215" width="535" height="40" uuid="t1"/>
-				<textFieldExpression><![CDATA[$P{LISTA_AGENDAS}]]></textFieldExpression>
-			</textField>
+			<!-- ── 2. LOCAL DO EVENTO ────────────────────────── -->
+			<element kind="rectangle" x="0" y="76" width="555" height="16" forecolor="#B71C1C" backcolor="#B71C1C" mode="Opaque">
+				<pen lineWidth="0.0"/>
+			</element>
+			<element kind="staticText" x="6" y="76" width="549" height="16" style="SectionHdr">
+				<text><![CDATA[2. LOCAL DO EVENTO]]></text>
+			</element>
+			<element kind="textField"   x="6"  y="96" width="549" height="12" style="FieldValue" textAdjust="StretchHeight">
+				<expression><![CDATA[$P{LOCAL_EVENTO}]]></expression>
+			</element>
+			<element kind="rectangle" x="0" y="112" width="555" height="1" forecolor="#FFCDD2" backcolor="#FFCDD2" mode="Opaque">
+				<pen lineWidth="0.0"/>
+			</element>
 
-			<staticText>
-				<reportElement style="Header" x="0" y="265" width="555" height="20" uuid="h4"/>
-				<text><![CDATA[4. MINISTRANTES (Palestrantes/Mediadores)]]></text>
-			</staticText>
-			<textField textAdjust="StretchHeight">
-				<reportElement style="Text" x="10" y="290" width="535" height="60" uuid="t2"/>
-				<textFieldExpression><![CDATA[$P{LISTA_MINISTRANTES}]]></textFieldExpression>
-			</textField>
+			<!-- ── 3. APOIO LOGÍSTICO CEAF ───────────────────── -->
+			<element kind="rectangle" x="0" y="118" width="555" height="16" forecolor="#B71C1C" backcolor="#B71C1C" mode="Opaque">
+				<pen lineWidth="0.0"/>
+			</element>
+			<element kind="staticText" x="6" y="118" width="549" height="16" style="SectionHdr">
+				<text><![CDATA[3. APOIO LOGÍSTICO CEAF]]></text>
+			</element>
 
-			<staticText>
-				<reportElement style="Header" x="0" y="360" width="555" height="20" uuid="h5"/>
-				<text><![CDATA[5. ÔNUS FINANCEIRO]]></text>
-			</staticText>
-			<textField>
-				<reportElement style="Text" x="10" y="385" width="180" height="20" uuid="f1"/>
-				<textFieldExpression><![CDATA["Honorários: " + $P{PAGAMENTO_HONORARIO}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement style="Text" x="190" y="385" width="180" height="20" uuid="f2"/>
-				<textFieldExpression><![CDATA["Passagens: " + $P{PASSAGEM_AEREA}]]></textFieldExpression>
-			</textField>
-			<textField>
-				<reportElement style="Text" x="375" y="385" width="160" height="20" uuid="f3"/>
-				<textFieldExpression><![CDATA["Hospedagem: " + $P{HOSPEDAGEM}]]></textFieldExpression>
-			</textField>
+			<!-- Row 1 -->
+			<element kind="textField" x="4"   y="138" width="20" height="12" style="CheckOn">
+				<expression><![CDATA[$P{CARD_DIVULGACAO}]]></expression>
+			</element>
+			<element kind="staticText" x="26" y="138" width="244" height="12" style="FieldValue">
+				<text><![CDATA[Card de divulgação]]></text>
+			</element>
+			<element kind="textField" x="284" y="138" width="20" height="12" style="CheckOn">
+				<expression><![CDATA[$P{COMUNICACAO_IMPRENSA}]]></expression>
+			</element>
+			<element kind="staticText" x="306" y="138" width="244" height="12" style="FieldValue">
+				<text><![CDATA[Comunicação com a imprensa]]></text>
+			</element>
+			<!-- Row 2 -->
+			<element kind="textField" x="4"   y="152" width="20" height="12" style="CheckOn">
+				<expression><![CDATA[$P{OFICIO_CONVITE}]]></expression>
+			</element>
+			<element kind="staticText" x="26" y="152" width="244" height="12" style="FieldValue">
+				<text><![CDATA[Expedição de ofício/convite]]></text>
+			</element>
+			<element kind="textField" x="284" y="152" width="20" height="12" style="CheckOn">
+				<expression><![CDATA[$P{COFFEE_BREAK}]]></expression>
+			</element>
+			<element kind="staticText" x="306" y="152" width="244" height="12" style="FieldValue">
+				<text><![CDATA[Coffee Break]]></text>
+			</element>
+			<!-- Row 3 -->
+			<element kind="textField" x="4"   y="166" width="20" height="12" style="CheckOn">
+				<expression><![CDATA[$P{KIT_PARTICIPANTE}]]></expression>
+			</element>
+			<element kind="staticText" x="26" y="166" width="244" height="12" style="FieldValue">
+				<text><![CDATA[Kit de eventos (pastas/papel/canetas)]]></text>
+			</element>
+			<element kind="textField" x="284" y="166" width="20" height="12" style="CheckOn">
+				<expression><![CDATA[$P{TRASLADO_MINISTRANTE}]]></expression>
+			</element>
+			<element kind="staticText" x="306" y="166" width="244" height="12" style="FieldValue">
+				<text><![CDATA[Traslado para ministrante externo]]></text>
+			</element>
+			<!-- Row 4 -->
+			<element kind="textField" x="4"   y="180" width="20" height="12" style="CheckOn">
+				<expression><![CDATA[$P{PROGRAMACAO_IMPRESSA}]]></expression>
+			</element>
+			<element kind="staticText" x="26" y="180" width="244" height="12" style="FieldValue">
+				<text><![CDATA[Programação impressa]]></text>
+			</element>
 
-			<staticText>
-				<reportElement style="Header" x="0" y="415" width="555" height="20" uuid="h6"/>
-				<text><![CDATA[6. OBSERVAÇÕES / JUSTIFICATIVAS]]></text>
-			</staticText>
-			<textField textAdjust="StretchHeight">
-				<reportElement style="Text" x="10" y="440" width="535" height="40" uuid="t3"/>
-				<textFieldExpression><![CDATA[$P{OBSERVACOES_GERAIS}]]></textFieldExpression>
-			</textField>
+			<element kind="rectangle" x="0" y="196" width="555" height="1" forecolor="#FFCDD2" backcolor="#FFCDD2" mode="Opaque">
+				<pen lineWidth="0.0"/>
+			</element>
 
-			<textField>
-				<reportElement x="0" y="500" width="555" height="20" uuid="footer"/>
-				<textElement textAlignment="Right"/>
-				<textFieldExpression><![CDATA["Gerado em: " + new java.util.Date()]]></textFieldExpression>
-			</textField>
+			<!-- ── 4. PROGRAMAÇÃO E AGENDAS ──────────────────── -->
+			<element kind="rectangle" x="0" y="202" width="555" height="16" forecolor="#B71C1C" backcolor="#B71C1C" mode="Opaque">
+				<pen lineWidth="0.0"/>
+			</element>
+			<element kind="staticText" x="6" y="202" width="549" height="16" style="SectionHdr">
+				<text><![CDATA[4. PROGRAMAÇÃO E AGENDAS]]></text>
+			</element>
+			<element kind="textField" x="6" y="222" width="549" height="60" style="FieldValue" textAdjust="StretchHeight">
+				<expression><![CDATA[$P{LISTA_AGENDAS}]]></expression>
+			</element>
+			<element kind="rectangle" x="0" y="286" width="555" height="1" forecolor="#FFCDD2" backcolor="#FFCDD2" mode="Opaque">
+				<pen lineWidth="0.0"/>
+			</element>
+
+			<!-- ── 5. MINISTRANTES ───────────────────────────── -->
+			<element kind="rectangle" x="0" y="292" width="555" height="16" forecolor="#B71C1C" backcolor="#B71C1C" mode="Opaque">
+				<pen lineWidth="0.0"/>
+			</element>
+			<element kind="staticText" x="6" y="292" width="549" height="16" style="SectionHdr">
+				<text><![CDATA[5. MINISTRANTES (Palestrantes/Mediadores)]]></text>
+			</element>
+			<element kind="textField" x="6" y="312" width="549" height="80" style="FieldValue" textAdjust="StretchHeight">
+				<expression><![CDATA[$P{LISTA_MINISTRANTES}]]></expression>
+			</element>
+			<element kind="rectangle" x="0" y="396" width="555" height="1" forecolor="#FFCDD2" backcolor="#FFCDD2" mode="Opaque">
+				<pen lineWidth="0.0"/>
+			</element>
+
+			<!-- ── 6. ÔNUS FINANCEIRO ────────────────────────── -->
+			<element kind="rectangle" x="0" y="402" width="555" height="16" forecolor="#B71C1C" backcolor="#B71C1C" mode="Opaque">
+				<pen lineWidth="0.0"/>
+			</element>
+			<element kind="staticText" x="6" y="402" width="549" height="16" style="SectionHdr">
+				<text><![CDATA[6. ÔNUS FINANCEIRO]]></text>
+			</element>
+
+			<!-- List style matching section 3 -->
+			<element kind="textField" x="4"   y="422" width="20" height="12" style="CheckOn">
+				<expression><![CDATA[$P{PAGAMENTO_HONORARIO}]]></expression>
+			</element>
+			<element kind="staticText" x="26" y="422" width="140" height="12" style="FieldValue">
+				<text><![CDATA[Honorários]]></text>
+			</element>
+
+			<element kind="textField" x="174" y="422" width="20" height="12" style="CheckOn">
+				<expression><![CDATA[$P{PASSAGEM_AEREA}]]></expression>
+			</element>
+			<element kind="staticText" x="196" y="422" width="140" height="12" style="FieldValue">
+				<text><![CDATA[Passagens aéreas]]></text>
+			</element>
+
+			<element kind="textField" x="344" y="422" width="20" height="12" style="CheckOn">
+				<expression><![CDATA[$P{HOSPEDAGEM}]]></expression>
+			</element>
+			<element kind="staticText" x="366" y="422" width="140" height="12" style="FieldValue">
+				<text><![CDATA[Hospedagem]]></text>
+			</element>
+
+			<element kind="rectangle" x="0" y="438" width="555" height="1" forecolor="#FFCDD2" backcolor="#FFCDD2" mode="Opaque">
+				<pen lineWidth="0.0"/>
+			</element>
+
+			<!-- ── 7. OBSERVAÇÕES / JUSTIFICATIVAS ───────────── -->
+			<element kind="rectangle" x="0" y="444" width="555" height="16" forecolor="#B71C1C" backcolor="#B71C1C" mode="Opaque">
+				<pen lineWidth="0.0"/>
+			</element>
+			<element kind="staticText" x="6" y="444" width="549" height="16" style="SectionHdr">
+				<text><![CDATA[7. OBSERVAÇÕES / JUSTIFICATIVAS]]></text>
+			</element>
+			<element kind="rectangle" x="0" y="464" width="555" height="60" forecolor="#FAFAFA" backcolor="#FAFAFA" mode="Opaque">
+				<pen lineColor="#FFCDD2" lineWidth="0.5"/>
+			</element>
+			<element kind="textField" x="6" y="466" width="543" height="56" style="FieldValue" textAdjust="StretchHeight">
+				<expression><![CDATA[$P{OBSERVACOES_GERAIS}]]></expression>
+			</element>
+
+			<!-- ── FOOTER ────────────────────────────────────── -->
+			<element kind="rectangle" x="0" y="700" width="555" height="1" forecolor="#FFCDD2" backcolor="#FFCDD2" mode="Opaque">
+				<pen lineWidth="0.0"/>
+			</element>
+			<element kind="textField" x="0" y="704" width="555" height="12" style="Footer">
+				<expression><![CDATA["Referência: PGA – MPPB   |   Gerado por Sistema de Solicitação de Cursos"]]></expression>
+			</element>
 		</band>
 	</detail>
 </jasperReport>

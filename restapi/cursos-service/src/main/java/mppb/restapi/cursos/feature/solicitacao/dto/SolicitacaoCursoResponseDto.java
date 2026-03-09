@@ -2,7 +2,10 @@ package mppb.restapi.cursos.feature.solicitacao.dto;
 
 import lombok.Data;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -11,7 +14,7 @@ public class SolicitacaoCursoResponseDto {
     private Long id;
 
     // Status e Integração
-    private String statusDescricao; // Da tabela status_tramitacao
+    private String statusDescricao;
     private String numeroPgaMpVirtual;
     private UUID uuidReferencia;
 
@@ -19,9 +22,64 @@ public class SolicitacaoCursoResponseDto {
     private String nomeCurso;
     private Integer estimativaParticipantes;
 
+    // IDs para re-popular selects no frontend
+    private Long idModalidade;
     private String modalidadeDescricao;
-    private String publicoAlvoDescricao;
 
+    private List<Long> idsPublicoAlvo;
+    private List<String> publicosAlvoDescricao;
+
+    private Long idLocalEvento;
+    private String descricaoLocalExterno;
+
+    private Boolean identificacaoOrgaoMembros;
+    private String especificacaoOrgaoMembros;
+
+    // Apoio Logístico
+    private Boolean cardDivulgacao;
+    private Boolean comunicacaoImprensa;
+    private Boolean oficioConvite;
+    private Boolean coffeeBreak;
+    private Boolean kitParticipante;
+    private Boolean programacaoImpressa;
+    private Boolean trasladoMinistrante;
+
+    // Financeiro
+    private Boolean pagamentoHonorario;
+    private Boolean passagemAerea;
+    private Boolean hospedagem;
+
+    // Documentação
+    private String observacoesGerais;
+    private Long idArquivoProgramacaoGed;
+
+    // Listas
+    private List<AgendaResponseDto> agendas;
+    private List<MinistranteResponseDto> ministrantes;
+
+    // Timestamps
     private LocalDateTime dataCriacao;
     private LocalDateTime dataModificacao;
+
+    @Data
+    public static class AgendaResponseDto {
+        private Long id;
+        private LocalDate dataInicio;
+        private LocalDate dataFim;
+        private LocalTime horarioInicio;
+        private LocalTime horarioFim;
+    }
+
+    @Data
+    public static class MinistranteResponseDto {
+        private Long id;
+        private Long idPapelMinistrante;
+        private Long ministranteId;
+        private Integer idServidor;
+        private String nomeMinistrante;
+        private String telefone;
+        private String email;
+        private Long idFoto;
+        private Long idCurriculo;
+    }
 }

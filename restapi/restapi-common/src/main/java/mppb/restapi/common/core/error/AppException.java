@@ -87,7 +87,7 @@ public class AppException extends RuntimeException implements Serializable, Mess
 
         if(parametros != null){
             for (Object obj : parametros) {
-                retorno += "|" + obj.toString();
+                retorno += "|" + (obj != null ? obj.toString() : "null");
             }
         }
 

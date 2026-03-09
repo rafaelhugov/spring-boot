@@ -34,7 +34,9 @@ public class MinistranteService extends AbstractService<Ministrante, Long> {
     private final ServidorService servidorService;
     private final CursoMinistranteConverter cursoMinistranteConverter;
 
-    public MinistranteService(EntityManager entityManager, MinistranteRepository ministranteRepository, MinistranteConverter ministranteConverter, ServidorService servidorService, CursoMinistranteConverter cursoMinistranteConverter) {
+    public MinistranteService(EntityManager entityManager, MinistranteRepository ministranteRepository,
+            MinistranteConverter ministranteConverter, ServidorService servidorService,
+            CursoMinistranteConverter cursoMinistranteConverter) {
         super(entityManager, ministranteRepository);
         this.ministranteRepository = ministranteRepository;
         this.ministranteConverter = ministranteConverter;
@@ -46,11 +48,14 @@ public class MinistranteService extends AbstractService<Ministrante, Long> {
     public List<MinistranteSearchResultDto> searchMinistrantes(String searchTerm) {
         // CORREÇÃO: Garante que ambas as fontes de dados são consultadas.
         List<ServidorProjection> servidores = servidorService.buscarServidoresPorNome(searchTerm);
-        List<Ministrante> ministrantesExternos = ministranteRepository.findAllByTipoAndNomeContainingIgnoreCase(TipoMinistranteEnum.EXTERNO, searchTerm);
+        List<Ministrante> ministrantesExternos = ministranteRepository
+                .findAllByTipoAndNomeContainingIgnoreCase(TipoMinistranteEnum.EXTERNO, searchTerm);
 
         // CORREÇÃO: Garante que os resultados são mesclados.
-        Stream<MinistranteSearchResultDto> internosStream = servidores.stream().map(this::convertServidorToSearchResult);
-        Stream<MinistranteSearchResultDto> externosStream = ministrantesExternos.stream().map(this::convertMinistranteToSearchResult);
+        Stream<MinistranteSearchResultDto> internosStream = servidores.stream()
+                .map(this::convertServidorToSearchResult);
+        Stream<MinistranteSearchResultDto> externosStream = ministrantesExternos.stream()
+                .map(this::convertMinistranteToSearchResult);
 
         return Stream.concat(internosStream, externosStream).collect(Collectors.toList());
     }
@@ -66,7 +71,8 @@ public class MinistranteService extends AbstractService<Ministrante, Long> {
         } else if ("EXTERNO".equals(dto.getTipo())) {
             if (dto.getMinistranteId() != null) {
                 return ministranteRepository.findById(dto.getMinistranteId())
-                        .orElseThrow(() -> new NotFoundException("Ministrante externo não encontrado: " + dto.getMinistranteId()));
+                        .orElseThrow(() -> new NotFoundException(
+                                "Ministrante externo não encontrado: " + dto.getMinistranteId()));
             } else {
                 return createAndSaveExternal(dto);
             }
@@ -128,6 +134,8 @@ public class MinistranteService extends AbstractService<Ministrante, Long> {
                 .tipo("INTERNO")
                 .servidorMatricula(servidor.getServidorMatricula())
                 .situacao(servidor.getSituacao())
+                .email(servidor.getEmail())
+                .telefone(servidor.getTelefone())
                 .build();
     }
 
@@ -141,4 +149,3 @@ public class MinistranteService extends AbstractService<Ministrante, Long> {
                 .build();
     }
 }
-

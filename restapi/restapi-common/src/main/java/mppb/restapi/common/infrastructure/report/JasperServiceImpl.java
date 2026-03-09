@@ -46,43 +46,68 @@ public class JasperServiceImpl implements JasperService {
 
     @Override
     public byte[] gerarPdfDatasource(InputStream jasperStream, Map<String, Object> params, JRDataSource jrDataSource) {
-        JasperPrint jasperPrint = preencherRelatorio(jasperStream, params, jrDataSource);
         try {
+            JasperPrint jasperPrint = preencherRelatorio(jasperStream, params, jrDataSource);
             return JasperExportManager.exportReportToPdf(jasperPrint);
-        } catch (JRException e) {
+        } catch (Exception e) {
+            log.error("Erro ao gerar PDF: {}", e.getMessage(), e);
             throw new AppException(e);
         }
     }
 
     @Override
     public byte[] gerarPdfDatasource(String nomeArquivoJasper, Map<String, Object> params, JRDataSource jrDataSource) {
+        String fullPath = REPORT_PATH + nomeArquivoJasper;
+        log.info("Buscando relatório em: {}", fullPath);
+        URL url = IoUtil.getResource(fullPath);
 
-        URL url = IoUtil.getResource(REPORT_PATH + nomeArquivoJasper);
+        if (url == null) {
+            log.error("URL do relatório é nula para o caminho: {}", fullPath);
+            throw new NotFoundException("Relatório não encontrado no classpath: {0}", new String[]{fullPath});
+        }
 
         try (InputStream jasperStream = url.openStream()) {
-
             if (jasperStream == null) {
+                log.error("InputStream do relatório é nulo para o caminho: {}", fullPath);
                 throw new NotFoundException("Relatório não encontrado: {0}", new String[]{nomeArquivoJasper});
             }
 
-            return this.gerarPdfDatasource(jasperStream, params, jrDataSource);
+            JasperPrint jasperPrint;
+            if (nomeArquivoJasper.endsWith(".jrxml")) {
+                log.info("Compilando relatório JRXML: {}", nomeArquivoJasper);
+                JasperReport jasperReport = JasperCompileManager.compileReport(jasperStream);
+                jasperPrint = preencherRelatorio(jasperReport, params, jrDataSource);
+            } else {
+                jasperPrint = preencherRelatorio(jasperStream, params, jrDataSource);
+            }
+
+            try {
+                return JasperExportManager.exportReportToPdf(jasperPrint);
+            } catch (JRException e) {
+                throw new AppException(e);
+            }
 
         } catch (Exception e) {
-            log.error("Erro ao gerar relatório: {}",  e);
+            log.error("Erro ao processar relatório {}: {}", nomeArquivoJasper, e.getMessage(), e);
             throw new AppException(e, "Erro ao gerar relatório", new String[]{e.getMessage()});
         }
     }
 
-    private JasperPrint preencherRelatorio(InputStream jasperStream, Map<String, Object> params, JRDataSource jrDataSource) {
-        try {
-            if (jrDataSource != null) {
-                return JasperFillManager.fillReport(jasperStream, params, jrDataSource);
-            }
-            try (Connection connection = dataSource.getConnection()) {
-                return JasperFillManager.fillReport(jasperStream, params, connection);
-            }
-        } catch (Exception e) {
-            throw new AppException(e);
+    private JasperPrint preencherRelatorio(JasperReport jasperReport, Map<String, Object> params, JRDataSource jrDataSource) throws Exception {
+        if (jrDataSource != null) {
+            return JasperFillManager.fillReport(jasperReport, params, jrDataSource);
+        }
+        try (Connection connection = dataSource.getConnection()) {
+            return JasperFillManager.fillReport(jasperReport, params, connection);
+        }
+    }
+
+    private JasperPrint preencherRelatorio(InputStream jasperStream, Map<String, Object> params, JRDataSource jrDataSource) throws Exception {
+        if (jrDataSource != null) {
+            return JasperFillManager.fillReport(jasperStream, params, jrDataSource);
+        }
+        try (Connection connection = dataSource.getConnection()) {
+            return JasperFillManager.fillReport(jasperStream, params, connection);
         }
     }
 

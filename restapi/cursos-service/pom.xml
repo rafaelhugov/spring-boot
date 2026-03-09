@@ -130,6 +130,7 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                    <mainClass>mppb.restapi.cursos.CursosApiApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import mppb.restapi.cursos.feature.lookup.entities.PapelMinistrante;
+import mppb.restapi.cursos.feature.ministrante.entity.Ministrante;
 
 @Entity
 @Table(name = "solicitacao_ministrante", schema = "curso")
@@ -23,21 +24,34 @@ public class SolicitacaoMinistrante {
     @JoinColumn(name = "id_papel_ministrante")
     private PapelMinistrante papelMinistrante;
 
-    @Column(name = "id_servidor_interno")
-    private Long idServidorInterno; // FK para public.servidor, opcional
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_ministrante")
+    private Ministrante ministrante;
+
+    @Column(name = "id_servidor")
+    private Integer idServidor;
 
     @Column(name = "nome_ministrante", nullable = false, length = 255)
     private String nomeMinistrante;
 
-    @Column(name = "contato_info", length = 150)
-    private String contatoInfo;
+    @Column(name = "telefone", length = 150)
+    private String telefone;
 
-    @Column(name = "id_arquivo_foto_ged")
-    private Long idArquivoFotoGed;
+    @Column(name = "email", length = 150)
+    private String email;
 
-    @Column(name = "id_arquivo_curriculo_ged")
-    private Long idArquivoCurriculoGed;
+    @Column(name = "id_foto")
+    private Long idFoto;
 
-    @Column(name = "resumo_curriculo", columnDefinition = "text")
-    private String resumoCurriculo;
+    @Column(name = "id_curriculo")
+    private Long idCurriculo;
+
+    @PrePersist
+    @PreUpdate
+    public void prePersistOrUpdate() {
+        if (this.nomeMinistrante != null) {
+            this.nomeMinistrante = this.nomeMinistrante.toUpperCase();
+        }
+    }
+
 }

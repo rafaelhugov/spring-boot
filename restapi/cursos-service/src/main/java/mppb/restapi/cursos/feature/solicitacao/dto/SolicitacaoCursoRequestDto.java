@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -11,6 +13,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SolicitacaoCursoRequestDto {
 
     // Informações do Evento
@@ -22,7 +25,7 @@ public class SolicitacaoCursoRequestDto {
     private Integer estimativaParticipantes;
 
     @NotNull(message = "O público-alvo é obrigatório")
-    private Long idPublicoAlvo;
+    private List<Long> idsPublicoAlvo;
 
     private Boolean identificacaoOrgaoMembros;
     private String especificacaoOrgaoMembros;
@@ -59,10 +62,15 @@ public class SolicitacaoCursoRequestDto {
     @Valid
     private List<MinistranteRequestDto> ministrantes;
 
+    private String status; // RASCUNHO | SUBMETIDO
+
     @Data
     public static class AgendaRequestDto {
-        @NotNull(message = "A data do evento é obrigatória na agenda")
-        private LocalDate dataEvento;
+        @NotNull(message = "A data de início do período é obrigatória")
+        private LocalDate dataInicio;
+
+        @NotNull(message = "A data de término do período é obrigatória")
+        private LocalDate dataFim;
 
         @NotNull(message = "O horário de início é obrigatório na agenda")
         private LocalTime horarioInicio;
@@ -72,18 +80,23 @@ public class SolicitacaoCursoRequestDto {
     }
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class MinistranteRequestDto {
         @NotNull(message = "O papel do ministrante é obrigatório")
         private Long idPapelMinistrante;
 
-        private Long idServidorInterno; // Se for servidor do MP
+        private Long ministranteId; // Se já tiver registro em curso.ministrante
+
+        // Front-end pode enviar como idServidor ou idServidorInterno
+        @JsonAlias("idServidorInterno")
+        private Integer idServidor; // Se for servidor do MP
 
         @NotBlank(message = "O nome do ministrante é obrigatório")
         private String nomeMinistrante;
 
-        private String contatoInfo;
-        private Long idArquivoFotoGed; // Arquivo previamente enviado pro GED
-        private Long idArquivoCurriculoGed; // Arquivo previamente enviado pro GED
-        private String resumoCurriculo;
+        private String telefone;
+        private String email;
+        private Long idFoto;
+        private Long idCurriculo;
     }
 }

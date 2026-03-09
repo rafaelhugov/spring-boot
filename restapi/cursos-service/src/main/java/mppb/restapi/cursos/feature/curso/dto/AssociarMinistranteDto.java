@@ -12,8 +12,8 @@ public class AssociarMinistranteDto {
 
     // --- Identificadores ---
     private Long ministranteId; // Usado para associar um ministrante EXTERNO já existente
-    private Integer idServidor;   // Usado para associar um ministrante INTERNO
-    private Long papelId;       // O ID do papel que o ministrante terá no curso
+    private Integer idServidor; // Usado para associar um ministrante INTERNO
+    private Long papelId; // O ID do papel que o ministrante terá no curso
 
     // --- Campos para criação de NOVO ministrante EXTERNO ---
     private String nome;
@@ -24,5 +24,7 @@ public class AssociarMinistranteDto {
     // Este campo diz ao backend como processar a requisição (INTERNO vs EXTERNO)
     private String tipo;
 
-}
+    private String email;
+    private String telefone;
 
+}

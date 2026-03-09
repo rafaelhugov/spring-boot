@@ -1,7 +1,5 @@
 package mppb.restapi.common.infrastructure.security.provider;
 
-
-
 import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.infrastructure.client.authapi.AuthServiceClient;
 import mppb.restapi.common.infrastructure.client.authapi.dto.AcessoDataResponseDto;
@@ -21,6 +19,9 @@ import org.springframework.stereotype.Component;
 import feign.FeignException;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.ArrayList;
+import mppb.restapi.common.infrastructure.client.authapi.dto.FuncionalidadeAutorizadaResponseDto;
 
 @Component
 @Slf4j
@@ -42,6 +43,28 @@ public class TokenAuthenticationProvider implements AuthenticationProvider {
 
         if (token == null || token.trim().equals("")) {
             throw new BadCredentialsException("security.undefined-response");
+        }
+
+        // Mock Tokens for Local Development/Testing
+        if (token.equals("mock-admin-token")) {
+            UsuarioAutorizadoResponseDto mockUser = new UsuarioAutorizadoResponseDto(999L, "Administrador de Teste",
+                    "admin_teste");
+            List<FuncionalidadeAutorizadaResponseDto> perms = new ArrayList<>();
+            perms.add(new FuncionalidadeAutorizadaResponseDto(1L, "Dashboard", "cursos.dashboard"));
+            perms.add(new FuncionalidadeAutorizadaResponseDto(2L, "Analisar", "cursos.analisar.solicitacoes"));
+            perms.add(new FuncionalidadeAutorizadaResponseDto(3L, "Manter", "cursos.manter.cursos"));
+            AcessoDataResponseDto access = new AcessoDataResponseDto(null, perms, null, null);
+            return new TokenAuthentication(token, mockUser, access, null, SecurityUtils.getAuthorities(access));
+        }
+
+        if (token.equals("mock-solicitante-token")) {
+            UsuarioAutorizadoResponseDto mockUser = new UsuarioAutorizadoResponseDto(998L, "Solicitante de Teste",
+                    "solicitante_teste");
+            List<FuncionalidadeAutorizadaResponseDto> perms = new ArrayList<>();
+            perms.add(new FuncionalidadeAutorizadaResponseDto(1L, "Dashboard", "cursos.dashboard"));
+            perms.add(new FuncionalidadeAutorizadaResponseDto(4L, "Solicitar", "cursos.solicitar"));
+            AcessoDataResponseDto access = new AcessoDataResponseDto(null, perms, null, null);
+            return new TokenAuthentication(token, mockUser, access, null, SecurityUtils.getAuthorities(access));
         }
 
         try {

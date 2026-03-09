@@ -151,7 +151,7 @@ public class IoUtil {
 		return file.getName().toUpperCase().endsWith("."+extension.toUpperCase());
 	}
 
-	 static void checkDirectory(File directory) {
+	 public static void checkDirectory(File directory) {
 		if (directory == null || !directory.isDirectory()) {
 			throw new NotFoundException("This path must be a directory: '" + directory.getAbsolutePath() + "'.");
 		}
