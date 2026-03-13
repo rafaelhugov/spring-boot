@@ -7,6 +7,8 @@ import mppb.restapi.cursos.feature.lookup.entities.LocalEvento;
 import mppb.restapi.cursos.feature.lookup.entities.Modalidade;
 import mppb.restapi.cursos.feature.lookup.entities.PublicoAlvo;
 import mppb.restapi.cursos.feature.lookup.entities.StatusTramitacao;
+import mppb.restapi.cursos.feature.lookup.entities.TipoEvento;
+import mppb.restapi.cursos.feature.cadastro.entities.EntidadeTutora;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -77,10 +79,18 @@ public class SolicitacaoCurso {
     @Column(name = "especificacao_orgao_membros", columnDefinition = "text")
     private String especificacaoOrgaoMembros;
 
-    // Modalidade e Localização
+    // Modalidade, Localização e Tipo de Evento
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_modalidade")
     private Modalidade modalidade;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_tipo_evento")
+    private TipoEvento tipoEvento;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_entidade_tutora")
+    private EntidadeTutora entidadeTutora;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_local_evento")
@@ -153,4 +163,7 @@ public class SolicitacaoCurso {
         ministrantes.remove(ministrante);
         ministrante.setSolicitacao(null);
     }
+
+    @Column(name = "id_curso_gerado")
+    private Long idCursoGerado;
 }

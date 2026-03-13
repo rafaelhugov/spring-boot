@@ -3,12 +3,13 @@ package mppb.restapi.common.infrastructure.service.mpvirtual;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.core.error.AppException;
+import mppb.restapi.common.core.util.ByteArrayMultipartFile;
 import mppb.restapi.common.infrastructure.client.mpvirtual.MPVirtualClient;
-import mppb.restapi.common.infrastructure.client.mpvirtual.dto.MPVirtualProcessoRequestDto;
+import mppb.restapi.common.infrastructure.client.mpvirtual.dto.MPVirtualMetadataDto;
 import mppb.restapi.common.infrastructure.client.mpvirtual.dto.MPVirtualProcessoResponseDto;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.util.Collections;
 
 @Slf4j
 @Service
@@ -16,55 +17,79 @@ import java.time.LocalDateTime;
 public class MPVirtualIntegrationService {
 
     private final MPVirtualClient mpVirtualClient;
+    private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
+
+    public MPVirtualMetadataDto construirMetadata(String resumo, Integer idPessoa) {
+        return MPVirtualMetadataDto.builder()
+                .idTipoDocumentoPecaInicial(132L) // Fixo: Solicitação de Curso
+                .codClasse(910020L)               // Fixo
+                .codAssunto(930257L)              // Fixo
+                .resumo(resumo)
+                .instancia("A")
+                .interessados(Collections.singletonList(
+                        MPVirtualMetadataDto.InteressadoDto.builder()
+                                .idTipoInteressado(72) // Fixo: Interessado
+                                .idPessoa(idPessoa)
+                                .sigiloso(false)
+                                .build()
+                ))
+                .build();
+    }
 
     /**
-     * Initializes a new process in MPVirtual with the generated PDF.
+     * Protocoliza uma nova solicitação no MPVirtual via SEIU/Protocolo.
      * 
-     * @param titulo The title of the process (e.g. "Solicitação de Curso: [Name]").
-     * @param descricao Description of the process.
-     * @param idInteressado ID of the user creating the request.
-     * @param documentoPdf The generated course request PDF byte array.
-     * @return The response containing the process number and ID.
+     * @param titulo       Título do processo.
+     * @param resumo       Resumo do processo.
+     * @param idOrgao      ID do órgão que está protocolando.
+     * @param idPessoa     ID da pessoa física interessada.
+     * @param documentoPdf Conteúdo do PDF gerado.
+     * @return Resultado contendo a resposta e os metadados enviados.
      */
-    public MPVirtualProcessoResponseDto abrirProcessoCurso(
+    public ProtocoloResult abrirProcessoCurso(
             String titulo,
-            String descricao,
-            Long idInteressado,
+            String resumo,
+            Long idOrgao,
+            Integer idPessoa,
             byte[] documentoPdf) {
 
-        log.info("Iniciando abertura de processo no MPVirtual para: {}", titulo);
+        log.info("Iniciando protocolização no MPVirtual: {} para o órgão {}", titulo, idOrgao);
 
         try {
-            MPVirtualProcessoRequestDto request = MPVirtualProcessoRequestDto.builder()
-                    .titulo(titulo)
-                    .descricao(descricao)
-                    .codigoAssunto("CURSO_EVENTO") // Placeholder subject code
-                    .idInteressado(idInteressado)
-                    .documentoPdf(documentoPdf)
-                    .nomeArquivo("solicitacao_curso.pdf")
-                    .dataSolicitacao(LocalDateTime.now())
-                    .build();
+            // 1. Montar metadados conforme especificado pelo usuário
+            MPVirtualMetadataDto metadata = construirMetadata(resumo, idPessoa);
 
-            // Note: In a real scenario, you would fetch a system token or forward the user's token
-            String mockToken = "Bearer MOCK_TOKEN_FOR_MPVIRTUAL";
-            
-            // Call the external API (can be mocked or configured via application properties)
-            // UNCOMMENT NEXT LINE TO ENABLE REAL FEIGN CALL:
-            // MPVirtualProcessoResponseDto response = mpVirtualClient.abrirProcessoCurso(mockToken, request);
+            // Log do Payload para inspeção no console a pedido do usuário
+            try {
+                String jsonPayload = objectMapper.writeValueAsString(metadata);
+                log.info("Payload (Metadata) enviado para o MPVirtual: {}", jsonPayload);
+            } catch (Exception e) {
+                log.warn("Não foi possível serializar o payload para log: {}", e.getMessage());
+            }
 
-            // MOCKED RESPONSE FOR NOW
-            MPVirtualProcessoResponseDto response = new MPVirtualProcessoResponseDto();
-            response.setIdProcesso(12345L);
-            response.setNumeroProcesso("PGA-2026-0001MOCK");
-            response.setStatus("CRIADO");
-            response.setMensagem("Processo criado com sucesso (MOCK).");
+            // 2. Preparar arquivo para Multipart
+            ByteArrayMultipartFile file = new ByteArrayMultipartFile(
+                    documentoPdf, 
+                    "file", 
+                    "solicitacao_curso.pdf", 
+                    "application/pdf"
+            );
 
-            log.info("Processo criado no MPVirtual com número: {}", response.getNumeroProcesso());
-            return response;
+            // 3. Definir token (No mundo real viria do SecurityContext ou config)
+            // O usuário usou "Authorization: Bearer eduardo.ribas" no curl
+            String token = "Bearer eduardo.ribas";
+
+            // 4. Chamar a API real
+            MPVirtualProcessoResponseDto response = mpVirtualClient.protocolar(token, idOrgao, metadata, file);
+
+            log.info("Protocolo realizado no MPVirtual com sucesso. Processo: {}", response.getNumeroProcesso());
+            return new ProtocoloResult(response, metadata);
 
         } catch (Exception e) {
             log.error("Erro ao integrar com MPVirtual: {}", e.getMessage(), e);
             throw new AppException(e, "Erro na integração com MPVirtual: " + e.getMessage());
         }
     }
+
+    public record ProtocoloResult(MPVirtualProcessoResponseDto response, MPVirtualMetadataDto metadata) {}
 }

@@ -18,13 +18,24 @@ public class SolicitacaoCursoResponseDto {
     private String numeroPgaMpVirtual;
     private UUID uuidReferencia;
 
+    /**
+     * Payload enviado ao MPVirtual (apenas preenchido no momento do protocolo para fins de log/exibição)
+     */
+    private Object mpVirtualPayload;
+
     // Dados base
     private String nomeCurso;
     private Integer estimativaParticipantes;
+    private String nomeSolicitante;
 
-    // IDs para re-popular selects no frontend
+    // IDs para re-popular selects (Modalidade, Localização e Tipo de Evento)
     private Long idModalidade;
     private String modalidadeDescricao;
+    private Long idTipoEvento;
+    private String tipoEventoDescricao;
+
+    private Long idEntidadeTutora;
+    private String entidadeTutoraNome;
 
     private List<Long> idsPublicoAlvo;
     private List<String> publicosAlvoDescricao;
@@ -52,6 +63,7 @@ public class SolicitacaoCursoResponseDto {
     // Documentação
     private String observacoesGerais;
     private Long idArquivoProgramacaoGed;
+    private Long idCursoGerado;
 
     // Listas
     private List<AgendaResponseDto> agendas;
@@ -78,6 +90,7 @@ public class SolicitacaoCursoResponseDto {
         private Integer idServidor;
         private String nomeMinistrante;
         private String telefone;
+        private String cpf;
         private String email;
         private Long idFoto;
         private Long idCurriculo;

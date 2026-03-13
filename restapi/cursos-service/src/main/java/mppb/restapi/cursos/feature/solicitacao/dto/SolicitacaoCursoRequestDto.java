@@ -31,11 +31,17 @@ public class SolicitacaoCursoRequestDto {
     private String especificacaoOrgaoMembros;
 
     // Modalidade e Localização
+    // Modalidade, Localização e Tipo de Evento
     @NotNull(message = "A modalidade é obrigatória")
     private Long idModalidade;
 
+    @NotNull(message = "O tipo do evento é obrigatório")
+    private Long idTipoEvento;
+
     private Long idLocalEvento; // Pode ser nulo se for 100% online
     private String descricaoLocalExterno;
+
+    private Long idEntidadeTutora;
 
     // Apoio Logístico
     private Boolean cardDivulgacao = false;
@@ -95,6 +101,7 @@ public class SolicitacaoCursoRequestDto {
         private String nomeMinistrante;
 
         private String telefone;
+        private String cpf;
         private String email;
         private Long idFoto;
         private Long idCurriculo;

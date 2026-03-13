@@ -9,6 +9,7 @@ import mppb.restapi.cursos.feature.solicitacao.dto.SolicitacaoCursoResponseDto;
 import mppb.restapi.cursos.feature.solicitacao.service.SolicitacaoCursoService;
 import mppb.restapi.common.infrastructure.util.Constants;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -79,11 +80,25 @@ public class SolicitacaoCursoController {
         return ResponseEntity.ok(service.avaliarSolicitacao(id, statusId));
     }
 
+    @Operation(summary = "Protocolar no MPVirtual", description = "Inicia manualmente o processo no MPVirtual (Ação do CEAF)")
+    @PostMapping("/{id}/protocolar")
+    @PreAuthorize("hasAuthority('cursos.analisar.solicitacoes')")
+    public ResponseEntity<SolicitacaoCursoResponseDto> protocolarSolicitacao(@PathVariable Long id) {
+        return ResponseEntity.ok(service.protocolarSolicitacao(id));
+    }
+
+    @Operation(summary = "Preview do Protocolo", description = "Obtém os metadados que serão enviados ao MPVirtual para fins de conferência")
+    @GetMapping("/{id}/protocolo-preview")
+    @PreAuthorize("hasAuthority('cursos.analisar.solicitacoes')")
+    public ResponseEntity<mppb.restapi.common.infrastructure.client.mpvirtual.dto.MPVirtualMetadataDto> previewProtocolo(@PathVariable Long id) {
+        return ResponseEntity.ok(service.obterMetadataProtocolo(id));
+    }
+
     @Operation(summary = "Converter em Curso", description = "Cria um curso oficial a partir de uma solicitação deferida")
-    @PostMapping("/{id}/converter")
+    @PostMapping(value = "/{id}/converter", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('cursos.manter.cursos')")
-    public ResponseEntity<Void> converterEmCurso(@PathVariable Long id) {
-        service.converterParaCurso(id);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<java.util.Map<String, Long>> converterEmCurso(@PathVariable Long id) {
+        Long cursoId = service.converterParaCurso(id);
+        return ResponseEntity.ok(java.util.Map.of("id", cursoId));
     }
 }

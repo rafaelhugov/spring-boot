@@ -37,6 +37,9 @@ public class SolicitacaoMinistrante {
     @Column(name = "telefone", length = 150)
     private String telefone;
 
+    @Column(name = "cpf", length = 11)
+    private String cpf;
+
     @Column(name = "email", length = 150)
     private String email;
 

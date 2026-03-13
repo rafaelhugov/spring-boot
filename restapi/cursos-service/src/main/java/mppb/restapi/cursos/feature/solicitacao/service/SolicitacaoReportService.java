@@ -3,6 +3,7 @@ package mppb.restapi.cursos.feature.solicitacao.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.infrastructure.report.JasperService;
+import mppb.restapi.common.core.util.IoUtil;
 import mppb.restapi.cursos.feature.solicitacao.entity.SolicitacaoCurso;
 import mppb.restapi.cursos.feature.solicitacao.entity.SolicitacaoAgenda;
 import org.springframework.stereotype.Service;
@@ -12,13 +13,15 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class SolicitacaoReportService {
 
-        private final JasperService jasperService;
+        private final mppb.restapi.common.infrastructure.report.JasperService jasperService;
+        private final mppb.restapi.cursos.feature.common.service.ServidorService servidorService;
 
         /**
          * Gera o PDF de requisição do curso preenchendo o template JasperReports.
@@ -30,9 +33,22 @@ public class SolicitacaoReportService {
                 log.info("Gerando PDF para a solicitação de curso: {}", solicitacao.getNomeCurso());
 
                 Map<String, Object> parametros = new HashMap<>();
+                parametros.put("LOGO_MPPB",
+                                mppb.restapi.common.core.util.IoUtil.getResource("classpath:reports/logo_mppb.jpg"));
 
                 // 1. Identificação do Interessado
-                parametros.put("NOME_INTERESSADO", "ID Servidor: " + solicitacao.getIdServidorInteressado());
+                String nomeInteressado = "ID: " + solicitacao.getIdServidorInteressado();
+                try {
+                        if (solicitacao.getIdServidorInteressado() != null) {
+                                var servidor = servidorService.buscarServidorPorId(solicitacao.getIdServidorInteressado().intValue());
+                                if (servidor.isPresent()) {
+                                        nomeInteressado = servidor.get().getNome();
+                                }
+                        }
+                } catch (Exception e) {
+                        log.warn("Erro ao buscar nome do servidor {}: {}", solicitacao.getIdServidorInteressado(), e.getMessage());
+                }
+                parametros.put("NOME_INTERESSADO", nomeInteressado);
 
                 // 2. Informações Gerais do Evento
                 parametros.put("NOME_EVENTO", solicitacao.getNomeCurso());
@@ -65,24 +81,23 @@ public class SolicitacaoReportService {
                 }
                 parametros.put("LOCAL_EVENTO", local);
 
-                // 4. Apoio Logístico — [ ] unchecked / [X] checked
-                parametros.put("CARD_DIVULGACAO", Boolean.TRUE.equals(solicitacao.getCardDivulgacao()) ? "[X]" : "[ ]");
-                parametros.put("COMUNICACAO_IMPRENSA",
-                                Boolean.TRUE.equals(solicitacao.getComunicacaoImprensa()) ? "[X]" : "[ ]");
-                parametros.put("OFICIO_CONVITE", Boolean.TRUE.equals(solicitacao.getOficioConvite()) ? "[X]" : "[ ]");
-                parametros.put("COFFEE_BREAK", Boolean.TRUE.equals(solicitacao.getCoffeeBreak()) ? "[X]" : "[ ]");
-                parametros.put("KIT_PARTICIPANTE",
-                                Boolean.TRUE.equals(solicitacao.getKitParticipante()) ? "[X]" : "[ ]");
-                parametros.put("PROGRAMACAO_IMPRESSA",
-                                Boolean.TRUE.equals(solicitacao.getProgramacaoImpressa()) ? "[X]" : "[ ]");
-                parametros.put("TRASLADO_MINISTRANTE",
-                                Boolean.TRUE.equals(solicitacao.getTrasladoMinistrante()) ? "[X]" : "[ ]");
+                // 4. Apoio Logístico — Only true items
+                StringBuilder sbLogistica = new StringBuilder();
+                if (Boolean.TRUE.equals(solicitacao.getCardDivulgacao())) sbLogistica.append("• Card Divulgação\n");
+                if (Boolean.TRUE.equals(solicitacao.getComunicacaoImprensa())) sbLogistica.append("• Comunicação Imprensa\n");
+                if (Boolean.TRUE.equals(solicitacao.getOficioConvite())) sbLogistica.append("• Ofício Convite\n");
+                if (Boolean.TRUE.equals(solicitacao.getCoffeeBreak())) sbLogistica.append("• Coffee Break\n");
+                if (Boolean.TRUE.equals(solicitacao.getKitParticipante())) sbLogistica.append("• Kit Participante\n");
+                if (Boolean.TRUE.equals(solicitacao.getProgramacaoImpressa())) sbLogistica.append("• Programação Impressa\n");
+                if (Boolean.TRUE.equals(solicitacao.getTrasladoMinistrante())) sbLogistica.append("• Traslado Ministrante\n");
+                parametros.put("APOIO_LOGISTICO", sbLogistica.toString().trim());
 
-                // 5. Financeiro — [ ] unchecked / [X] checked
-                parametros.put("PAGAMENTO_HONORARIO",
-                                Boolean.TRUE.equals(solicitacao.getPagamentoHonorario()) ? "[X]" : "[ ]");
-                parametros.put("PASSAGEM_AEREA", Boolean.TRUE.equals(solicitacao.getPassagemAerea()) ? "[X]" : "[ ]");
-                parametros.put("HOSPEDAGEM", Boolean.TRUE.equals(solicitacao.getHospedagem()) ? "[X]" : "[ ]");
+                // 5. Financeiro — Only true items
+                StringBuilder sbFinanceiro = new StringBuilder();
+                if (Boolean.TRUE.equals(solicitacao.getPagamentoHonorario())) sbFinanceiro.append("• Pagamento Honorário\n");
+                if (Boolean.TRUE.equals(solicitacao.getPassagemAerea())) sbFinanceiro.append("• Passagem Aérea\n");
+                if (Boolean.TRUE.equals(solicitacao.getHospedagem())) sbFinanceiro.append("• Hospedagem\n");
+                parametros.put("FINANCEIRO", sbFinanceiro.toString().trim());
 
                 // 6. Observações
                 parametros.put("OBSERVACOES_GERAIS",
@@ -101,14 +116,14 @@ public class SolicitacaoReportService {
                                 grouped.computeIfAbsent(key, k -> new java.util.ArrayList<>()).add(a);
                         }
                         grouped.forEach((periodo, agendas) -> {
-                                sbAgenda.append(periodo).append(":\n");
+                                sbAgenda.append("• ").append(periodo).append(":\n");
                                 agendas.forEach(a -> sbAgenda.append(String.format(
-                                                "  - %s às %s\n",
+                                                "    - %s às %s\n",
                                                 a.getHorarioInicio() != null ? a.getHorarioInicio().toString() : "?",
                                                 a.getHorarioFim() != null ? a.getHorarioFim().toString() : "?")));
                         });
                 }
-                parametros.put("LISTA_AGENDAS", sbAgenda.toString());
+                parametros.put("LISTA_AGENDAS", sbAgenda.toString().trim());
 
                 // 8. Ministrantes — name/role on line 1, email on line 2, phone on line 3
                 StringBuilder sbMin = new StringBuilder();
@@ -116,18 +131,36 @@ public class SolicitacaoReportService {
                         solicitacao.getMinistrantes().forEach(m -> {
                                 String papel = m.getPapelMinistrante() != null ? m.getPapelMinistrante().getNome()
                                                 : "N/A";
-                                sbMin.append(String.format("- %s  (%s)\n", m.getNomeMinistrante(), papel));
+                                sbMin.append(String.format("• %s (%s)\n", m.getNomeMinistrante(), papel));
                                 if (m.getEmail() != null && !m.getEmail().isBlank()) {
-                                        sbMin.append(String.format("  E-mail: %s\n", m.getEmail()));
+                                        sbMin.append(String.format("    E-mail: %s\n", m.getEmail()));
                                 }
                                 if (m.getTelefone() != null && !m.getTelefone().isBlank()) {
-                                        sbMin.append(String.format("  Tel: %s\n", m.getTelefone()));
+                                        sbMin.append(String.format("    Tel: %s\n", m.getTelefone()));
                                 }
                                 sbMin.append("\n");
                         });
                 }
-                parametros.put("LISTA_MINISTRANTES", sbMin.toString());
+                parametros.put("LISTA_MINISTRANTES", sbMin.toString().trim());
 
-                return jasperService.gerarPdfEmptyDatasource("solicitacao_curso.jasper", parametros);
+                                // Preferir versão pré-compilada (.jasper) se disponível no classpath
+                                String jasperName = "solicitacao_curso.jasper";
+                                try {
+                                        if (IoUtil.getResource("classpath:reports/" + jasperName) != null) {
+                                                        log.info("Usando relatório pré-compilado: {}", jasperName);
+                                                        // Relatório usa apenas parâmetros (title/labels), portanto usamos datasource vazio
+                                                        return jasperService.gerarPdfEmptyDatasource(jasperName, parametros);
+                                                }
+                                } catch (Exception e) {
+                                        log.warn("Não foi possível localizar o .jasper pré-compilado, retornando ao JRXML. {}", e.getMessage());
+                                }
+
+                                try {
+                                        // JRXML de solicitação trabalha com parâmetros — usar JREmptyDataSource evita incongruências
+                                        return jasperService.gerarPdfEmptyDatasource("solicitacao_curso.jrxml", parametros);
+                                } catch (Exception e) {
+                                        log.error("Falha ao compilar/gerar solicitacao_curso.jrxml, usando fallback report.jasper: {}", e.getMessage());
+                                        return jasperService.gerarPdfEmptyDatasource("report.jasper", parametros);
+                                }
         }
 }
