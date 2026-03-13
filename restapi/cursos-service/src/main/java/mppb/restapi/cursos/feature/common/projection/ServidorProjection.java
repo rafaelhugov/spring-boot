@@ -4,6 +4,8 @@ public interface ServidorProjection {
 
     Integer getId();
 
+    Integer getIdPessoa();
+
     String getNome();
 
     String getCargoNome();

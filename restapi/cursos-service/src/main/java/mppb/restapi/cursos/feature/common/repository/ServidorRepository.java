@@ -16,6 +16,7 @@ public interface ServidorRepository extends BaseRepository<Servidor, Long> {
 
         @Query(value = "SELECT " +
                         "    s.id, " +
+                        "    p.id                                                    AS idPessoa, " +
                         "    s.matricula                                             AS servidorMatricula, " +
                         "    p.nome, " +
                         "    f.nome                                                  AS cargoNome, " +
@@ -39,21 +40,23 @@ public interface ServidorRepository extends BaseRepository<Servidor, Long> {
 
         @Query(value = "SELECT " +
                         "    s.id, " +
+                        "    p.id                                                    AS idPessoa, " +
                         "    s.matricula                                             AS servidorMatricula, " +
                         "    p.nome, " +
                         "    f.nome                                                  AS cargoNome, " +
                         "    CASE WHEN tc.tipo = 'S' THEN 'Servidor' ELSE 'Membro' END AS tipocargoNome, " +
                         "    CASE WHEN s.ativo = 'A' THEN 'ATIVO' ELSE 'INATIVO' END   AS situacao " +
                         "FROM public.servidor s " +
-                        "JOIN public.pessoa p ON p.id = s.id_pessoa " +
-                        "JOIN recursoshumanos.funcao f ON f.id = s.id_cargo " +
-                        "JOIN recursoshumanos.tipocargo tc ON tc.id = f.id_tipocargo " +
+                        "LEFT JOIN public.pessoa p ON p.id = s.id_pessoa " +
+                        "LEFT JOIN recursoshumanos.funcao f ON f.id = s.id_cargo " +
+                        "LEFT JOIN recursoshumanos.tipocargo tc ON tc.id = f.id_tipocargo " +
                         "WHERE s.id = :id " +
                         "LIMIT 1", nativeQuery = true)
         Optional<ServidorProjection> buscarServidorPorId(@Param("id") Integer id);
 
         @Query(value = "SELECT " +
                         "    s.id as id, " +
+                        "    p.id as idPessoa, " +
                         "    s.matricula AS servidorMatricula, " +
                         "    p.nome as nome, " +
                         "    f.nome AS cargoNome, " +

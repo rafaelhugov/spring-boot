@@ -1,5 +1,5 @@
 # Stage de Runtime (Simples)
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:21-jdk-alpine
 
 LABEL description="cursos-api"
 
@@ -7,7 +7,7 @@ WORKDIR /opt
 
 # O JAR deve ter sido gerado previamente no host via 'mvn package'
 # O contexto do build no docker-compose deve permitir acesso ao target/
-COPY cursos-service/target/cursos-service-*.jar cursos-api.jar
+COPY cursos-api-latest.jar cursos-api.jar
 
 EXPOSE 9002
 

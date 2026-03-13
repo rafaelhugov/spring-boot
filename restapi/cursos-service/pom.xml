@@ -79,6 +79,10 @@
             <artifactId>jasperreports-pdf</artifactId>
         </dependency>
         <dependency>
+            <groupId>net.sf.jasperreports</groupId>
+            <artifactId>jasperreports-jdt</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.google.zxing</groupId>
             <artifactId>core</artifactId>
         </dependency>
@@ -120,6 +124,25 @@
 
     <build>
         <plugins>
+            <!-- Compile JRXML to .jasper after classes are compiled using an internal helper -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>compile-reports</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>mppb.restapi.cursos.feature.solicitacao.util.ReportCompiler</mainClass>
+                            <classpathScope>compile</classpathScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
