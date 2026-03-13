@@ -25,7 +25,7 @@ public class JasperServiceImpl implements JasperService {
     private final DataSource dataSource;
 
     @Override
-    public byte[] gerarPdfConnection(String nomeArquivoJasper, Map<String, Object> parametros ) {
+    public byte[] gerarPdfConnection(String nomeArquivoJasper, Map<String, Object> parametros) {
         return gerarPdfDatasource(nomeArquivoJasper, parametros, null);
     }
 
@@ -63,18 +63,26 @@ public class JasperServiceImpl implements JasperService {
 
         if (url == null) {
             log.error("URL do relatório é nula para o caminho: {}", fullPath);
-            throw new NotFoundException("Relatório não encontrado no classpath: {0}", new String[]{fullPath});
+            throw new NotFoundException("Relatório não encontrado no classpath: {0}", new String[] { fullPath });
         }
 
         try (InputStream jasperStream = url.openStream()) {
             if (jasperStream == null) {
                 log.error("InputStream do relatório é nulo para o caminho: {}", fullPath);
-                throw new NotFoundException("Relatório não encontrado: {0}", new String[]{nomeArquivoJasper});
+                throw new NotFoundException("Relatório não encontrado: {0}", new String[] { nomeArquivoJasper });
             }
 
             JasperPrint jasperPrint;
             if (nomeArquivoJasper.endsWith(".jrxml")) {
                 log.info("Compilando relatório JRXML: {}", nomeArquivoJasper);
+                // Evitar resolução externa de schemas/DTDs que pode falhar em ambientes restritos
+                try {
+                    System.setProperty("javax.xml.accessExternalSchema", "");
+                    System.setProperty("javax.xml.accessExternalDTD", "");
+                } catch (SecurityException se) {
+                    log.warn("Não foi possível setar propriedades de XML parser: {}", se.getMessage());
+                }
+
                 JasperReport jasperReport = JasperCompileManager.compileReport(jasperStream);
                 jasperPrint = preencherRelatorio(jasperReport, params, jrDataSource);
             } else {
@@ -88,12 +96,14 @@ public class JasperServiceImpl implements JasperService {
             }
 
         } catch (Exception e) {
-            log.error("Erro ao processar relatório {}: {}", nomeArquivoJasper, e.getMessage(), e);
-            throw new AppException(e, "Erro ao gerar relatório", new String[]{e.getMessage()});
+            log.error("CRITICAL ERROR in JasperServiceImpl for {}: {}", nomeArquivoJasper, e.getMessage(), e);
+            e.printStackTrace();
+            throw new AppException(e, "Erro ao gerar relatório", new String[] { e.getMessage() });
         }
     }
 
-    private JasperPrint preencherRelatorio(JasperReport jasperReport, Map<String, Object> params, JRDataSource jrDataSource) throws Exception {
+    private JasperPrint preencherRelatorio(JasperReport jasperReport, Map<String, Object> params,
+            JRDataSource jrDataSource) throws Exception {
         if (jrDataSource != null) {
             return JasperFillManager.fillReport(jasperReport, params, jrDataSource);
         }
@@ -102,7 +112,8 @@ public class JasperServiceImpl implements JasperService {
         }
     }
 
-    private JasperPrint preencherRelatorio(InputStream jasperStream, Map<String, Object> params, JRDataSource jrDataSource) throws Exception {
+    private JasperPrint preencherRelatorio(InputStream jasperStream, Map<String, Object> params,
+            JRDataSource jrDataSource) throws Exception {
         if (jrDataSource != null) {
             return JasperFillManager.fillReport(jasperStream, params, jrDataSource);
         }

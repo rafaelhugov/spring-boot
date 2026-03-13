@@ -1,253 +1,116 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Redesigned: 1-page fit, small header, unified list styles for section 3 & 6 -->
-<jasperReport name="solicitacao_curso" language="java"
-	pageWidth="595" pageHeight="842"
-	columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20">
-
-	<!-- ===================== STYLES ===================== -->
-	<style name="PageTitle"  fontName="SansSerif" fontSize="14" bold="true"  forecolor="#FFFFFF" hTextAlign="Left" vTextAlign="Middle"/>
-	<style name="SubTitle"   fontName="SansSerif" fontSize="9"               forecolor="#FFCDD2" hTextAlign="Left" vTextAlign="Middle"/>
-	<style name="SectionHdr" fontName="SansSerif" fontSize="10" bold="true"  forecolor="#FFFFFF" vTextAlign="Middle"/>
-	<style name="FieldLabel" fontName="SansSerif" fontSize="9" bold="true"  forecolor="#4e0000"/>
-	<style name="FieldValue" fontName="SansSerif" fontSize="9"              forecolor="#1a1a1a"/>
-	<style name="CheckOn"    fontName="SansSerif" fontSize="9" bold="true"  forecolor="#B71C1C"/>
-	<style name="Footer"     fontName="SansSerif" fontSize="8"  italic="true" forecolor="#9e9e9e" hTextAlign="Right"/>
-
-	<!-- ===================== PARAMETERS ===================== -->
-	<parameter name="NOME_EVENTO"              class="java.lang.String"/>
+<!-- Created with Jaspersoft Studio version 7.0.2.final using JasperReports Library version 7.0.2-31532122640f516c6d17238ae0e41a08113d5ac0  -->
+<jasperReport name="solicitacao_curso" language="java" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="7a76067b-1200-410a-8bf8-2a146747530c">
+	<parameter name="LOGO_MPPB" class="java.lang.Object"/>
+	<parameter name="NOME_INTERESSADO" class="java.lang.String"/>
+	<parameter name="NOME_EVENTO" class="java.lang.String"/>
 	<parameter name="ESTIMATIVA_PARTICIPANTES" class="java.lang.Integer"/>
-	<parameter name="MODALIDADE"               class="java.lang.String"/>
-	<parameter name="PUBLICO_ALVO"             class="java.lang.String"/>
-	<parameter name="LOCAL_EVENTO"             class="java.lang.String"/>
-	<parameter name="CARD_DIVULGACAO"          class="java.lang.String"/>
-	<parameter name="COMUNICACAO_IMPRENSA"     class="java.lang.String"/>
-	<parameter name="OFICIO_CONVITE"           class="java.lang.String"/>
-	<parameter name="COFFEE_BREAK"             class="java.lang.String"/>
-	<parameter name="KIT_PARTICIPANTE"         class="java.lang.String"/>
-	<parameter name="PROGRAMACAO_IMPRESSA"     class="java.lang.String"/>
-	<parameter name="TRASLADO_MINISTRANTE"     class="java.lang.String"/>
-	<parameter name="PAGAMENTO_HONORARIO"      class="java.lang.String"/>
-	<parameter name="PASSAGEM_AEREA"           class="java.lang.String"/>
-	<parameter name="HOSPEDAGEM"               class="java.lang.String"/>
-	<parameter name="OBSERVACOES_GERAIS"       class="java.lang.String"/>
-	<parameter name="LISTA_AGENDAS"            class="java.lang.String"/>
-	<parameter name="LISTA_MINISTRANTES"       class="java.lang.String"/>
+	<parameter name="MODALIDADE" class="java.lang.String"/>
+	<parameter name="PUBLICO_ALVO" class="java.lang.String"/>
+	<parameter name="IDENTIFICA_ORGAO" class="java.lang.String"/>
+	<parameter name="ESPECIFICA_ORGAO" class="java.lang.String"/>
+	<parameter name="LOCAL_EVENTO" class="java.lang.String"/>
+	<parameter name="APOIO_LOGISTICO" class="java.lang.String"/>
+	<parameter name="FINANCEIRO" class="java.lang.String"/>
+	<parameter name="OBSERVACOES_GERAIS" class="java.lang.String"/>
+	<parameter name="LISTA_AGENDAS" class="java.lang.String"/>
+	<parameter name="LISTA_MINISTRANTES" class="java.lang.String"/>
+	<background splitType="Stretch"/>
+	<title height="700" splitType="Stretch">
+		<element kind="image" uuid="1c890cc1-789a-4c2f-8da7-4e08c3127814" x="0" y="0" width="70" height="70">
+			<expression><![CDATA[$P{LOGO_MPPB}]]></expression>
+		</element>
+		<element kind="textField" uuid="e0ce9a0f-5683-43ca-9382-728ad7434fa5" x="80" y="0" width="475" height="20" fontSize="12.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
+			<expression><![CDATA["MINISTÉRIO PÚBLICO DA PARAÍBA"]]></expression>
+		</element>
+		<element kind="textField" uuid="e0ce9a0f-5683-43ca-9382-728ad7434fa6" x="80" y="20" width="475" height="20" fontSize="11.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
+			<expression><![CDATA["CENTRO DE ESTUDOS E APERFEIÇOAMENTO FUNCIONAL - CEAF"]]></expression>
+		</element>
+		<element kind="textField" uuid="e0ce9a0f-5683-43ca-9382-728ad7434fa7" x="80" y="40" width="475" height="20" fontSize="11.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
+			<expression><![CDATA["FORMULÁRIO DE SOLICITAÇÃO DE CURSO/EVENTO"]]></expression>
+		</element>
+		<element kind="line" uuid="88ac7694-5ef9-40de-926f-42e616f9a941" x="0" y="80" width="555" height="1"/>
+		<element kind="textField" uuid="f05b1c93-02f5-4674-884b-017e47768b9f" x="0" y="90" width="555" height="20" bold="true" vTextAlign="Middle">
+			<expression><![CDATA["SOLICITANTE: " + $P{NOME_INTERESSADO}]]></expression>
+		</element>
+		<element kind="textField" uuid="09d0092c-55c9-4625-9988-8797b5e43ae6" mode="Opaque" x="0" y="120" width="555" height="20" backcolor="#E0E0E0" bold="true" vTextAlign="Middle">
+			<expression><![CDATA["1. INFORMAÇÕES GERAIS"]]></expression>
+		</element>
+		<element kind="textField" uuid="b870fc60-0d3f-4091-a60d-719541b5391d" x="0" y="145" width="100" height="20" bold="true" vTextAlign="Middle">
+			<expression><![CDATA["Evento:"]]></expression>
+		</element>
+		<element kind="textField" uuid="c1234567-c123-c123-c123-c12345678901" x="100" y="145" width="455" height="20" textAdjust="StretchHeight" vTextAlign="Middle">
+			<expression><![CDATA[$P{NOME_EVENTO}]]></expression>
+		</element>
+		<element kind="textField" uuid="d870fc60-0d3f-4091-a60d-719541b5391d" positionType="Float" x="0" y="165" width="100" height="20" bold="true" vTextAlign="Middle">
+			<expression><![CDATA["Modalidade:"]]></expression>
+		</element>
+		<element kind="textField" uuid="e1234567-e123-e123-e123-e12345678902" positionType="Float" x="100" y="165" width="455" height="20" vTextAlign="Middle" textAdjust="StretchHeight">
+			<expression><![CDATA[$P{MODALIDADE}]]></expression>
+		</element>
+		<element kind="textField" uuid="f870fc60-0d3f-4091-a60d-719541b5391d" positionType="Float" x="0" y="185" width="100" height="20" bold="true" vTextAlign="Middle">
+			<expression><![CDATA["Estimativa Part:"]]></expression>
+		</element>
+		<element kind="textField" uuid="a1234567-a123-a123-a123-a12345678903" positionType="Float" x="100" y="185" width="455" height="20" vTextAlign="Middle" textAdjust="StretchHeight">
+			<expression><![CDATA[$P{ESTIMATIVA_PARTICIPANTES}]]></expression>
+		</element>
+		<element kind="textField" uuid="b2234567-b123-b123-b123-b12345678904" positionType="Float" x="0" y="205" width="100" height="20" bold="true" vTextAlign="Middle">
+			<expression><![CDATA["Público-Alvo:"]]></expression>
+		</element>
+		<element kind="textField" uuid="c2234567-c123-c123-c123-c12345678905" positionType="Float" x="100" y="205" width="455" height="20" textAdjust="StretchHeight" vTextAlign="Middle">
+			<expression><![CDATA[$P{PUBLICO_ALVO}]]></expression>
+		</element>
+		<element kind="textField" uuid="d2234567-d123-d123-d123-d22345678906" positionType="Float" x="0" y="225" width="100" height="20" bold="true" vTextAlign="Middle">
+			<expression><![CDATA["Local Evento:"]]></expression>
+		</element>
+		<element kind="textField" uuid="e2234567-e123-e123-e123-e22345678907" positionType="Float" x="100" y="225" width="455" height="20" textAdjust="StretchHeight" vTextAlign="Middle">
+			<expression><![CDATA[$P{LOCAL_EVENTO}]]></expression>
+		</element>
 
-	<!-- ================== TITLE BAND ================== -->
-	<title height="45" splitType="Stretch">
-		<element kind="rectangle" x="0" y="0" width="555" height="40" forecolor="#B71C1C" backcolor="#B71C1C" mode="Opaque">
-			<pen lineWidth="0.0"/>
+		<!-- 2. APOIO LOGÍSTICO -->
+		<element kind="textField" uuid="69d0092c-55c9-4625-9988-8797b5e43ae6" positionType="Float" mode="Opaque" x="0" y="255" width="555" height="20" backcolor="#E0E0E0" bold="true" vTextAlign="Middle">
+			<expression><![CDATA["2. APOIO LOGÍSTICO"]]></expression>
 		</element>
-		<element kind="rectangle" x="0" y="40" width="555" height="3" forecolor="#7F0000" backcolor="#7F0000" mode="Opaque">
-			<pen lineWidth="0.0"/>
+		<element kind="textField" uuid="f2234567-f123-f123-f123-f12345678908" positionType="Float" x="0" y="280" width="555" height="30" textAdjust="StretchHeight" vTextAlign="Top">
+			<expression><![CDATA[$P{APOIO_LOGISTICO}.isEmpty() ? "Nenhum item solicitado" : $P{APOIO_LOGISTICO}]]></expression>
 		</element>
-		<element kind="staticText" x="10" y="5" width="300" height="20" style="PageTitle">
-			<text><![CDATA[SOLICITAÇÃO DE CURSO / EVENTO]]></text>
+
+		<!-- 3. FINANCEIRO -->
+		<element kind="textField" uuid="b9d0092c-55c9-4625-9988-8797b5e43ae6" positionType="Float" mode="Opaque" x="0" y="320" width="555" height="20" backcolor="#E0E0E0" bold="true" vTextAlign="Middle">
+			<expression><![CDATA["3. FINANCEIRO"]]></expression>
 		</element>
-		<element kind="staticText" x="10" y="24" width="300" height="12" style="SubTitle">
-			<text><![CDATA[Programa de Gestão e Aperfeiçoamento (PGA)  |  MPPB]]></text>
+		<element kind="textField" uuid="c1234567-c123-c123-c123-c12345678920" positionType="Float" x="0" y="345" width="555" height="30" textAdjust="StretchHeight" vTextAlign="Top">
+			<expression><![CDATA[$P{FINANCEIRO}.isEmpty() ? "Nenhum item solicitado" : $P{FINANCEIRO}]]></expression>
 		</element>
-		<element kind="textField" x="355" y="10" width="190" height="20" style="PageTitle" hTextAlign="Right" fontSize="10">
-			<expression><![CDATA[new java.text.SimpleDateFormat("dd/MM/yyyy").format(new java.util.Date())]]></expression>
+
+		<element kind="textField" uuid="c9d0092c-55c9-4625-9988-8797b5e43ae6" positionType="Float" mode="Opaque" x="0" y="385" width="555" height="20" backcolor="#E0E0E0" bold="true" vTextAlign="Middle">
+			<expression><![CDATA["4. AGENDAS (DATAS E HORÁRIOS)"]]></expression>
+		</element>
+		<element kind="textField" uuid="21234567-2123-2123-2123-212345678926" positionType="Float" x="0" y="410" width="555" height="40" textAdjust="StretchHeight">
+			<expression><![CDATA[$P{LISTA_AGENDAS}]]></expression>
+		</element>
+		<element kind="textField" uuid="d9d0092c-55c9-4625-9988-8797b5e43ae6" positionType="Float" mode="Opaque" x="0" y="460" width="555" height="20" backcolor="#E0E0E0" bold="true" vTextAlign="Middle">
+			<expression><![CDATA["5. MINISTRANTES"]]></expression>
+		</element>
+		<element kind="textField" uuid="31234567-3123-3123-3123-312345678927" positionType="Float" x="0" y="485" width="555" height="60" textAdjust="StretchHeight">
+			<expression><![CDATA[$P{LISTA_MINISTRANTES}]]></expression>
+		</element>
+		<element kind="textField" uuid="e9d0092c-55c9-4625-9988-8797b5e43ae6" positionType="Float" mode="Opaque" x="0" y="555" width="555" height="20" backcolor="#E0E0E0" bold="true" vTextAlign="Middle">
+			<expression><![CDATA["6. OBSERVAÇÕES GERAIS"]]></expression>
+		</element>
+		<element kind="textField" uuid="41234567-4123-4123-4123-412345678928" positionType="Float" x="0" y="580" width="555" height="40" textAdjust="StretchHeight">
+			<expression><![CDATA[$P{OBSERVACOES_GERAIS}]]></expression>
 		</element>
 	</title>
-
-	<!-- ================== DETAIL BAND ================== -->
-	<detail>
-		<band height="750" splitType="Stretch">
-
-			<!-- ── 1. IDENTIFICAÇÃO ──────────────────────────── -->
-			<element kind="rectangle" x="0" y="0" width="555" height="16" forecolor="#B71C1C" backcolor="#B71C1C" mode="Opaque">
-				<pen lineWidth="0.0"/>
-			</element>
-			<element kind="staticText" x="6" y="0" width="549" height="16" style="SectionHdr">
-				<text><![CDATA[1. IDENTIFICAÇÃO]]></text>
-			</element>
-
-			<element kind="staticText"  x="0"   y="22" width="100"  height="12" style="FieldLabel">
-				<text><![CDATA[Nome do evento:]]></text>
-			</element>
-			<element kind="textField"   x="105" y="22" width="450" height="12" style="FieldValue" textAdjust="StretchHeight">
-				<expression><![CDATA[$P{NOME_EVENTO}]]></expression>
-			</element>
-			<element kind="staticText"  x="0"   y="38" width="155" height="12" style="FieldLabel">
-				<text><![CDATA[Estimativa de Participantes:]]></text>
-			</element>
-			<element kind="textField"   x="160" y="38" width="90" height="12" style="FieldValue">
-				<expression><![CDATA[$P{ESTIMATIVA_PARTICIPANTES}.toString()]]></expression>
-			</element>
-			<element kind="staticText"  x="270" y="38" width="75"  height="12" style="FieldLabel">
-				<text><![CDATA[Modalidade:]]></text>
-			</element>
-			<element kind="textField"   x="350" y="38" width="205" height="12" style="FieldValue">
-				<expression><![CDATA[$P{MODALIDADE}]]></expression>
-			</element>
-			<element kind="staticText"  x="0"   y="54" width="100" height="12" style="FieldLabel">
-				<text><![CDATA[Público-Alvo:]]></text>
-			</element>
-			<element kind="textField"   x="105" y="54" width="450" height="12" style="FieldValue">
-				<expression><![CDATA[$P{PUBLICO_ALVO}]]></expression>
-			</element>
-			<element kind="rectangle" x="0" y="70" width="555" height="1" forecolor="#FFCDD2" backcolor="#FFCDD2" mode="Opaque">
-				<pen lineWidth="0.0"/>
-			</element>
-
-			<!-- ── 2. LOCAL DO EVENTO ────────────────────────── -->
-			<element kind="rectangle" x="0" y="76" width="555" height="16" forecolor="#B71C1C" backcolor="#B71C1C" mode="Opaque">
-				<pen lineWidth="0.0"/>
-			</element>
-			<element kind="staticText" x="6" y="76" width="549" height="16" style="SectionHdr">
-				<text><![CDATA[2. LOCAL DO EVENTO]]></text>
-			</element>
-			<element kind="textField"   x="6"  y="96" width="549" height="12" style="FieldValue" textAdjust="StretchHeight">
-				<expression><![CDATA[$P{LOCAL_EVENTO}]]></expression>
-			</element>
-			<element kind="rectangle" x="0" y="112" width="555" height="1" forecolor="#FFCDD2" backcolor="#FFCDD2" mode="Opaque">
-				<pen lineWidth="0.0"/>
-			</element>
-
-			<!-- ── 3. APOIO LOGÍSTICO CEAF ───────────────────── -->
-			<element kind="rectangle" x="0" y="118" width="555" height="16" forecolor="#B71C1C" backcolor="#B71C1C" mode="Opaque">
-				<pen lineWidth="0.0"/>
-			</element>
-			<element kind="staticText" x="6" y="118" width="549" height="16" style="SectionHdr">
-				<text><![CDATA[3. APOIO LOGÍSTICO CEAF]]></text>
-			</element>
-
-			<!-- Row 1 -->
-			<element kind="textField" x="4"   y="138" width="20" height="12" style="CheckOn">
-				<expression><![CDATA[$P{CARD_DIVULGACAO}]]></expression>
-			</element>
-			<element kind="staticText" x="26" y="138" width="244" height="12" style="FieldValue">
-				<text><![CDATA[Card de divulgação]]></text>
-			</element>
-			<element kind="textField" x="284" y="138" width="20" height="12" style="CheckOn">
-				<expression><![CDATA[$P{COMUNICACAO_IMPRENSA}]]></expression>
-			</element>
-			<element kind="staticText" x="306" y="138" width="244" height="12" style="FieldValue">
-				<text><![CDATA[Comunicação com a imprensa]]></text>
-			</element>
-			<!-- Row 2 -->
-			<element kind="textField" x="4"   y="152" width="20" height="12" style="CheckOn">
-				<expression><![CDATA[$P{OFICIO_CONVITE}]]></expression>
-			</element>
-			<element kind="staticText" x="26" y="152" width="244" height="12" style="FieldValue">
-				<text><![CDATA[Expedição de ofício/convite]]></text>
-			</element>
-			<element kind="textField" x="284" y="152" width="20" height="12" style="CheckOn">
-				<expression><![CDATA[$P{COFFEE_BREAK}]]></expression>
-			</element>
-			<element kind="staticText" x="306" y="152" width="244" height="12" style="FieldValue">
-				<text><![CDATA[Coffee Break]]></text>
-			</element>
-			<!-- Row 3 -->
-			<element kind="textField" x="4"   y="166" width="20" height="12" style="CheckOn">
-				<expression><![CDATA[$P{KIT_PARTICIPANTE}]]></expression>
-			</element>
-			<element kind="staticText" x="26" y="166" width="244" height="12" style="FieldValue">
-				<text><![CDATA[Kit de eventos (pastas/papel/canetas)]]></text>
-			</element>
-			<element kind="textField" x="284" y="166" width="20" height="12" style="CheckOn">
-				<expression><![CDATA[$P{TRASLADO_MINISTRANTE}]]></expression>
-			</element>
-			<element kind="staticText" x="306" y="166" width="244" height="12" style="FieldValue">
-				<text><![CDATA[Traslado para ministrante externo]]></text>
-			</element>
-			<!-- Row 4 -->
-			<element kind="textField" x="4"   y="180" width="20" height="12" style="CheckOn">
-				<expression><![CDATA[$P{PROGRAMACAO_IMPRESSA}]]></expression>
-			</element>
-			<element kind="staticText" x="26" y="180" width="244" height="12" style="FieldValue">
-				<text><![CDATA[Programação impressa]]></text>
-			</element>
-
-			<element kind="rectangle" x="0" y="196" width="555" height="1" forecolor="#FFCDD2" backcolor="#FFCDD2" mode="Opaque">
-				<pen lineWidth="0.0"/>
-			</element>
-
-			<!-- ── 4. PROGRAMAÇÃO E AGENDAS ──────────────────── -->
-			<element kind="rectangle" x="0" y="202" width="555" height="16" forecolor="#B71C1C" backcolor="#B71C1C" mode="Opaque">
-				<pen lineWidth="0.0"/>
-			</element>
-			<element kind="staticText" x="6" y="202" width="549" height="16" style="SectionHdr">
-				<text><![CDATA[4. PROGRAMAÇÃO E AGENDAS]]></text>
-			</element>
-			<element kind="textField" x="6" y="222" width="549" height="60" style="FieldValue" textAdjust="StretchHeight">
-				<expression><![CDATA[$P{LISTA_AGENDAS}]]></expression>
-			</element>
-			<element kind="rectangle" x="0" y="286" width="555" height="1" forecolor="#FFCDD2" backcolor="#FFCDD2" mode="Opaque">
-				<pen lineWidth="0.0"/>
-			</element>
-
-			<!-- ── 5. MINISTRANTES ───────────────────────────── -->
-			<element kind="rectangle" x="0" y="292" width="555" height="16" forecolor="#B71C1C" backcolor="#B71C1C" mode="Opaque">
-				<pen lineWidth="0.0"/>
-			</element>
-			<element kind="staticText" x="6" y="292" width="549" height="16" style="SectionHdr">
-				<text><![CDATA[5. MINISTRANTES (Palestrantes/Mediadores)]]></text>
-			</element>
-			<element kind="textField" x="6" y="312" width="549" height="80" style="FieldValue" textAdjust="StretchHeight">
-				<expression><![CDATA[$P{LISTA_MINISTRANTES}]]></expression>
-			</element>
-			<element kind="rectangle" x="0" y="396" width="555" height="1" forecolor="#FFCDD2" backcolor="#FFCDD2" mode="Opaque">
-				<pen lineWidth="0.0"/>
-			</element>
-
-			<!-- ── 6. ÔNUS FINANCEIRO ────────────────────────── -->
-			<element kind="rectangle" x="0" y="402" width="555" height="16" forecolor="#B71C1C" backcolor="#B71C1C" mode="Opaque">
-				<pen lineWidth="0.0"/>
-			</element>
-			<element kind="staticText" x="6" y="402" width="549" height="16" style="SectionHdr">
-				<text><![CDATA[6. ÔNUS FINANCEIRO]]></text>
-			</element>
-
-			<!-- List style matching section 3 -->
-			<element kind="textField" x="4"   y="422" width="20" height="12" style="CheckOn">
-				<expression><![CDATA[$P{PAGAMENTO_HONORARIO}]]></expression>
-			</element>
-			<element kind="staticText" x="26" y="422" width="140" height="12" style="FieldValue">
-				<text><![CDATA[Honorários]]></text>
-			</element>
-
-			<element kind="textField" x="174" y="422" width="20" height="12" style="CheckOn">
-				<expression><![CDATA[$P{PASSAGEM_AEREA}]]></expression>
-			</element>
-			<element kind="staticText" x="196" y="422" width="140" height="12" style="FieldValue">
-				<text><![CDATA[Passagens aéreas]]></text>
-			</element>
-
-			<element kind="textField" x="344" y="422" width="20" height="12" style="CheckOn">
-				<expression><![CDATA[$P{HOSPEDAGEM}]]></expression>
-			</element>
-			<element kind="staticText" x="366" y="422" width="140" height="12" style="FieldValue">
-				<text><![CDATA[Hospedagem]]></text>
-			</element>
-
-			<element kind="rectangle" x="0" y="438" width="555" height="1" forecolor="#FFCDD2" backcolor="#FFCDD2" mode="Opaque">
-				<pen lineWidth="0.0"/>
-			</element>
-
-			<!-- ── 7. OBSERVAÇÕES / JUSTIFICATIVAS ───────────── -->
-			<element kind="rectangle" x="0" y="444" width="555" height="16" forecolor="#B71C1C" backcolor="#B71C1C" mode="Opaque">
-				<pen lineWidth="0.0"/>
-			</element>
-			<element kind="staticText" x="6" y="444" width="549" height="16" style="SectionHdr">
-				<text><![CDATA[7. OBSERVAÇÕES / JUSTIFICATIVAS]]></text>
-			</element>
-			<element kind="rectangle" x="0" y="464" width="555" height="60" forecolor="#FAFAFA" backcolor="#FAFAFA" mode="Opaque">
-				<pen lineColor="#FFCDD2" lineWidth="0.5"/>
-			</element>
-			<element kind="textField" x="6" y="466" width="543" height="56" style="FieldValue" textAdjust="StretchHeight">
-				<expression><![CDATA[$P{OBSERVACOES_GERAIS}]]></expression>
-			</element>
-
-			<!-- ── FOOTER ────────────────────────────────────── -->
-			<element kind="rectangle" x="0" y="700" width="555" height="1" forecolor="#FFCDD2" backcolor="#FFCDD2" mode="Opaque">
-				<pen lineWidth="0.0"/>
-			</element>
-			<element kind="textField" x="0" y="704" width="555" height="12" style="Footer">
-				<expression><![CDATA["Referência: PGA – MPPB   |   Gerado por Sistema de Solicitação de Cursos"]]></expression>
-			</element>
-		</band>
-	</detail>
+	<pageFooter height="40" splitType="Stretch">
+		<element kind="textField" uuid="51234567-5123-5123-5123-512345678929" x="430" y="10" width="80" height="20" hTextAlign="Right">
+			<expression><![CDATA["Página "+$V{PAGE_NUMBER}+" de"]]></expression>
+		</element>
+		<element kind="textField" uuid="61234567-6123-6123-6123-612345678930" x="510" y="10" width="40" height="20" evaluationTime="Report">
+			<expression><![CDATA[" " + $V{PAGE_NUMBER}]]></expression>
+		</element>
+		<element kind="textField" uuid="71234567-7123-7123-7123-712345678931" x="0" y="10" width="150" height="20" pattern="dd/MM/yyyy HH:mm:ss">
+			<expression><![CDATA[new java.util.Date()]]></expression>
+		</element>
+	</pageFooter>
 </jasperReport>

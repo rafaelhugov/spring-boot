@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -69,10 +70,14 @@ public class MinistranteService extends AbstractService<Ministrante, Long> {
                     .orElseGet(() -> createAndSaveInternal(dto.getIdServidor()));
 
         } else if ("EXTERNO".equals(dto.getTipo())) {
+            String cleanCpf = dto.getCpf() != null ? dto.getCpf().replaceAll("\\D", "") : null;
             if (dto.getMinistranteId() != null) {
                 return ministranteRepository.findById(dto.getMinistranteId())
                         .orElseThrow(() -> new NotFoundException(
                                 "Ministrante externo não encontrado: " + dto.getMinistranteId()));
+            } else if (cleanCpf != null) {
+                return ministranteRepository.findByCpf(cleanCpf)
+                        .orElseGet(() -> createAndSaveExternal(dto));
             } else {
                 return createAndSaveExternal(dto);
             }
@@ -112,15 +117,22 @@ public class MinistranteService extends AbstractService<Ministrante, Long> {
     }
 
     private Ministrante createAndSaveExternal(AssociarMinistranteDto dto) {
-        if (dto.getCpf() == null || dto.getCpf().isBlank()) {
+        String cleanCpf = dto.getCpf() != null ? dto.getCpf().replaceAll("\\D", "") : null;
+        if (cleanCpf == null || cleanCpf.isBlank()) {
             throw new BusinessRuleException("O CPF é obrigatório para ministrantes externos.");
         }
-        if (ministranteRepository.existsByCpf(dto.getCpf())) {
-            throw new BusinessRuleException("Já existe um ministrante cadastrado com este CPF.");
+        // Se já existe um ministrante com este CPF, retorna o existente em vez de
+        // falhar.
+        // Isso é o comportamento correto ao reutilizar um ministrante de uma
+        // solicitação anterior.
+        Optional<Ministrante> existente = ministranteRepository.findByCpf(cleanCpf);
+        if (existente.isPresent()) {
+            log.info("Ministrante externo com CPF {} já existe. Reutilizando.", cleanCpf);
+            return existente.get();
         }
         Ministrante ministrante = new Ministrante();
-        ministrante.setNome(dto.getNome());
-        ministrante.setCpf(dto.getCpf());
+        ministrante.setNome(dto.getNome() != null ? dto.getNome().toUpperCase() : null);
+        ministrante.setCpf(cleanCpf);
         ministrante.setNomeOrgaoExterno(dto.getNomeOrgaoExterno());
         ministrante.setTipo(TipoMinistranteEnum.EXTERNO);
         return repository.save(ministrante);

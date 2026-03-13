@@ -89,6 +89,11 @@
                 <artifactId>jasperreports-pdf</artifactId>
                 <version>${jasper.version}</version>
             </dependency>
+            <dependency>
+                <groupId>net.sf.jasperreports</groupId>
+                <artifactId>jasperreports-jdt</artifactId>
+                <version>${jasper.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>com.google.zxing</groupId>

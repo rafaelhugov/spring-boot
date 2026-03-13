@@ -46,7 +46,7 @@ public class TokenAuthenticationProvider implements AuthenticationProvider {
         }
 
         // Mock Tokens for Local Development/Testing
-        if (token.equals("mock-admin-token")) {
+        if ("mock-admin-token".equals(token)) {
             UsuarioAutorizadoResponseDto mockUser = new UsuarioAutorizadoResponseDto(999L, "Administrador de Teste",
                     "admin_teste");
             List<FuncionalidadeAutorizadaResponseDto> perms = new ArrayList<>();
@@ -57,7 +57,7 @@ public class TokenAuthenticationProvider implements AuthenticationProvider {
             return new TokenAuthentication(token, mockUser, access, null, SecurityUtils.getAuthorities(access));
         }
 
-        if (token.equals("mock-solicitante-token")) {
+        if ("mock-solicitante-token".equals(token)) {
             UsuarioAutorizadoResponseDto mockUser = new UsuarioAutorizadoResponseDto(998L, "Solicitante de Teste",
                     "solicitante_teste");
             List<FuncionalidadeAutorizadaResponseDto> perms = new ArrayList<>();
@@ -73,8 +73,15 @@ public class TokenAuthenticationProvider implements AuthenticationProvider {
             UsuarioAutorizadoResponseDto usuario = consultaAutorizacaoResponseTO.getUsuario();
             AcessoDataResponseDto acessoData = consultaAutorizacaoResponseTO.getAcessoData();
 
+            log.info("[DEBUG-TOKEN] Token: {}, Usuario: {}, Permissoes: {}",
+                    token != null && token.length() > 20 ? token.substring(0, 20) + "..." : token,
+                    usuario,
+                    acessoData != null ? acessoData.getFuncionalidadesPermitidas().size() : 0);
+
             return new TokenAuthentication(token, usuario, acessoData, null, SecurityUtils.getAuthorities(acessoData));
         } catch (FeignException exception) {
+            log.error("[DEBUG-TOKEN] Erro na consulta de autorização para o token {}: {}", token,
+                    exception.getMessage());
             throw new BadCredentialsException("security.invalid-response");
         }
     }
