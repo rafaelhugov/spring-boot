@@ -7,6 +7,10 @@ import mppb.restapi.common.core.util.ByteArrayMultipartFile;
 import mppb.restapi.common.infrastructure.client.mpvirtual.MPVirtualClient;
 import mppb.restapi.common.infrastructure.client.mpvirtual.dto.MPVirtualMetadataDto;
 import mppb.restapi.common.infrastructure.client.mpvirtual.dto.MPVirtualProcessoResponseDto;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -76,11 +80,17 @@ public class MPVirtualIntegrationService {
             );
 
             // 3. Definir token (No mundo real viria do SecurityContext ou config)
-            // O usuário usou "Authorization: Bearer eduardo.ribas" no curl
-            String token = "Bearer eduardo.ribas";
+            // O usuário solicitou a mudança para silvana
+            String token = "Bearer scantalice";
 
-            // 4. Chamar a API real
-            MPVirtualProcessoResponseDto response = mpVirtualClient.protocolar(token, idOrgao, metadata, file);
+            // 4. Serializar o metadata para JSON byte[] e envolver em HttpEntity para garantir o Content-Type: application/json
+            byte[] metadataBytes = objectMapper.writeValueAsBytes(metadata);
+            HttpHeaders metadataHeaders = new HttpHeaders();
+            metadataHeaders.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<byte[]> metadataPart = new HttpEntity<>(metadataBytes, metadataHeaders);
+
+            // 5. Chamar a API real
+            MPVirtualProcessoResponseDto response = mpVirtualClient.protocolar(token, idOrgao, metadataPart, file);
 
             log.info("Protocolo realizado no MPVirtual com sucesso. Processo: {}", response.getNumeroProcesso());
             return new ProtocoloResult(response, metadata);
