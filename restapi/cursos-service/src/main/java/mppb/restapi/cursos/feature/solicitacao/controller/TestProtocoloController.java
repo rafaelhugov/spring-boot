@@ -25,14 +25,14 @@ public class TestProtocoloController {
     public ResponseEntity<String> test() {
         try {
             String url = "http://10.128.4.14:8082/api/protocolo";
-            
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
             headers.set("Authorization", "Bearer scantalice");
-            headers.set("X-Orgao-Id", "16");
+            headers.set("X-Orgao-Id", "25348");
 
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-            
+
             // Metadata part - Exact JSON from Postman success
             String metadataJson = "{\n" +
                     "   \"idTipoDocumentoPecaInicial\":132,\n" +
@@ -48,7 +48,7 @@ public class TestProtocoloController {
                     "      }\n" +
                     "   ]\n" +
                     "}";
-            
+
             HttpHeaders metadataHeaders = new HttpHeaders();
             metadataHeaders.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<String> metadataPart = new HttpEntity<>(metadataJson, metadataHeaders);
@@ -67,7 +67,7 @@ public class TestProtocoloController {
             log.info("Iniciando teste de protocolagem RAW para: {}", url);
             ResponseEntity<String> response = restTemplate.postForEntity(url, requestEntity, String.class);
             log.info("Resposta do MPVirtual: {} - {}", response.getStatusCode(), response.getBody());
-            
+
             return response;
         } catch (Exception e) {
             log.error("Erro no teste de protocolagem: {}", e.getMessage(), e);

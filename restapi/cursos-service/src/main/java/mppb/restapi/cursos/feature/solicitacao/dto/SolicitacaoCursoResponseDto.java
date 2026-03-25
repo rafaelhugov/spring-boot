@@ -16,10 +16,13 @@ public class SolicitacaoCursoResponseDto {
     // Status e Integração
     private String statusDescricao;
     private String numeroPgaMpVirtual;
+    private Long idPgaMpVirtual;
     private UUID uuidReferencia;
+    private Long idMinuta;
 
     /**
-     * Payload enviado ao MPVirtual (apenas preenchido no momento do protocolo para fins de log/exibição)
+     * Payload enviado ao MPVirtual (apenas preenchido no momento do protocolo para
+     * fins de log/exibição)
      */
     private Object mpVirtualPayload;
 

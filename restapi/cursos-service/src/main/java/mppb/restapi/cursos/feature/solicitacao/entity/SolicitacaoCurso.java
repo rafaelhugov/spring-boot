@@ -50,6 +50,9 @@ public class SolicitacaoCurso {
     @Column(name = "numero_pga_mpvirtual", length = 25)
     private String numeroPgaMpVirtual;
 
+    @Column(name = "id_pga_mp_virtual")
+    private Long idPgaMpVirtual;
+
     @Column(name = "uuid_referencia", nullable = false, updatable = false)
     private UUID uuidReferencia = UUID.randomUUID();
 
@@ -163,6 +166,9 @@ public class SolicitacaoCurso {
         ministrantes.remove(ministrante);
         ministrante.setSolicitacao(null);
     }
+
+    @Column(name = "id_minuta")
+    private Long idMinuta;
 
     @Column(name = "id_curso_gerado")
     private Long idCursoGerado;

@@ -69,6 +69,7 @@ public class SolicitacaoCursoRequestDto {
     private List<MinistranteRequestDto> ministrantes;
 
     private String status; // RASCUNHO | SUBMETIDO
+    private Long idMinuta;
 
     @Data
     public static class AgendaRequestDto {
@@ -103,7 +104,10 @@ public class SolicitacaoCursoRequestDto {
         private String telefone;
         private String cpf;
         private String email;
+
+        @NotNull(message = "A foto do ministrante é obrigatória")
         private Long idFoto;
+        @NotNull(message = "O currículo do ministrante é obrigatório")
         private Long idCurriculo;
     }
 }

@@ -43,10 +43,10 @@ public class SolicitacaoMinistrante {
     @Column(name = "email", length = 150)
     private String email;
 
-    @Column(name = "id_foto")
+    @Column(name = "id_foto", nullable = false)
     private Long idFoto;
 
-    @Column(name = "id_curriculo")
+    @Column(name = "id_curriculo", nullable = false)
     private Long idCurriculo;
 
     @PrePersist

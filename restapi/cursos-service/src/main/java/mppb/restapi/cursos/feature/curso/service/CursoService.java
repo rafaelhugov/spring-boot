@@ -77,11 +77,16 @@ public class CursoService extends AbstractService<Curso, Long> {
      * @return Um novo Pageable com a ordenação aplicada.
      */
     private Pageable criarPageableComOrdenacaoPadrao(Pageable pageable) {
-        Sort sort = Sort.by(
+        Sort defaultSort = Sort.by(
                 Sort.Order.desc("dataModificacao"),
                 Sort.Order.desc("dataCriacao")
         );
-        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
+        Sort finalSort = pageable.getSort().isSorted()
+                ? pageable.getSort().and(defaultSort)
+                : defaultSort;
+
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), finalSort);
     }
 
     /**

@@ -12,6 +12,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -50,8 +53,12 @@ public class SolicitacaoCursoController {
     @Operation(summary = "Listar Todas", description = "Lista as solicitações conforme o papel (Solicitante vê as suas, Admin vê as enviadas)")
     @GetMapping
     @PreAuthorize("hasAnyAuthority('cursos.solicitar', 'cursos.analisar.solicitacoes')")
-    public ResponseEntity<java.util.List<SolicitacaoCursoResponseDto>> listarTodas() {
-        return ResponseEntity.ok(service.listarTodas());
+    public ResponseEntity<Page<SolicitacaoCursoResponseDto>> listarTodas(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Long statusId,
+            @RequestParam(required = false) Long minStatusId,
+            @ParameterObject Pageable pageable) {
+        return ResponseEntity.ok(service.buscarPaginado(search, statusId, minStatusId, pageable));
     }
 
     @Operation(summary = "Atualizar Solicitação", description = "Atualiza os dados de uma solicitação ou rascunho")
@@ -85,6 +92,13 @@ public class SolicitacaoCursoController {
     @PreAuthorize("hasAuthority('cursos.analisar.solicitacoes')")
     public ResponseEntity<SolicitacaoCursoResponseDto> protocolarSolicitacao(@PathVariable Long id) {
         return ResponseEntity.ok(service.protocolarSolicitacao(id));
+    }
+
+    @Operation(summary = "Habilitar Edição", description = "Disponibiliza uma solicitação protocolada para ajuste pelo usuário (Ação do CEAF)")
+    @PatchMapping("/{id}/habilitar-edicao")
+    @PreAuthorize("hasAuthority('cursos.analisar.solicitacoes')")
+    public ResponseEntity<SolicitacaoCursoResponseDto> habilitarEdicao(@PathVariable Long id) {
+        return ResponseEntity.ok(service.habilitarEdicao(id));
     }
 
     @Operation(summary = "Preview do Protocolo", description = "Obtém os metadados que serão enviados ao MPVirtual para fins de conferência")

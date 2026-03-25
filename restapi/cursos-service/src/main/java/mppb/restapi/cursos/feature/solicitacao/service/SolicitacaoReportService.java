@@ -36,6 +36,12 @@ public class SolicitacaoReportService {
                 parametros.put("LOGO_MPPB",
                                 mppb.restapi.common.core.util.IoUtil.getResource("classpath:reports/logo_mppb.jpg"));
 
+                String tituloDocumento = "FORMULÁRIO DE SOLICITAÇÃO DE CURSO/EVENTO";
+                if (solicitacao.getStatus() != null && solicitacao.getStatus().getId() == 8L) {
+                        tituloDocumento = "TERMO DE RETIFICAÇÃO DE SOLICITAÇÃO";
+                }
+                parametros.put("TITULO_DOCUMENTO", tituloDocumento);
+
                 // 1. Identificação do Interessado
                 String nomeInteressado = "ID: " + solicitacao.getIdServidorInteressado();
                 try {

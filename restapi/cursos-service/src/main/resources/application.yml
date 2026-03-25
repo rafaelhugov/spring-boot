@@ -14,6 +14,8 @@ sistema:
 api:
   auth:
     url: "${API_URL:https://auth-api.mppb.mp.br}"
+  mpvirtual:
+    url: "${API_MPVIRTUAL_URL:http://10.128.4.14:8082}"
 
 spring:
   profiles:
@@ -59,3 +61,9 @@ cors:
   access-control-headers:
     allow-origin: ${ACCESS_CONTROL_ALLOW_ORIGIN:*}
     allow-credentials: ${ACCESS_CONTROL_ALLOW_CREDENTIALS:false}
+
+logging:
+  level:
+    mppb: DEBUG
+    org.springframework.cloud.openfeign: DEBUG
+    feign: DEBUG
