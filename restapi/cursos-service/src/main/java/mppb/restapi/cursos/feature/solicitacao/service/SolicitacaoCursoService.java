@@ -565,7 +565,7 @@ public class SolicitacaoCursoService {
             if (idPessoaRequestor == null)
                 idPessoaRequestor = 237;
 
-            Long idOrgaoCeaf = 25348L;
+            Long idOrgaoCeaf = 16L;
 
             // 2. Passo 1: Criar Minuta (se ainda não existir uma minuta pendente de
             // movimento)
