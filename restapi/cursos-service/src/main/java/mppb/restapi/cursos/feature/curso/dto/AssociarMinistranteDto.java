@@ -26,5 +26,7 @@ public class AssociarMinistranteDto {
 
     private String email;
     private String telefone;
+    private Long idFoto;
+    private Long idCurriculo;
 
 }

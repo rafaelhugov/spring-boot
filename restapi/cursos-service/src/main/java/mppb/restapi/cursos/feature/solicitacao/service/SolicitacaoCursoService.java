@@ -742,6 +742,7 @@ public class SolicitacaoCursoService {
             tDto.setIdServidor(sm.getIdServidor() != null ? sm.getIdServidor().intValue() : null);
             tDto.setNome(sm.getNomeMinistrante());
             tDto.setEmail(sm.getEmail());
+            tDto.setTelefone(sm.getTelefone());
             tDto.setPapelId(sm.getPapelMinistrante() != null ? sm.getPapelMinistrante().getId() : 1L); // Default
                                                                                                        // Palestrante
 
@@ -755,6 +756,9 @@ public class SolicitacaoCursoService {
                     tDto.setMinistranteId(sm.getMinistrante().getId());
                 }
             }
+
+            tDto.setIdFoto(sm.getIdFoto());
+            tDto.setIdCurriculo(sm.getIdCurriculo());
 
             cursoService.addMinistranteToCurso(cursoSalvo.getId(), tDto);
         });

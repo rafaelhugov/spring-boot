@@ -37,4 +37,16 @@ public class Ministrante extends AbstractEntity<Long> {
     @Column(name = "tipo", nullable = false, length = 1)
     private TipoMinistranteEnum tipo;
 
+    @Column(name = "email")
+    private String email;
+
+    @Column(name = "telefone")
+    private String telefone;
+
+    @Column(name = "id_foto")
+    private Long idFoto;
+
+    @Column(name = "id_curriculo")
+    private Long idCurriculo;
+
 }
