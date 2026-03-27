@@ -55,7 +55,7 @@ public class Curso extends AbstractEntity<Long> {
     private LocalDateTime realizacaoDataFinal;
 
     @Pattern(regexp = "^\\d+:[0-5]\\d:[0-5]\\d$", message = "Formato de carga horária inválido. Use o formato HH:MM:SS.")
-    @Column(name = "cargahoraria", length = 8)
+    @Column(name = "cargahoraria", length = 20)
     private String cargaHoraria;
 
     @Column(name = "percentualchaprovacao")

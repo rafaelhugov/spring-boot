@@ -361,7 +361,7 @@ public class SolicitacaoCursoService {
     }
 
     public SolicitacaoCursoResponseDto buscarPorId(Long id) {
-        SolicitacaoCurso solicitacao = solicitacaoRepository.findById(id)
+        SolicitacaoCurso solicitacao = solicitacaoRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new NotFoundException("Solicitação não encontrada"));
 
         validarPropriedadeOuAdmin(solicitacao);
@@ -646,7 +646,7 @@ public class SolicitacaoCursoService {
 
     @Transactional
     public Long converterParaCurso(Long id) {
-        SolicitacaoCurso solicitacao = solicitacaoRepository.findById(id)
+        SolicitacaoCurso solicitacao = solicitacaoRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new NotFoundException("Solicitação não encontrada"));
 
         // Apenas solicitações DEFERIDAS (ID 3) podem ser convertidas
@@ -698,14 +698,15 @@ public class SolicitacaoCursoService {
             novoCurso.setRealizacaoDataInicial(dataInicial);
             novoCurso.setRealizacaoDataFinal(dataFinal);
 
-            // Formatação da carga horária total (HH:MM:SS)
+            log.info("Calculando carga horária para Solicitação {}. Total Agendas: {}. Duração acumulada: {}", id,
+                    solicitacao.getAgendas().size(), totalDuration);
+
             long hours = totalDuration.toHours();
             int minutes = totalDuration.toMinutesPart();
             int seconds = totalDuration.toSecondsPart();
             String chCalculada = String.format("%02d:%02d:%02d", hours, minutes, seconds);
 
-            log.info("Convertendo Solicitação {} para Curso. Carga Horária Calculada: {}. Agendas processadas: {}", id,
-                    chCalculada, solicitacao.getAgendas().size());
+            log.info("Convertendo Solicitação {} para Curso. Carga Horária Calculada: {}", id, chCalculada);
             novoCurso.setCargaHoraria(chCalculada);
         } else {
             // Fallback se não houver agendas
@@ -807,7 +808,7 @@ public class SolicitacaoCursoService {
     }
 
     public byte[] gerarPdf(Long id) {
-        SolicitacaoCurso solicitacao = solicitacaoRepository.findById(id)
+        SolicitacaoCurso solicitacao = solicitacaoRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new NotFoundException("Solicitação não encontrada"));
         return reportService.gerarPdfSolicitacao(solicitacao);
     }
