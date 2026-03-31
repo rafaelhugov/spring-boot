@@ -1,0 +1,55 @@
+# =============================================================================
+# STAGE 1: Build (Maven)
+# =============================================================================
+FROM eclipse-temurin:21-jdk-alpine AS build-stage
+
+# Configurações de Proxy (Necessário no ambiente MPPB)
+ARG http_proxy
+ARG https_proxy
+ARG no_proxy=localhost,127.0.0.1
+
+ENV http_proxy=$http_proxy
+ENV https_proxy=$https_proxy
+ENV no_proxy=$no_proxy
+
+WORKDIR /build
+
+# Copia os arquivos de configuração do Maven e o POM pai
+COPY pom.xml .
+COPY restapi-common/pom.xml restapi-common/
+COPY cursos-service/pom.xml cursos-service/
+
+# Baixa as dependências (otimiza cache se o POM não mudar)
+# Nota: Ignoramos testes no build de produção por padrão
+RUN --mount=type=cache,target=/root/.m2 ./mvnw install -N -DskipTests
+RUN --mount=type=cache,target=/root/.m2 ./mvnw install -f restapi-common/pom.xml -DskipTests
+
+# Copia o código fonte e compila o serviço principal
+COPY restapi-common/src restapi-common/src
+COPY cursos-service/src cursos-service/src
+
+RUN --mount=type=cache,target=/root/.m2 ./mvnw clean package -f cursos-service/pom.xml -DskipTests
+
+# =============================================================================
+# STAGE 2: Runtime (JRE)
+# =============================================================================
+FROM eclipse-temurin:21-jre-alpine
+
+LABEL description="CEAF-Cursos API - Produção"
+
+WORKDIR /opt/app
+
+# Copia apenas o JAR gerado no estágio anterior
+COPY --from=build-stage /build/cursos-service/target/cursos-service-*.jar app.jar
+
+# Define as variáveis de ambiente padrão de produção
+ENV JAVA_OPTS="-Xms512m -Xmx1g -Dfile.encoding=UTF-8"
+ENV SERVER_PORT=9002
+
+EXPOSE 9002
+
+# Configuração de timezone (importante para logs e banco)
+RUN apk add --no-cache tzdata
+ENV TZ=America/Fortaleza
+
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

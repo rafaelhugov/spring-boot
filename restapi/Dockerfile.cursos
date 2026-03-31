@@ -1,6 +1,9 @@
 # Stage de Runtime (Simples)
 FROM eclipse-temurin:21-jdk-alpine
 
+# Instala fontes e fontconfig (necessário para geração de PDF)
+RUN apk add --no-cache fontconfig ttf-dejavu
+
 LABEL description="cursos-api"
 
 WORKDIR /opt

@@ -8,7 +8,7 @@ import mppb.restapi.cursos.feature.diariooficial.converter.DiarioOficialConverte
 import mppb.restapi.cursos.feature.diariooficial.dto.DiarioOficialDto;
 import mppb.restapi.cursos.feature.diariooficial.entity.DiarioOficial;
 import mppb.restapi.cursos.feature.diariooficial.service.DiarioOficialService;
-import mppb.restapi.cursos.infrastructure.util.Constants;
+import mppb.restapi.common.infrastructure.util.Constants;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;

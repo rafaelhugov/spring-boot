@@ -57,4 +57,6 @@ public interface InscricaoRepository extends BaseRepository<Inscricao, Long> {
 
     Optional<Inscricao> findByCursoAndParticipante(Curso curso, Participante participante);
 
+    Optional<Inscricao> findByCursoIdAndParticipanteId(Long cursoId, Long participanteId);
+
 }

@@ -22,6 +22,9 @@ RUN mvn clean package -Dmaven.test.skip=true -B
 # Stage 2: Runtime leve com JRE
 FROM eclipse-temurin:21-jre-alpine
 
+# Instala fontes e fontconfig (necessário para geração de PDF)
+RUN apk add --no-cache fontconfig ttf-dejavu
+
 LABEL description="cursos-api"
 
 WORKDIR /opt

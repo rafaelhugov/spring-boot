@@ -649,10 +649,10 @@ public class SolicitacaoCursoService {
         SolicitacaoCurso solicitacao = solicitacaoRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new NotFoundException("Solicitação não encontrada"));
 
-        // Apenas solicitações DEFERIDAS (ID 3) podem ser convertidas
+        // Apenas solicitações PROTOCOLADAS (ID 3) podem ser convertidas
         if (solicitacao.getStatus() == null || !Long.valueOf(3L).equals(solicitacao.getStatus().getId())) {
             throw new BusinessRuleException(
-                    "Apenas solicitações DEFERIDAS podem ser convertidas em curso. Status atual: "
+                    "Apenas solicitações PROTOCOLADAS podem ser convertidas em curso. Status atual: "
                             + (solicitacao.getStatus() != null
                                     ? solicitacao.getStatus().getId() + " - " + solicitacao.getStatus().getDescricao()
                                     : "null"));

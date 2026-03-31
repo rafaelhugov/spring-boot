@@ -45,6 +45,7 @@ public class CursoDto {
     })
     private EntidadeTutoraDto entidadeTutora;
 
+    @JsonView(CursoView.Listagem.class)
     private LocalDateTime dataCriacao;
 
     private LocalDateTime inscricaoDataInicial;
@@ -81,6 +82,8 @@ public class CursoDto {
     private List<PublicoAlvoDto> publicosAlvo;
 
     private List<CursoMinistranteDto> ministrantes;
+
+    private Long certificateTemplateId;
 
 
 }

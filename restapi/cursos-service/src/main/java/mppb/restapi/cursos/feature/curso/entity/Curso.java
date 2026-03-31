@@ -89,6 +89,9 @@ public class Curso extends AbstractEntity<Long> {
     @Column(name = "datamodificacao")
     private LocalDateTime dataModificacao;
 
+    @Column(name = "id_arquivo_certificado")
+    private Long certificateTemplateId;
+
     @PrePersist
     private void onPrePersist() {
         this.dataModificacao = LocalDateTime.now();

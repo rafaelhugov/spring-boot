@@ -12,7 +12,9 @@ import mppb.restapi.cursos.feature.cadastro.entities.EntidadeTutora;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -142,10 +144,10 @@ public class SolicitacaoCurso {
     private Long idArquivoProgramacaoGed;
 
     @OneToMany(mappedBy = "solicitacao", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<SolicitacaoAgenda> agendas = new ArrayList<>();
+    private Set<SolicitacaoAgenda> agendas = new HashSet<>();
 
     @OneToMany(mappedBy = "solicitacao", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<SolicitacaoMinistrante> ministrantes = new ArrayList<>();
+    private Set<SolicitacaoMinistrante> ministrantes = new HashSet<>();
 
     public void addAgenda(SolicitacaoAgenda agenda) {
         agendas.add(agenda);
