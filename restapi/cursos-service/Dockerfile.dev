@@ -1,0 +1,15 @@
+FROM eclipse-temurin:21-jre-alpine
+
+LABEL description="cursos-api-dev"
+
+# Instala fontes básicas para dev
+RUN apk add --no-cache fontconfig ttf-dejavu
+
+WORKDIR /opt
+
+# O script subir-ambiente.sh gera este arquivo em spring-boot/restapi/
+COPY cursos-api-latest.jar /opt/cursos-api.jar
+
+EXPOSE 9002
+
+ENTRYPOINT ["java", "-jar", "/opt/cursos-api.jar"]

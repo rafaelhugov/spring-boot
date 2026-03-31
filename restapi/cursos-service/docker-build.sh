@@ -16,7 +16,7 @@ if [ "" == "$VERSION" ]; then
 fi
 
 
-docker build \
+docker build -f Dockerfile.prod \
   -t gavriel.mppb.mp.br:5000/cursos-api:$VERSION \
   -t gavriel.mppb.mp.br:5000/cursos-api:latest \
   -t localhost:5000/cursos-api:$VERSION \
