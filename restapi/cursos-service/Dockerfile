@@ -1,36 +1,24 @@
-# Stage 1: Build com Maven + Java 21
-FROM maven:3.9-eclipse-temurin-21 AS build
-
-ARG http_proxy
-ARG https_proxy
-ARG no_proxy=localhost,127.0.0.1
-
-ENV http_proxy=$http_proxy
-ENV https_proxy=$https_proxy
-ENV no_proxy=$no_proxy
-
-WORKDIR /app
-
-# Copia o pom.xml primeiro para aproveitar cache de dependências
-COPY pom.xml .
-RUN mvn dependency:go-offline -B
-
-# Copia o código-fonte e compila
-COPY src ./src
-RUN mvn clean package -Dmaven.test.skip=true -B
-
-# Stage 2: Runtime leve com JRE
-FROM eclipse-temurin:21-jre-alpine
-
-# Instala fontes e fontconfig (necessário para geração de PDF)
-RUN apk add --no-cache fontconfig ttf-dejavu
+FROM openjdk:21-jdk-slim
 
 LABEL description="cursos-api"
 
+# Instalação das dependências de fontes (exatamente como na referência)
+RUN apt-get update && apt-get install -y \
+    fontconfig \
+    libfreetype6 \
+    libx11-6 \
+    libxext6 \
+    libxrender1 \
+    fonts-dejavu && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /opt
 
-COPY --from=build /app/target/cursos-service-*.jar cursos-api.jar
+# O padrão espera o JAR dentro da pasta target/ (build externo via Maven)
+# O asterisco captura o JAR versionado gerado pelo maven package
+ADD target/cursos-service-*.jar /opt/cursos-api.jar
 
-EXPOSE 9002
+# Porta de Produção (8080 conforme referência)
+EXPOSE 8080 9443
 
-ENTRYPOINT ["java", "-jar", "cursos-api.jar"]
+ENTRYPOINT ["java", "-jar", "/opt/cursos-api.jar"]
