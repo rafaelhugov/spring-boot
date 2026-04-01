@@ -42,6 +42,9 @@ public class ReportCompiler {
                             log.warn("Não foi possível setar propriedades do parser XML: {}", se.getMessage());
                         }
 
+                        // Garante que o diretório de saída exista (robustez extra)
+                        Files.createDirectories(outPath.getParent());
+
                         log.info("Compilando {} -> {}", inPath, outPath.toAbsolutePath());
                         JasperCompileManager.compileReportToFile(inPath, outPath.toAbsolutePath().toString());
                         // also copy the compiled .jasper back to src/main/resources so
