@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>cursos-service</artifactId>
-    <version>0.3.0</version>
+    <version>0.3.2</version>
     <name>cursos-service</name>
     <description>API para o sistema de cursos e eventos do MPPB.</description>
 
