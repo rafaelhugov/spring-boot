@@ -18,6 +18,7 @@ public class PublicoAlvoDto {
     @JsonView(CursoView.Listagem.class)
     private String nome;
 
-    @JsonView(CursoView.Listagem.class)
-    private String internoExterno;
+    public String getDescricao() {
+        return nome;
+    }
 }

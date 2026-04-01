@@ -11,4 +11,8 @@ import lombok.*;
 public class PapelMinistranteDto {
     private Long id;
     private String nome;
+
+    public String getDescricao() {
+        return nome;
+    }
 }

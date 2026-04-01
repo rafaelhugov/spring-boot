@@ -17,4 +17,8 @@ public class ModalidadeDto {
 
     @JsonView(CursoView.Listagem.class)
     private String descricao;
+
+    public String getNome() {
+        return descricao;
+    }
 }

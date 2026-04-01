@@ -11,4 +11,8 @@ import lombok.*;
 public class TipoEventoDto {
     private Long id;
     private String descricao;
+
+    public String getNome() {
+        return descricao;
+    }
 }

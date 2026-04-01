@@ -10,13 +10,14 @@ import mppb.restapi.common.core.util.Esquemas;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "publicoalvo", schema = Esquemas.SCHEMA_CURSOS) // Nome da tabela atualizado
+@Table(name = "publicoalvo", schema = "curso")
 @Builder
 public class PublicoAlvo  extends AbstractEntity<Long> {
 
     @Column(name = "nome", nullable = false)
     private String nome;
 
-    @Column(name = "internoexterno", nullable = false, length = 1)
-    private String internoExterno;
+    public String getDescricao() {
+        return nome;
+    }
 }

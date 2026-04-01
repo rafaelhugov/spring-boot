@@ -65,27 +65,46 @@ public class SolicitacaoReportService {
                 String publicoAlvoStr = "N/A";
                 if (solicitacao.getPublicosAlvo() != null && !solicitacao.getPublicosAlvo().isEmpty()) {
                         publicoAlvoStr = solicitacao.getPublicosAlvo().stream()
-                                        .map(mppb.restapi.cursos.feature.lookup.entities.PublicoAlvo::getNome)
+                                        .map(mppb.restapi.cursos.feature.lookup.entities.PublicoAlvo::getDescricao)
                                         .collect(java.util.stream.Collectors.joining(", "));
                 }
                 parametros.put("PUBLICO_ALVO", publicoAlvoStr);
 
-                parametros.put("IDENTIFICA_ORGAO",
-                                Boolean.TRUE.equals(solicitacao.getIdentificacaoOrgaoMembros()) ? "SIM" : "NÃO");
-                parametros.put("ESPECIFICA_ORGAO",
-                                solicitacao.getEspecificacaoOrgaoMembros() != null
-                                                ? solicitacao.getEspecificacaoOrgaoMembros()
+                parametros.put("TEM_ORGAO_EXTERNO",
+                                Boolean.TRUE.equals(solicitacao.getTemOrgaoExterno()) ? "SIM" : "NÃO");
+                parametros.put("NOME_ORGAO_EXTERNO",
+                                solicitacao.getNomeOrgaoExterno() != null
+                                                ? solicitacao.getNomeOrgaoExterno()
                                                 : "");
 
                 // 3. Localização
                 String local = "Não informado";
                 if (solicitacao.getLocalEvento() != null) {
-                        local = solicitacao.getLocalEvento().getDescricao();
+                        local = solicitacao.getLocalEvento().getNome();
+                        boolean isExterno = Boolean.TRUE.equals(solicitacao.getLocalEvento().getExterno()) 
+                                        || (local != null && local.trim().toUpperCase().contains("EXTERNO"));
+                        if (isExterno
+                                        && solicitacao.getDescricaoLocalExterno() != null 
+                                        && !solicitacao.getDescricaoLocalExterno().isBlank()) {
+                                local += " - " + solicitacao.getDescricaoLocalExterno();
+                        }
                 } else if (solicitacao.getDescricaoLocalExterno() != null
                                 && !solicitacao.getDescricaoLocalExterno().isBlank()) {
                         local = "Externo: " + solicitacao.getDescricaoLocalExterno();
                 }
+
+
+                if (Boolean.TRUE.equals(solicitacao.getTemOrgaoExterno()) 
+                                && solicitacao.getNomeOrgaoExterno() != null 
+                                && !solicitacao.getNomeOrgaoExterno().isBlank()) {
+                        local += " (Órgãos Envolvidos: " + solicitacao.getNomeOrgaoExterno() + ")";
+                }
+
+                log.info("=== PDF DEBUG === LOCAL_EVENTO: '{}' | descricaoLocalExterno: '{}' | temOrgaoExterno: {}",
+                                local, solicitacao.getDescricaoLocalExterno(), solicitacao.getTemOrgaoExterno());
                 parametros.put("LOCAL_EVENTO", local);
+
+
 
                 // 4. Apoio Logístico — Only true items
                 StringBuilder sbLogistica = new StringBuilder();

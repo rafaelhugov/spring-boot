@@ -249,9 +249,9 @@ public class CursoService extends AbstractService<Curso, Long> {
             dto.setModalidade(curso.getModalidade().getDescricao());
         }
 
-        // Verifica na lista de públicos-alvo do curso se algum deles é do tipo 'E' (Externo).
-        boolean aceitaExterno = curso.getPublicosAlvo().stream()
-                .anyMatch(publicoAlvo -> "E".equals(publicoAlvo.getInternoExterno()));
+        // AJUSTE: O campo internoExterno foi removido para seguir o padrão de produção.
+        // TODO: Definir nova regra para identificar se um curso aceita inscrições externas baseado no público-alvo.
+        boolean aceitaExterno = true;
         dto.setAceitaInscricaoExterna(aceitaExterno);
 
         return dto;

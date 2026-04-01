@@ -9,5 +9,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class LocalEventoDto {
     private Long id;
-    private String nomeLocal;
+    private String nome;
+
+    public String getDescricao() {
+        return nome;
+    }
 }
+

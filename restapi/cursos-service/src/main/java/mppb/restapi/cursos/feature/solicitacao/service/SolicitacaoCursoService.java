@@ -199,8 +199,8 @@ public class SolicitacaoCursoService {
         }
 
         solicitacao.setDescricaoLocalExterno(dto.getDescricaoLocalExterno());
-        solicitacao.setIdentificacaoOrgaoMembros(dto.getIdentificacaoOrgaoMembros());
-        solicitacao.setEspecificacaoOrgaoMembros(dto.getEspecificacaoOrgaoMembros());
+        solicitacao.setTemOrgaoExterno(dto.getTemOrgaoExterno());
+        solicitacao.setNomeOrgaoExterno(dto.getNomeOrgaoExterno());
 
         // Apoio Logístico
         solicitacao.setCardDivulgacao(dto.getCardDivulgacao());
@@ -290,10 +290,11 @@ public class SolicitacaoCursoService {
         }
         if (entity.getPublicosAlvo() != null && !entity.getPublicosAlvo().isEmpty()) {
             dto.setIdsPublicoAlvo(entity.getPublicosAlvo().stream().map(PublicoAlvo::getId).toList());
-            dto.setPublicosAlvoDescricao(entity.getPublicosAlvo().stream().map(PublicoAlvo::getNome).toList());
+            dto.setPublicosAlvoDescricao(entity.getPublicosAlvo().stream().map(PublicoAlvo::getDescricao).toList());
         }
         if (entity.getLocalEvento() != null) {
             dto.setIdLocalEvento(entity.getLocalEvento().getId());
+            dto.setLocalEventoDescricao(entity.getLocalEvento().getNome());
         }
 
         if (entity.getEntidadeTutora() != null) {
@@ -303,8 +304,8 @@ public class SolicitacaoCursoService {
 
         // Campos de texto e booleanos
         dto.setDescricaoLocalExterno(entity.getDescricaoLocalExterno());
-        dto.setIdentificacaoOrgaoMembros(entity.getIdentificacaoOrgaoMembros());
-        dto.setEspecificacaoOrgaoMembros(entity.getEspecificacaoOrgaoMembros());
+        dto.setTemOrgaoExterno(entity.getTemOrgaoExterno());
+        dto.setNomeOrgaoExterno(entity.getNomeOrgaoExterno());
         dto.setCardDivulgacao(entity.getCardDivulgacao());
         dto.setComunicacaoImprensa(entity.getComunicacaoImprensa());
         dto.setOficioConvite(entity.getOficioConvite());
@@ -839,8 +840,8 @@ public class SolicitacaoCursoService {
         }
 
         solicitacao.setDescricaoLocalExterno(dto.getDescricaoLocalExterno());
-        solicitacao.setIdentificacaoOrgaoMembros(dto.getIdentificacaoOrgaoMembros());
-        solicitacao.setEspecificacaoOrgaoMembros(dto.getEspecificacaoOrgaoMembros());
+        solicitacao.setTemOrgaoExterno(dto.getTemOrgaoExterno());
+        solicitacao.setNomeOrgaoExterno(dto.getNomeOrgaoExterno());
 
         // Logística e Financeiro
         solicitacao.setCardDivulgacao(dto.getCardDivulgacao());

@@ -8,8 +8,8 @@
 	<parameter name="ESTIMATIVA_PARTICIPANTES" class="java.lang.Integer"/>
 	<parameter name="MODALIDADE" class="java.lang.String"/>
 	<parameter name="PUBLICO_ALVO" class="java.lang.String"/>
-	<parameter name="IDENTIFICA_ORGAO" class="java.lang.String"/>
-	<parameter name="ESPECIFICA_ORGAO" class="java.lang.String"/>
+	<parameter name="TEM_ORGAO_EXTERNO" class="java.lang.String"/>
+	<parameter name="NOME_ORGAO_EXTERNO" class="java.lang.String"/>
 	<parameter name="LOCAL_EVENTO" class="java.lang.String"/>
 	<parameter name="APOIO_LOGISTICO" class="java.lang.String"/>
 	<parameter name="FINANCEIRO" class="java.lang.String"/>

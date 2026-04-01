@@ -27,8 +27,8 @@ public class SolicitacaoCursoRequestDto {
     @NotNull(message = "O público-alvo é obrigatório")
     private List<Long> idsPublicoAlvo;
 
-    private Boolean identificacaoOrgaoMembros;
-    private String especificacaoOrgaoMembros;
+    private Boolean temOrgaoExterno;
+    private String nomeOrgaoExterno;
 
     // Modalidade e Localização
     // Modalidade, Localização e Tipo de Evento

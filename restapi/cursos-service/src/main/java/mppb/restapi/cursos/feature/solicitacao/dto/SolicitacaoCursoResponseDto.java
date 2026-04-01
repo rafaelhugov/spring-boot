@@ -44,10 +44,11 @@ public class SolicitacaoCursoResponseDto {
     private List<String> publicosAlvoDescricao;
 
     private Long idLocalEvento;
+    private String localEventoDescricao;
     private String descricaoLocalExterno;
 
-    private Boolean identificacaoOrgaoMembros;
-    private String especificacaoOrgaoMembros;
+    private Boolean temOrgaoExterno;
+    private String nomeOrgaoExterno;
 
     // Apoio Logístico
     private Boolean cardDivulgacao;

@@ -7,7 +7,7 @@ import mppb.restapi.cursos.feature.lookup.entities.PapelMinistrante;
 import mppb.restapi.cursos.feature.ministrante.entity.Ministrante;
 
 @Entity
-@Table(name = "solicitacao_ministrante", schema = "curso")
+@Table(name = "solicitacaoministrante", schema = "curso")
 @Getter
 @Setter
 public class SolicitacaoMinistrante {
@@ -21,7 +21,7 @@ public class SolicitacaoMinistrante {
     private SolicitacaoCurso solicitacao;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_papel_ministrante")
+    @JoinColumn(name = "id_papelministrante")
     private PapelMinistrante papelMinistrante;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -31,7 +31,7 @@ public class SolicitacaoMinistrante {
     @Column(name = "id_servidor")
     private Integer idServidor;
 
-    @Column(name = "nome_ministrante", nullable = false, length = 255)
+    @Column(name = "nomeministrante", nullable = false, length = 255)
     private String nomeMinistrante;
 
     @Column(name = "telefone", length = 150)
