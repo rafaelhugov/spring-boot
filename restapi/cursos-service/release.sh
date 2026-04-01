@@ -56,8 +56,8 @@ echo "[release] Versão atual: $CURRENT_VER -> Nova: $NEW_VER"
 # 1) Set versão no Maven
 mvn -q versions:set -DnewVersion="$NEW_VER"
 
-# 2) Build do JAR
-mvn -q -DskipTests clean package
+# 2) Build do JAR (pula também compilação de testes)
+mvn -q -Dmaven.test.skip=true clean package
 
 # 3) Build das imagens
 ./docker-build.sh
@@ -69,4 +69,3 @@ if $DO_PUSH; then
 fi
 
 echo "[release] Concluído: $NEW_VER"
-
