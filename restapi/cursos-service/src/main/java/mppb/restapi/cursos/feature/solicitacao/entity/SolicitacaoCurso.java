@@ -142,6 +142,9 @@ public class SolicitacaoCurso {
     @Column(name = "hospedagem")
     private Boolean hospedagem = false;
 
+    @Column(name = "sem_onus_financeiro")
+    private Boolean semOnusFinanceiro = false;
+
     // Documentação e Notas
     @Column(name = "observacoes", columnDefinition = "text")
     private String observacoesGerais;

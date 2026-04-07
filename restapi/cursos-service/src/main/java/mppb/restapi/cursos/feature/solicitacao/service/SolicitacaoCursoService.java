@@ -220,6 +220,7 @@ public class SolicitacaoCursoService {
         solicitacao.setPagamentoHonorario(dto.getPagamentoHonorario());
         solicitacao.setPassagemAerea(dto.getPassagemAerea());
         solicitacao.setHospedagem(dto.getHospedagem());
+        solicitacao.setSemOnusFinanceiro(dto.getSemOnusFinanceiro());
 
         solicitacao.setObservacoesGerais(dto.getObservacoesGerais());
         solicitacao.setIdArquivoProgramacaoGed(dto.getIdArquivoProgramacaoGed());
@@ -324,6 +325,7 @@ public class SolicitacaoCursoService {
         dto.setPagamentoHonorario(entity.getPagamentoHonorario());
         dto.setPassagemAerea(entity.getPassagemAerea());
         dto.setHospedagem(entity.getHospedagem());
+        dto.setSemOnusFinanceiro(entity.getSemOnusFinanceiro());
         dto.setObservacoesGerais(entity.getObservacoesGerais());
         dto.setIdArquivoProgramacaoGed(entity.getIdArquivoProgramacaoGed());
 
@@ -864,6 +866,7 @@ public class SolicitacaoCursoService {
         solicitacao.setPagamentoHonorario(dto.getPagamentoHonorario());
         solicitacao.setPassagemAerea(dto.getPassagemAerea());
         solicitacao.setHospedagem(dto.getHospedagem());
+        solicitacao.setSemOnusFinanceiro(dto.getSemOnusFinanceiro());
         solicitacao.setObservacoesGerais(dto.getObservacoesGerais());
         solicitacao.setIdArquivoProgramacaoGed(dto.getIdArquivoProgramacaoGed());
 

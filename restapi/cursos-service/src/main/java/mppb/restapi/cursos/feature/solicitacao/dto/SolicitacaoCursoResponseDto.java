@@ -64,6 +64,7 @@ public class SolicitacaoCursoResponseDto {
     private Boolean pagamentoHonorario;
     private Boolean passagemAerea;
     private Boolean hospedagem;
+    private Boolean semOnusFinanceiro;
 
     // Documentação
     private String observacoesGerais;

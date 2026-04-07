@@ -57,6 +57,7 @@ public class SolicitacaoCursoRequestDto {
     private Boolean pagamentoHonorario = false;
     private Boolean passagemAerea = false;
     private Boolean hospedagem = false;
+    private Boolean semOnusFinanceiro = false;
 
     // Documentação e Notas
     private String observacoesGerais;
