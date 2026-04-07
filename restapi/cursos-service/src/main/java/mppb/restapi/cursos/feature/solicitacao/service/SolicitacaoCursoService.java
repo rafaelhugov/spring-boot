@@ -82,6 +82,9 @@ public class SolicitacaoCursoService {
         Long idLogado = getIdServidorLogado();
         if (idLogado != null) {
             solicitacao.setIdServidorInteressado(idLogado);
+            servidorRepository.buscarServidorPorId(idLogado.intValue()).ifPresent(servidor -> {
+                solicitacao.setNomeSolicitante(servidor.getNome());
+            });
         }
         solicitacao.setIdOrgaoInteressado(1L); // Mock ou extrair do token se disponível
 
@@ -268,7 +271,9 @@ public class SolicitacaoCursoService {
         dto.setNomeCurso(entity.getNomeCurso());
         dto.setEstimativaParticipantes(entity.getEstimativaParticipantes());
 
-        if (entity.getIdServidorInteressado() != null) {
+        if (entity.getNomeSolicitante() != null) {
+            dto.setNomeSolicitante(entity.getNomeSolicitante());
+        } else if (entity.getIdServidorInteressado() != null) {
             servidorRepository.buscarServidorPorId(entity.getIdServidorInteressado().intValue())
                     .ifPresentOrElse(
                             servidor -> dto.setNomeSolicitante(servidor.getNome()),

@@ -20,4 +20,6 @@ public interface ServidorProjection {
 
     String getTelefone();
 
+    String getCpf();
+
 }

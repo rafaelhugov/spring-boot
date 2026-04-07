@@ -67,6 +67,9 @@ public class SolicitacaoCurso {
     @Column(name = "id_orgao", nullable = false)
     private Long idOrgaoInteressado;
 
+    @Column(name = "nomesolicitante")
+    private String nomeSolicitante;
+
     // Informações do Evento
     @Column(name = "nomecurso", nullable = false, length = 255)
     private String nomeCurso;

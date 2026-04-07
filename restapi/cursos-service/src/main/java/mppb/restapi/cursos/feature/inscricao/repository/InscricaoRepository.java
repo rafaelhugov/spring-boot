@@ -17,17 +17,14 @@ public interface InscricaoRepository extends BaseRepository<Inscricao, Long> {
 
     /**
      * Busca todas as inscrições de um curso de forma paginada, otimizando a
-     * consulta
-     * para carregar os dados do participante associado na mesma query (JOIN FETCH).
-     * Isso evita o problema de performance N+1 e resolve a
-     * LazyInitializationException.
+     * consulta para carregar os dados do participante associado na mesma query via JOIN FETCH.
+     * O JOIN FETCH manual resolve problemas de ordenação por campos da associação.
      *
      * @param cursoId  O ID do curso.
      * @param pageable As informações de paginação.
      * @return Uma página de inscrições com os participantes já carregados.
      */
-    @Query(value = "SELECT i FROM Inscricao i " +
-            "JOIN FETCH i.participante p " +
+    @Query(value = "SELECT i FROM Inscricao i JOIN FETCH i.participante " +
             "WHERE i.curso.id = :cursoId", countQuery = "SELECT count(i) FROM Inscricao i WHERE i.curso.id = :cursoId")
     Page<Inscricao> findAllByCursoId(@Param("cursoId") Long cursoId, Pageable pageable);
 
