@@ -51,6 +51,7 @@ public class SolicitacaoCursoRequestDto {
     private Boolean kitParticipante = false;
     private Boolean programacaoImpressa = false;
     private Boolean trasladoMinistrante = false;
+    private Boolean semApoioLogistico = false;
 
     // Financeiro
     private Boolean pagamentoHonorario = false;

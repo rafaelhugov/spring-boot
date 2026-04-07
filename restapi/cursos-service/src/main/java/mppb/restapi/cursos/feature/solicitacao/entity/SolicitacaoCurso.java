@@ -129,6 +129,9 @@ public class SolicitacaoCurso {
     @Column(name = "trasladoministrante")
     private Boolean trasladoMinistrante = false;
 
+    @Column(name = "sem_apoio_logistico")
+    private Boolean semApoioLogistico = false;
+
     // Financeiro (Ônus para o MPPB)
     @Column(name = "pagamentohonorario")
     private Boolean pagamentoHonorario = false;

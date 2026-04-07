@@ -58,6 +58,7 @@ public class SolicitacaoCursoResponseDto {
     private Boolean kitParticipante;
     private Boolean programacaoImpressa;
     private Boolean trasladoMinistrante;
+    private Boolean semApoioLogistico;
 
     // Financeiro
     private Boolean pagamentoHonorario;
