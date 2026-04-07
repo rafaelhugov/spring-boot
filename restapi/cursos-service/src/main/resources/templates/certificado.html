@@ -36,7 +36,8 @@
             padding-left: 30mm;
             padding-right: 30mm;
             page-break-inside: avoid;
-            position: relative; /* garante ficar acima do background fixo */
+            position: relative;
+            /* garante ficar acima do background fixo */
             z-index: 1;
         }
 
@@ -67,7 +68,7 @@
 
         .footer-block-nomeCurso {
             position: fixed;
-            top: 168mm;
+            top: 175mm;
             left: 20mm;
             text-align: left;
             color: #1a1a1a;
@@ -116,4 +117,6 @@
         <span class="label-tipo" th:text="${tipoEvento}">Webinar</span>
         <span class="nome-curso-footer" th:text="${descricaoCurso}">Descrição do Curso</span>
     </div>
-</body></html>
+</body>
+
+</html>
