@@ -14,13 +14,13 @@ public class LocaleConfig {
 
     @Bean
     public LocaleResolver localeResolver() {
-        return new FixedLocaleResolver(new Locale("pt", "BR"));
+        return new FixedLocaleResolver(Locale.of("pt", "BR"));
     }
 
     @EventListener(ApplicationReadyEvent.class)
     public void init() {
         TimeZone.setDefault(TimeZone.getTimeZone("America/Recife"));
-        Locale.setDefault(new Locale("pt", "BR"));
+        Locale.setDefault(Locale.of("pt", "BR"));
     }
 
 }
