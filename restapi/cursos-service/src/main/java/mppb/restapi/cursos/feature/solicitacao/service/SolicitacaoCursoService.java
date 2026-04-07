@@ -905,14 +905,41 @@ public class SolicitacaoCursoService {
 
     private void validarRequisitosSubmissao(mppb.restapi.cursos.feature.solicitacao.dto.SolicitacaoCursoRequestDto dto) {
         if ("SUBMETIDO".equalsIgnoreCase(dto.getStatus())) {
+            // 1. Localização (Se modalidade física/híbrida)
+            java.util.List<Long> modalidadesComLocal = java.util.Arrays.asList(1L, 3L);
+            if (modalidadesComLocal.contains(dto.getIdModalidade())) {
+                if (dto.getIdLocalEvento() == null) {
+                    throw new mppb.restapi.common.infrastructure.exception.BusinessRuleException(
+                            "O local do evento é obrigatório para as modalidades Presencial ou Híbrido.");
+                }
+
+                // Verifica se é local externo e se tem descrição
+                mppb.restapi.cursos.feature.lookup.entities.LocalEvento local = localEventoRepository.findById(dto.getIdLocalEvento()).orElse(null);
+                if (local != null && Boolean.TRUE.equals(local.getExterno()) && (dto.getDescricaoLocalExterno() == null || dto.getDescricaoLocalExterno().isBlank())) {
+                    throw new mppb.restapi.common.infrastructure.exception.BusinessRuleException(
+                            "Por favor, especifique o local externo do evento (auditório, hotel, sala, etc).");
+                }
+            }
+
+            // 2. Órgão Externo
+            if (Boolean.TRUE.equals(dto.getTemOrgaoExterno()) && (dto.getNomeOrgaoExterno() == null || dto.getNomeOrgaoExterno().isBlank())) {
+                throw new mppb.restapi.common.infrastructure.exception.BusinessRuleException(
+                        "Por favor, informe o nome do órgão externo envolvido.");
+            }
+
+            // 3. Ministrantes
             if (dto.getMinistrantes() == null || dto.getMinistrantes().isEmpty()) {
                 throw new mppb.restapi.common.infrastructure.exception.BusinessRuleException(
                         "É necessário cadastrar pelo menos um ministrante para enviar a solicitação.");
             }
+
+            // 4. Agendas
             if (dto.getAgendas() == null || dto.getAgendas().isEmpty()) {
                 throw new mppb.restapi.common.infrastructure.exception.BusinessRuleException(
                         "É necessário adicionar pelo menos um período de programação para enviar a solicitação.");
             }
+
+            // 5. Anexo PDF
             if (dto.getIdArquivoProgramacaoGed() == null) {
                 throw new mppb.restapi.common.infrastructure.exception.BusinessRuleException(
                         "É necessário anexar a programação do evento (PDF) para enviar a solicitação.");
