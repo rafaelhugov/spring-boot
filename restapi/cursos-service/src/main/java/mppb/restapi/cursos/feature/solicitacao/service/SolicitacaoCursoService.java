@@ -913,6 +913,10 @@ public class SolicitacaoCursoService {
                 throw new mppb.restapi.common.infrastructure.exception.BusinessRuleException(
                         "É necessário adicionar pelo menos um período de programação para enviar a solicitação.");
             }
+            if (dto.getIdArquivoProgramacaoGed() == null) {
+                throw new mppb.restapi.common.infrastructure.exception.BusinessRuleException(
+                        "É necessário anexar a programação do evento (PDF) para enviar a solicitação.");
+            }
         }
     }
 }
