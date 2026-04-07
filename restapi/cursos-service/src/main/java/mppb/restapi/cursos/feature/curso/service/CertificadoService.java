@@ -130,9 +130,19 @@ public class CertificadoService {
             Locale locale = new Locale("pt", "BR");
             DateTimeFormatter extensoFormatter = DateTimeFormatter.ofPattern("d 'de' MMMM 'de' yyyy", locale);
 
-            String dataExtenso = curso.getRealizacaoDataFinal() != null 
-                ? curso.getRealizacaoDataFinal().format(extensoFormatter) 
-                : (curso.getRealizacaoDataInicial() != null ? curso.getRealizacaoDataInicial().format(extensoFormatter) : "");
+            String dataExtenso = "";
+            if (curso.getRealizacaoDataInicial() != null && curso.getRealizacaoDataFinal() != null) {
+                if (curso.getRealizacaoDataInicial().toLocalDate().isEqual(curso.getRealizacaoDataFinal().toLocalDate())) {
+                    dataExtenso = "no dia " + curso.getRealizacaoDataInicial().format(extensoFormatter);
+                } else {
+                    dataExtenso = "no período de " + curso.getRealizacaoDataInicial().format(DateTimeFormatter.ofPattern("d 'de' MMMM", locale)) 
+                                + " a " + curso.getRealizacaoDataFinal().format(extensoFormatter);
+                }
+            } else if (curso.getRealizacaoDataInicial() != null) {
+                dataExtenso = "no dia " + curso.getRealizacaoDataInicial().format(extensoFormatter);
+            } else if (curso.getRealizacaoDataFinal() != null) {
+                dataExtenso = "no dia " + curso.getRealizacaoDataFinal().format(extensoFormatter);
+            }
 
             String dataHojeExtenso = java.time.LocalDate.now().format(extensoFormatter);
 
@@ -151,9 +161,12 @@ public class CertificadoService {
             }
 
             Context context = new Context();
-            context.setVariable("nomeParticipante", nome.toUpperCase());
+            // The user requested NO UPPERCASE text anywhere, so we prevent Java from forcing uppercase on the name
+            context.setVariable("nomeParticipante", nome);
             context.setVariable("papel", papel);
+            context.setVariable("tipoEvento", curso.getTipoEvento() != null ? curso.getTipoEvento().getDescricao() : "EVENTO");
             context.setVariable("nomeCurso", curso.getTitulo());
+            context.setVariable("descricaoCurso", curso.getDescricao() != null && !curso.getDescricao().trim().isEmpty() ? curso.getDescricao() : curso.getTitulo());
             context.setVariable("entidadeTutora", curso.getEntidadeTutora() != null ? curso.getEntidadeTutora().getNome() : "CEAF/MPPB");
             context.setVariable("dataExtenso", dataExtenso);
             context.setVariable("modalidade", modalidadeTxt);

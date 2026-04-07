@@ -11,5 +11,7 @@ public class AtualizarSituacaoDto {
 
     @NotBlank(message = "A nova situação não pode ser vazia.")
     private String situacao;
+
+    private Integer frequencia;
 }
 

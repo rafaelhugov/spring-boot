@@ -5,11 +5,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 cd "$SCRIPT_DIR"
 
-if [[ -f .env ]]; then
+if [[ -f .env.dev ]]; then
   echo "[dev.sh] Carregando variáveis de .env..."
   set -a
   # shellcheck disable=SC1091
-  source .env
+  source .env.dev
   set +a
 else
   echo "[dev.sh] Aviso: arquivo .env não encontrado; seguindo com variáveis atuais."

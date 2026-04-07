@@ -258,7 +258,7 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
     /**
      * Atualiza a situação de uma inscrição (fluxo administrativo).
      */
-    public InscricaoDto atualizarSituacao(Long cursoId, Long inscricaoId, String novaSituacaoCodigoStr) {
+    public InscricaoDto atualizarSituacao(Long cursoId, Long inscricaoId, String novaSituacaoCodigoStr, Integer frequencia) {
         Inscricao inscricao = inscricaoRepository.findByIdAndCursoId(inscricaoId, cursoId)
                 .orElseThrow(() -> new NotFoundException("Inscrição não encontrada para este curso."));
 
@@ -266,6 +266,10 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
             Character codigo = novaSituacaoCodigoStr.charAt(0);
             SituacaoInscricaoEnum novaSituacao = SituacaoInscricaoEnum.fromCodigo(codigo);
             inscricao.setSituacao(novaSituacao);
+            
+            if (frequencia != null) {
+                inscricao.setFrequencia(frequencia);
+            }
         } catch (Exception e) {
             throw new BusinessRuleException("Código de situação inválido: " + novaSituacaoCodigoStr);
         }

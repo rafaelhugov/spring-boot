@@ -38,11 +38,7 @@ public class CursoDto {
     @NotNull
     private TipoEventoDto tipoEvento;
 
-    @Valid
-    @ConvertGroup.List({
-            @ConvertGroup(from = Create.class, to = Update.class),
-            @ConvertGroup(to = Update.class)
-    })
+    @NotNull(message = "A entidade tutora é obrigatória.")
     private EntidadeTutoraDto entidadeTutora;
 
     @JsonView(CursoView.Listagem.class)

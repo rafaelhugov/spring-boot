@@ -121,7 +121,7 @@ public class CursoService extends AbstractService<Curso, Long> {
             curso.setHashInscricao(UUID.randomUUID());
         }
         // A lógica de gerenciamento de ministrantes foi removida daqui, pois agora é tratada em endpoints específicos.
-        return cursoRepository.save(curso);
+        return cursoRepository.saveAndFlush(curso);
     }
 
     @Override
