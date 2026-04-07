@@ -1,5 +1,7 @@
 target/
 .env
+.env.dev
+.env.prod
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
