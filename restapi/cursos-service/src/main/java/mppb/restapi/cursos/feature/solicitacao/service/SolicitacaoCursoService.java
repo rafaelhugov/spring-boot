@@ -89,7 +89,7 @@ public class SolicitacaoCursoService {
         solicitacao.setIdOrgaoInteressado(1L); // Mock ou extrair do token se disponível
 
         // Se for RASCUNHO, usamos status 1. Se SUBMETIDO, usamos 2 (Em Análise)
-        validarMinistrantesSeSubmetido(dto);
+        validarRequisitosSubmissao(dto);
         Long idStatus = "SUBMETIDO".equalsIgnoreCase(dto.getStatus()) ? 2L : 1L;
 
         StatusTramitacao status = statusTramitacaoRepository.findById(idStatus)
@@ -427,7 +427,7 @@ public class SolicitacaoCursoService {
 
         // Se mudou para SUBMETIDO, apenas salva com o novo status
         if ("SUBMETIDO".equalsIgnoreCase(dto.getStatus())) {
-            validarMinistrantesSeSubmetido(dto);
+            validarRequisitosSubmissao(dto);
             Long novoStatusId = solicitacao.getNumeroPgaMpVirtual() == null ? 2L : 8L; // 2 = SUBMETIDO, 8 = RETIFICADO
             StatusTramitacao status = statusTramitacaoRepository.findById(novoStatusId)
                     .orElseThrow(() -> new AppException("Status " + novoStatusId + " não encontrado."));
@@ -903,11 +903,15 @@ public class SolicitacaoCursoService {
         }
     }
 
-    private void validarMinistrantesSeSubmetido(mppb.restapi.cursos.feature.solicitacao.dto.SolicitacaoCursoRequestDto dto) {
+    private void validarRequisitosSubmissao(mppb.restapi.cursos.feature.solicitacao.dto.SolicitacaoCursoRequestDto dto) {
         if ("SUBMETIDO".equalsIgnoreCase(dto.getStatus())) {
             if (dto.getMinistrantes() == null || dto.getMinistrantes().isEmpty()) {
                 throw new mppb.restapi.common.infrastructure.exception.BusinessRuleException(
                         "É necessário cadastrar pelo menos um ministrante para enviar a solicitação.");
+            }
+            if (dto.getAgendas() == null || dto.getAgendas().isEmpty()) {
+                throw new mppb.restapi.common.infrastructure.exception.BusinessRuleException(
+                        "É necessário adicionar pelo menos um período de programação para enviar a solicitação.");
             }
         }
     }
