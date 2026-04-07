@@ -4,6 +4,10 @@
 <head>
     <meta charset="UTF-8" />
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         @page {
             size: A4 landscape;
             margin: 0;
@@ -13,41 +17,32 @@
             margin: 0;
             padding: 0;
             font-family: 'DejaVu Sans', 'Arial', sans-serif;
-            width: 297mm;
-            height: 210mm;
-            overflow: hidden;
             color: #1a1a1a;
         }
 
         .background {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
+            display: block;
+            z-index: 0;
         }
 
-        .wrapper-table {
+        .content-container {
             width: 100%;
-            height: 100%;
-            border-collapse: collapse;
-        }
-
-        .container-td {
-            vertical-align: middle;
-            text-align: center;
-            padding-top: 45mm;
-            /* Ajustado para dar espaço ao logo no topo */
-            padding-bottom: 55mm;
-            /* Ajustado para não sobrepor as assinaturas */
-            padding-left: 25mm;
-            padding-right: 25mm;
+            padding-top: 60mm;
+            padding-left: 30mm;
+            padding-right: 30mm;
+            page-break-inside: avoid;
+            position: relative; /* garante ficar acima do background fixo */
+            z-index: 1;
         }
 
         .text-block {
             line-height: 1.6;
-            font-size: 18pt;
+            font-size: 14pt;
             text-align: justify;
             text-justify: inter-word;
         }
@@ -59,17 +54,38 @@
         }
 
         .participant-name {
-            font-size: 24pt;
             font-weight: bold;
-            text-decoration: underline;
             display: inline;
         }
 
         .footer-block {
             margin-top: 5mm;
             text-align: right;
-            font-size: 16pt;
+            font-size: 14pt;
             padding-right: 10mm;
+        }
+
+        .footer-block-nomeCurso {
+            position: fixed;
+            top: 168mm;
+            left: 20mm;
+            text-align: left;
+            color: #1a1a1a;
+            max-width: 170mm;
+            z-index: 10;
+        }
+
+        .label-tipo {
+            font-size: 11pt;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .nome-curso-footer {
+            font-size: 14pt;
+            line-height: 1.1;
+            font-weight: normal;
         }
     </style>
 </head>
@@ -77,29 +93,27 @@
 <body>
     <img th:src="${backgroundImage}" class="background" src="" />
 
-    <table class="wrapper-table">
-        <tr>
-            <td class="container-td">
-                <div class="text-block">
-                    Certificamos que
-                    <span class="participant-name" th:text="${nomeParticipante}">CARLOS DAVI LOPES CORREIA LIMA</span>
-                    participou, como <span th:text="${papel}">participante</span>, do
-                    <span class="highlight" th:text="${nomeCurso}">Webinar "Aspectos Práticos da Lei de Improbidade
-                        Administrativa e da Lei Anticorrupção"</span>,
-                    promovido pelo <span class="highlight" th:text="${entidadeTutora}">Ministério Público do Estado da
-                        Paraíba</span>,
-                    no dia <span th:text="${dataExtenso}">31 de outubro de 2025</span>,
-                    de forma <span th:text="${modalidade}">online</span> com carga horária de
-                    <strong th:text="${cargaHoraria}">48</strong> horas.
-                </div>
+    <div class="content-container">
+        <div class="text-block">
+            Certificamos que
+            <span class="participant-name" th:text="${nomeParticipante}">Carlos Davi Lopes</span>
+            participou, como <span th:text="${papel}">participante</span>, do
+            <span th:text="${tipoEvento}">Webinar</span>
+            "<span class="highlight" th:text="${nomeCurso}">Título do Curso</span>",
+            promovido pelo <span class="highlight" th:text="${entidadeTutora}">Ministério Público</span>,
+            <span th:text="${dataExtenso}">no período...</span>,
+            de forma <span th:text="${modalidade}">online</span> com carga horária de
+            <strong th:text="${cargaHoraria}">48</strong> horas.
+        </div>
 
-                <div class="footer-block">
-                    <span th:text="${cidade}">João Pessoa - PB</span>,
-                    <span th:text="${dataGeracaoExtenso}">31 de março de 2026</span>.
-                </div>
-            </td>
-        </tr>
-    </table>
-</body>
+        <div class="footer-block">
+            <span th:text="${cidade}">João Pessoa - PB</span>,
+            <span th:text="${dataGeracaoExtenso}">31 de março de 2026</span>.
+        </div>
+    </div>
 
-</html>
+    <div class="footer-block-nomeCurso">
+        <span class="label-tipo" th:text="${tipoEvento}">Webinar</span>
+        <span class="nome-curso-footer" th:text="${descricaoCurso}">Descrição do Curso</span>
+    </div>
+</body></html>
