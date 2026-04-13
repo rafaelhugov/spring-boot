@@ -103,9 +103,14 @@ public class MPVirtualIntegrationService {
                                                                         MediaType.parse("application/octet-stream")))
                                         .build();
 
-                        // 3. Definir token e Cookie conforme o teste de sucesso
-                        String token = "Bearer eduardo.ribas";
-                        String cookie = "JSESSIONID=F0D60392DBCDB31FEBFBBA4003430A8B";
+                        // 3. Obter token dinâmico do contexto de segurança
+                        String token = mppb.restapi.common.infrastructure.security.util.SecurityUtils.getAuthenticationToken()
+                                        .map(mppb.restapi.common.infrastructure.security.authorization.TokenAuthentication::getToken)
+                                        .orElse("eduardo.ribas"); // Fallback apenas se não houver contexto (dev)
+
+                        if (!token.startsWith("Bearer ")) {
+                                token = "Bearer " + token;
+                        }
 
                         // 4. Construir requisição
                         Request request = new Request.Builder()
@@ -113,7 +118,6 @@ public class MPVirtualIntegrationService {
                                         .post(body)
                                         .addHeader("Authorization", token)
                                         .addHeader("X-Orgao-Id", String.valueOf(idOrgao))
-                                        .addHeader("Cookie", cookie)
                                         .build();
 
                         // 5. Executar requisição
@@ -172,7 +176,13 @@ public class MPVirtualIntegrationService {
                                                                         MediaType.parse("application/pdf")))
                                         .build();
 
-                        String token = "Bearer eduardo.ribas"; // TODO: Unificar gestão de tokens de serviço
+                        String token = mppb.restapi.common.infrastructure.security.util.SecurityUtils.getAuthenticationToken()
+                                        .map(mppb.restapi.common.infrastructure.security.authorization.TokenAuthentication::getToken)
+                                        .orElse("eduardo.ribas");
+
+                        if (!token.startsWith("Bearer ")) {
+                                token = "Bearer " + token;
+                        }
 
                         Request request = new Request.Builder()
                                         .url(mpvirtualUrl + "/api/protocolo/" + numeroProcesso + "/minutas")
@@ -225,7 +235,13 @@ public class MPVirtualIntegrationService {
 
                         RequestBody body = RequestBody.create(jsonPayload, MediaType.parse("application/json"));
 
-                        String token = "Bearer eduardo.ribas";
+                        String token = mppb.restapi.common.infrastructure.security.util.SecurityUtils.getAuthenticationToken()
+                                        .map(mppb.restapi.common.infrastructure.security.authorization.TokenAuthentication::getToken)
+                                        .orElse("eduardo.ribas");
+
+                        if (!token.startsWith("Bearer ")) {
+                                token = "Bearer " + token;
+                        }
 
                         Request request = new Request.Builder()
                                         .url(url)

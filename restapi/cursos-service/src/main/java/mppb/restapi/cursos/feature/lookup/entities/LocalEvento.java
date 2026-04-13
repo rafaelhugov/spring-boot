@@ -18,6 +18,6 @@ public class LocalEvento {
     @Column(name = "descricao", nullable = false, length = 255)
     private String nome;
 
-    @Column(name = "is_externo")
+    @Column(name = "externo")
     private Boolean externo = false;
 }

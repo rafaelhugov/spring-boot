@@ -13,7 +13,7 @@ sistema:
 
 api:
   auth:
-    url: "${API_URL:https://auth-api.mppb.mp.br}"
+    url: "${AUTH_SERVICE_URL:https://auth-api.mppb.mp.br}"
   mpvirtual:
     # url: "${API_MPVIRTUAL_URL:http://10.128.4.14:8080}"
     # url: "${API_MPVIRTUAL_URL:http://10.128.4.14:8082}"

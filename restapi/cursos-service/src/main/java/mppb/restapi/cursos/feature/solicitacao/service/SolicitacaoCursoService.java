@@ -501,20 +501,24 @@ public class SolicitacaoCursoService {
 
     @Transactional
     public SolicitacaoCursoResponseDto habilitarEdicao(Long id) {
+        log.trace("[Habilitar Edição] Iniciando para ID: {}", id);
         SolicitacaoCurso solicitacao = solicitacaoRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Solicitação não encontrada"));
+                .orElseThrow(() -> new NotFoundException("Solicitação não encontrada: " + id));
 
         SecurityUtils.getAuthenticationToken().ifPresent(auth -> {
+            log.trace("[Habilitar Edição] Verificando permissões para usuário: {}", auth.getName());
             boolean isAdmin = auth.getAuthorities().stream()
-                    .anyMatch(a -> a.getAuthority().equals("cursos.analisar.solicitacoes") ||
-                            a.getAuthority().equals("cursos.manter.cursos"));
+                    .anyMatch(a -> a.getAuthority().equals("cursos.manter.cursos"));
 
             if (!isAdmin) {
+                log.warn("[Habilitar Edição] Acesso negado para usuário: {}", auth.getName());
                 throw new AppException("Acesso negado: apenas o administrador pode habilitar a edição.");
             }
         });
 
         Long statusAtualId = solicitacao.getStatus() != null ? solicitacao.getStatus().getId() : 1L;
+        log.trace("[Habilitar Edição] Status atual: {}", statusAtualId);
+        
         if (statusAtualId == 6L) {
             throw new BusinessRuleException("Não é possível habilitar edição para uma solicitação já convertida.");
         }
@@ -522,8 +526,17 @@ public class SolicitacaoCursoService {
         StatusTramitacao statusAlvo = statusTramitacaoRepository.findById(7L)
                 .orElseThrow(() -> new NotFoundException("Status de devolução para ajuste não encontrado"));
 
+        log.trace("[Habilitar Edição] Alterando status para 7 (DEVOLVIDO)");
         solicitacao.setStatus(statusAlvo);
-        return mapToResponseDto(solicitacaoRepository.save(solicitacao));
+        
+        try {
+            SolicitacaoCurso salva = solicitacaoRepository.save(solicitacao);
+            log.trace("[Habilitar Edição] Salvo com sucesso. Mapeando resposta...");
+            return mapToResponseDto(salva);
+        } catch (Exception e) {
+            log.error("[Habilitar Edição] Erro fatal ao salvar solicitação ID: {}", id, e);
+            throw new AppException("Erro ao salvar alteração de status: " + e.getMessage());
+        }
     }
 
     @Transactional
@@ -909,45 +922,45 @@ public class SolicitacaoCursoService {
         }
     }
 
-    private void validarRequisitosSubmissao(mppb.restapi.cursos.feature.solicitacao.dto.SolicitacaoCursoRequestDto dto) {
+    private void validarRequisitosSubmissao(SolicitacaoCursoRequestDto dto) {
         if ("SUBMETIDO".equalsIgnoreCase(dto.getStatus())) {
             // 1. Localização (Se modalidade física/híbrida)
-            java.util.List<Long> modalidadesComLocal = java.util.Arrays.asList(1L, 3L);
+            java.util.List<Long> modalidadesComLocal = java.util.Arrays.asList(2L, 3L);
             if (modalidadesComLocal.contains(dto.getIdModalidade())) {
                 if (dto.getIdLocalEvento() == null) {
-                    throw new mppb.restapi.common.infrastructure.exception.BusinessRuleException(
+                    throw new BusinessRuleException(
                             "O local do evento é obrigatório para as modalidades Presencial ou Híbrido.");
                 }
 
                 // Verifica se é local externo e se tem descrição
-                mppb.restapi.cursos.feature.lookup.entities.LocalEvento local = localEventoRepository.findById(dto.getIdLocalEvento()).orElse(null);
+                LocalEvento local = localEventoRepository.findById(dto.getIdLocalEvento()).orElse(null);
                 if (local != null && Boolean.TRUE.equals(local.getExterno()) && (dto.getDescricaoLocalExterno() == null || dto.getDescricaoLocalExterno().isBlank())) {
-                    throw new mppb.restapi.common.infrastructure.exception.BusinessRuleException(
+                    throw new BusinessRuleException(
                             "Por favor, especifique o local externo do evento (auditório, hotel, sala, etc).");
                 }
             }
 
             // 2. Órgão Externo
             if (Boolean.TRUE.equals(dto.getTemOrgaoExterno()) && (dto.getNomeOrgaoExterno() == null || dto.getNomeOrgaoExterno().isBlank())) {
-                throw new mppb.restapi.common.infrastructure.exception.BusinessRuleException(
+                throw new BusinessRuleException(
                         "Por favor, informe o nome do órgão externo envolvido.");
             }
 
             // 3. Ministrantes
             if (dto.getMinistrantes() == null || dto.getMinistrantes().isEmpty()) {
-                throw new mppb.restapi.common.infrastructure.exception.BusinessRuleException(
+                throw new BusinessRuleException(
                         "É necessário cadastrar pelo menos um ministrante para enviar a solicitação.");
             }
 
             // 4. Agendas
             if (dto.getAgendas() == null || dto.getAgendas().isEmpty()) {
-                throw new mppb.restapi.common.infrastructure.exception.BusinessRuleException(
+                throw new BusinessRuleException(
                         "É necessário adicionar pelo menos um período de programação para enviar a solicitação.");
             }
 
             // 5. Anexo PDF
             if (dto.getIdArquivoProgramacaoGed() == null) {
-                throw new mppb.restapi.common.infrastructure.exception.BusinessRuleException(
+                throw new BusinessRuleException(
                         "É necessário anexar a programação do evento (PDF) para enviar a solicitação.");
             }
         }

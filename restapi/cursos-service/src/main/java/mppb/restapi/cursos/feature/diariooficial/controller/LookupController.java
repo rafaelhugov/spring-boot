@@ -33,7 +33,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Lookup", description = "Retorna lista de seleção.")
-@PreAuthorize("hasAuthority('cursos.cadastros')")
+@PreAuthorize("hasAuthority('cursos.acesso')")
 // TODO cachear esse controller
 public class LookupController extends AbstractController {
 

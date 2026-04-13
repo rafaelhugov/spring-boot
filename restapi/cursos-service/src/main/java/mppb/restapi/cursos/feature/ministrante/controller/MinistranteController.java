@@ -34,7 +34,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Ministrantes", description = "Gerencia as operações relacionadas a ministrantes")
-@PreAuthorize("hasAuthority('cursos.manter.cursos')")
+@PreAuthorize("hasAnyAuthority('cursos.acesso', 'cursos.manter.cursos')")
 public class MinistranteController extends AbstractController {
 
     private final MinistranteService ministranteService;

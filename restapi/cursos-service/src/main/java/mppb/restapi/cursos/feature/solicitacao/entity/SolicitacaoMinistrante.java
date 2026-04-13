@@ -43,6 +43,12 @@ public class SolicitacaoMinistrante {
     @Column(name = "email", length = 150)
     private String email;
 
+    @Column(name = "contatoinfo", length = 150)
+    private String contatoInfo;
+
+    @Column(name = "resumocurriculo", columnDefinition = "text")
+    private String resumoCurriculo;
+
     @Column(name = "id_foto", nullable = false)
     private Long idFoto;
 

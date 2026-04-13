@@ -129,7 +129,7 @@ public class SolicitacaoCurso {
     @Column(name = "trasladoministrante")
     private Boolean trasladoMinistrante = false;
 
-    @Column(name = "sem_apoio_logistico")
+    @Column(name = "semapoiologistico")
     private Boolean semApoioLogistico = false;
 
     // Financeiro (Ônus para o MPPB)
@@ -142,7 +142,7 @@ public class SolicitacaoCurso {
     @Column(name = "hospedagem")
     private Boolean hospedagem = false;
 
-    @Column(name = "sem_onus_financeiro")
+    @Column(name = "semonusfinanceiro")
     private Boolean semOnusFinanceiro = false;
 
     // Documentação e Notas
