@@ -69,3 +69,9 @@ logging:
     mppb: DEBUG
     org.springframework.cloud.openfeign: DEBUG
     feign: DEBUG
+
+app:
+  manual:
+    frontend-url: ${MANUAL_FRONTEND_URL:https://cursos.mppb.mp.br}
+    system-token: ${MANUAL_SYSTEM_TOKEN:mppb-manual-secret-token-2026}
+    node-engine-path: ${MANUAL_NODE_ENGINE_PATH:/home/rafaelhugo/projetosMPPB/utilidades/pdf-generator/pdf-engine.js}

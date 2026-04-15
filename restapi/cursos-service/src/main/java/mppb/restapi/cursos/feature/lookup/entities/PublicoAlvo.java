@@ -17,6 +17,9 @@ public class PublicoAlvo  extends AbstractEntity<Long> {
     @Column(name = "nome", nullable = false)
     private String nome;
 
+    @Column(name = "internoexterno")
+    private String internoExterno;
+
     public String getDescricao() {
         return nome;
     }

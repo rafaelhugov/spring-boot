@@ -4,26 +4,7 @@
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
 
   <proxies>
-    <proxy>
-      <id>proxy-mppb-http</id>
-      <active>true</active>
-      <protocol>http</protocol>
-      <host>10.128.0.22</host>
-      <port>3128</port>
-      <username>rafael.vasconcelos</username>
-      <password>93Rafael93@</password>
-      <nonProxyHosts>localhost|127.0.0.1|*.mppb.mp.br</nonProxyHosts>
-    </proxy>
-    <proxy>
-      <id>proxy-mppb-https</id>
-      <active>true</active>
-      <protocol>https</protocol>
-      <host>10.128.0.22</host>
-      <port>3128</port>
-      <username>rafael.vasconcelos</username>
-      <password>93Rafael93@</password>
-      <nonProxyHosts>localhost|127.0.0.1|*.mppb.mp.br</nonProxyHosts>
-    </proxy>
+    <!-- Proxy desativado para evitar timeouts no ambiente local -->
   </proxies>
 
 </settings>
