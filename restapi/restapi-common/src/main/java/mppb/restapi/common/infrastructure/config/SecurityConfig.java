@@ -25,6 +25,7 @@ public class SecurityConfig {
     private final String PUBLIC_URLS[] = {
             "/favicon.ico",
             "/" + Constants.API_PREFIX + "/public/**", // Ex: "/api/public/**"
+            "/" + Constants.API_PREFIX + "/manuais/pdf/**", // Permitir download nativo via browser (validação manual)
             "/swagger-ui/index.html", "/swagger-ui.html", "/swagger-ui/**",
             "/v3/api-docs",
     };
