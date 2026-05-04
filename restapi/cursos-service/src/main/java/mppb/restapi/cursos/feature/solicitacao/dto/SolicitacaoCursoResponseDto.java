@@ -16,10 +16,13 @@ public class SolicitacaoCursoResponseDto {
     // Status e Integração
     private String statusDescricao;
     private String numeroPgaMpVirtual;
+    private Long idPgaMpVirtual;
     private UUID uuidReferencia;
+    private Long idMinuta;
 
     /**
-     * Payload enviado ao MPVirtual (apenas preenchido no momento do protocolo para fins de log/exibição)
+     * Payload enviado ao MPVirtual (apenas preenchido no momento do protocolo para
+     * fins de log/exibição)
      */
     private Object mpVirtualPayload;
 
@@ -41,10 +44,11 @@ public class SolicitacaoCursoResponseDto {
     private List<String> publicosAlvoDescricao;
 
     private Long idLocalEvento;
+    private String localEventoDescricao;
     private String descricaoLocalExterno;
 
-    private Boolean identificacaoOrgaoMembros;
-    private String especificacaoOrgaoMembros;
+    private Boolean temOrgaoExterno;
+    private String nomeOrgaoExterno;
 
     // Apoio Logístico
     private Boolean cardDivulgacao;
@@ -54,11 +58,13 @@ public class SolicitacaoCursoResponseDto {
     private Boolean kitParticipante;
     private Boolean programacaoImpressa;
     private Boolean trasladoMinistrante;
+    private Boolean semApoioLogistico;
 
     // Financeiro
     private Boolean pagamentoHonorario;
     private Boolean passagemAerea;
     private Boolean hospedagem;
+    private Boolean semOnusFinanceiro;
 
     // Documentação
     private String observacoesGerais;

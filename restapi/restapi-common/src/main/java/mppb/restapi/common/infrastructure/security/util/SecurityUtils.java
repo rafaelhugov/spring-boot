@@ -33,6 +33,21 @@ public class SecurityUtils {
         if (authentication instanceof TokenAuthentication) {
             return Optional.of((TokenAuthentication) authentication);
         }
+
+        // Caso especial para modo insecure onde o Spring usa o token padrão
+        if (authentication instanceof org.springframework.security.authentication.UsernamePasswordAuthenticationToken) {
+            org.springframework.security.authentication.UsernamePasswordAuthenticationToken upas = (org.springframework.security.authentication.UsernamePasswordAuthenticationToken) authentication;
+            String login = upas.getName();
+
+            // Mapeia para o DTO esperado pelo sistema
+            mppb.restapi.common.infrastructure.client.authapi.dto.UsuarioAutorizadoResponseDto mockUser =
+                    new mppb.restapi.common.infrastructure.client.authapi.dto.UsuarioAutorizadoResponseDto(null, login, login);
+
+            // Cria um TokenAuthentication sintético para compatibilidade
+            TokenAuthentication syntheticResult = new TokenAuthentication(null, mockUser, null, upas.getCredentials(), upas.getAuthorities());
+            return Optional.of(syntheticResult);
+        }
+
         return Optional.empty();
     }
 

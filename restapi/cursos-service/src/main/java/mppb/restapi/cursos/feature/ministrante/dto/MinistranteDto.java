@@ -17,7 +17,7 @@ import mppb.restapi.cursos.feature.ministrante.enums.TipoMinistranteEnum;
 public class MinistranteDto {
 
     @JsonView(MinistranteView.Listagem.class)
-    @NotNull(groups = {Update.class})
+    @NotNull(groups = { Update.class })
     @Null(groups = Create.class)
     private Long id;
 
@@ -47,4 +47,16 @@ public class MinistranteDto {
     // Campo transient, populado pela service para ministrantes internos.
     @JsonView(MinistranteView.Listagem.class)
     private String cargo;
+
+    @JsonView(MinistranteView.Listagem.class)
+    private String email;
+
+    @JsonView(MinistranteView.Listagem.class)
+    private String telefone;
+
+    @JsonView(MinistranteView.Listagem.class)
+    private Long idFoto;
+
+    @JsonView(MinistranteView.Listagem.class)
+    private Long idCurriculo;
 }

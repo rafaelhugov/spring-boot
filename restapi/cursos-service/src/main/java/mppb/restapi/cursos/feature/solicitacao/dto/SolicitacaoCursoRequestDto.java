@@ -27,8 +27,8 @@ public class SolicitacaoCursoRequestDto {
     @NotNull(message = "O público-alvo é obrigatório")
     private List<Long> idsPublicoAlvo;
 
-    private Boolean identificacaoOrgaoMembros;
-    private String especificacaoOrgaoMembros;
+    private Boolean temOrgaoExterno;
+    private String nomeOrgaoExterno;
 
     // Modalidade e Localização
     // Modalidade, Localização e Tipo de Evento
@@ -51,11 +51,13 @@ public class SolicitacaoCursoRequestDto {
     private Boolean kitParticipante = false;
     private Boolean programacaoImpressa = false;
     private Boolean trasladoMinistrante = false;
+    private Boolean semApoioLogistico = false;
 
     // Financeiro
     private Boolean pagamentoHonorario = false;
     private Boolean passagemAerea = false;
     private Boolean hospedagem = false;
+    private Boolean semOnusFinanceiro = false;
 
     // Documentação e Notas
     private String observacoesGerais;
@@ -69,6 +71,7 @@ public class SolicitacaoCursoRequestDto {
     private List<MinistranteRequestDto> ministrantes;
 
     private String status; // RASCUNHO | SUBMETIDO
+    private Long idMinuta;
 
     @Data
     public static class AgendaRequestDto {
@@ -103,7 +106,10 @@ public class SolicitacaoCursoRequestDto {
         private String telefone;
         private String cpf;
         private String email;
+
+        @NotNull(message = "A foto do ministrante é obrigatória")
         private Long idFoto;
+        @NotNull(message = "O currículo do ministrante é obrigatório")
         private Long idCurriculo;
     }
 }

@@ -62,28 +62,47 @@ public class MinistranteService extends AbstractService<Ministrante, Long> {
     }
 
     public Ministrante findOrCreateMinistrante(AssociarMinistranteDto dto) {
+
+        Ministrante ministrante;
+
         if ("INTERNO".equals(dto.getTipo())) {
             if (dto.getIdServidor() == null) {
                 throw new BusinessRuleException("O ID do servidor é obrigatório para ministrantes internos.");
             }
-            return ministranteRepository.findByIdServidor(dto.getIdServidor())
-                    .orElseGet(() -> createAndSaveInternal(dto.getIdServidor()));
+            ministrante = ministranteRepository.findByIdServidor(dto.getIdServidor())
+                    .orElseGet(() -> buildInternal(dto.getIdServidor()));
 
         } else if ("EXTERNO".equals(dto.getTipo())) {
             String cleanCpf = dto.getCpf() != null ? dto.getCpf().replaceAll("\\D", "") : null;
             if (dto.getMinistranteId() != null) {
-                return ministranteRepository.findById(dto.getMinistranteId())
+                ministrante = ministranteRepository.findById(dto.getMinistranteId())
                         .orElseThrow(() -> new NotFoundException(
                                 "Ministrante externo não encontrado: " + dto.getMinistranteId()));
             } else if (cleanCpf != null) {
-                return ministranteRepository.findByCpf(cleanCpf)
-                        .orElseGet(() -> createAndSaveExternal(dto));
+                ministrante = ministranteRepository.findByCpf(cleanCpf)
+                        .orElseGet(() -> buildExternal(dto));
             } else {
-                return createAndSaveExternal(dto);
+                ministrante = buildExternal(dto);
             }
         } else {
             throw new BusinessRuleException("Tipo de ministrante inválido: " + dto.getTipo());
         }
+
+        if (dto.getIdFoto() != null) {
+            ministrante.setIdFoto(dto.getIdFoto());
+        }
+        if (dto.getIdCurriculo() != null) {
+            ministrante.setIdCurriculo(dto.getIdCurriculo());
+        }
+
+        if (dto.getEmail() != null) {
+            ministrante.setEmail(dto.getEmail());
+        }
+        if (dto.getTelefone() != null) {
+            ministrante.setTelefone(dto.getTelefone());
+        }
+
+        return ministranteRepository.save(ministrante);
     }
 
     @Transactional(readOnly = true)
@@ -106,36 +125,31 @@ public class MinistranteService extends AbstractService<Ministrante, Long> {
         return dto;
     }
 
-    private Ministrante createAndSaveInternal(Integer idServidor) {
+
+    private Ministrante buildInternal(Integer idServidor) {
         if (ministranteRepository.existsByIdServidor(idServidor)) {
             throw new BusinessRuleException("Já existe um ministrante cadastrado para este servidor.");
         }
         Ministrante ministrante = new Ministrante();
         ministrante.setIdServidor(idServidor);
         ministrante.setTipo(TipoMinistranteEnum.INTERNO);
-        return repository.save(ministrante);
+        return ministrante;
     }
 
-    private Ministrante createAndSaveExternal(AssociarMinistranteDto dto) {
+
+    private Ministrante buildExternal(AssociarMinistranteDto dto) {
         String cleanCpf = dto.getCpf() != null ? dto.getCpf().replaceAll("\\D", "") : null;
         if (cleanCpf == null || cleanCpf.isBlank()) {
             throw new BusinessRuleException("O CPF é obrigatório para ministrantes externos.");
         }
-        // Se já existe um ministrante com este CPF, retorna o existente em vez de
-        // falhar.
-        // Isso é o comportamento correto ao reutilizar um ministrante de uma
-        // solicitação anterior.
-        Optional<Ministrante> existente = ministranteRepository.findByCpf(cleanCpf);
-        if (existente.isPresent()) {
-            log.info("Ministrante externo com CPF {} já existe. Reutilizando.", cleanCpf);
-            return existente.get();
-        }
+        // A busca por CPF já foi feita no findOrCreateMinistrante via orElseGet,
+        // portanto chegando aqui o CPF definitivamente não existe ainda.
         Ministrante ministrante = new Ministrante();
         ministrante.setNome(dto.getNome() != null ? dto.getNome().toUpperCase() : null);
         ministrante.setCpf(cleanCpf);
         ministrante.setNomeOrgaoExterno(dto.getNomeOrgaoExterno());
         ministrante.setTipo(TipoMinistranteEnum.EXTERNO);
-        return repository.save(ministrante);
+        return ministrante;
     }
 
     private MinistranteSearchResultDto convertServidorToSearchResult(ServidorProjection servidor) {
@@ -158,6 +172,8 @@ public class MinistranteService extends AbstractService<Ministrante, Long> {
                 .cpf(ministrante.getCpf())
                 .nomeOrgaoExterno(ministrante.getNomeOrgaoExterno())
                 .tipo("EXTERNO")
+                .idFoto(ministrante.getIdFoto())
+                .idCurriculo(ministrante.getIdCurriculo())
                 .build();
     }
 }

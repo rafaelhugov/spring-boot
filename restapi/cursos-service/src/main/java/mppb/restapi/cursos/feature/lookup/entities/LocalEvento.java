@@ -8,13 +8,16 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "local_evento", schema = "curso")
+@Table(name = "localevento", schema = "curso")
 @Getter
 @Setter
 public class LocalEvento {
     @Id
     private Long id;
 
-    @Column(nullable = false, length = 150)
-    private String descricao;
+    @Column(name = "descricao", nullable = false, length = 255)
+    private String nome;
+
+    @Column(name = "externo")
+    private Boolean externo = false;
 }

@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "solicitacao_agenda", schema = "curso")
+@Table(name = "solicitacaoagenda", schema = "curso")
 @Getter
 @Setter
 public class SolicitacaoAgenda {
@@ -21,15 +21,15 @@ public class SolicitacaoAgenda {
     @JoinColumn(name = "id_solicitacao", nullable = false)
     private SolicitacaoCurso solicitacao;
 
-    @Column(name = "data_inicio", nullable = false)
+    @Column(name = "datainicio", nullable = false)
     private LocalDate dataInicio;
 
-    @Column(name = "data_fim", nullable = false)
+    @Column(name = "datafim", nullable = false)
     private LocalDate dataFim;
 
-    @Column(name = "horario_inicio", nullable = false)
+    @Column(name = "horarioinicio", nullable = false)
     private LocalTime horarioInicio;
 
-    @Column(name = "horario_fim", nullable = false)
+    @Column(name = "horariofim", nullable = false)
     private LocalTime horarioFim;
 }

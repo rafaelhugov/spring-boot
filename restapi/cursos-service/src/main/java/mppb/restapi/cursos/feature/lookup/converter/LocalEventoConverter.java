@@ -10,15 +10,5 @@ import org.springframework.stereotype.Component;
 public class LocalEventoConverter extends EntityConverterImpl<LocalEventoDto, LocalEvento> {
     public LocalEventoConverter(ModelMapper modelMapper) {
         super(modelMapper);
-
-        // Custom mapping: Entity.descricao -> DTO.nomeLocal
-        modelMapper.typeMap(LocalEvento.class, LocalEventoDto.class).addMappings(mapper -> {
-            mapper.map(LocalEvento::getDescricao, LocalEventoDto::setNomeLocal);
-        });
-
-        // Custom mapping: DTO.nomeLocal -> Entity.descricao
-        modelMapper.typeMap(LocalEventoDto.class, LocalEvento.class).addMappings(mapper -> {
-            mapper.map(LocalEventoDto::getNomeLocal, LocalEvento::setDescricao);
-        });
     }
 }

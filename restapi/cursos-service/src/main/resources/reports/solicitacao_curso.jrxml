@@ -2,13 +2,14 @@
 <!-- Created with Jaspersoft Studio version 7.0.2.final using JasperReports Library version 7.0.2-31532122640f516c6d17238ae0e41a08113d5ac0  -->
 <jasperReport name="solicitacao_curso" language="java" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="7a76067b-1200-410a-8bf8-2a146747530c">
 	<parameter name="LOGO_MPPB" class="java.lang.Object"/>
+	<parameter name="TITULO_DOCUMENTO" class="java.lang.String"/>
 	<parameter name="NOME_INTERESSADO" class="java.lang.String"/>
 	<parameter name="NOME_EVENTO" class="java.lang.String"/>
 	<parameter name="ESTIMATIVA_PARTICIPANTES" class="java.lang.Integer"/>
 	<parameter name="MODALIDADE" class="java.lang.String"/>
 	<parameter name="PUBLICO_ALVO" class="java.lang.String"/>
-	<parameter name="IDENTIFICA_ORGAO" class="java.lang.String"/>
-	<parameter name="ESPECIFICA_ORGAO" class="java.lang.String"/>
+	<parameter name="TEM_ORGAO_EXTERNO" class="java.lang.String"/>
+	<parameter name="NOME_ORGAO_EXTERNO" class="java.lang.String"/>
 	<parameter name="LOCAL_EVENTO" class="java.lang.String"/>
 	<parameter name="APOIO_LOGISTICO" class="java.lang.String"/>
 	<parameter name="FINANCEIRO" class="java.lang.String"/>
@@ -27,7 +28,7 @@
 			<expression><![CDATA["CENTRO DE ESTUDOS E APERFEIÇOAMENTO FUNCIONAL - CEAF"]]></expression>
 		</element>
 		<element kind="textField" uuid="e0ce9a0f-5683-43ca-9382-728ad7434fa7" x="80" y="40" width="475" height="20" fontSize="11.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
-			<expression><![CDATA["FORMULÁRIO DE SOLICITAÇÃO DE CURSO/EVENTO"]]></expression>
+			<expression><![CDATA[$P{TITULO_DOCUMENTO}]]></expression>
 		</element>
 		<element kind="line" uuid="88ac7694-5ef9-40de-926f-42e616f9a941" x="0" y="80" width="555" height="1"/>
 		<element kind="textField" uuid="f05b1c93-02f5-4674-884b-017e47768b9f" x="0" y="90" width="555" height="20" bold="true" vTextAlign="Middle">

@@ -11,7 +11,7 @@ import org.hibernate.annotations.SQLRestriction;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "entidadetutora", schema = Esquemas.SCHEMA_CURSOS) // Nome da tabela atualizado
+@Table(name = "entidadetutora", schema = "curso")
 @Builder
 @SQLRestriction("dataexclusao IS NULL")
 public class EntidadeTutora  extends AuditableEntity<Long> {

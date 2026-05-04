@@ -2,46 +2,41 @@ package mppb.restapi.cursos.feature.solicitacao.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
 import mppb.restapi.common.core.error.AppException;
 import mppb.restapi.common.core.error.BusinessRuleException;
 import mppb.restapi.common.core.error.NotFoundException;
 import mppb.restapi.common.infrastructure.client.mpvirtual.dto.MPVirtualMetadataDto;
 import mppb.restapi.common.infrastructure.client.mpvirtual.dto.MPVirtualProcessoResponseDto;
+import mppb.restapi.common.infrastructure.security.util.SecurityUtils;
 import mppb.restapi.common.infrastructure.service.mpvirtual.MPVirtualIntegrationService;
-import mppb.restapi.cursos.feature.lookup.entities.LocalEvento;
-import mppb.restapi.cursos.feature.lookup.entities.Modalidade;
-import mppb.restapi.cursos.feature.lookup.entities.PublicoAlvo;
-import mppb.restapi.cursos.feature.lookup.entities.TipoEvento;
-import mppb.restapi.cursos.feature.lookup.repository.LocalEventoRepository;
-import mppb.restapi.cursos.feature.lookup.repository.ModalidadeRepository;
-import mppb.restapi.cursos.feature.lookup.repository.PublicoAlvoRepository;
-import mppb.restapi.cursos.feature.lookup.repository.TipoEventoRepository;
-import mppb.restapi.cursos.feature.lookup.entities.PapelMinistrante;
-import mppb.restapi.cursos.feature.lookup.entities.StatusTramitacao;
-import mppb.restapi.cursos.feature.lookup.repository.PapelMinistranteRepository;
-import mppb.restapi.cursos.feature.lookup.repository.StatusTramitacaoRepository;
-import mppb.restapi.cursos.feature.cadastro.repository.EntidadeTutoraRepository;
 import mppb.restapi.cursos.feature.cadastro.entities.EntidadeTutora;
+import mppb.restapi.cursos.feature.cadastro.repository.EntidadeTutoraRepository;
+import mppb.restapi.cursos.feature.common.repository.ServidorRepository;
+import mppb.restapi.cursos.feature.curso.dto.AssociarMinistranteDto;
+import mppb.restapi.cursos.feature.curso.entity.Curso;
+import mppb.restapi.cursos.feature.curso.service.CursoService;
+import mppb.restapi.cursos.feature.lookup.entities.*;
+import mppb.restapi.cursos.feature.lookup.repository.*;
+import mppb.restapi.cursos.feature.ministrante.repository.MinistranteRepository;
 import mppb.restapi.cursos.feature.solicitacao.dto.SolicitacaoCursoRequestDto;
 import mppb.restapi.cursos.feature.solicitacao.dto.SolicitacaoCursoResponseDto;
-import org.springframework.util.StringUtils;
 import mppb.restapi.cursos.feature.solicitacao.entity.SolicitacaoAgenda;
 import mppb.restapi.cursos.feature.solicitacao.entity.SolicitacaoCurso;
 import mppb.restapi.cursos.feature.solicitacao.entity.SolicitacaoMinistrante;
 import mppb.restapi.cursos.feature.solicitacao.repository.SolicitacaoCursoRepository;
-import mppb.restapi.cursos.feature.curso.service.CursoService;
-import mppb.restapi.cursos.feature.curso.entity.Curso;
-import mppb.restapi.cursos.feature.curso.dto.AssociarMinistranteDto;
-import mppb.restapi.common.infrastructure.security.util.SecurityUtils;
-import mppb.restapi.cursos.feature.common.repository.ServidorRepository;
+import mppb.restapi.cursos.feature.solicitacao.specification.SolicitacaoCursoSpecification;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.Collections;
-import java.util.List;
+import org.springframework.util.StringUtils;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -51,6 +46,7 @@ public class SolicitacaoCursoService {
     private final SolicitacaoCursoRepository solicitacaoRepository;
     private final SolicitacaoReportService reportService;
     private final MPVirtualIntegrationService mpVirtualService;
+    private final SolicitacaoCursoSpecification solicitacaoSpecification;
 
     // Lookups
     private final ModalidadeRepository modalidadeRepository;
@@ -59,7 +55,7 @@ public class SolicitacaoCursoService {
     private final TipoEventoRepository tipoEventoRepository;
     private final StatusTramitacaoRepository statusTramitacaoRepository;
     private final PapelMinistranteRepository papelMinistranteRepository;
-    private final mppb.restapi.cursos.feature.ministrante.repository.MinistranteRepository ministranteRepository;
+    private final MinistranteRepository ministranteRepositoryRef;
     private final CursoService cursoService;
     private final ServidorRepository servidorRepository;
     private final EntidadeTutoraRepository entidadeTutoraRepository;
@@ -67,7 +63,8 @@ public class SolicitacaoCursoService {
     /**
      * Fluxo de criação de solicitação:
      * 1. Salva entidade com status INICIAL ou SUBMETIDO.
-     * 2. O protocolo no MPVirtual NÃO ocorre aqui, deve ser disparado manualmente pelo CEAF.
+     * 2. O protocolo no MPVirtual NÃO ocorre aqui, deve ser disparado manualmente
+     * pelo CEAF.
      * 
      * @param dto Os dados da solicitação preenchidos pelo usuário
      */
@@ -85,10 +82,14 @@ public class SolicitacaoCursoService {
         Long idLogado = getIdServidorLogado();
         if (idLogado != null) {
             solicitacao.setIdServidorInteressado(idLogado);
+            servidorRepository.buscarServidorPorId(idLogado.intValue()).ifPresent(servidor -> {
+                solicitacao.setNomeSolicitante(servidor.getNome());
+            });
         }
         solicitacao.setIdOrgaoInteressado(1L); // Mock ou extrair do token se disponível
 
         // Se for RASCUNHO, usamos status 1. Se SUBMETIDO, usamos 2 (Em Análise)
+        validarRequisitosSubmissao(dto);
         Long idStatus = "SUBMETIDO".equalsIgnoreCase(dto.getStatus()) ? 2L : 1L;
 
         StatusTramitacao status = statusTramitacaoRepository.findById(idStatus)
@@ -101,26 +102,29 @@ public class SolicitacaoCursoService {
         return mapToResponseDto(solicitacaoSalva);
     }
 
-    private MPVirtualMetadataDto gerarEEnviarParaMpVirtual(SolicitacaoCurso solicitacaoSalva) {
+    private MPVirtualProcessoResponseDto gerarEEnviarParaMpVirtual(SolicitacaoCurso solicitacaoSalva) {
         // 2. Gerar PDF do PGA
         byte[] pdfGerado = reportService.gerarPdfSolicitacao(solicitacaoSalva);
 
         // 3. Enviar para o MPVirtual
         try {
-            // O requerente e o interessado no MPVirtual deve ser o usuário que solicitou o curso inicialmente
+            // O requerente e o interessado no MPVirtual deve ser o usuário que solicitou o
+            // curso inicialmente
             Integer idPessoaRequestor = null;
             Long idServidor = solicitacaoSalva.getIdServidorInteressado();
-            
+
             if (idServidor != null) {
                 idPessoaRequestor = servidorRepository.buscarServidorPorId(idServidor.intValue())
                         .map(mppb.restapi.cursos.feature.common.projection.ServidorProjection::getIdPessoa)
                         .orElse(null);
             }
 
-            // Fallback para usuário mock se não for possível identificar o servidor (apenas para ambiente de desenvolvimento)
+            // Fallback removido. Deve-se garantir que o servidor interessado tenha um
+            // idPessoa no cadastro de pessoal.
             if (idPessoaRequestor == null) {
-                idPessoaRequestor = 237; 
-                log.warn("Pessoa interessada não identificada para o servidor {}. Usando fallback 237.", idServidor);
+                throw new BusinessRuleException(
+                        "Não foi possível identificar o ID da Pessoa Física para o servidor interessado (ID: "
+                                + idServidor + "). Por favor, verifique o cadastro do servidor.");
             }
 
             // A responsabilidade de tramitação agora é do CEAF (ID 16)
@@ -135,18 +139,20 @@ public class SolicitacaoCursoService {
 
             MPVirtualProcessoResponseDto integracaoResponse = result.response();
 
-            // 4. Recebido o número do processo, atualiza e muda o status para PROTOCOLADO (7)
+            // 4. Recebido o número do processo, atualiza e muda o status para PROTOCOLADO
             if (integracaoResponse != null && integracaoResponse.getNumeroProcesso() != null) {
                 solicitacaoSalva.setNumeroPgaMpVirtual(integracaoResponse.getNumeroProcesso());
-                statusTramitacaoRepository.findById(7L).ifPresent(solicitacaoSalva::setStatus);
-                
+                solicitacaoSalva.setIdPgaMpVirtual(integracaoResponse.getIdProcesso());
+                statusTramitacaoRepository.findById(3L).ifPresent(solicitacaoSalva::setStatus);
+
                 solicitacaoRepository.save(solicitacaoSalva);
-                log.info("Solicitação {} protocolada no MPVirtual com número {}", solicitacaoSalva.getId(), integracaoResponse.getNumeroProcesso());
+                log.info("Solicitação {} protocolada no MPVirtual com número {}", solicitacaoSalva.getId(),
+                        integracaoResponse.getNumeroProcesso());
             } else {
                 throw new AppException("A API do MPVirtual não retornou um número de processo válido.");
             }
 
-            return result.metadata();
+            return integracaoResponse;
         } catch (Exception e) {
             log.error("Erro no fluxo do MPVirtual.", e);
             throw new AppException(e, "Erro ao abrir processo no MPVirtual: " + e.getMessage());
@@ -154,29 +160,32 @@ public class SolicitacaoCursoService {
     }
 
     private SolicitacaoCurso mapToEntity(SolicitacaoCursoRequestDto dto) {
+
         SolicitacaoCurso solicitacao = new SolicitacaoCurso();
 
         solicitacao.setNomeCurso(dto.getNomeCurso());
         solicitacao.setEstimativaParticipantes(dto.getEstimativaParticipantes());
 
-        // Identificação - Removido Mock fixo para ser setado no service principal
-        // solicitacao.setIdServidorInteressado(64601L);
-        // solicitacao.setIdOrgaoInteressado(1L);
-
         // Lookups
-        Modalidade modalidade = modalidadeRepository.findById(dto.getIdModalidade())
-                .orElseThrow(() -> new NotFoundException("Modalidade não encontrada"));
-        solicitacao.setModalidade(modalidade);
-
-        TipoEvento tipoEvento = tipoEventoRepository.findById(dto.getIdTipoEvento())
-                .orElseThrow(() -> new NotFoundException("Tipo de Evento não encontrado"));
-        solicitacao.setTipoEvento(tipoEvento);
-
-        List<PublicoAlvo> publicosAlvo = publicoAlvoRepository.findAllById(dto.getIdsPublicoAlvo());
-        if (publicosAlvo.isEmpty() && dto.getIdsPublicoAlvo() != null && !dto.getIdsPublicoAlvo().isEmpty()) {
-            throw new NotFoundException("Nenhum público-alvo encontrado para os IDs fornecidos");
+        if (dto.getIdModalidade() != null) {
+            Modalidade modalidade = modalidadeRepository.findById(dto.getIdModalidade())
+                    .orElseThrow(() -> new NotFoundException("Modalidade não encontrada"));
+            solicitacao.setModalidade(modalidade);
         }
-        solicitacao.setPublicosAlvo(publicosAlvo);
+
+        if (dto.getIdTipoEvento() != null) {
+            TipoEvento tipoEvento = tipoEventoRepository.findById(dto.getIdTipoEvento())
+                    .orElseThrow(() -> new NotFoundException("Tipo de Evento não encontrado"));
+            solicitacao.setTipoEvento(tipoEvento);
+        }
+
+        if (dto.getIdsPublicoAlvo() != null && !dto.getIdsPublicoAlvo().isEmpty()) {
+            List<PublicoAlvo> publicosAlvo = publicoAlvoRepository.findAllById(dto.getIdsPublicoAlvo());
+            if (publicosAlvo.isEmpty()) {
+                throw new NotFoundException("Nenhum público-alvo encontrado para os IDs fornecidos");
+            }
+            solicitacao.setPublicosAlvo(publicosAlvo);
+        }
 
         if (dto.getIdLocalEvento() != null) {
             LocalEvento local = localEventoRepository.findById(dto.getIdLocalEvento())
@@ -191,8 +200,8 @@ public class SolicitacaoCursoService {
         }
 
         solicitacao.setDescricaoLocalExterno(dto.getDescricaoLocalExterno());
-        solicitacao.setIdentificacaoOrgaoMembros(dto.getIdentificacaoOrgaoMembros());
-        solicitacao.setEspecificacaoOrgaoMembros(dto.getEspecificacaoOrgaoMembros());
+        solicitacao.setTemOrgaoExterno(dto.getTemOrgaoExterno());
+        solicitacao.setNomeOrgaoExterno(dto.getNomeOrgaoExterno());
 
         // Apoio Logístico
         solicitacao.setCardDivulgacao(dto.getCardDivulgacao());
@@ -202,11 +211,13 @@ public class SolicitacaoCursoService {
         solicitacao.setKitParticipante(dto.getKitParticipante());
         solicitacao.setProgramacaoImpressa(dto.getProgramacaoImpressa());
         solicitacao.setTrasladoMinistrante(dto.getTrasladoMinistrante());
+        solicitacao.setSemApoioLogistico(dto.getSemApoioLogistico());
 
         // Financeiro
         solicitacao.setPagamentoHonorario(dto.getPagamentoHonorario());
         solicitacao.setPassagemAerea(dto.getPassagemAerea());
         solicitacao.setHospedagem(dto.getHospedagem());
+        solicitacao.setSemOnusFinanceiro(dto.getSemOnusFinanceiro());
 
         solicitacao.setObservacoesGerais(dto.getObservacoesGerais());
         solicitacao.setIdArquivoProgramacaoGed(dto.getIdArquivoProgramacaoGed());
@@ -237,7 +248,7 @@ public class SolicitacaoCursoService {
                 ministrante.setIdFoto(minDto.getIdFoto());
 
                 if (minDto.getMinistranteId() != null) {
-                    ministranteRepository.findById(minDto.getMinistranteId())
+                    ministranteRepositoryRef.findById(minDto.getMinistranteId())
                             .ifPresent(ministrante::setMinistrante);
                 }
 
@@ -260,16 +271,14 @@ public class SolicitacaoCursoService {
         dto.setNomeCurso(entity.getNomeCurso());
         dto.setEstimativaParticipantes(entity.getEstimativaParticipantes());
 
-        if (entity.getIdServidorInteressado() != null) {
+        if (entity.getNomeSolicitante() != null) {
+            dto.setNomeSolicitante(entity.getNomeSolicitante());
+        } else if (entity.getIdServidorInteressado() != null) {
             servidorRepository.buscarServidorPorId(entity.getIdServidorInteressado().intValue())
                     .ifPresentOrElse(
                             servidor -> dto.setNomeSolicitante(servidor.getNome()),
                             () -> {
-                                if (Long.valueOf(998L).equals(entity.getIdServidorInteressado())) {
-                                    dto.setNomeSolicitante("Solicitante de Teste");
-                                } else if (Long.valueOf(999L).equals(entity.getIdServidorInteressado())) {
-                                    dto.setNomeSolicitante("Administrador de Teste");
-                                }
+                                dto.setNomeSolicitante("Solicitante não identificado");
                             });
         }
 
@@ -286,10 +295,11 @@ public class SolicitacaoCursoService {
         }
         if (entity.getPublicosAlvo() != null && !entity.getPublicosAlvo().isEmpty()) {
             dto.setIdsPublicoAlvo(entity.getPublicosAlvo().stream().map(PublicoAlvo::getId).toList());
-            dto.setPublicosAlvoDescricao(entity.getPublicosAlvo().stream().map(PublicoAlvo::getNome).toList());
+            dto.setPublicosAlvoDescricao(entity.getPublicosAlvo().stream().map(PublicoAlvo::getDescricao).toList());
         }
         if (entity.getLocalEvento() != null) {
             dto.setIdLocalEvento(entity.getLocalEvento().getId());
+            dto.setLocalEventoDescricao(entity.getLocalEvento().getNome());
         }
 
         if (entity.getEntidadeTutora() != null) {
@@ -299,8 +309,8 @@ public class SolicitacaoCursoService {
 
         // Campos de texto e booleanos
         dto.setDescricaoLocalExterno(entity.getDescricaoLocalExterno());
-        dto.setIdentificacaoOrgaoMembros(entity.getIdentificacaoOrgaoMembros());
-        dto.setEspecificacaoOrgaoMembros(entity.getEspecificacaoOrgaoMembros());
+        dto.setTemOrgaoExterno(entity.getTemOrgaoExterno());
+        dto.setNomeOrgaoExterno(entity.getNomeOrgaoExterno());
         dto.setCardDivulgacao(entity.getCardDivulgacao());
         dto.setComunicacaoImprensa(entity.getComunicacaoImprensa());
         dto.setOficioConvite(entity.getOficioConvite());
@@ -308,9 +318,11 @@ public class SolicitacaoCursoService {
         dto.setKitParticipante(entity.getKitParticipante());
         dto.setProgramacaoImpressa(entity.getProgramacaoImpressa());
         dto.setTrasladoMinistrante(entity.getTrasladoMinistrante());
+        dto.setSemApoioLogistico(entity.getSemApoioLogistico());
         dto.setPagamentoHonorario(entity.getPagamentoHonorario());
         dto.setPassagemAerea(entity.getPassagemAerea());
         dto.setHospedagem(entity.getHospedagem());
+        dto.setSemOnusFinanceiro(entity.getSemOnusFinanceiro());
         dto.setObservacoesGerais(entity.getObservacoesGerais());
         dto.setIdArquivoProgramacaoGed(entity.getIdArquivoProgramacaoGed());
 
@@ -348,6 +360,8 @@ public class SolicitacaoCursoService {
         }
 
         dto.setIdCursoGerado(entity.getIdCursoGerado());
+        dto.setIdPgaMpVirtual(entity.getIdPgaMpVirtual());
+        dto.setIdMinuta(entity.getIdMinuta());
         dto.setDataCriacao(entity.getDataCriacao());
         dto.setDataModificacao(entity.getDataModificacao());
 
@@ -355,7 +369,7 @@ public class SolicitacaoCursoService {
     }
 
     public SolicitacaoCursoResponseDto buscarPorId(Long id) {
-        SolicitacaoCurso solicitacao = solicitacaoRepository.findById(id)
+        SolicitacaoCurso solicitacao = solicitacaoRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new NotFoundException("Solicitação não encontrada"));
 
         validarPropriedadeOuAdmin(solicitacao);
@@ -363,49 +377,46 @@ public class SolicitacaoCursoService {
         return mapToResponseDto(solicitacao);
     }
 
-    public java.util.List<SolicitacaoCursoResponseDto> listarTodas() {
+    public Page<SolicitacaoCursoResponseDto> buscarPaginado(String search, Long statusId, Long minStatusId,
+            Pageable pageable) {
         boolean isAdmin = SecurityUtils.getAuthenticationToken()
                 .map(auth -> auth.getAuthorities().stream()
                         .anyMatch(a -> a.getAuthority().equals("cursos.analisar.solicitacoes") ||
                                 a.getAuthority().equals("cursos.manter.cursos")))
                 .orElse(false);
 
-        if (isAdmin) {
-            // Admin vê todas as SUBMETIDAS ou em análise (não vê RASCUNHOS)
-            return solicitacaoRepository.findAll().stream()
-                    .filter(s -> {
-                        if (s.getStatus() == null)
-                            return false;
-                        String desc = s.getStatus().getDescricao();
-                        return s.getStatus().getId() >= 2 &&
-                                (desc == null || !desc.equalsIgnoreCase("RASCUNHO"));
-                    })
-                    .map(this::mapToResponseDto)
-                    .toList();
-        } else {
-            // Usuário normal vê apenas as suas
-            Long usuarioId = getIdServidorLogado();
+        Long usuarioId = getIdServidorLogado();
 
-            if (usuarioId == null)
-                return Collections.emptyList();
-
-            return solicitacaoRepository.findAll().stream()
-                    .filter(s -> usuarioId.equals(s.getIdServidorInteressado()))
-                    .map(this::mapToResponseDto)
-                    .toList();
+        if (!isAdmin && usuarioId == null) {
+            return Page.empty(pageable);
         }
+
+        Specification<SolicitacaoCurso> spec = solicitacaoSpecification.comFiltros(search, statusId, minStatusId,
+                usuarioId, isAdmin);
+
+        return solicitacaoRepository.findAll(spec, pageable).map(this::mapToResponseDto);
+    }
+
+    public java.util.List<SolicitacaoCursoResponseDto> listarTodas() {
+        // Método legado, pode ser removido após transição completa do frontend
+        return solicitacaoRepository.findAll().stream()
+                .map(this::mapToResponseDto)
+                .collect(Collectors.toList());
     }
 
     @Transactional
     public SolicitacaoCursoResponseDto atualizar(Long id, SolicitacaoCursoRequestDto dto) {
+
         SolicitacaoCurso solicitacao = solicitacaoRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Solicitação não encontrada"));
 
         validarPropriedadeOuAdmin(solicitacao);
 
-        // Se já foi submetida, não permitir edição (regrade negócio)
-        if (solicitacao.getNumeroPgaMpVirtual() != null) {
-            throw new AppException("Solicitação já submetida ao MPVirtual não pode ser editada.");
+        // A edição só é permitida se for RASCUNHO (1) ou DEVOLVIDO PARA AJUSTE (7)
+        Long currentStatus = solicitacao.getStatus() != null ? solicitacao.getStatus().getId() : 1L;
+        if (currentStatus != 1L && currentStatus != 7L) {
+            throw new AppException(
+                    "Solicitação no status atual não pode ser editada. O CEAF precisa Habilitar a Edição.");
         }
 
         // Limpar filhos para re-inserção (simplificação do mapeamento)
@@ -418,8 +429,10 @@ public class SolicitacaoCursoService {
 
         // Se mudou para SUBMETIDO, apenas salva com o novo status
         if ("SUBMETIDO".equalsIgnoreCase(dto.getStatus())) {
-            StatusTramitacao status = statusTramitacaoRepository.findById(2L)
-                    .orElseThrow(() -> new AppException("Status SUBMETIDO não encontrado."));
+            validarRequisitosSubmissao(dto);
+            Long novoStatusId = solicitacao.getNumeroPgaMpVirtual() == null ? 2L : 8L; // 2 = SUBMETIDO, 8 = RETIFICADO
+            StatusTramitacao status = statusTramitacaoRepository.findById(novoStatusId)
+                    .orElseThrow(() -> new AppException("Status " + novoStatusId + " não encontrado."));
             solicitacao.setStatus(status);
             return mapToResponseDto(solicitacaoRepository.save(solicitacao));
         }
@@ -430,12 +443,15 @@ public class SolicitacaoCursoService {
     @Transactional
     public void excluir(Long id) {
         SolicitacaoCurso solicitacao = solicitacaoRepository.findById(id)
+
                 .orElseThrow(() -> new NotFoundException("Solicitação não encontrada"));
 
         validarPropriedadeOuAdmin(solicitacao);
 
-        if (solicitacao.getNumeroPgaMpVirtual() != null) {
-            throw new AppException("Não é possível excluir uma solicitação já enviada ao MPVirtual.");
+        Long currentStatus = solicitacao.getStatus() != null ? solicitacao.getStatus().getId() : 1L;
+        if (solicitacao.getNumeroPgaMpVirtual() != null || currentStatus != 1L) {
+            throw new AppException(
+                    "Não é possível excluir uma solicitação concluída ou que já foi enviada ao MPVirtual.");
         }
 
         solicitacaoRepository.delete(solicitacao);
@@ -443,9 +459,15 @@ public class SolicitacaoCursoService {
 
     @Transactional
     public SolicitacaoCursoResponseDto avaliarSolicitacao(Long id, Long statusId) {
+        if (id == null) {
+            throw new BusinessRuleException("O ID da solicitação é obrigatório.");
+        }
         SolicitacaoCurso solicitacao = solicitacaoRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Solicitação não encontrada"));
 
+        if (statusId == null) {
+            throw new BusinessRuleException("O ID do status é obrigatório.");
+        }
         StatusTramitacao statusAlvo = statusTramitacaoRepository.findById(statusId)
                 .orElseThrow(() -> new NotFoundException("Status não encontrado"));
 
@@ -457,20 +479,63 @@ public class SolicitacaoCursoService {
                     "Esta solicitação já foi convertida em curso e não pode mais ser alterada.");
         }
 
-        // Regra: Para Deferir (3) ou Indeferir (4), a solicitação deve estar EM ANÁLISE (5),
-        // PROTOCOLADA (7) ou já avaliada (3 ou 4)
-        if ((statusId == 3L || statusId == 4L) && 
-            (statusAtualId != 5L && statusAtualId != 7L && statusAtualId != 3L && statusAtualId != 4L)) {
-            throw new BusinessRuleException("A solicitação deve estar em status compatível (Análise ou Protocolada) para ser deferida ou indeferida.");
+        // Regra: Para Deferir/Homologar (3) ou Indeferir (4), a solicitação deve estar
+        // SUBMETIDA (2) ou RETIFICADA (8) ou já avaliada (3 ou 4)
+        if ((statusId == 3L || statusId == 4L) &&
+                (statusAtualId != 2L && statusAtualId != 8L && statusAtualId != 3L && statusAtualId != 4L)) {
+            throw new BusinessRuleException(
+                    "A solicitação deve estar SUBMETIDA ou RETIFICADA para ser homologada ou indeferida.");
         }
 
-        // Regra: Para Iniciar Protocolo (ação manual do CEAF), a solicitação deve estar SUBMETIDA (2)
+        // Regra: Para Iniciar Protocolo/Análise (5), a solicitação deve estar SUBMETIDA
+        // (2)
         if (statusId == 5L && statusAtualId != 2L) {
-            throw new BusinessRuleException("Apenas solicitações SUBMETIDAS podem ser enviadas para análise/protocolo.");
+            throw new BusinessRuleException(
+                    "Apenas solicitações SUBMETIDAS podem ser enviadas para análise.");
         }
 
         solicitacao.setStatus(statusAlvo);
         return mapToResponseDto(solicitacaoRepository.save(solicitacao));
+    }
+
+    @Transactional
+    public SolicitacaoCursoResponseDto habilitarEdicao(Long id) {
+        log.trace("[Habilitar Edição] Iniciando para ID: {}", id);
+        SolicitacaoCurso solicitacao = solicitacaoRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Solicitação não encontrada: " + id));
+
+        SecurityUtils.getAuthenticationToken().ifPresent(auth -> {
+            log.trace("[Habilitar Edição] Verificando permissões para usuário: {}", auth.getName());
+            boolean isAdmin = auth.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("cursos.manter.cursos"));
+
+            if (!isAdmin) {
+                log.warn("[Habilitar Edição] Acesso negado para usuário: {}", auth.getName());
+                throw new AppException("Acesso negado: apenas o administrador pode habilitar a edição.");
+            }
+        });
+
+        Long statusAtualId = solicitacao.getStatus() != null ? solicitacao.getStatus().getId() : 1L;
+        log.trace("[Habilitar Edição] Status atual: {}", statusAtualId);
+
+        if (statusAtualId == 6L) {
+            throw new BusinessRuleException("Não é possível habilitar edição para uma solicitação já convertida.");
+        }
+
+        StatusTramitacao statusAlvo = statusTramitacaoRepository.findById(7L)
+                .orElseThrow(() -> new NotFoundException("Status de devolução para ajuste não encontrado"));
+
+        log.trace("[Habilitar Edição] Alterando status para 7 (DEVOLVIDO)");
+        solicitacao.setStatus(statusAlvo);
+
+        try {
+            SolicitacaoCurso salva = solicitacaoRepository.save(solicitacao);
+            log.trace("[Habilitar Edição] Salvo com sucesso. Mapeando resposta...");
+            return mapToResponseDto(salva);
+        } catch (Exception e) {
+            log.error("[Habilitar Edição] Erro fatal ao salvar solicitação ID: {}", id, e);
+            throw new AppException("Erro ao salvar alteração de status: " + e.getMessage());
+        }
     }
 
     @Transactional
@@ -480,21 +545,100 @@ public class SolicitacaoCursoService {
 
         Long statusId = solicitacao.getStatus() != null ? solicitacao.getStatus().getId() : 1L;
 
-        // Regra: Apenas solicitações SUBMETIDAS (2) ou EM ANÁLISE (5) podem ser protocoladas
-        if (statusId != 2L && statusId != 5L) {
-            throw new BusinessRuleException("Apenas solicitações submetidas ou em análise podem ser protocoladas.");
+        // Regra: Apenas solicitações SUBMETIDAS (2), EM ANÁLISE (5) ou RETIFICADAS (8)
+        // podem ir ao MPVirtual
+        if (statusId != 2L && statusId != 5L && statusId != 8L) {
+            throw new BusinessRuleException(
+                    "Apenas solicitações submetidas, em análise ou retificadas podem ser protocoladas.");
         }
 
+        // Fluxo de RETIFICAÇÃO (Juntada de Peça e Movimentação)
+        if (statusId == 8L || solicitacao.getNumeroPgaMpVirtual() != null) {
+            if (solicitacao.getNumeroPgaMpVirtual() == null) {
+                throw new BusinessRuleException("Solicitação retificada sem número de processo no MPVirtual.");
+            }
+            return executarProtocoloRetificacao(solicitacao);
+        }
+
+        // Fluxo Original de ABERTURA de Processo
         if (solicitacao.getNumeroPgaMpVirtual() != null) {
             throw new BusinessRuleException("Esta solicitação já possui um número de processo no MPVirtual.");
         }
 
-        MPVirtualMetadataDto metadata = gerarEEnviarParaMpVirtual(solicitacao);
-        
+        MPVirtualProcessoResponseDto integracaoResponse = gerarEEnviarParaMpVirtual(solicitacao);
+
         SolicitacaoCursoResponseDto responseDto = mapToResponseDto(solicitacao);
-        responseDto.setMpVirtualPayload(metadata);
+        responseDto.setMpVirtualPayload(integracaoResponse);
 
         return responseDto;
+    }
+
+    private SolicitacaoCursoResponseDto executarProtocoloRetificacao(SolicitacaoCurso solicitacao) {
+        log.info("Iniciando fluxo de retificação para solicitação {} no processo {}", solicitacao.getId(),
+                solicitacao.getNumeroPgaMpVirtual());
+
+        try {
+            // 1. Identificar Requerente
+            Integer idPessoaRequestor = null;
+            Long idServidor = solicitacao.getIdServidorInteressado();
+            if (idServidor != null) {
+                idPessoaRequestor = servidorRepository.buscarServidorPorId(idServidor.intValue())
+                        .map(mppb.restapi.cursos.feature.common.projection.ServidorProjection::getIdPessoa)
+                        .orElse(null);
+            }
+            if (idPessoaRequestor == null)
+                idPessoaRequestor = 237;
+
+            Long idOrgaoCeaf = 16L;
+
+            // 2. Passo 1: Criar Minuta (se ainda não existir uma minuta pendente de
+            // movimento)
+            if (solicitacao.getIdMinuta() == null) {
+                byte[] pdfGerado = reportService.gerarPdfSolicitacao(solicitacao);
+
+                // IMPORTANTE: Para criar minuta, deve-se usar o ID numérico do processo, não o
+                // número formatado
+                String idProcessoStr = (solicitacao.getIdPgaMpVirtual() != null)
+                        ? solicitacao.getIdPgaMpVirtual().toString()
+                        : solicitacao.getNumeroPgaMpVirtual();
+
+                mppb.restapi.common.infrastructure.client.mpvirtual.dto.MPVirtualCriarMinutaResponseDto minutaResponse = mpVirtualService
+                        .criarMinuta(
+                                idProcessoStr,
+                                "Retificação de Solicitação: " + solicitacao.getNomeCurso(),
+                                idOrgaoCeaf,
+                                idPessoaRequestor,
+                                pdfGerado);
+
+                if (minutaResponse != null && minutaResponse.getIdMinuta() != null) {
+                    solicitacao.setIdMinuta(minutaResponse.getIdMinuta());
+                    solicitacaoRepository.saveAndFlush(solicitacao);
+                } else {
+                    throw new AppException("A API do MPVirtual não retornou um ID de minuta válido.");
+                }
+            } else {
+                log.info("Aproveitando minuta já existente (ID: {}) para a retificação da solicitação {}",
+                        solicitacao.getIdMinuta(), solicitacao.getId());
+            }
+
+            // 3. Passo 2: Movimentar Minuta
+            Long idMovimentoRetificacao = 400920057L;
+            mpVirtualService.movimentarMinuta(solicitacao.getIdPgaMpVirtual(), solicitacao.getIdMinuta(),
+                    idMovimentoRetificacao, idOrgaoCeaf);
+
+            // 4. Finalização: Limpa ID Minuta e volta Status para PROTOCOLADO (3)
+            solicitacao.setIdMinuta(null);
+            statusTramitacaoRepository.findById(3L).ifPresent(solicitacao::setStatus);
+            solicitacaoRepository.save(solicitacao);
+
+            log.info("Retificação da solicitação {} finalizada com sucesso.", solicitacao.getId());
+
+            return mapToResponseDto(solicitacao);
+
+        } catch (Exception e) {
+            log.error("Erro no fluxo de retificação MPVirtual.", e);
+            throw new AppException(e, "Erro ao processar retificação no MPVirtual: " + e.getMessage());
+        }
     }
 
     @Transactional(readOnly = true)
@@ -504,7 +648,7 @@ public class SolicitacaoCursoService {
 
         Integer idPessoaRequestor = null;
         Long idServidor = solicitacao.getIdServidorInteressado();
-        
+
         if (idServidor != null) {
             idPessoaRequestor = servidorRepository.buscarServidorPorId(idServidor.intValue())
                     .map(mppb.restapi.cursos.feature.common.projection.ServidorProjection::getIdPessoa)
@@ -512,27 +656,27 @@ public class SolicitacaoCursoService {
         }
 
         if (idPessoaRequestor == null) {
-            idPessoaRequestor = 237; 
+            idPessoaRequestor = 237;
         }
 
         return mpVirtualService.construirMetadata(extrairResumo(solicitacao), idPessoaRequestor);
     }
 
     private String extrairResumo(SolicitacaoCurso solicitacao) {
-        return StringUtils.hasText(solicitacao.getObservacoesGerais()) 
+        return StringUtils.hasText(solicitacao.getObservacoesGerais())
                 ? solicitacao.getObservacoesGerais()
                 : "Solicitação gerada via sistema Cursos-Web";
     }
 
     @Transactional
     public Long converterParaCurso(Long id) {
-        SolicitacaoCurso solicitacao = solicitacaoRepository.findById(id)
+        SolicitacaoCurso solicitacao = solicitacaoRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new NotFoundException("Solicitação não encontrada"));
 
-        // Apenas solicitações DEFERIDAS (ID 3) podem ser convertidas
+        // Apenas solicitações PROTOCOLADAS (ID 3) podem ser convertidas
         if (solicitacao.getStatus() == null || !Long.valueOf(3L).equals(solicitacao.getStatus().getId())) {
             throw new BusinessRuleException(
-                    "Apenas solicitações DEFERIDAS podem ser convertidas em curso. Status atual: "
+                    "Apenas solicitações PROTOCOLADAS podem ser convertidas em curso. Status atual: "
                             + (solicitacao.getStatus() != null
                                     ? solicitacao.getStatus().getId() + " - " + solicitacao.getStatus().getDescricao()
                                     : "null"));
@@ -578,14 +722,15 @@ public class SolicitacaoCursoService {
             novoCurso.setRealizacaoDataInicial(dataInicial);
             novoCurso.setRealizacaoDataFinal(dataFinal);
 
-            // Formatação da carga horária total (HH:MM:SS)
+            log.info("Calculando carga horária para Solicitação {}. Total Agendas: {}. Duração acumulada: {}", id,
+                    solicitacao.getAgendas().size(), totalDuration);
+
             long hours = totalDuration.toHours();
             int minutes = totalDuration.toMinutesPart();
             int seconds = totalDuration.toSecondsPart();
             String chCalculada = String.format("%02d:%02d:%02d", hours, minutes, seconds);
 
-            log.info("Convertendo Solicitação {} para Curso. Carga Horária Calculada: {}. Agendas processadas: {}", id,
-                    chCalculada, solicitacao.getAgendas().size());
+            log.info("Convertendo Solicitação {} para Curso. Carga Horária Calculada: {}", id, chCalculada);
             novoCurso.setCargaHoraria(chCalculada);
         } else {
             // Fallback se não houver agendas
@@ -622,6 +767,7 @@ public class SolicitacaoCursoService {
             tDto.setIdServidor(sm.getIdServidor() != null ? sm.getIdServidor().intValue() : null);
             tDto.setNome(sm.getNomeMinistrante());
             tDto.setEmail(sm.getEmail());
+            tDto.setTelefone(sm.getTelefone());
             tDto.setPapelId(sm.getPapelMinistrante() != null ? sm.getPapelMinistrante().getId() : 1L); // Default
                                                                                                        // Palestrante
 
@@ -635,6 +781,9 @@ public class SolicitacaoCursoService {
                     tDto.setMinistranteId(sm.getMinistrante().getId());
                 }
             }
+
+            tDto.setIdFoto(sm.getIdFoto());
+            tDto.setIdCurriculo(sm.getIdCurriculo());
 
             cursoService.addMinistranteToCurso(cursoSalvo.getId(), tDto);
         });
@@ -683,7 +832,7 @@ public class SolicitacaoCursoService {
     }
 
     public byte[] gerarPdf(Long id) {
-        SolicitacaoCurso solicitacao = solicitacaoRepository.findById(id)
+        SolicitacaoCurso solicitacao = solicitacaoRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new NotFoundException("Solicitação não encontrada"));
         return reportService.gerarPdfSolicitacao(solicitacao);
     }
@@ -714,8 +863,8 @@ public class SolicitacaoCursoService {
         }
 
         solicitacao.setDescricaoLocalExterno(dto.getDescricaoLocalExterno());
-        solicitacao.setIdentificacaoOrgaoMembros(dto.getIdentificacaoOrgaoMembros());
-        solicitacao.setEspecificacaoOrgaoMembros(dto.getEspecificacaoOrgaoMembros());
+        solicitacao.setTemOrgaoExterno(dto.getTemOrgaoExterno());
+        solicitacao.setNomeOrgaoExterno(dto.getNomeOrgaoExterno());
 
         // Logística e Financeiro
         solicitacao.setCardDivulgacao(dto.getCardDivulgacao());
@@ -725,9 +874,11 @@ public class SolicitacaoCursoService {
         solicitacao.setKitParticipante(dto.getKitParticipante());
         solicitacao.setProgramacaoImpressa(dto.getProgramacaoImpressa());
         solicitacao.setTrasladoMinistrante(dto.getTrasladoMinistrante());
+        solicitacao.setSemApoioLogistico(dto.getSemApoioLogistico());
         solicitacao.setPagamentoHonorario(dto.getPagamentoHonorario());
         solicitacao.setPassagemAerea(dto.getPassagemAerea());
         solicitacao.setHospedagem(dto.getHospedagem());
+        solicitacao.setSemOnusFinanceiro(dto.getSemOnusFinanceiro());
         solicitacao.setObservacoesGerais(dto.getObservacoesGerais());
         solicitacao.setIdArquivoProgramacaoGed(dto.getIdArquivoProgramacaoGed());
 
@@ -757,7 +908,7 @@ public class SolicitacaoCursoService {
                 ministrante.setIdFoto(minDto.getIdFoto());
 
                 if (minDto.getMinistranteId() != null) {
-                    ministranteRepository.findById(minDto.getMinistranteId())
+                    ministranteRepositoryRef.findById(minDto.getMinistranteId())
                             .ifPresent(ministrante::setMinistrante);
                 }
 
@@ -767,6 +918,56 @@ public class SolicitacaoCursoService {
 
                 solicitacao.addMinistrante(ministrante);
             });
+        }
+    }
+
+    private void validarRequisitosSubmissao(SolicitacaoCursoRequestDto dto) {
+
+        if ("SUBMETIDO".equalsIgnoreCase(dto.getStatus())) {
+
+            // 1. Localização (Se modalidade física/híbrida)
+            java.util.List<Long> modalidadesComLocal = java.util.Arrays.asList(2L, 3L);
+
+            if (modalidadesComLocal.contains(dto.getIdModalidade())) {
+                if (dto.getIdLocalEvento() == null) {
+                    throw new BusinessRuleException(
+                            "O local do evento é obrigatório para as modalidades Presencial ou Híbrido.");
+                }
+
+                // Verifica se é local externo e se tem descrição
+                LocalEvento local = localEventoRepository.findById(dto.getIdLocalEvento()).orElse(null);
+
+                if (local != null && Boolean.TRUE.equals(local.getExterno())
+                        && (dto.getDescricaoLocalExterno() == null || dto.getDescricaoLocalExterno().isBlank())) {
+                    throw new BusinessRuleException(
+                            "Por favor, especifique o local externo do evento (auditório, hotel, sala, etc).");
+                }
+            }
+
+            // 2. Órgão Externo
+            if (Boolean.TRUE.equals(dto.getTemOrgaoExterno())
+                    && (dto.getNomeOrgaoExterno() == null || dto.getNomeOrgaoExterno().isBlank())) {
+                throw new BusinessRuleException(
+                        "Por favor, informe o nome do órgão externo envolvido.");
+            }
+
+            // 3. Ministrantes
+            if (dto.getMinistrantes() == null || dto.getMinistrantes().isEmpty()) {
+                throw new BusinessRuleException(
+                        "É necessário cadastrar pelo menos um ministrante para enviar a solicitação.");
+            }
+
+            // 4. Agendas
+            if (dto.getAgendas() == null || dto.getAgendas().isEmpty()) {
+                throw new BusinessRuleException(
+                        "É necessário adicionar pelo menos um período de programação para enviar a solicitação.");
+            }
+
+            // 5. Anexo PDF
+            if (dto.getIdArquivoProgramacaoGed() == null) {
+                throw new BusinessRuleException(
+                        "É necessário anexar a programação do evento (PDF) para enviar a solicitação.");
+            }
         }
     }
 }

@@ -45,27 +45,6 @@ public class TokenAuthenticationProvider implements AuthenticationProvider {
             throw new BadCredentialsException("security.undefined-response");
         }
 
-        // Mock Tokens for Local Development/Testing
-        if ("mock-admin-token".equals(token)) {
-            UsuarioAutorizadoResponseDto mockUser = new UsuarioAutorizadoResponseDto(999L, "Administrador de Teste",
-                    "admin_teste");
-            List<FuncionalidadeAutorizadaResponseDto> perms = new ArrayList<>();
-            perms.add(new FuncionalidadeAutorizadaResponseDto(1L, "Dashboard", "cursos.dashboard"));
-            perms.add(new FuncionalidadeAutorizadaResponseDto(2L, "Analisar", "cursos.analisar.solicitacoes"));
-            perms.add(new FuncionalidadeAutorizadaResponseDto(3L, "Manter", "cursos.manter.cursos"));
-            AcessoDataResponseDto access = new AcessoDataResponseDto(null, perms, null, null);
-            return new TokenAuthentication(token, mockUser, access, null, SecurityUtils.getAuthorities(access));
-        }
-
-        if ("mock-solicitante-token".equals(token)) {
-            UsuarioAutorizadoResponseDto mockUser = new UsuarioAutorizadoResponseDto(998L, "Solicitante de Teste",
-                    "solicitante_teste");
-            List<FuncionalidadeAutorizadaResponseDto> perms = new ArrayList<>();
-            perms.add(new FuncionalidadeAutorizadaResponseDto(1L, "Dashboard", "cursos.dashboard"));
-            perms.add(new FuncionalidadeAutorizadaResponseDto(4L, "Solicitar", "cursos.solicitar"));
-            AcessoDataResponseDto access = new AcessoDataResponseDto(null, perms, null, null);
-            return new TokenAuthentication(token, mockUser, access, null, SecurityUtils.getAuthorities(access));
-        }
 
         try {
             ConsultaAutorizacaoResponseDto consultaAutorizacaoResponseTO = authServiceClient
@@ -77,6 +56,30 @@ public class TokenAuthenticationProvider implements AuthenticationProvider {
                     token != null && token.length() > 20 ? token.substring(0, 20) + "..." : token,
                     usuario,
                     acessoData != null ? acessoData.getFuncionalidadesPermitidas().size() : 0);
+
+            // Injeção dinâmica de permissões para o perfil Servidor
+            if (acessoData != null && acessoData.getPerfis() != null) {
+                boolean isServidor = acessoData.getPerfis().stream()
+                        .anyMatch(p -> "Servidor do Ministério Público".equalsIgnoreCase(p.getNome()));
+                
+                if (isServidor) {
+                    List<FuncionalidadeAutorizadaResponseDto> permitidas = acessoData.getFuncionalidadesPermitidas();
+                    if (permitidas == null) {
+                        permitidas = new ArrayList<>();
+                        acessoData.setFuncionalidadesPermitidas(permitidas);
+                    }
+
+                    boolean hasDashboard = permitidas.stream().anyMatch(f -> "cursos.dashboard".equals(f.getServico()));
+                    boolean hasSolicitar = permitidas.stream().anyMatch(f -> "cursos.solicitar".equals(f.getServico()));
+
+                    if (!hasDashboard) {
+                        permitidas.add(new FuncionalidadeAutorizadaResponseDto(null, "Dashboard", "cursos.dashboard"));
+                    }
+                    if (!hasSolicitar) {
+                        permitidas.add(new FuncionalidadeAutorizadaResponseDto(null, "Solicitar", "cursos.solicitar"));
+                    }
+                }
+            }
 
             return new TokenAuthentication(token, usuario, acessoData, null, SecurityUtils.getAuthorities(acessoData));
         } catch (FeignException exception) {

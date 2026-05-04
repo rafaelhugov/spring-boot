@@ -77,11 +77,16 @@ public class CursoService extends AbstractService<Curso, Long> {
      * @return Um novo Pageable com a ordenação aplicada.
      */
     private Pageable criarPageableComOrdenacaoPadrao(Pageable pageable) {
-        Sort sort = Sort.by(
+        Sort defaultSort = Sort.by(
                 Sort.Order.desc("dataModificacao"),
                 Sort.Order.desc("dataCriacao")
         );
-        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+
+        Sort finalSort = pageable.getSort().isSorted()
+                ? pageable.getSort().and(defaultSort)
+                : defaultSort;
+
+        return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), finalSort);
     }
 
     /**
@@ -116,7 +121,7 @@ public class CursoService extends AbstractService<Curso, Long> {
             curso.setHashInscricao(UUID.randomUUID());
         }
         // A lógica de gerenciamento de ministrantes foi removida daqui, pois agora é tratada em endpoints específicos.
-        return cursoRepository.save(curso);
+        return cursoRepository.saveAndFlush(curso);
     }
 
     @Override
@@ -244,9 +249,9 @@ public class CursoService extends AbstractService<Curso, Long> {
             dto.setModalidade(curso.getModalidade().getDescricao());
         }
 
-        // Verifica na lista de públicos-alvo do curso se algum deles é do tipo 'E' (Externo).
-        boolean aceitaExterno = curso.getPublicosAlvo().stream()
-                .anyMatch(publicoAlvo -> "E".equals(publicoAlvo.getInternoExterno()));
+        // AJUSTE: O campo internoExterno foi removido para seguir o padrão de produção.
+        // TODO: Definir nova regra para identificar se um curso aceita inscrições externas baseado no público-alvo.
+        boolean aceitaExterno = true;
         dto.setAceitaInscricaoExterna(aceitaExterno);
 
         return dto;

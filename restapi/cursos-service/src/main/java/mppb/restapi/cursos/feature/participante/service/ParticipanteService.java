@@ -135,6 +135,14 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
         Participante p = new Participante();
         p.setIdServidor(idServidor);
         p.setTipo(TipoParticipanteEnum.INTERNO);
+
+        // Denormalização: Busca dados do RH para permitir ordenação e busca local
+        servidorService.buscarServidorPorId(idServidor).ifPresent(servidor -> {
+            p.setNome(servidor.getNome());
+            p.setCpf(servidor.getCpf() != null ? servidor.getCpf().replaceAll("\\D", "") : null);
+            p.setEmail(servidor.getEmail());
+        });
+
         return repository.save(p);
     }
 

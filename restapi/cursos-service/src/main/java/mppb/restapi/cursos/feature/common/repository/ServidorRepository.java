@@ -43,11 +43,14 @@ public interface ServidorRepository extends BaseRepository<Servidor, Long> {
                         "    p.id                                                    AS idPessoa, " +
                         "    s.matricula                                             AS servidorMatricula, " +
                         "    p.nome, " +
+                        "    pf.cpf, " +
+                        "    p.email, " +
                         "    f.nome                                                  AS cargoNome, " +
                         "    CASE WHEN tc.tipo = 'S' THEN 'Servidor' ELSE 'Membro' END AS tipocargoNome, " +
                         "    CASE WHEN s.ativo = 'A' THEN 'ATIVO' ELSE 'INATIVO' END   AS situacao " +
                         "FROM public.servidor s " +
                         "LEFT JOIN public.pessoa p ON p.id = s.id_pessoa " +
+                        "LEFT JOIN public.pessoafisica pf ON pf.id_pessoa = p.id " +
                         "LEFT JOIN recursoshumanos.funcao f ON f.id = s.id_cargo " +
                         "LEFT JOIN recursoshumanos.tipocargo tc ON tc.id = f.id_tipocargo " +
                         "WHERE s.id = :id " +
