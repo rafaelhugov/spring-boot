@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Manual do Solicitante — MPPB CEAF</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --burg:#5C1010; --burg-dk:#430C0C; --burg-md:#6E1515;
+      --gold:#C9A84C; --gold-lt:#E2C46A; --gold-pl:#F5EDD5;
+      --cream:#FDFAF4; --ink:#1A0A0A; --ink-md:#3D2020;
+      --muted:#7A5A5A; --muted-lt:#A08080;
+      --border:#DDD0C0; --border-lt:#EDE5D8;
+      --pad:44px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    @page{size:A4;margin:0;}
+    html{
+      background:#2C1A1A;
+      background-image:radial-gradient(ellipse at 20% 20%,rgba(92,16,16,.4) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(60,10,10,.5) 0%,transparent 60%);
+    }
+    body{
+      font-family:'DM Sans',Arial,sans-serif;
+      font-size:9pt;line-height:1.5;color:var(--ink);
+      padding:32px 0 64px;
+      display:flex;flex-direction:column;align-items:center;gap:24px;
+    }
+
+    /* ── SHELL: cada div é exatamente 1 folha A4 ─────────── */
+    .page,.cover{
+      width:794px;
+      background:white;
+      box-shadow:0 6px 40px rgba(0,0,0,.5);
+      position:relative;overflow:hidden;
+      display:flex;flex-direction:column; /* flex para footer ficar no fundo */
+    }
+    .page::before,.cover::before{
+      content:'';position:absolute;left:0;top:0;bottom:0;width:5px;
+      background:linear-gradient(to bottom,var(--burg),var(--burg-md));
+    }
+
+    /* ── CABEÇALHO DA PÁGINA ─────────────────────────────── */
+    .ph{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:9px var(--pad);border-bottom:1px solid var(--border-lt);
+      background:var(--cream);flex-shrink:0;
+    }
+    .ph-l{display:flex;align-items:center;gap:8px;}
+    .ph-dot{width:6px;height:6px;background:var(--gold);border-radius:50%;}
+    .ph-org{font-size:6.5pt;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--burg);}
+    .ph-sep{color:var(--border);}
+    .ph-doc{font-size:6.5pt;color:var(--muted);}
+    .ph-r{font-family:'DM Mono',monospace;font-size:6pt;color:var(--muted-lt);}
+
+    /* ── CORPO DA PÁGINA (cresce para preencher) ─────────── */
+    .pb{padding:22px var(--pad) 20px;flex:1;overflow:hidden;}
+
+    /* ── RODAPÉ (sempre no fundo) ────────────────────────── */
+    .pf{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:8px var(--pad);border-top:1px solid var(--border-lt);
+      background:var(--cream);flex-shrink:0;
+    }
+    .pf-l,.pf-r{font-size:6.5pt;color:var(--muted-lt);}
+    .pf-c{display:flex;align-items:center;gap:6px;}
+    .pf-ln{width:14px;height:1px;background:var(--gold);}
+    .pf-n{font-family:'DM Mono',monospace;font-size:7.5pt;color:var(--gold);font-weight:500;}
+
+    /* ── CAPA ────────────────────────────────────────────── */
+    .cover{
+      background:var(--burg-dk);
+      background-image:radial-gradient(ellipse at 8% 12%,rgba(201,168,76,.12) 0%,transparent 50%),radial-gradient(ellipse at 92% 88%,rgba(201,168,76,.08) 0%,transparent 50%);
+    }
+    .cover::before{background:var(--gold);}
+    .cv-deco{position:absolute;top:-40px;right:-40px;width:200px;height:200px;border:28px solid rgba(201,168,76,.07);border-radius:50%;}
+    .cv-deco2{position:absolute;bottom:40px;right:40px;width:100px;height:100px;border:1.5px solid rgba(201,168,76,.13);border-radius:50%;}
+    .cv-top{padding:16px 50px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(201,168,76,.18);flex-shrink:0;}
+    .cv-top-org{font-size:7pt;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:600;}
+    .cv-top-ver{font-family:'DM Mono',monospace;font-size:7pt;color:rgba(201,168,76,.55);}
+    .cv-main{flex:1;padding:38px 50px 26px;display:flex;flex-direction:column;}
+    .cv-eyebrow{font-size:7pt;letter-spacing:3px;text-transform:uppercase;color:rgba(201,168,76,.65);margin-bottom:13px;font-weight:500;}
+    .cv-title{font-family:'Playfair Display',serif;font-size:36pt;font-weight:900;color:#fff;line-height:1.05;margin-bottom:3px;}
+    .cv-title span{color:var(--gold);}
+    .cv-sub{font-family:'Playfair Display',serif;font-size:12pt;font-weight:400;font-style:italic;color:rgba(255,255,255,.4);margin-bottom:20px;}
+    .cv-rule{width:44px;height:2px;background:var(--gold);margin-bottom:16px;}
+    .cv-desc{font-size:9pt;color:rgba(255,255,255,.5);line-height:1.7;max-width:480px;margin-bottom:22px;}
+    .cv-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:24px;}
+    .cv-chip{border:1px solid rgba(201,168,76,.3);color:var(--gold-lt);font-size:7pt;padding:3px 10px;border-radius:16px;background:rgba(201,168,76,.06);}
+    .cv-toc{border-top:1px solid rgba(201,168,76,.14);padding-top:16px;margin-top:auto;}
+    .cv-toc-lbl{font-size:6.5pt;letter-spacing:2px;text-transform:uppercase;color:rgba(201,168,76,.55);margin-bottom:10px;font-weight:600;}
+    .cv-toc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px 22px;}
+    .cv-toc-item{display:flex;align-items:center;gap:8px;font-size:8pt;color:rgba(255,255,255,.45);}
+    .cv-toc-num{font-family:'DM Mono',monospace;font-size:7pt;color:var(--gold);min-width:16px;}
+    .cv-bot{padding:14px 50px;border-top:1px solid rgba(201,168,76,.13);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+    .cv-bot-l{font-size:7pt;color:rgba(255,255,255,.28);}
+    .cv-seal{width:32px;height:32px;border:1.5px solid rgba(201,168,76,.28);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:rgba(201,168,76,.6);}
+
+    /* ── TIPOGRAFIA ──────────────────────────────────────── */
+    .ch-lbl{font-size:6.5pt;letter-spacing:2.5px;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:2px;}
+    .ch-title{font-family:'Playfair Display',serif;font-size:18pt;font-weight:700;color:var(--burg);line-height:1.15;margin-bottom:4px;}
+    .ch-rule{width:36px;height:2px;background:var(--gold);border-radius:2px;margin-bottom:10px;}
+    .ch-lead{font-size:8.5pt;color:var(--muted);line-height:1.65;margin-bottom:14px;}
+    .sec-title{font-family:'Playfair Display',serif;font-size:11pt;font-weight:600;color:var(--burg);margin:14px 0 6px;display:flex;align-items:center;gap:8px;}
+    .sec-n{background:var(--burg);color:var(--gold);font-family:'DM Mono',monospace;font-size:7pt;width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .sub-t{font-size:8.5pt;font-weight:600;color:var(--ink-md);margin:10px 0 5px;padding-left:8px;border-left:3px solid var(--gold);}
+    p.bt{font-size:8pt;color:var(--ink-md);line-height:1.7;margin-bottom:6px;}
+
+    /* ── PILARES ─────────────────────────────────────────── */
+    .pg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0;}
+    .pc{border:1px solid var(--border);border-radius:5px;padding:12px 10px;background:var(--cream);position:relative;}
+    .pc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--gold);border-radius:5px 5px 0 0;}
+    .pi{font-size:18px;font-weight:900;color:var(--burg);margin-bottom:5px;display:block;font-family:'DM Mono',monospace;}
+    .pl{font-size:6pt;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:2px;}
+    .pn{font-family:'Playfair Display',serif;font-size:9.5pt;font-weight:700;color:var(--burg);margin-bottom:4px;}
+    .pd{font-size:7.5pt;color:var(--muted);line-height:1.55;}
+
+    /* ── TABELA DE STATUS ────────────────────────────────── */
+    .st{width:100%;border-collapse:collapse;margin:6px 0;}
+    .st tbody tr{border-bottom:1px solid var(--border-lt);}
+    .st tbody tr:last-child{border-bottom:none;}
+    .st td{padding:6px 7px;vertical-align:top;font-size:8pt;}
+    .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:7pt;font-weight:600;white-space:nowrap;}
+    .b-r{background:#F0EFE8;color:#5C5A50;border:1px solid #D4D2C6;}
+    .b-s{background:#E3EEF9;color:#1A4F7A;border:1px solid #A8C8E8;}
+    .b-d{background:#FFF4E0;color:#8A4A00;border:1px solid #F0C87A;}
+    .b-rt{background:#EAF3EC;color:#1E5C34;border:1px solid #9DD0A8;}
+    .b-p{background:#EAFAF1;color:#1A6B42;border:1px solid #7DD4A0;}
+    .b-c{background:#F3ECFA;color:#5B2C8A;border:1px solid #C4A0E8;}
+    .b-i{background:#FDEAEA;color:#8B1A1A;border:1px solid #E4A0A0;}
+    .st-t{font-weight:600;color:var(--ink);margin-bottom:1px;font-size:8pt;}
+    .st-d{font-size:7.5pt;color:var(--muted);line-height:1.5;}
+
+    /* ── PASSO A PASSO ───────────────────────────────────── */
+    .sf{margin:8px 0;position:relative;}
+    .sf::before{content:'';position:absolute;left:10px;top:22px;bottom:22px;width:1.5px;background:linear-gradient(to bottom,var(--gold),rgba(201,168,76,.1));}
+    .si{display:flex;gap:10px;padding:6px 0;align-items:flex-start;}
+    .sn{width:22px;height:22px;flex-shrink:0;background:var(--burg);border:1.5px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:7pt;font-weight:600;color:var(--gold);z-index:1;}
+    .sb{padding-top:2px;}
+    .s-t{font-weight:600;font-size:8.5pt;color:var(--ink);margin-bottom:1px;}
+    .s-d{font-size:7.5pt;color:var(--muted);line-height:1.55;}
+
+    /* ── CAMPOS (grid 2 col) ─────────────────────────────── */
+    .fg{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:6px 0;}
+    .fc{border:1px solid var(--border-lt);border-radius:4px;padding:8px 10px;background:var(--cream);}
+    .fn{font-size:8pt;font-weight:600;color:var(--ink);margin-bottom:2px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+    .fr{font-size:6pt;background:var(--gold-pl);color:#8A5A00;border:1px solid #C9A84C;padding:1px 4px;border-radius:6px;font-weight:600;}
+    .fd{font-size:7.5pt;color:var(--muted);line-height:1.5;}
+
+    /* ── AÇÕES (grid 2 col) ──────────────────────────────── */
+    .ag{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:6px 0;}
+    .ai{border:1px solid var(--border-lt);border-radius:4px;padding:8px 10px;display:flex;gap:8px;align-items:flex-start;}
+    /* ícone de ação: círculo colorido com letra/símbolo */
+    .ai-ico{width:26px;height:26px;flex-shrink:0;border-radius:6px;background:var(--burg);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:'DM Mono',monospace;}
+    .at{font-size:8pt;font-weight:600;color:var(--ink);margin-bottom:1px;}
+    .ad{font-size:7.5pt;color:var(--muted);line-height:1.5;}
+
+    /* ── CALLOUTS ────────────────────────────────────────── */
+    .ca{border-radius:4px;padding:8px 12px;margin:6px 0;display:flex;gap:8px;align-items:flex-start;}
+    .ca-tip{background:#EBF5F0;border-left:3px solid #2E7D5E;}
+    .ca-imp{background:#FFF4E0;border-left:3px solid var(--gold);}
+    .ca-inf{background:#F8F0F0;border-left:3px solid var(--burg);}
+    .ca-ico{width:18px;height:18px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-top:1px;}
+    .ca-tip .ca-ico{background:#2E7D5E;color:white;}
+    .ca-imp .ca-ico{background:var(--gold);color:var(--burg);}
+    .ca-inf .ca-ico{background:var(--burg);color:white;}
+    .cl{font-size:6.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;}
+    .ca-tip .cl{color:#1E6B48;}
+    .ca-imp .cl{color:#7A4A00;}
+    .ca-inf .cl{color:var(--burg);}
+    .ca p{font-size:8pt;color:var(--ink-md);line-height:1.55;margin:0;}
+
+    /* ── DICAS (tip list) ────────────────────────────────── */
+    .tl{display:flex;flex-direction:column;gap:5px;margin:6px 0;}
+    .ti{display:flex;gap:8px;align-items:flex-start;background:var(--gold-pl);border:1px solid #C9A84C;border-radius:4px;padding:7px 10px;}
+    .ti-n{width:20px;height:20px;flex-shrink:0;border-radius:50%;background:var(--gold);color:var(--burg);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;font-family:'DM Mono',monospace;}
+    .titx{font-size:7.5pt;color:#4A3800;line-height:1.55;}
+
+    /* ── BANNER DE PERFIL ────────────────────────────────── */
+    .pb-ban{background:linear-gradient(135deg,var(--burg-dk) 0%,var(--burg-md) 100%);border-radius:5px;padding:14px 18px;display:flex;gap:12px;align-items:flex-start;border:1px solid rgba(201,168,76,.22);margin-bottom:12px;position:relative;overflow:hidden;}
+    .pb-ban::after{content:'';position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:radial-gradient(circle,rgba(201,168,76,.12) 0%,transparent 70%);border-radius:50%;}
+    .pba{width:40px;height:40px;flex-shrink:0;background:rgba(201,168,76,.14);border:1.5px solid var(--gold);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--gold);font-family:'DM Mono',monospace;}
+    .pbr{font-size:6.5pt;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:2px;}
+    .pbn{font-family:'Playfair Display',serif;font-size:12pt;font-weight:700;color:#fff;margin-bottom:4px;}
+    .pbd{font-size:7.5pt;color:rgba(255,255,255,.5);line-height:1.6;}
+
+    /* ── TABELA DE DADOS ─────────────────────────────────── */
+    .dt{width:100%;border-collapse:collapse;margin:6px 0;font-size:8pt;}
+    .dt thead{background:var(--burg);}
+    .dt thead th{color:var(--gold);font-size:6.5pt;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;text-align:left;font-weight:600;}
+    .dt tbody td{padding:6px 10px;border-bottom:1px solid var(--border-lt);color:var(--ink-md);vertical-align:top;}
+    .dt tbody tr:last-child td{border-bottom:none;}
+    .dt tbody tr:nth-child(even){background:var(--cream);}
+
+    code{font-family:'DM Mono',monospace;font-size:7.5pt;background:#EEE8E0;color:#5C1010;padding:1px 4px;border-radius:3px;}
+    .divider{display:flex;align-items:center;gap:10px;margin:12px 0 10px;}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border-lt);}
+    .divider span{color:var(--gold);font-size:10pt;}
+    ul.compact{font-size:7.5pt;color:var(--ink-md);line-height:1.7;padding-left:14px;margin-bottom:5px;}
+    .doc-ft{border-top:1.5px solid var(--border);margin-top:auto;padding-top:12px;display:flex;justify-content:space-between;align-items:center;}
+    .df-title{font-family:'Playfair Display',serif;font-size:9.5pt;font-weight:700;color:var(--burg);margin-bottom:2px;}
+    .df-sub{font-size:7pt;color:var(--muted-lt);}
+    .df-ver{font-family:'DM Mono',monospace;font-size:8pt;color:var(--gold);margin-bottom:2px;}
+
+    /* ── MODOS DE IMPRESSÃO ──────────────────────────────── */
+    @media print{
+      html{background:white!important;}
+      body{padding:0!important;display:block!important;}
+      .page,.cover{
+        width:100%!important;height:297mm!important;
+        overflow:hidden!important;box-shadow:none!important;margin:0!important;
+        page-break-after:always;break-after:page;
+        -webkit-print-color-adjust:exact;print-color-adjust:exact;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     CAPA
+══════════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cv-deco"></div><div class="cv-deco2"></div>
+  <div class="cv-top">
+    <div class="cv-top-org">Ministério Público do Estado da Paraíba &nbsp;&middot;&nbsp; CEAF</div>
+    <div class="cv-top-ver">Versão 1.5 &nbsp;&middot;&nbsp; 2026</div>
+  </div>
+  <div class="cv-main">
+    <div class="cv-eyebrow">Documentação Técnica Oficial</div>
+    <div class="cv-title">Sistema de Gestão<br/><span>de Cursos</span></div>
+    <div class="cv-sub">Manual do Solicitante &mdash; Perfil Proponente</div>
+    <div class="cv-rule"></div>
+    <p class="cv-desc">Guia completo para Membros e Servidores do MPPB que desejam propor eventos educacionais ao CEAF. Cobre todo o ciclo: da criação da proposta ao acompanhamento pós-envio, incluindo acesso ao Portal Público.</p>
+    <div class="cv-chips">
+      <span class="cv-chip">Solicitante / Proponente</span>
+      <span class="cv-chip">Painel de Solicitações</span>
+      <span class="cv-chip">Ciclo de Status</span>
+      <span class="cv-chip">Formulário Completo</span>
+      <span class="cv-chip">Portal Público</span>
+      <span class="cv-chip">Frequência por QR Code</span>
+    </div>
+    <div class="cv-toc">
+      <div class="cv-toc-lbl">Sumário</div>
+      <div class="cv-toc-grid">
+        <div class="cv-toc-item"><span class="cv-toc-num">01</span>Visão Geral do Sistema</div>
+        <div class="cv-toc-item"><span class="cv-toc-num">02</span>Perfil: Solicitante / Proponente</div>
+        <div class="cv-toc-item"><span class="cv-toc-num">03</span>Painel e Ciclo de Status</div>
+        <div class="cv-toc-item"><span class="cv-toc-num">04</span>Criar Solicitação de Curso</div>
+        <div class="cv-toc-item"><span class="cv-toc-num">05</span>Ministrantes e Programação</div>
+        <div class="cv-toc-item"><span class="cv-toc-num">06</span>Finalização e Fluxo Pós-Envio</div>
+        <div class="cv-toc-item"><span class="cv-toc-num">07</span>Dicas para Aprovação</div>
+        <div class="cv-toc-item"><span class="cv-toc-num">08</span>Servicos ao Público e Participantes</div>
+      </div>
+    </div>
+  </div>
+  <div class="cv-bot">
+    <div class="cv-bot-l">Centro de Estudos e Aperfeiçoamento Funcional &mdash; CEAF<br/>Ministério Público do Estado da Paraíba</div>
+    <div class="cv-seal">&#9878;</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAG 1 — VISAO GERAL + PERFIL SOLICITANTE
+══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="ph"><div class="ph-l"><div class="ph-dot"></div><span class="ph-org">MPPB &middot; CEAF</span><span class="ph-sep">|</span><span class="ph-doc">Sistema de Gestão de Cursos</span></div><div class="ph-r">Cap. 1 &mdash; Visão Geral</div></div>
+  <div class="pb">
+    <div class="ch-lbl">Capítulo 1</div>
+    <div class="ch-title">Visão Geral do Sistema</div>
+    <div class="ch-rule"></div>
+    <p class="ch-lead">O Sistema de Gestão de Cursos do MPPB e a plataforma central para toda a jornada educacional promovida pelo <strong>CEAF</strong> &mdash; da concepção de novos eventos até a emissão de certificados com validação digital. Atende três perfis: <strong>Solicitante</strong>, <strong>Administrador</strong> e <strong>Público/Portal</strong>.</p>
+
+    <div class="sub-t">Os Três Pilares do Sistema</div>
+    <div class="pg">
+      <div class="pc"><span class="pi">01</span><div class="pl">Pilar 1</div><div class="pn">Solicitações</div><p class="pd">Onde nascem os projetos de cursos. Membros e Servidores submetem propostas ao CEAF, que analisa e conduz a aprovacao formal via PGA no MPVirtual.</p></div>
+      <div class="pc"><span class="pi">02</span><div class="pl">Pilar 2</div><div class="pn">Cursos</div><p class="pd">Onde ocorre a execucao real. Controle de matricula, cronograma de aulas, frequencia digital e emissão de certificados gerenciados pelo CEAF.</p></div>
+      <div class="pc"><span class="pi">03</span><div class="pl">Pilar 3</div><div class="pn">Portal Público</div><p class="pd">Interface externa: inscrições, assinatura de presença via QR Code e validação de autenticidade de certificados emitidos.</p></div>
+    </div>
+
+    <div class="divider"><span>&diams;</span></div>
+
+    <div class="ch-lbl">Capítulo 2</div>
+    <div class="ch-title">Perfil: Solicitante</div>
+    <div class="ch-rule"></div>
+    <div class="pb-ban">
+      <div class="pba">S</div>
+      <div>
+        <div class="pbr">Proponente de Eventos Educacionais</div>
+        <div class="pbn">Solicitante / Proponente</div>
+        <p class="pbd">Perfil para <strong style="color:var(--gold-lt)">Membros</strong> e <strong style="color:var(--gold-lt)">Servidores</strong> do MPPB que desejam propor eventos ao CEAF. O Solicitante cria uma <em>Proposta de Curso</em> &mdash; a execucao (matrículas, certificados) e responsabilidade exclusiva da administração após aprovacao e conversao.</p>
+      </div>
+    </div>
+
+    <div class="sec-title"><span class="sec-n">2.1</span>Painel de Solicitações</div>
+    <p class="bt">Ao acessar o menu lateral <strong>Solicitações</strong>, voce encontra o painel dividido em duas areas principais:</p>
+    <div class="ag">
+      <div class="ai"><div class="ai-ico">R</div><div><div class="at">Rascunhos em Andamento</div><div class="ad">Propostas iniciadas mas não submetidas. Ações: <strong>Continuar Edicao</strong> (retoma preenchimento) ou <strong>Descartar</strong> (remove permanentemente).</div></div></div>
+      <div class="ai"><div class="ai-ico">E</div><div><div class="at">Solicitações Enviadas</div><div class="ad">Lista projetos ja sob a guarda do CEAF. Permite <strong>Visualizar</strong> dados e acompanhar o Status e Numero do Processo.</div></div></div>
+    </div>
+    <div class="ca ca-inf"><div class="ca-ico">i</div><div><div class="cl">Coluna Processo</div><p>Exibe "Aguardando protocolo" durante a análise. Após aceite, apresenta o numero do PGA com <strong>link direto para o MPVirtual</strong>.</p></div></div>
+  </div>
+  <div class="pf"><div class="pf-l">Sistema de Gestão de Cursos &mdash; MPPB &middot; CEAF</div><div class="pf-c"><div class="pf-ln"></div><div class="pf-n">1</div><div class="pf-ln"></div></div><div class="pf-r">Documentação Oficial &middot; 2026</div></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAG 2 — CICLO DE STATUS
+══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="ph"><div class="ph-l"><div class="ph-dot"></div><span class="ph-org">MPPB &middot; CEAF</span><span class="ph-sep">|</span><span class="ph-doc">Sistema de Gestão de Cursos</span></div><div class="ph-r">Cap. 2 &mdash; Ciclo de Status</div></div>
+  <div class="pb">
+    <div class="sec-title"><span class="sec-n">2.2</span>Ciclo de Status das Propostas</div>
+    <p class="bt">Cada proposta percorre um ciclo bem definido. Acompanhe a evolucao diretamente no painel de Solicitações:</p>
+    <table class="st">
+      <tbody>
+        <tr><td style="width:118px;"><span class="badge b-r">Rascunho</span></td><td><div class="st-t">Salvo apenas no seu perfil</div><div class="st-d">Em preenchimento. Editavel livremente. Não visível para a administração.</div></td></tr>
+        <tr><td><span class="badge b-s">Submetido</span></td><td><div class="st-t">Enviado &mdash; Aguardando triagem do CEAF</div><div class="st-d">Formulário validado e na fila de análise. O solicitante não pode mais editar.</div></td></tr>
+        <tr><td><span class="badge b-d">Devolvido</span></td><td><div class="st-t">Devolvido para Ajuste &mdash; Correcoes necessarias</div><div class="st-d">O administrador identificou inconsistencias e devolveu com justificativa. Edite os campos indicados e clique em <strong>Reenviar</strong>.</div></td></tr>
+        <tr><td><span class="badge b-rt">Retificado</span></td><td><div class="st-t">Proposta reenviada após ajustes</div><div class="st-d">O solicitante realizou as correcoes e reenviou. CEAF prossegue com os dados corrigidos.</div></td></tr>
+        <tr><td><span class="badge b-p">Protocolado</span></td><td><div class="st-t">Proposta aceita &mdash; PGA vinculado no MPVirtual</div><div class="st-d">O CEAF aceitou e registrou o <strong>PGA</strong>. O link aparece na coluna "Processo" do painel com acesso direto.</div></td></tr>
+        <tr><td><span class="badge b-c">Convertido</span></td><td><div class="st-t">Etapa final &mdash; Proposta transformada em Curso Oficial</div><div class="st-d">Aprovada e convertida. Matrículas e gestão educacional passam a ser coordenadas pelo CEAF.</div></td></tr>
+        <tr><td><span class="badge b-i">Indeferido</span></td><td><div class="st-t">Proposta rejeitada motivadamente</div><div class="st-d">Rejeição definitiva com justificativa formal. O solicitante pode iniciar uma nova proposta.</div></td></tr>
+      </tbody>
+    </table>
+
+    <div class="divider"><span>&diams;</span></div>
+
+    <div class="sec-title"><span class="sec-n">2.3</span>Criar Solicitação de Curso &mdash; Dados Gerais</div>
+    <p class="bt">No menu <strong>Solicitações</strong>, clique em <strong>"Criar solicitação de curso"</strong>. O formulário e dividido nos blocos abaixo. Preencha todos os campos obrigatórios antes de enviar.</p>
+
+    <div class="sub-t">Bloco 2.3.1 &mdash; Dados Gerais do Evento</div>
+    <div class="fg">
+      <div class="fc"><div class="fn">Nome do Evento <span class="fr">OBRIGATORIO</span></div><div class="fd">Titulo exibido no portal e nos certificados. Deve ser claro e representar fielmente o conteúdo do evento.</div></div>
+      <div class="fc"><div class="fn">Estimativa de Participantes</div><div class="fd">Quantidade aproximada esperada. Auxilia o CEAF no planejamento logístico e definição de espaco.</div></div>
+      <div class="fc"><div class="fn">Modalidade <span class="fr">OBRIGATORIO</span></div><div class="fd"><code>On-line</code>, <code>Presencial</code> ou <code>Hibrido</code>. Define a exibição de outros blocos do formulário.</div></div>
+      <div class="fc"><div class="fn">Tipo de Evento <span class="fr">OBRIGATORIO</span></div><div class="fd">Capacitação, Palestra, Seminário, Congresso, Workshop, Simpósio, Encontro, etc.</div></div>
+      <div class="fc"><div class="fn">Público(s)-Alvo <span class="fr">OBRIGATORIO</span></div><div class="fd">Membros, Servidores, Estagiarios, Público Externo. Multipla selecao permitida.</div></div>
+    </div>
+
+    <div class="sub-t">Bloco 2.3.2 &mdash; Localizacao do Evento</div>
+    <div class="ca ca-inf"><div class="ca-ico">i</div><div><div class="cl">Visibilidade Condicional</div><p>Aparece apenas para modalidade <strong>Presencial ou Hibrido</strong>. Selecione uma sede do MPPB ou <code>LOCAL EXTERNO</code> para especificar outro endereco.</p></div></div>
+  </div>
+  <div class="pf"><div class="pf-l">Sistema de Gestão de Cursos &mdash; MPPB &middot; CEAF</div><div class="pf-c"><div class="pf-ln"></div><div class="pf-n">2</div><div class="pf-ln"></div></div><div class="pf-r">Documentação Oficial &middot; 2026</div></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAG 3 — MINISTRANTES, PROGRAMACAO, FINALIZACAO
+══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="ph"><div class="ph-l"><div class="ph-dot"></div><span class="ph-org">MPPB &middot; CEAF</span><span class="ph-sep">|</span><span class="ph-doc">Sistema de Gestão de Cursos</span></div><div class="ph-r">Cap. 2 &mdash; Formulário</div></div>
+  <div class="pb">
+    <div class="sub-t">Bloco 2.3.3 &mdash; Apoio Logístico e Ônus Financeiro</div>
+    <div class="ag">
+      <div class="ai"><div class="ai-ico">L</div><div><div class="at">Apoio Logístico CEAF</div><div class="ad">Marque os itens necessários: card de divulgacao, coffee break, apoio de imprensa. Sem necessidade: marque <code>Não irei precisar de Apoio Logístico CEAF</code>.</div></div></div>
+      <div class="ai"><div class="ai-ico">$</div><div><div class="at">Ônus Financeiro</div><div class="ad">Informe Honorários, Passagem Aérea ou Hospedagem. Sem custos: marque <code>Não irei precisar de Ônus Financeiro</code>.</div></div></div>
+    </div>
+
+    <div class="sub-t">Bloco 2.3.4 &mdash; Ministrantes</div>
+    <p class="bt">Ao clicar em <strong>"Adicionar Ministrante"</strong>, um modal abre para o cadastro detalhado:</p>
+    <div class="fg">
+      <div class="fc"><div class="fn">Busca Integrada</div><div class="fd">Pesquisa na base do MPPB (internos) e na base de ministrantes externos ja cadastrados no sistema.</div></div>
+      <div class="fc"><div class="fn">Nome, Telefone e E-mail</div><div class="fd">Preenchidos quando o profissional não for localizado na busca. E-mail e usado para comunicacoes e logistica.</div></div>
+      <div class="fc"><div class="fn">CPF <span class="fr">EXTERNOS</span></div><div class="fd">Obrigatório para externos. Necessario para contratos e processamento de honorários pelo CEAF.</div></div>
+      <div class="fc"><div class="fn">Papel no Evento <span class="fr">OBRIGATORIO</span></div><div class="fd"><code>Palestrante</code>, <code>Mediador</code>, <code>Debatedor</code>, <code>Facilitador</code> ou outra categoria definida no formulário.</div></div>
+    </div>
+    <div class="ca ca-imp"><div class="ca-ico">!</div><div><div class="cl">Anexos Obrigatórios para Ministrantes</div><p><strong>Foto:</strong> PNG ou JPG (max. 2MB). <strong>Currículo:</strong> PDF resumido (max. 10MB). Essencial para análise técnica e instrucao processual pelo CEAF.</p></div></div>
+
+    <div class="sub-t">Bloco 2.3.5 &mdash; Programação / Periodos e Turnos</div>
+    <p class="bt">No modal <strong>"Adicionar Período"</strong>, organize o cronograma por datas e horarios:</p>
+    <div class="sf">
+      <div class="si"><div class="sn">01</div><div class="sb"><div class="s-t">Definir o Período (Datas)</div><div class="s-d">Informe <strong>Data de Início</strong> e <strong>Data de Término</strong>. Para evento de um único dia, as datas devem ser iguais.</div></div></div>
+      <div class="si"><div class="sn">02</div><div class="sb"><div class="s-t">Adicionar Turno(s)</div><div class="s-d">Clique em <strong>"Adicionar Horário"</strong>. Informe <code>Horário de Início</code> e <code>Horário de Término</code> (ex: 08:00 as 12:00).</div></div></div>
+      <div class="si"><div class="sn">03</div><div class="sb"><div class="s-t">Multiplos Turnos por Dia</div><div class="s-d">Possivel cadastrar mais de um turno — ex: manha (08:00&ndash;12:00) e tarde (14:00&ndash;17:00) no mesmo dia.</div></div></div>
+    </div>
+
+    <div class="sub-t">Bloco 2.3.6 &mdash; Observações e Programação em PDF</div>
+    <div class="fg">
+      <div class="fc"><div class="fn">Observações Adicionais</div><div class="fd">Espaco livre para informações não contempladas nos campos estruturados anteriores do formulário.</div></div>
+      <div class="fc"><div class="fn">Programação do Evento (PDF) <span class="fr">RECOMENDADO</span></div><div class="fd"><strong>Altamente recomendável.</strong> Item mais importante para agilizar a análise técnica do CEAF.</div></div>
+    </div>
+
+    <div class="divider"><span>&diams;</span></div>
+
+    <div class="sec-title"><span class="sec-n">2.4</span>Finalização e Envio</div>
+    <div class="ag">
+      <div class="ai"><div class="ai-ico">S</div><div><div class="at">Salvar Rascunho</div><div class="ad">Guarda os dados para continuar depois. A proposta <strong>NAO</strong> e enviada ao CEAF. Voce pode retomar pelo painel.</div></div></div>
+      <div class="ai"><div class="ai-ico">&gt;</div><div><div class="at">Enviar Solicitação</div><div class="ad">Formulário validado e enviado ao CEAF. Status muda para <strong>Submetido</strong>. Acao irreversível pelo solicitante.</div></div></div>
+    </div>
+  </div>
+  <div class="pf"><div class="pf-l">Sistema de Gestão de Cursos &mdash; MPPB &middot; CEAF</div><div class="pf-c"><div class="pf-ln"></div><div class="pf-n">3</div><div class="pf-ln"></div></div><div class="pf-r">Documentação Oficial &middot; 2026</div></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAG 4 — FLUXO POS-ENVIO + DICAS
+══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="ph"><div class="ph-l"><div class="ph-dot"></div><span class="ph-org">MPPB &middot; CEAF</span><span class="ph-sep">|</span><span class="ph-doc">Sistema de Gestão de Cursos</span></div><div class="ph-r">Cap. 2 &mdash; Fluxo Pós-Envio</div></div>
+  <div class="pb">
+    <div class="sec-title"><span class="sec-n">2.5</span>Fluxo de Análise Após o Envio</div>
+    <p class="bt">Após o envio, a proposta segue o fluxo de análise pelo CEAF. Acompanhe o status no seu painel:</p>
+    <div class="sf">
+      <div class="si"><div class="sn">01</div><div class="sb"><div class="s-t">Triagem Técnica</div><div class="s-d">O administrador revisa os dados, a programação em PDF e os curriculos dos ministrantes para verificar a viabilidade do evento proposto.</div></div></div>
+      <div class="si"><div class="sn">02</div><div class="sb"><div class="s-t">Ajustes Necessários (se aplicavel)</div><div class="s-d">Se o status ficar como <strong>Devolvido para Ajuste</strong>, corrija os campos indicados na justificativa e clique em <strong>Reenviar</strong> para manter o histórico do processo.</div></div></div>
+      <div class="si"><div class="sn">03</div><div class="sb"><div class="s-t">Protocolizacao no MPVirtual</div><div class="s-d">O CEAF vincula a proposta ao <strong>PGA</strong> no MPVirtual. O numero e o link aparecem diretamente na coluna "Processo" do seu painel.</div></div></div>
+      <div class="si"><div class="sn">04</div><div class="sb"><div class="s-t">Conversao em Curso Oficial</div><div class="s-d">Aprovado, o projeto se torna um <strong>Curso Oficial</strong>. Matrículas, controle de frequencia e emissão de certificados passam a ser gerenciados pelo CEAF.</div></div></div>
+    </div>
+
+    <div class="divider"><span>&diams;</span></div>
+
+    <div class="sec-title"><span class="sec-n">2.6</span>Dicas para uma Proposta de Sucesso</div>
+    <div class="tl">
+      <div class="ti"><div class="ti-n">01</div><div class="titx"><strong>Anexe sempre a Programação em PDF.</strong> É o item mais importante para agilidade na aprovacao. Propostas com programação são processadas com maior rapidez pelo CEAF.</div></div>
+      <div class="ti"><div class="ti-n">02</div><div class="titx"><strong>Ministrantes Externos:</strong> Obrigatório currículo em PDF e foto de boa qualidade (PNG/JPG, max 2MB). A ausencia destes e a principal causa de devolucoes para ajuste.</div></div>
+      <div class="ti"><div class="ti-n">03</div><div class="titx"><strong>Prazo mínimo de 30 dias.</strong> Envie com pelo menos 30 dias de antecedencia para garantir tempo de análise, protocolo e organizacao logistica pelo CEAF.</div></div>
+      <div class="ti"><div class="ti-n">04</div><div class="titx"><strong>Ao receber devolucao, use o botao Reenviar.</strong> Não crie nova proposta &mdash; preserve o histórico e evite processos duplicados no MPVirtual.</div></div>
+    </div>
+
+    <div class="ca ca-tip"><div class="ca-ico">&#10003;</div><div><div class="cl">Boas Práticas</div><p>O <strong>nome do evento</strong> deve ser objetivo e representar fielmente o conteúdo. Nomes vagos como "Capacitação de Servidores" sem especificação do tema costumam gerar devolucao para ajuste pelo CEAF.</p></div></div>
+  </div>
+  <div class="pf"><div class="pf-l">Sistema de Gestão de Cursos &mdash; MPPB &middot; CEAF</div><div class="pf-c"><div class="pf-ln"></div><div class="pf-n">4</div><div class="pf-ln"></div></div><div class="pf-r">Documentação Oficial &middot; 2026</div></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAG 5 — CAP 4: SERVICOS AO PUBLICO É PARTICIPANTES
+══════════════════════════════════════════════════════════ -->
+<div class="page">
+  <div class="ph"><div class="ph-l"><div class="ph-dot"></div><span class="ph-org">MPPB &middot; CEAF</span><span class="ph-sep">|</span><span class="ph-doc">Sistema de Gestão de Cursos</span></div><div class="ph-r">Cap. 4 &mdash; Servicos ao Público</div></div>
+  <div class="pb">
+    <div class="ch-lbl">Capítulo 4</div>
+    <div class="ch-title">Servicos ao Público e Participantes</div>
+    <div class="ch-rule"></div>
+    <p class="ch-lead">A interface externa do sistema permite interacao direta com os participantes <strong>sem necessidade de login complexo</strong>. O portal e acessivel a servidores internos e cidadãos externos ao MPPB, oferecendo inscricao, frequencia digital e validação de certificados.</p>
+
+    <div class="sec-title"><span class="sec-n">4.1</span>Inscrição em Cursos pelo Portal Público</div>
+    <p class="bt">Qualquer pessoa pode acessar o portal público para se inscrever em cursos abertos. O processo varia conforme o tipo de participante:</p>
+    <div class="ag">
+      <div class="ai"><div class="ai-ico">I</div><div><div class="at">Participante Interno (Membro/Servidor)</div><div class="ad">Utiliza <strong>credenciais institucionais</strong> do MPPB. O sistema identifica automaticamente o perfil e os dados do participante no momento da inscricao.</div></div></div>
+      <div class="ai"><div class="ai-ico">E</div><div><div class="at">Participante Externo (Público Geral)</div><div class="ad">Informa o e-mail. O sistema envia um <strong>token de validação</strong> para confirmar a inscricao de forma segura, sem necessidade de cadastro previo.</div></div></div>
+    </div>
+
+    <div class="sec-title"><span class="sec-n">4.2</span>Frequência Digital &mdash; Portal <code>/frequencia</code></div>
+    <p class="bt">Durante o evento, o participante registra presença de forma totalmente digital, sem listas fisicas de papel:</p>
+    <div class="sf">
+      <div class="si"><div class="sn">QR</div><div class="sb"><div class="s-t">Via QR Code</div><div class="s-d">Camera do celular le o QR Code exibido pelo organizador. Presença registrada imediatamente no sistema após a leitura. O organizador pode projetar o QR Code na sala.</div></div></div>
+      <div class="si"><div class="sn">lnk</div><div class="sb"><div class="s-t">Via Link Direto</div><div class="s-d">O organizador disponibiliza um link para a pagina de frequencia. Participante acessa pelo navegador e confirma a presença instantaneamente.</div></div></div>
+    </div>
+    <div class="ca ca-tip"><div class="ca-ico">&#10003;</div><div><div class="cl">Registro em Tempo Real</div><p>Toda presença via QR Code ou link e computada instantaneamente, permitindo ao administrador acompanhar em tempo real quantos participantes realizaram check-in em cada aula.</p></div></div>
+
+    <div class="sec-title"><span class="sec-n">4.3</span>Validação de Certificados</div>
+    <p class="bt">Cada certificado emitido possui mecanismos duplos de verificacao de autenticidade:</p>
+    <div class="ag">
+      <div class="ai"><div class="ai-ico">#</div><div><div class="at">Codigo Único de Verificacao</div><div class="ad">Codigo alfanumérico único em cada certificado. Inserido no portal público para verificacao imediata e irrefutavel da autenticidade do documento.</div></div></div>
+      <div class="ai"><div class="ai-ico">QR</div><div><div class="at">QR Code de Autenticidade</div><div class="ad">Direciona para a pagina de verificacao no portal, exibindo dados do participante, do curso e da carga horaria. Ideal para equipes de RH e órgãos parceiros.</div></div></div>
+    </div>
+    <div class="ca ca-inf"><div class="ca-ico">i</div><div><div class="cl">Seguranca e Transparencia</div><p>A combinacao de <strong>codigo único</strong> e <strong>QR Code</strong> garante que qualquer equipe de RH ou órgão parceiro possa verificar a autenticidade de um certificado do MPPB sem necessidade de contato com o CEAF.</p></div></div>
+
+    <div class="doc-ft">
+      <div>
+        <div class="df-title">Sistema de Gestão de Cursos &mdash; MPPB</div>
+        <div class="df-sub">Centro de Estudos e Aperfeiçoamento Funcional &middot; CEAF<br/>Ministério Público do Estado da Paraíba</div>
+      </div>
+      <div style="text-align:right">
+        <div class="df-ver">v1.5 &middot; 2026</div>
+        <div class="df-sub">Documentação Oficial<br/>Manual do Solicitante</div>
+      </div>
+    </div>
+  </div>
+  <div class="pf"><div class="pf-l">Sistema de Gestão de Cursos &mdash; MPPB &middot; CEAF</div><div class="pf-c"><div class="pf-ln"></div><div class="pf-n">5</div><div class="pf-ln"></div></div><div class="pf-r">Documentação Oficial &middot; 2026</div></div>
+</div>
+
+</body>
+</html>

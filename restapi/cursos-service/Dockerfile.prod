@@ -2,20 +2,38 @@ FROM eclipse-temurin:21-jdk
 
 LABEL description="cursos-api"
 
-# Instalação das dependências de fontes (exatamente como na referência)
+# Instalação das dependências de sistema, Node.js e Google Chrome (Necessário para o Puppeteer/PDF)
 RUN apt-get update && apt-get install -y \
+    curl \
+    gnupg \
     fontconfig \
     libfreetype6 \
     libx11-6 \
     libxext6 \
     libxrender1 \
-    fonts-dejavu && \
-    rm -rf /var/lib/apt/lists/*
+    fonts-dejavu \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && curl -fSsL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor | tee /usr/share/keyrings/google-chrome.gpg >> /dev/null \
+    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | tee /etc/apt/sources.list.d/google-chrome.list \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt
 
+# Copia arquivos do motor de PDF (preparados pelo docker-build.sh)
+COPY scripts/ /opt/scripts/
+COPY public/ /opt/public/
+
+# Instala dependências do Puppeteer dentro do container
+RUN cd /opt/scripts && npm install puppeteer-core
+
+# Configura o Puppeteer para usar o Chrome instalado no sistema
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
 # O padrão espera o JAR dentro da pasta target/ (build externo via Maven)
-# O asterisco captura o JAR versionado gerado pelo maven package
 ADD target/cursos-service-*.jar /opt/cursos-api.jar
 
 # Porta de Produção (8080 conforme referência)

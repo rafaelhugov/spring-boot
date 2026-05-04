@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Manual do Administrador — MPPB CEAF</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --burg:#5C1010; --burg-dk:#430C0C; --burg-md:#6E1515;
+      --gold:#C9A84C; --gold-lt:#E2C46A; --gold-pl:#F5EDD5;
+      --navy:#5C1010; --navy-md:#6E1515; --navy-lt:#430C0C;
+      --cream:#FDFAF4; --ink:#1A0A0A; --ink-md:#3D2020;
+      --muted:#7A5A5A; --muted-lt:#A08080;
+      --border:#DDD0C0; --border-lt:#EDE5D8;
+      --pad:44px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    @page{size:A4;margin:0;}
+    html{
+      background:#1C2A3A;
+      background-image:radial-gradient(ellipse at 20% 20%,rgba(13,35,64,.6) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(92,16,16,.3) 0%,transparent 60%);
+    }
+    body{
+      font-family:'DM Sans',Arial,sans-serif;font-size:9pt;line-height:1.5;color:var(--ink);
+      padding:32px 0 64px;display:flex;flex-direction:column;align-items:center;gap:24px;
+    }
+    .page,.cover{
+      width:794px;background:white;box-shadow:0 6px 40px rgba(0,0,0,.5);
+      position:relative;overflow:hidden;display:flex;flex-direction:column;
+    }
+    .page::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(to bottom,var(--navy),var(--navy-md));}
+    .cover::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:linear-gradient(to bottom,var(--gold),var(--gold-lt));}
+    .ph{display:flex;align-items:center;justify-content:space-between;padding:9px var(--pad);border-bottom:1px solid var(--border-lt);background:var(--cream);flex-shrink:0;}
+    .ph-l{display:flex;align-items:center;gap:8px;}
+    .ph-dot{width:6px;height:6px;background:var(--navy);border-radius:50%;}
+    .ph-org{font-size:6.5pt;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--navy);}
+    .ph-sep{color:var(--border);}
+    .ph-doc{font-size:6.5pt;color:var(--muted);}
+    .ph-r{font-family:'DM Mono',monospace;font-size:6pt;color:var(--muted-lt);}
+    .pb{padding:22px var(--pad) 20px;flex:1;overflow:hidden;}
+    .pf{display:flex;align-items:center;justify-content:space-between;padding:8px var(--pad);border-top:1px solid var(--border-lt);background:var(--cream);flex-shrink:0;}
+    .pf-l,.pf-r{font-size:6.5pt;color:var(--muted-lt);}
+    .pf-c{display:flex;align-items:center;gap:6px;}
+    .pf-ln{width:14px;height:1px;background:var(--navy);}
+    .pf-n{font-family:'DM Mono',monospace;font-size:7.5pt;color:var(--navy);font-weight:500;}
+    /* CAPA */
+    .cover{background:var(--navy);background-image:radial-gradient(ellipse at 8% 12%,rgba(201,168,76,.12) 0%,transparent 50%),radial-gradient(ellipse at 92% 88%,rgba(92,16,16,.2) 0%,transparent 50%);}
+    .cv-deco{position:absolute;top:-40px;right:-40px;width:200px;height:200px;border:28px solid rgba(201,168,76,.07);border-radius:50%;}
+    .cv-deco2{position:absolute;bottom:40px;right:40px;width:100px;height:100px;border:1.5px solid rgba(201,168,76,.13);border-radius:50%;}
+    .cv-top{padding:16px 50px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(201,168,76,.18);flex-shrink:0;}
+    .cv-top-org{font-size:7pt;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:600;}
+    .cv-top-ver{font-family:'DM Mono',monospace;font-size:7pt;color:rgba(201,168,76,.55);}
+    .cv-main{flex:1;padding:38px 50px 26px;display:flex;flex-direction:column;}
+    .cv-eyebrow{font-size:7pt;letter-spacing:3px;text-transform:uppercase;color:rgba(201,168,76,.65);margin-bottom:13px;font-weight:500;}
+    .cv-title{font-family:'Playfair Display',serif;font-size:34pt;font-weight:900;color:#fff;line-height:1.05;margin-bottom:3px;}
+    .cv-title span{color:var(--gold);}
+    .cv-sub{font-family:'Playfair Display',serif;font-size:12pt;font-weight:400;font-style:italic;color:rgba(255,255,255,.4);margin-bottom:20px;}
+    .cv-rule{width:44px;height:2px;background:var(--gold);margin-bottom:16px;}
+    .cv-desc{font-size:9pt;color:rgba(255,255,255,.5);line-height:1.7;max-width:480px;margin-bottom:22px;}
+    .cv-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:22px;}
+    .cv-chip{border:1px solid rgba(201,168,76,.3);color:var(--gold-lt);font-size:7pt;padding:3px 10px;border-radius:16px;background:rgba(201,168,76,.06);}
+    .cv-toc{border-top:1px solid rgba(201,168,76,.14);padding-top:16px;margin-top:auto;}
+    .cv-toc-lbl{font-size:6.5pt;letter-spacing:2px;text-transform:uppercase;color:rgba(201,168,76,.55);margin-bottom:10px;font-weight:600;}
+    .cv-toc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:4px 22px;}
+    .cv-toc-item{display:flex;align-items:center;gap:8px;font-size:7.5pt;color:rgba(255,255,255,.45);}
+    .cv-toc-num{font-family:'DM Mono',monospace;font-size:7pt;color:var(--gold);min-width:16px;}
+    .cv-bot{padding:14px 50px;border-top:1px solid rgba(201,168,76,.13);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+    .cv-bot-l{font-size:7pt;color:rgba(255,255,255,.28);}
+    .cv-seal{width:32px;height:32px;border:1.5px solid rgba(201,168,76,.28);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:rgba(201,168,76,.6);}
+    /* TIPOGRAFIA */
+    .ch-lbl{font-size:6.5pt;letter-spacing:2.5px;text-transform:uppercase;color:var(--navy);font-weight:600;margin-bottom:2px;}
+    .ch-lbl.burg{color:var(--burg);}
+    .ch-title{font-family:'Playfair Display',serif;font-size:17pt;font-weight:700;color:var(--navy);line-height:1.15;margin-bottom:4px;}
+    .ch-title.burg{color:var(--burg);}
+    .ch-rule{width:36px;height:2px;background:var(--gold);border-radius:2px;margin-bottom:10px;}
+    .ch-lead{font-size:8.5pt;color:var(--muted);line-height:1.65;margin-bottom:14px;}
+    .sec-title{font-family:'Playfair Display',serif;font-size:11pt;font-weight:600;color:var(--navy);margin:14px 0 6px;display:flex;align-items:center;gap:8px;}
+    .sec-title.burg{color:var(--burg);}
+    .sec-n{background:var(--navy);color:var(--gold);font-family:'DM Mono',monospace;font-size:7pt;width:20px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .sec-n.burg{background:var(--burg);}
+    .sub-t{font-size:8.5pt;font-weight:600;color:var(--ink-md);margin:10px 0 5px;padding-left:8px;border-left:3px solid var(--navy);}
+    .sub-t.burg{border-left-color:var(--burg);}
+    p.bt{font-size:8pt;color:var(--ink-md);line-height:1.7;margin-bottom:6px;}
+    /* PILARES */
+    .pg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0;}
+    .pc{border:1px solid var(--border);border-radius:5px;padding:12px 10px;background:var(--cream);position:relative;}
+    .pc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--navy);border-radius:5px 5px 0 0;}
+    .pi{font-size:18px;font-weight:900;color:var(--navy);margin-bottom:5px;display:block;font-family:'DM Mono',monospace;}
+    .pl{font-size:6pt;letter-spacing:1.5px;text-transform:uppercase;color:var(--navy);font-weight:600;opacity:.7;margin-bottom:2px;}
+    .pn{font-family:'Playfair Display',serif;font-size:9.5pt;font-weight:700;color:var(--navy);margin-bottom:4px;}
+    .pd{font-size:7.5pt;color:var(--muted);line-height:1.55;}
+    /* STATUS TABLE */
+    .st{width:100%;border-collapse:collapse;margin:6px 0;}
+    .st tbody tr{border-bottom:1px solid var(--border-lt);}
+    .st tbody tr:last-child{border-bottom:none;}
+    .st td{padding:6px 7px;vertical-align:top;font-size:8pt;}
+    .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:7pt;font-weight:600;white-space:nowrap;}
+    .b-r{background:#F0EFE8;color:#5C5A50;border:1px solid #D4D2C6;}
+    .b-s{background:#E3EEF9;color:#1A4F7A;border:1px solid #A8C8E8;}
+    .b-d{background:#FFF4E0;color:#8A4A00;border:1px solid #F0C87A;}
+    .b-rt{background:#EAF3EC;color:#1E5C34;border:1px solid #9DD0A8;}
+    .b-p{background:#EAFAF1;color:#1A6B42;border:1px solid #7DD4A0;}
+    .b-c{background:#F3ECFA;color:#5B2C8A;border:1px solid #C4A0E8;}
+    .b-i{background:#FDEAEA;color:#8B1A1A;border:1px solid #E4A0A0;}
+    .st-t{font-weight:600;color:var(--ink);margin-bottom:1px;font-size:8pt;}
+    .st-d{font-size:7.5pt;color:var(--muted);line-height:1.5;}
+    /* STATUS GRID (admin) */
+    .sg{display:flex;flex-direction:column;gap:5px;margin:6px 0;}
+    .sr{display:grid;grid-template-columns:130px 1fr;gap:8px;align-items:start;padding:7px 10px;background:var(--cream);border:1px solid var(--border-lt);border-radius:4px;}
+    /* DATA TABLE */
+    .dt{width:100%;border-collapse:collapse;margin:6px 0;font-size:8pt;}
+    .dt thead{background:var(--navy);}
+    .dt thead th{color:var(--gold);font-size:6.5pt;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;text-align:left;font-weight:600;}
+    .dt tbody td{padding:6px 10px;border-bottom:1px solid var(--border-lt);color:var(--ink-md);vertical-align:top;}
+    .dt tbody tr:last-child td{border-bottom:none;}
+    .dt tbody tr:nth-child(even){background:var(--cream);}
+    /* STEPS */
+    .sf{margin:8px 0;position:relative;}
+    .sf::before{content:'';position:absolute;left:10px;top:22px;bottom:22px;width:1.5px;background:linear-gradient(to bottom,var(--navy),rgba(13,35,64,.1));}
+    .si{display:flex;gap:10px;padding:6px 0;align-items:flex-start;}
+    .sn{width:22px;height:22px;flex-shrink:0;background:var(--navy);border:1.5px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:7pt;font-weight:600;color:var(--gold);z-index:1;}
+    .sn.burg{background:var(--burg);}
+    .sb{padding-top:2px;}
+    .s-t{font-weight:600;font-size:8.5pt;color:var(--ink);margin-bottom:1px;}
+    .s-d{font-size:7.5pt;color:var(--muted);line-height:1.55;}
+    /* FIELDS */
+    .fg{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:6px 0;}
+    .fc{border:1px solid var(--border-lt);border-radius:4px;padding:8px 10px;background:var(--cream);}
+    .fn{font-size:8pt;font-weight:600;color:var(--ink);margin-bottom:2px;display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+    .fr{font-size:6pt;background:var(--gold-pl);color:#8A5A00;border:1px solid #C9A84C;padding:1px 4px;border-radius:6px;font-weight:600;}
+    .fd{font-size:7.5pt;color:var(--muted);line-height:1.5;}
+    /* ACTIONS */
+    .ag{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:6px 0;}
+    .ai{border:1px solid var(--border-lt);border-radius:4px;padding:8px 10px;display:flex;gap:8px;align-items:flex-start;}
+    .ai-ico{width:26px;height:26px;flex-shrink:0;border-radius:6px;background:var(--navy);color:var(--gold);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:'DM Mono',monospace;}
+    .ai-ico.burg{background:var(--burg);}
+    .at{font-size:8pt;font-weight:600;color:var(--ink);margin-bottom:1px;}
+    .ad{font-size:7.5pt;color:var(--muted);line-height:1.5;}
+    /* CALLOUTS */
+    .ca{border-radius:4px;padding:8px 12px;margin:6px 0;display:flex;gap:8px;align-items:flex-start;}
+    .ca-tip{background:#EBF5F0;border-left:3px solid #2E7D5E;}
+    .ca-imp{background:#FFF4E0;border-left:3px solid var(--gold);}
+    .ca-wrn{background:#FFF0F0;border-left:3px solid #C0392B;}
+    .ca-inf{background:#EDF4FD;border-left:3px solid var(--navy);}
+    .ca-inf2{background:#F8F0F0;border-left:3px solid var(--burg);}
+    .ca-ico{width:18px;height:18px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-top:1px;}
+    .ca-tip .ca-ico{background:#2E7D5E;color:white;}
+    .ca-imp .ca-ico{background:var(--gold);color:var(--navy);}
+    .ca-wrn .ca-ico{background:#C0392B;color:white;}
+    .ca-inf .ca-ico{background:var(--navy);color:white;}
+    .ca-inf2 .ca-ico{background:var(--burg);color:white;}
+    .cl{font-size:6.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;}
+    .ca-tip .cl{color:#1E6B48;}
+    .ca-imp .cl{color:#7A4A00;}
+    .ca-wrn .cl{color:#8B1A1A;}
+    .ca-inf .cl{color:var(--navy);}
+    .ca-inf2 .cl{color:var(--burg);}
+    .ca p{font-size:8pt;color:var(--ink-md);line-height:1.55;margin:0;}
+    /* PROFILE BANNERS */
+    .pb-ban{border-radius:5px;padding:14px 18px;display:flex;gap:12px;align-items:flex-start;border:1px solid rgba(201,168,76,.22);margin-bottom:12px;position:relative;overflow:hidden;}
+    .pb-ban.navy{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-md) 100%);}
+    .pb-ban.burg{background:linear-gradient(135deg,var(--burg-dk) 0%,var(--burg-md) 100%);}
+    .pb-ban::after{content:'';position:absolute;top:-20px;right:-20px;width:80px;height:80px;background:radial-gradient(circle,rgba(201,168,76,.12) 0%,transparent 70%);border-radius:50%;}
+    .pba{width:40px;height:40px;flex-shrink:0;background:rgba(201,168,76,.14);border:1.5px solid var(--gold);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--gold);font-family:'DM Mono',monospace;}
+    .pbr{font-size:6.5pt;letter-spacing:2px;text-transform:uppercase;color:var(--gold);font-weight:600;margin-bottom:2px;}
+    .pbn{font-family:'Playfair Display',serif;font-size:12pt;font-weight:700;color:#fff;margin-bottom:4px;}
+    .pbd{font-size:7.5pt;color:rgba(255,255,255,.5);line-height:1.6;}
+    /* TIPS */
+    .tl{display:flex;flex-direction:column;gap:5px;margin:6px 0;}
+    .ti{display:flex;gap:8px;align-items:flex-start;background:var(--gold-pl);border:1px solid #C9A84C;border-radius:4px;padding:7px 10px;}
+    .ti-n{width:20px;height:20px;flex-shrink:0;border-radius:50%;background:var(--gold);color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;font-family:'DM Mono',monospace;}
+    .titx{font-size:7.5pt;color:#4A3800;line-height:1.55;}
+    code{font-family:'DM Mono',monospace;font-size:7.5pt;background:#EEE8E0;color:#1A3A5C;padding:1px 4px;border-radius:3px;}
+    .divider{display:flex;align-items:center;gap:10px;margin:12px 0 10px;}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border-lt);}
+    .divider span{color:var(--navy);font-size:10pt;opacity:.5;}
+    ul.compact{font-size:7.5pt;color:var(--ink-md);line-height:1.7;padding-left:14px;margin-bottom:5px;}
+    .doc-ft{border-top:1.5px solid var(--border);margin-top:auto;padding-top:12px;display:flex;justify-content:space-between;align-items:center;}
+    .df-title{font-family:'Playfair Display',serif;font-size:9.5pt;font-weight:700;color:var(--navy);margin-bottom:2px;}
+    .df-sub{font-size:7pt;color:var(--muted-lt);}
+    .df-ver{font-family:'DM Mono',monospace;font-size:8pt;color:var(--gold);margin-bottom:2px;}
+    @media print{
+      html{background:white!important;}
+      body{padding:0!important;display:block!important;}
+      .page,.cover{width:100%!important;height:297mm!important;overflow:hidden!important;box-shadow:none!important;margin:0!important;page-break-after:always;break-after:page;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ CAPA ══════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cv-deco"></div><div class="cv-deco2"></div>
+  <div class="cv-top">
+    <div class="cv-top-org">Ministério Público do Estado da Paraíba &nbsp;&middot;&nbsp; CEAF</div>
+    <div class="cv-top-ver">Versão 1.5 &nbsp;&middot;&nbsp; 2026</div>
+  </div>
+  <div class="cv-main">
+    <div class="cv-eyebrow">Documentação Técnica Oficial &mdash; Acesso Restrito CEAF</div>
+    <div class="cv-title">Sistema de Gestão<br/><span>de Cursos</span></div>
+    <div class="cv-sub">Manual do Administrador &mdash; Equipe CEAF</div>
+    <div class="cv-rule"></div>
+    <p class="cv-desc">Manual completo para a equipe CEAF. Abrange o ciclo integral do sistema: da perspectiva do Solicitante (Cap. 2) ao controle total do Administrador (Cap. 3), incluindo governanca, protocolo MPVirtual, gestão de cursos, frequencia digital e certificação.</p>
+    <div class="cv-chips">
+      <span class="cv-chip">Administrador CEAF</span>
+      <span class="cv-chip">Perfil Solicitante (referencia)</span>
+      <span class="cv-chip">Governança de Solicitações</span>
+      <span class="cv-chip">Protocolo MPVirtual / PGA</span>
+      <span class="cv-chip">Gestão de Cursos</span>
+      <span class="cv-chip">Certificação em Lote</span>
+    </div>
+    <div class="cv-toc">
+      <div class="cv-toc-lbl">Sumário</div>
+      <div class="cv-toc-grid">
+        <div class="cv-toc-item"><span class="cv-toc-num">01</span>Visão Geral do Sistema (Cap. 1)</div>
+        <div class="cv-toc-item"><span class="cv-toc-num">02</span>Perfil Solicitante &mdash; Painel e Status (Cap. 2)</div>
+        <div class="cv-toc-item"><span class="cv-toc-num">03</span>Perfil Solicitante &mdash; Criar Solicitação (2.3)</div>
+        <div class="cv-toc-item"><span class="cv-toc-num">04</span>Perfil Solicitante &mdash; Finalização e Dicas (2.4&ndash;2.6)</div>
+        <div class="cv-toc-item"><span class="cv-toc-num">05</span>Perfil Administrador &mdash; Intro (Cap. 3)</div>
+        <div class="cv-toc-item"><span class="cv-toc-num">06</span>Governança de Solicitações (3.1)</div>
+        <div class="cv-toc-item"><span class="cv-toc-num">07</span>Iniciativa CEAF, Painel e Ações (3.2&ndash;3.4)</div>
+        <div class="cv-toc-item"><span class="cv-toc-num">08</span>Gestão de Cursos &mdash; Formulário (3.5)</div>
+        <div class="cv-toc-item"><span class="cv-toc-num">09</span>Operação, Participantes e Aulas (3.6)</div>
+        <div class="cv-toc-item"><span class="cv-toc-num">10</span>Frequência e Certificação (3.7)</div>
+        <div class="cv-toc-item"><span class="cv-toc-num">11</span>Servicos ao Público e Portal (Cap. 4)</div>
+      </div>
+    </div>
+  </div>
+  <div class="cv-bot">
+    <div class="cv-bot-l">Centro de Estudos e Aperfeiçoamento Funcional &mdash; CEAF<br/>Ministério Público do Estado da Paraíba</div>
+    <div class="cv-seal">&#9878;</div>
+  </div>
+</div>
+
+<!-- ══ PAG 1 — CAP 1: VISÃO GERAL ══════════════════════════ -->
+<div class="page">
+  <div class="ph"><div class="ph-l"><div class="ph-dot"></div><span class="ph-org">MPPB &middot; CEAF</span><span class="ph-sep">|</span><span class="ph-doc">Sistema de Gestão de Cursos</span></div><div class="ph-r">Cap. 1 &mdash; Visão Geral</div></div>
+  <div class="pb">
+    <div class="ch-lbl">Capítulo 1</div>
+    <div class="ch-title">Visão Geral do Sistema</div>
+    <div class="ch-rule"></div>
+    <p class="ch-lead">O Sistema de Gestão de Cursos do MPPB centraliza toda a jornada educacional do <strong>CEAF</strong> em três pilares integrados. O Administrador e o único perfil com acesso total a todos os pilares &mdash; da governanca de propostas até a emissão de certificados com validade institucional.</p>
+    <div class="sub-t">Os Três Pilares do Sistema</div>
+    <div class="pg">
+      <div class="pc"><span class="pi">01</span><div class="pl">Pilar 1</div><div class="pn">Solicitações</div><p class="pd">Governança de propostas enviadas por Membros e Servidores. O admin gerencia o ciclo completo: triagem, devolucao, protocolo no MPVirtual e conversao em curso oficial.</p></div>
+      <div class="pc"><span class="pi">02</span><div class="pl">Pilar 2</div><div class="pn">Cursos</div><p class="pd">Execução real do evento. Gestão de matrículas, cronograma de aulas, controle de frequencia digital e emissão de certificados com codigo único e QR Code.</p></div>
+      <div class="pc"><span class="pi">03</span><div class="pl">Pilar 3</div><div class="pn">Portal Público</div><p class="pd">Interface aberta a servidores internos e cidadãos externos. Permite inscricao em cursos, assinatura de presença via QR Code e validação de autenticidade de certificados.</p></div>
+    </div>
+    <div class="ca ca-inf"><div class="ca-ico">i</div><div><div class="cl">Permissões Exclusivas do Administrador</div><p>Ações como <strong>Protocolar no MPVirtual</strong>, <strong>Gerar Curso de Evento</strong>, <strong>Editar Situação de Participantes</strong> e <strong>Emitir Certificados em Lote</strong> são funcionalidades exclusivas do perfil Administrador (CEAF).</p></div></div>
+    <div class="divider"><span>&mdash;</span></div>
+    <div class="ca ca-imp"><div class="ca-ico">!</div><div><div class="cl">Estrutura deste Manual &mdash; Dois Perfis Cobertos</div><p>Este manual documenta o sistema do ponto de vista do <strong>Administrador</strong>, mas inclui o <strong>Capítulo 2 completo sobre o Perfil Solicitante</strong> para que a equipe CEAF compreenda integralmente a experiencia do proponente ao analisar, devolver ou aceitar propostas.</p></div></div>
+    <div class="sub-t">Fluxo Resumido: Solicitação até Certificado</div>
+    <div class="sf">
+      <div class="si"><div class="sn">01</div><div class="sb"><div class="s-t">Solicitante propoe o evento (Cap. 2)</div><div class="s-d">Preenche o formulário com dados, ministrantes e programação. Envia para análise do CEAF.</div></div></div>
+      <div class="si"><div class="sn">02</div><div class="sb"><div class="s-t">Administrador analisa e protocola (Cap. 3.1&ndash;3.4)</div><div class="s-d">Faz a triagem, devolve para ajuste se necessario, protocola no MPVirtual e converte em Curso Oficial.</div></div></div>
+      <div class="si"><div class="sn">03</div><div class="sb"><div class="s-t">Operação do curso e certificação (Cap. 3.5&ndash;3.7)</div><div class="s-d">Gerencia matrículas, cronograma de aulas, frequencia digital e emite certificados para os aprovados.</div></div></div>
+    </div>
+  </div>
+  <div class="pf"><div class="pf-l">Sistema de Gestão de Cursos &mdash; MPPB &middot; CEAF</div><div class="pf-c"><div class="pf-ln"></div><div class="pf-n">1</div><div class="pf-ln"></div></div><div class="pf-r">Documentação Oficial &middot; 2026</div></div>
+</div>
+
+<!-- ══ PAG 2 — CAP 2: PERFIL SOLICITANTE ════════════════════ -->
+<div class="page">
+  <div class="ph"><div class="ph-l"><div class="ph-dot"></div><span class="ph-org">MPPB &middot; CEAF</span><span class="ph-sep">|</span><span class="ph-doc">Sistema de Gestão de Cursos</span></div><div class="ph-r">Cap. 2 &mdash; Perfil Solicitante</div></div>
+  <div class="pb">
+    <div class="ch-lbl burg">Capítulo 2</div>
+    <div class="ch-title burg">Perfil: Solicitante / Proponente</div>
+    <div class="ch-rule"></div>
+    <div class="pb-ban burg">
+      <div class="pba">S</div>
+      <div>
+        <div class="pbr">Proponente de Eventos Educacionais</div>
+        <div class="pbn">Solicitante / Proponente</div>
+        <p class="pbd">Perfil para <strong style="color:var(--gold-lt)">Membros</strong> e <strong style="color:var(--gold-lt)">Servidores</strong> do MPPB que propoe eventos ao CEAF. O Solicitante cria a <em>Proposta de Curso</em> &mdash; a execucao (matrículas, certificados) e responsabilidade exclusiva do CEAF após aprovacao e conversao.</p>
+      </div>
+    </div>
+    <div class="sec-title burg"><span class="sec-n burg">2.1</span>Painel de Solicitações</div>
+    <p class="bt">O Solicitante acessa o menu lateral <strong>Solicitações</strong>. O painel e dividido em duas areas:</p>
+    <div class="ag">
+      <div class="ai"><div class="ai-ico burg">R</div><div><div class="at">Rascunhos em Andamento</div><div class="ad">Propostas não submetidas. Ações: <strong>Continuar Edicao</strong> (retoma preenchimento sem perda de dados) ou <strong>Descartar</strong> (remove permanentemente).</div></div></div>
+      <div class="ai"><div class="ai-ico burg">E</div><div><div class="at">Solicitações Enviadas</div><div class="ad">Projetos sob análise do CEAF. Permite <strong>Visualizar</strong> os dados e acompanhar o status e numero do processo. Coluna Processo exibe link ao PGA após protocolo.</div></div></div>
+    </div>
+    <div class="sec-title burg"><span class="sec-n burg">2.2</span>Ciclo de Status das Propostas</div>
+    <p class="bt">Cada proposta percorre um ciclo de status bem definido (visível para o Solicitante no painel):</p>
+    <table class="st">
+      <tbody>
+        <tr><td style="width:118px;"><span class="badge b-r">Rascunho</span></td><td><div class="st-t">Em preenchimento &mdash; visível so ao Solicitante</div><div class="st-d">Editavel livremente. Não visível para o CEAF.</div></td></tr>
+        <tr><td><span class="badge b-s">Submetido</span></td><td><div class="st-t">Enviado &mdash; aguardando triagem do CEAF</div><div class="st-d">Formulário validado. O Solicitante não pode mais editar.</div></td></tr>
+        <tr><td><span class="badge b-d">Devolvido</span></td><td><div class="st-t">Correcoes necessarias &mdash; retorna ao Solicitante</div><div class="st-d">O Solicitante edita os campos indicados e clica em <strong>Reenviar</strong> para manter o histórico.</div></td></tr>
+        <tr><td><span class="badge b-rt">Retificado</span></td><td><div class="st-t">Reenviado após ajustes do Solicitante</div><div class="st-d">CEAF retoma a análise com os dados corrigidos.</div></td></tr>
+        <tr><td><span class="badge b-p">Protocolado</span></td><td><div class="st-t">Aceita &mdash; PGA vinculado no MPVirtual</div><div class="st-d">Link do PGA aparece na coluna "Processo" do painel.</div></td></tr>
+        <tr><td><span class="badge b-c">Convertido</span></td><td><div class="st-t">Proposta transformada em Curso Oficial</div><div class="st-d">Matrículas e gestão educacional passam ao CEAF.</div></td></tr>
+        <tr><td><span class="badge b-i">Indeferido</span></td><td><div class="st-t">Rejeição definitiva com justificativa formal</div><div class="st-d">O Solicitante pode iniciar nova proposta.</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="pf"><div class="pf-l">Sistema de Gestão de Cursos &mdash; MPPB &middot; CEAF</div><div class="pf-c"><div class="pf-ln"></div><div class="pf-n">2</div><div class="pf-ln"></div></div><div class="pf-r">Documentação Oficial &middot; 2026</div></div>
+</div>
+
+<!-- ══ PAG 3 — CAP 2: CRIAR SOLICITAÇÃO ════════════════════ -->
+<div class="page">
+  <div class="ph"><div class="ph-l"><div class="ph-dot"></div><span class="ph-org">MPPB &middot; CEAF</span><span class="ph-sep">|</span><span class="ph-doc">Sistema de Gestão de Cursos</span></div><div class="ph-r">Cap. 2.3 &mdash; Criar Solicitação</div></div>
+  <div class="pb">
+    <div class="sec-title burg"><span class="sec-n burg">2.3</span>Criar Solicitação de Curso &mdash; Formulário</div>
+    <p class="bt">O Solicitante acessa <strong>Solicitações &rarr; Criar solicitação de curso</strong>. O formulário e dividido em blocos:</p>
+    <div class="sub-t burg">2.3.1 Dados Gerais</div>
+    <div class="fg">
+      <div class="fc"><div class="fn">Nome do Evento <span class="fr">OBRIG.</span></div><div class="fd">Titulo oficial exibido no portal e nos certificados. Deve ser claro e representar o conteúdo do evento.</div></div>
+      <div class="fc"><div class="fn">Modalidade <span class="fr">OBRIG.</span></div><div class="fd"><code>On-line</code>, <code>Presencial</code> ou <code>Hibrido</code>. Define a exibição de outros campos como Localizacao.</div></div>
+      <div class="fc"><div class="fn">Tipo de Evento <span class="fr">OBRIG.</span></div><div class="fd">Capacitação, Palestra, Seminário, Congresso, Workshop, Simpósio, Encontro, etc.</div></div>
+      <div class="fc"><div class="fn">Público(s)-Alvo <span class="fr">OBRIG.</span></div><div class="fd">Membros, Servidores, Estagiarios, Público Externo. Multipla selecao permitida.</div></div>
+    </div>
+    <div class="sub-t burg">2.3.2 a 2.3.3 &mdash; Localizacao, Logistica e Ônus Financeiro</div>
+    <div class="ag">
+      <div class="ai"><div class="ai-ico burg">L</div><div><div class="at">Localizacao (Presencial/Hibrido)</div><div class="ad">Selecione a sede do MPPB ou <code>LOCAL EXTERNO</code> para especificar outro endereco. Aparece somente para modalidades não on-line.</div></div></div>
+      <div class="ai"><div class="ai-ico burg">$</div><div><div class="at">Logistica e Ônus Financeiro</div><div class="ad">Apoio CEAF (card, coffee, imprensa) e custos (Honorários, Passagem, Hospedagem). Sem necessidade: marque a opção "Não irei precisar de...".</div></div></div>
+    </div>
+    <div class="sub-t burg">2.3.4 &mdash; Ministrantes</div>
+    <div class="ag">
+      <div class="ai"><div class="ai-ico burg">M</div><div><div class="at">Adicionar Ministrante</div><div class="ad">Busca na base do MPPB e externos cadastrados. Para externos: CPF obrigatório. Papel: Palestrante, Mediador, Debatedor ou Facilitador.</div></div></div>
+      <div class="ai"><div class="ai-ico burg">A</div><div><div class="at">Anexos Obrigatórios</div><div class="ad"><strong>Foto:</strong> PNG/JPG max 2MB. <strong>Currículo:</strong> PDF max 10MB. Ausencia e causa frequente de devolucao para ajuste pelo CEAF.</div></div></div>
+    </div>
+    <div class="sub-t burg">2.3.5 &mdash; Programação / Periodos e Turnos</div>
+    <div class="sf">
+      <div class="si"><div class="sn burg">01</div><div class="sb"><div class="s-t">Definir Período (Datas)</div><div class="s-d">Informe Data de Início e Término. Para evento de um dia, datas iguais.</div></div></div>
+      <div class="si"><div class="sn burg">02</div><div class="sb"><div class="s-t">Adicionar Turnos</div><div class="s-d">Clique em "Adicionar Horário". Varios turnos por dia são possiveis (ex: manha 08:00&ndash;12:00 e tarde 14:00&ndash;17:00).</div></div></div>
+    </div>
+    <div class="sub-t burg">2.3.6 &mdash; Observações e Programação em PDF</div>
+    <div class="ca ca-inf2"><div class="ca-ico">!</div><div><div class="cl">Item mais importante da proposta</div><p>O <strong>PDF da Programação do Evento</strong> e o item mais relevante para agilizar a análise técnica do CEAF. Propostas com programação anexada são processadas com muito mais rapidez.</p></div></div>
+  </div>
+  <div class="pf"><div class="pf-l">Sistema de Gestão de Cursos &mdash; MPPB &middot; CEAF</div><div class="pf-c"><div class="pf-ln"></div><div class="pf-n">3</div><div class="pf-ln"></div></div><div class="pf-r">Documentação Oficial &middot; 2026</div></div>
+</div>
+
+<!-- ══ PAG 4 — CAP 2: FINALIZAÇÃO + DICAS ═══════════════════ -->
+<div class="page">
+  <div class="ph"><div class="ph-l"><div class="ph-dot"></div><span class="ph-org">MPPB &middot; CEAF</span><span class="ph-sep">|</span><span class="ph-doc">Sistema de Gestão de Cursos</span></div><div class="ph-r">Cap. 2.4&ndash;2.6 &mdash; Finalização e Dicas</div></div>
+  <div class="pb">
+    <div class="sec-title burg"><span class="sec-n burg">2.4</span>Finalização e Envio</div>
+    <div class="ag">
+      <div class="ai"><div class="ai-ico burg">S</div><div><div class="at">Salvar Rascunho</div><div class="ad">Guarda os dados para continuar depois. A proposta <strong>NAO</strong> e enviada ao CEAF. Retomavel pelo painel a qualquer momento.</div></div></div>
+      <div class="ai"><div class="ai-ico burg">&gt;</div><div><div class="at">Enviar Solicitação</div><div class="ad">Formulário validado e enviado ao CEAF. Status muda para <strong>Submetido</strong>. Acao irreversível pelo Solicitante.</div></div></div>
+    </div>
+    <div class="sec-title burg"><span class="sec-n burg">2.5</span>Fluxo de Análise Pós-Envio (visao do Solicitante)</div>
+    <div class="sf">
+      <div class="si"><div class="sn burg">01</div><div class="sb"><div class="s-t">Triagem Técnica pelo CEAF</div><div class="s-d">O CEAF revisa dados, programação e curriculos dos ministrantes para verificar viabilidade.</div></div></div>
+      <div class="si"><div class="sn burg">02</div><div class="sb"><div class="s-t">Status "Devolvido" &mdash; Corrija e use Reenviar</div><div class="s-d">Não crie nova proposta. Use o botao <strong>Reenviar</strong> para preservar o histórico do processo e evitar duplicidades no MPVirtual.</div></div></div>
+      <div class="si"><div class="sn burg">03</div><div class="sb"><div class="s-t">Status "Protocolado" &mdash; PGA vinculado</div><div class="s-d">O CEAF aceitou e registrou o PGA no MPVirtual. O link aparece na coluna "Processo" do painel do Solicitante.</div></div></div>
+      <div class="si"><div class="sn burg">04</div><div class="sb"><div class="s-t">Status "Convertido" &mdash; Curso Oficial criado</div><div class="s-d">Matrículas, frequencia e certificação passam a ser responsabilidade exclusiva do CEAF.</div></div></div>
+    </div>
+    <div class="sec-title burg"><span class="sec-n burg">2.6</span>Dicas para uma Proposta de Sucesso</div>
+    <div class="tl">
+      <div class="ti"><div class="ti-n">01</div><div class="titx"><strong>Anexe sempre a Programação em PDF.</strong> É o item mais importante para agilidade. Propostas com programação são processadas com maior rapidez pelo CEAF.</div></div>
+      <div class="ti"><div class="ti-n">02</div><div class="titx"><strong>Ministrantes Externos:</strong> Obrigatório currículo PDF e foto. A ausencia e a principal causa de devolucoes para ajuste.</div></div>
+      <div class="ti"><div class="ti-n">03</div><div class="titx"><strong>Prazo mínimo de 30 dias.</strong> Envie com antecedencia para garantir tempo de análise, protocolo e logistica pelo CEAF.</div></div>
+      <div class="ti"><div class="ti-n">04</div><div class="titx"><strong>Use o botao Reenviar ao corrigir.</strong> Não crie nova proposta &mdash; preserve o histórico e evite processos duplicados no MPVirtual.</div></div>
+    </div>
+  </div>
+  <div class="pf"><div class="pf-l">Sistema de Gestão de Cursos &mdash; MPPB &middot; CEAF</div><div class="pf-c"><div class="pf-ln"></div><div class="pf-n">4</div><div class="pf-ln"></div></div><div class="pf-r">Documentação Oficial &middot; 2026</div></div>
+</div>
+
+<!-- ══ PAG 5 — CAP 3: PERFIL ADMINISTRADOR + 3.1 ════════════ -->
+<div class="page">
+  <div class="ph"><div class="ph-l"><div class="ph-dot"></div><span class="ph-org">MPPB &middot; CEAF</span><span class="ph-sep">|</span><span class="ph-doc">Sistema de Gestão de Cursos</span></div><div class="ph-r">Cap. 3 &mdash; Perfil Administrador</div></div>
+  <div class="pb">
+    <div class="ch-lbl">Capítulo 3</div>
+    <div class="ch-title">Perfil: Administrador</div>
+    <div class="ch-rule"></div>
+    <div class="pb-ban navy">
+      <div class="pba">A</div>
+      <div>
+        <div class="pbr">Equipe CEAF &mdash; Controle Total do Sistema</div>
+        <div class="pbn">Administrador do Sistema</div>
+        <p class="pbd">Perfil com controle total sobre a <strong style="color:var(--gold-lt)">governanca</strong> e a <strong style="color:var(--gold-lt)">execucao</strong> de todos os eventos educacionais. O Administrador e o único capaz de converter propostas, registrar o PGA no MPVirtual, gerenciar participantes e emitir certificados com validade institucional.</p>
+      </div>
+    </div>
+    <div class="ca ca-wrn"><div class="ca-ico">!</div><div><div class="cl">Acao Exclusiva do Administrador</div><p>O Administrador e o <strong>único perfil capaz de converter uma proposta em curso</strong>. A acao "Gerar Curso de Evento" e restrita ao CEAF e indisponivel para Solicitantes ou outros perfis do sistema.</p></div></div>
+    <div class="sec-title"><span class="sec-n">3.1</span>Governança de Solicitações (Propostas)</div>
+    <p class="bt">O Administrador gerencia o fluxo de análise no menu lateral <strong>Solicitações</strong>. O menu de ações e <strong>dinamico</strong> &mdash; muda conforme o status atual da proposta:</p>
+    <div class="sg">
+      <div class="sr"><span class="badge b-s">Submetido / Retificado</span><div><div class="st-t">Fila de triagem &mdash; Status inicial de análise</div><div class="st-d">Ações: <strong>Protocolar no MPVirtual</strong> (gera PGA), <strong>Habilitar Edicao</strong> (devolucao) ou <strong>Baixar PDF</strong> da proposta.</div></div></div>
+      <div class="sr"><span class="badge b-d">Devolvido para Ajuste</span><div><div class="st-t">Devolucao com justificativa ao Solicitante</div><div class="st-d">Registre uma justificativa clara para que o Solicitante saiba exatamente o que corrigir antes de reenviar a proposta.</div></div></div>
+      <div class="sr"><span class="badge b-p">Protocolado</span><div><div class="st-t">PGA vinculado &mdash; Aceitacao formal</div><div class="st-d">Ações: <strong>Avaliar Solicitação</strong> (Aprovado/Indeferido), <strong>Gerar Curso de Evento</strong> (conversao final) ou <strong>Habilitar Edicao</strong> para ajustes de ultima hora.</div></div></div>
+      <div class="sr"><span class="badge b-c">Convertido</span><div><div class="st-t">Conversao finalizada &mdash; Curso Oficial criado</div><div class="st-d">O sistema importa automaticamente titulo, ministrantes, datas, modalidade e público-alvo da proposta para o novo Curso Oficial.</div></div></div>
+      <div class="sr"><span class="badge b-i">Indeferido</span><div><div class="st-t">Rejeição definitiva &mdash; Motivacao obrigatoria</div><div class="st-d">O sistema exige o registro da motivacao para fins de transparencia e controle administrativo. O Solicitante pode iniciar nova proposta.</div></div></div>
+    </div>
+  </div>
+  <div class="pf"><div class="pf-l">Sistema de Gestão de Cursos &mdash; MPPB &middot; CEAF</div><div class="pf-c"><div class="pf-ln"></div><div class="pf-n">5</div><div class="pf-ln"></div></div><div class="pf-r">Documentação Oficial &middot; 2026</div></div>
+</div>
+
+<!-- ══ PAG 6 — 3.2 CEAF + 3.3 PAINEL + 3.4 AÇÕES ═══════════ -->
+<div class="page">
+  <div class="ph"><div class="ph-l"><div class="ph-dot"></div><span class="ph-org">MPPB &middot; CEAF</span><span class="ph-sep">|</span><span class="ph-doc">Sistema de Gestão de Cursos</span></div><div class="ph-r">Cap. 3.2&ndash;3.4 &mdash; Painel de Gestão</div></div>
+  <div class="pb">
+    <div class="sec-title"><span class="sec-n">3.2</span>Solicitação por Iniciativa do CEAF</div>
+    <p class="bt">O Administrador pode iniciar uma proposta de curso por conta propria sem aguardar um Solicitante externo:</p>
+    <div class="sf">
+      <div class="si"><div class="sn">01</div><div class="sb"><div class="s-t">Menu Solicitações &rarr; Criar solicitação</div><div class="s-d">A funcionalidade esta disponivel no mesmo menu que os Solicitantes utilizam. O Adm. possui a permissão de Solicitante habilitada por padrao.</div></div></div>
+      <div class="si"><div class="sn">02</div><div class="sb"><div class="s-t">Preencher o formulário completo</div><div class="s-d">Seguindo os mesmos blocos do Cap. 2 (Dados, Localizacao, Logistica, Ministrantes, Programação).</div></div></div>
+      <div class="si"><div class="sn">03</div><div class="sb"><div class="s-t">Gerenciar no Painel de Gestão</div><div class="s-d">Após o envio, a solicitação aparece no Painel de Gestão para protocolo (PGA) e conversao em curso oficial.</div></div></div>
+    </div>
+    <div class="sec-title"><span class="sec-n">3.3</span>Painel de Gestão de Solicitações</div>
+    <p class="bt">Central de triagem do CEAF. Utilize os filtros para navegar entre propostas:</p>
+    <table class="dt">
+      <thead><tr><th>Filtro</th><th>Descricao</th><th>Uso Recomendado</th></tr></thead>
+      <tbody>
+        <tr><td><code>No. Processo</code></td><td>Busca pelo numero do PGA no MPVirtual.</td><td>Localizar processo específico ja protocolado.</td></tr>
+        <tr><td><code>Nome do Curso</code></td><td>Busca textual por palavras-chave no titulo.</td><td>Propostas similares ou busca por tema específico.</td></tr>
+        <tr><td><code>Status</code></td><td>Filtra por: Submetido, Protocolado, Retificado, etc.</td><td>Triagem da fila diaria &mdash; identifique o pendente.</td></tr>
+      </tbody>
+    </table>
+    <div class="ca ca-inf"><div class="ca-ico">i</div><div><div class="cl">Aba "Aguardando Análise"</div><p>Agrupa automaticamente propostas com status <em>Submetido</em> e <em>Retificado</em>, facilitando a triagem diaria sem filtros manuais.</p></div></div>
+    <div class="sec-title"><span class="sec-n">3.4</span>Ações Avancadas por Status</div>
+    <div class="sub-t">Quando o status for Submetido / Retificado</div>
+    <div class="ag">
+      <div class="ai"><div class="ai-ico">P</div><div><div class="at">Protocolar no MPVirtual</div><div class="ad">Envia metadados ao MPVirtual, gerando o numero de processo oficial (PGA). O numero aparece na coluna "Processo" com link direto ao tramite externo no MPVirtual.</div></div></div>
+      <div class="ai"><div class="ai-ico">E</div><div><div class="at">Habilitar Edicao</div><div class="ad">Devolve com status <em>Devolvido para Ajuste</em>. Registre a justificativa clara da devolucao para o Solicitante.</div></div></div>
+    </div>
+    <div class="sub-t">Quando o status for Protocolado</div>
+    <div class="ag">
+      <div class="ai"><div class="ai-ico">AV</div><div><div class="at">Avaliar Solicitação</div><div class="ad">Registra formalmente <strong>Aprovado</strong> ou <strong>Indeferido</strong>. Acao de deliberacao final antes da conversao.</div></div></div>
+      <div class="ai"><div class="ai-ico">GC</div><div><div class="at">Gerar Curso de Evento</div><div class="ad">Conversao final. Todos os dados da proposta são importados automaticamente para o novo Curso Oficial no sistema.</div></div></div>
+    </div>
+  </div>
+  <div class="pf"><div class="pf-l">Sistema de Gestão de Cursos &mdash; MPPB &middot; CEAF</div><div class="pf-c"><div class="pf-ln"></div><div class="pf-n">6</div><div class="pf-ln"></div></div><div class="pf-r">Documentação Oficial &middot; 2026</div></div>
+</div>
+
+<!-- ══ PAG 7 — 3.5 GESTÃO DE CURSOS + FORMULÁRIO ═══════════ -->
+<div class="page">
+  <div class="ph"><div class="ph-l"><div class="ph-dot"></div><span class="ph-org">MPPB &middot; CEAF</span><span class="ph-sep">|</span><span class="ph-doc">Sistema de Gestão de Cursos</span></div><div class="ph-r">Cap. 3.5 &mdash; Gestão de Cursos</div></div>
+  <div class="pb">
+    <div class="sec-title"><span class="sec-n">3.5</span>Gestão de Cursos Oficiais</div>
+    <p class="bt">O menu <strong>Cursos</strong> e onde ocorre a operação real do evento. Gerencie cursos convertidos via solicitação ou crie diretamente com <strong>"+ Novo Curso"</strong>.</p>
+    <div class="sub-t">Dados Gerais</div>
+    <div class="fg">
+      <div class="fc"><div class="fn">Titulo do Curso <span class="fr">OBRIG.</span></div><div class="fd">Nome oficial exibido no portal, comunicacoes e certificados emitidos.</div></div>
+      <div class="fc"><div class="fn">Descricao</div><div class="fd">Texto sobre objetivos e conteúdo programatico. Exibido no portal para auxiliar o participante na inscricao.</div></div>
+      <div class="fc"><div class="fn">Entidade Tutora</div><div class="fd">Órgão responsavel pela supervisao técnica. Aparece nos certificados e documentos oficiais.</div></div>
+      <div class="fc"><div class="fn">Modalidade <span class="fr">OBRIG.</span></div><div class="fd"><code>On-line</code>, <code>Presencial</code> ou <code>Hibrido</code>. Influencia o controle de frequencia.</div></div>
+      <div class="fc"><div class="fn">Tipo de Evento <span class="fr">OBRIG.</span></div><div class="fd">Capacitação, Palestra, Seminário, Congresso etc. Usado para relatórios e categorizacao no portal.</div></div>
+    </div>
+    <div class="sub-t">Programação e Datas</div>
+    <div class="fg">
+      <div class="fc"><div class="fn">Datas de Inscrição <span class="fr">OBRIG.</span></div><div class="fd">Período em que o curso aceita matrículas. Após a data de encerramento, inscrições são bloqueadas automaticamente.</div></div>
+      <div class="fc"><div class="fn">Datas de Realizacao <span class="fr">OBRIG.</span></div><div class="fd">Período efetivo das atividades do curso. Exibido no portal e deve ser compativel com o cronograma de aulas.</div></div>
+    </div>
+    <div class="ca ca-tip"><div class="ca-ico">&#10003;</div><div><div class="cl">Boa Prática</div><p>Encerre as inscrições <strong>pelo menos 48 horas antes</strong> do início para garantir tempo de triagem e comunicacao com participantes confirmados.</p></div></div>
+    <div class="sub-t">Detalhes Academicos e Público-Alvo</div>
+    <div class="fg">
+      <div class="fc"><div class="fn">Carga Horaria (HH:MM:SS) <span class="fr">OBRIG.</span></div><div class="fd">Tempo total do curso. Constara no certificado emitido ao participante.</div></div>
+      <div class="fc"><div class="fn">% Mínimo para Aprovação</div><div class="fd">Critério de frequencia para recebimento do certificado. Padrao do sistema: <strong>75%</strong>.</div></div>
+      <div class="fc"><div class="fn">Valido para Progressao</div><div class="fd">Indica se o curso conta para evolucao funcional dos servidores. Integrado ao sistema de RH.</div></div>
+      <div class="fc"><div class="fn">Arte de Fundo (Certificado)</div><div class="fd">Upload PNG/JPG para personalizar o fundo do certificado deste curso específico.</div></div>
+    </div>
+    <div class="ag">
+      <div class="ai"><div class="ai-ico">I</div><div><div class="at">Público Interno</div><div class="ad">Checkboxes individuais: <strong>Membros</strong>, <strong>Servidores</strong>, <strong>Assessores</strong>. Validação via credenciais institucionais.</div></div></div>
+      <div class="ai"><div class="ai-ico">E</div><div><div class="at">Público Externo</div><div class="ad">Público geral ou outros MPs. Validação via token enviado por e-mail ao participante.</div></div></div>
+    </div>
+  </div>
+  <div class="pf"><div class="pf-l">Sistema de Gestão de Cursos &mdash; MPPB &middot; CEAF</div><div class="pf-c"><div class="pf-ln"></div><div class="pf-n">7</div><div class="pf-ln"></div></div><div class="pf-r">Documentação Oficial &middot; 2026</div></div>
+</div>
+
+<!-- ══ PAG 8 — 3.6 OPERAÇÃO + PARTICIPANTES + AULAS ════════ -->
+<div class="page">
+  <div class="ph"><div class="ph-l"><div class="ph-dot"></div><span class="ph-org">MPPB &middot; CEAF</span><span class="ph-sep">|</span><span class="ph-doc">Sistema de Gestão de Cursos</span></div><div class="ph-r">Cap. 3.6 &mdash; Operação do Curso</div></div>
+  <div class="pb">
+    <div class="sec-title"><span class="sec-n">3.6</span>Operação e Ações do Curso</div>
+    <p class="bt">Na listagem de cursos, o menu <strong>Ações</strong> (três pontos) permite gerenciar todas as camadas operacionais:</p>
+    <div class="ag">
+      <div class="ai"><div class="ai-ico">ED</div><div><div class="at">Editar Curso</div><div class="ad">Altera dados gerais, prazos de inscricao, datas e configuracoes academicas a qualquer momento.</div></div></div>
+      <div class="ai"><div class="ai-ico">MIN</div><div><div class="at">Ministrantes</div><div class="ad">Gerencia o corpo docente. Busca integrada + papel no evento (Palestrante, Mediador, Debatedor).</div></div></div>
+      <div class="ai"><div class="ai-ico">PAR</div><div><div class="at">Participantes</div><div class="ad">Central de matrículas. Adicionar/remover participantes, gerar certificados individuais e editar situação.</div></div></div>
+      <div class="ai"><div class="ai-ico">AUL</div><div><div class="at">Aulas e Frequência</div><div class="ad">Cadastro do cronograma e controle de presença digital/manual por aula. Cada aula tem lista propria.</div></div></div>
+    </div>
+    <div class="sub-t">Gerenciamento de Participantes</div>
+    <table class="dt" style="font-size:7.5pt;">
+      <thead><tr><th>Acao</th><th>Descricao Detalhada</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Adicionar Participante</strong></td><td>No modal, digite min. <strong>3 caracteres</strong> para localizar na base do sistema. Confirme para incluir na matricula.</td></tr>
+        <tr><td><strong>Remover Inscrição</strong></td><td>Cancela a matricula. Status alterado para <code>CANCELADO</code> automaticamente.</td></tr>
+        <tr><td><strong>Gerar Cert. Individual</strong></td><td>Emite certificado para participante com status <code>APROVADO</code>. Disponivel no menu lateral de cada aluno.</td></tr>
+        <tr><td><strong>Editar Situação</strong></td><td>Informe a <strong>Frequência (%)</strong> e defina: <code>APROVADO</code>, <code>REPROVADO</code> ou <code>CANCELADO</code>.</td></tr>
+      </tbody>
+    </table>
+    <div class="sub-t">Cadastro de Aulas &mdash; Campos do Modal "Nova Aula"</div>
+    <div class="fg">
+      <div class="fc"><div class="fn">Descricao da Aula <span class="fr">OBRIG.</span></div><div class="fd">Identifica o conteúdo. Exemplos: <code>Modulo 1 &mdash; Introducao</code>, <code>Workshop Pratico</code>, <code>Mesa Redonda</code>.</div></div>
+      <div class="fc"><div class="fn">Data <span class="fr">OBRIG.</span></div><div class="fd">Data de realizacao desta aula. Organiza a lista de presença digital correspondente.</div></div>
+      <div class="fc"><div class="fn">Hora de Início <span class="fr">OBRIG.</span></div><div class="fd">Horário de início. Essencial para o controle de presença e calculo de carga horaria por aula.</div></div>
+      <div class="fc"><div class="fn">Hora de Fim <span class="fr">OBRIG.</span></div><div class="fd">Horário de encerramento. Define a duracao da sessao para fins de controle e relatórios academicos.</div></div>
+    </div>
+  </div>
+  <div class="pf"><div class="pf-l">Sistema de Gestão de Cursos &mdash; MPPB &middot; CEAF</div><div class="pf-c"><div class="pf-ln"></div><div class="pf-n">8</div><div class="pf-ln"></div></div><div class="pf-r">Documentação Oficial &middot; 2026</div></div>
+</div>
+
+<!-- ══ PAG 9 — 3.7 FREQUÊNCIA É CERTIFICAÇÃO ════════════════ -->
+<div class="page">
+  <div class="ph"><div class="ph-l"><div class="ph-dot"></div><span class="ph-org">MPPB &middot; CEAF</span><span class="ph-sep">|</span><span class="ph-doc">Sistema de Gestão de Cursos</span></div><div class="ph-r">Cap. 3.7 &mdash; Frequência e Certificação</div></div>
+  <div class="pb">
+    <div class="sec-title"><span class="sec-n">3.7</span>Frequência e Certificação &mdash; Encerramento do Curso</div>
+    <p class="bt">O processo de encerramento segue etapas obrigatorias e sequenciais. Um curso so e considerado <strong>"concluido"</strong> após todos os participantes terem seus status definidos como Aprovado, Reprovado ou Cancelado:</p>
+    <div class="sf">
+      <div class="si"><div class="sn">01</div><div class="sb"><div class="s-t">Registro de Presença por Aula</div><div class="s-d">O sistema gera listas de presença digitais para cada aula cadastrada. Os participantes assinam via portal (QR Code ou link direto). O administrador tambem pode marcar presenças manualmente no painel quando necessario.</div></div></div>
+      <div class="si"><div class="sn">02</div><div class="sb"><div class="s-t">Consolidacao da Situação dos Participantes</div><div class="s-d">Após a ultima aula, acesse a lista de <strong>Participantes</strong> e use <strong>Editar Situação</strong> para cada aluno. Informe a frequencia final (%) e defina o status: <code>APROVADO</code>, <code>REPROVADO</code> ou <code>CANCELADO</code>.</div></div></div>
+      <div class="si"><div class="sn">03</div><div class="sb"><div class="s-t">Emissão de Certificados</div><div class="s-d">O sistema libera a geração de certificados para participantes com status <code>APROVADO</code>. Emita <strong>individualmente</strong> por aluno ou em <strong>lote</strong> para todos os aprovados de uma vez. O certificado inclui assinatura digital do Diretor do CEAF e QR Code para validação de autenticidade.</div></div></div>
+    </div>
+    <div class="ca ca-imp"><div class="ca-ico">!</div><div><div class="cl">Certificados &mdash; Codigo Único e QR Code</div><p>Cada certificado possui um <strong>codigo alfanumérico único</strong> e um <strong>QR Code</strong> embutido. Estes recursos permitem que equipes de RH e órgãos parceiros validem a veracidade do documento de forma rapida pelo portal público, sem necessidade de contato com o CEAF.</p></div></div>
+    <div class="ca ca-tip"><div class="ca-ico">&#10003;</div><div><div class="cl">Emissão em Lote</div><p>Para cursos com muitos participantes, utilize a funcao de <strong>emissão em lote</strong>. Todos os certificados de participantes <code>APROVADOS</code> são gerados simultaneamente. Disponivel no menu de ações do curso.</p></div></div>
+    <div class="divider"><span>&mdash;</span></div>
+    <div class="tl">
+      <div class="ti"><div class="ti-n">!</div><div class="titx"><strong>Encerramento correto:</strong> Certifique-se de que <em>todos</em> os participantes tenham status final definido (Aprovado, Reprovado ou Cancelado) antes de emitir certificados em lote. Participantes sem status final definido não constam no lote de certificação.</div></div>
+      <div class="ti"><div class="ti-n">%</div><div class="titx"><strong>Frequência minima padrao: 75%.</strong> Este valor pode ser ajustado por evento no formulário do curso. O calculo e feito pelo sistema com base nas presenças registradas digitalmente nas aulas cadastradas.</div></div>
+    </div>
+  </div>
+  <div class="pf"><div class="pf-l">Sistema de Gestão de Cursos &mdash; MPPB &middot; CEAF</div><div class="pf-c"><div class="pf-ln"></div><div class="pf-n">9</div><div class="pf-ln"></div></div><div class="pf-r">Documentação Oficial &middot; 2026</div></div>
+</div>
+
+<!-- ══ PAG 10 — CAP 4: SERVIÇOS AO PÚBLICO ══════════════════ -->
+<div class="page">
+  <div class="ph"><div class="ph-l"><div class="ph-dot"></div><span class="ph-org">MPPB &middot; CEAF</span><span class="ph-sep">|</span><span class="ph-doc">Sistema de Gestão de Cursos</span></div><div class="ph-r">Cap. 4 &mdash; Servicos ao Público</div></div>
+  <div class="pb">
+    <div class="ch-lbl">Capítulo 4</div>
+    <div class="ch-title">Servicos ao Público e Participantes</div>
+    <div class="ch-rule"></div>
+    <p class="ch-lead">A interface externa permite interacao direta com os participantes <strong>sem login complexo</strong>. O portal e acessivel a servidores internos e cidadãos externos ao MPPB, oferecendo inscricao, assinatura digital de frequencia e validação de certificados.</p>
+    <div class="sec-title"><span class="sec-n">4.1</span>Inscrição em Cursos pelo Portal Público</div>
+    <div class="ag">
+      <div class="ai"><div class="ai-ico">I</div><div><div class="at">Participante Interno (Membro/Servidor)</div><div class="ad">Realiza a inscricao usando <strong>credenciais institucionais</strong> do MPPB. O sistema identifica automaticamente o perfil e dados do participante.</div></div></div>
+      <div class="ai"><div class="ai-ico">E</div><div><div class="at">Participante Externo (Público Geral)</div><div class="ad">Informa o e-mail. O sistema envia um <strong>token de validação</strong> para confirmar a inscricao com seguranca, sem cadastro previo.</div></div></div>
+    </div>
+    <div class="sec-title"><span class="sec-n">4.2</span>Frequência Digital &mdash; Portal <code>/frequencia</code></div>
+    <p class="bt">O Administrador disponibiliza um dos dois recursos para que os participantes assinem presença digitalmente durante o evento:</p>
+    <div class="ag">
+      <div class="ai"><div class="ai-ico">QR</div><div><div class="at">Via QR Code</div><div class="ad">Projete o QR Code na sala. A camera do celular do participante le o codigo e a presença e registrada imediatamente em tempo real no painel do CEAF.</div></div></div>
+      <div class="ai"><div class="ai-ico">lnk</div><div><div class="at">Via Link Direto</div><div class="ad">Disponibilize o link da pagina de frequencia. O participante acessa pelo navegador e confirma a presença instantaneamente sem instalar nada.</div></div></div>
+    </div>
+    <div class="ca ca-inf"><div class="ca-ico">i</div><div><div class="cl">Monitoramento em Tempo Real</div><p>Toda presença via QR Code ou link e computada instantaneamente, permitindo ao administrador acompanhar em tempo real quantos participantes ja realizaram o check-in em cada aula pelo painel de aulas do curso.</p></div></div>
+    <div class="sec-title"><span class="sec-n">4.3</span>Validação de Certificados</div>
+    <div class="ag">
+      <div class="ai"><div class="ai-ico">#</div><div><div class="at">Codigo Único de Verificacao</div><div class="ad">Codigo alfanumérico único em cada certificado. Inserido no portal para verificacao imediata da autenticidade do documento emitido pelo CEAF.</div></div></div>
+      <div class="ai"><div class="ai-ico">QR</div><div><div class="at">QR Code de Autenticidade</div><div class="ad">Impresso no certificado, direciona para a pagina de verificacao no portal com dados do participante, do curso e da carga horaria. Ideal para equipes de RH.</div></div></div>
+    </div>
+    <div class="doc-ft">
+      <div><div class="df-title">Sistema de Gestão de Cursos &mdash; MPPB</div><div class="df-sub">Centro de Estudos e Aperfeiçoamento Funcional &middot; CEAF<br/>Ministério Público do Estado da Paraíba</div></div>
+      <div style="text-align:right"><div class="df-ver">v1.5 &middot; 2026</div><div class="df-sub">Documentação Oficial<br/>Manual do Administrador</div></div>
+    </div>
+  </div>
+  <div class="pf"><div class="pf-l">Sistema de Gestão de Cursos &mdash; MPPB &middot; CEAF</div><div class="pf-c"><div class="pf-ln"></div><div class="pf-n">10</div><div class="pf-ln"></div></div><div class="pf-r">Documentação Oficial &middot; 2026</div></div>
+</div>
+
+</body>
+</html>

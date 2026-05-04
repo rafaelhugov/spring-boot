@@ -27,7 +27,16 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-print_ok ">>> Build Maven concluído. Gerando imagem Docker..."
+print_ok ">>> Build Maven concluído. Preparando arquivos de motor de PDF..."
+
+# Garante que os diretórios existam
+mkdir -p scripts public
+
+# Copia os arquivos do frontend para o contexto do docker
+cp ../../../mppb-vue/cursos-web/scripts/pdf-engine.js scripts/
+cp ../../../mppb-vue/cursos-web/public/pdf-template-*.html public/
+
+print_ok ">>> Gerando imagem Docker..."
 
 docker build -f Dockerfile.prod \
   -t gavriel.mppb.mp.br:5000/cursos-api:$VERSION \

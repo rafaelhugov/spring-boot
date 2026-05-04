@@ -160,14 +160,11 @@ public class SolicitacaoCursoService {
     }
 
     private SolicitacaoCurso mapToEntity(SolicitacaoCursoRequestDto dto) {
+
         SolicitacaoCurso solicitacao = new SolicitacaoCurso();
 
         solicitacao.setNomeCurso(dto.getNomeCurso());
         solicitacao.setEstimativaParticipantes(dto.getEstimativaParticipantes());
-
-        // Identificação - Removido Mock fixo para ser setado no service principal
-        // solicitacao.setIdServidorInteressado(64601L);
-        // solicitacao.setIdOrgaoInteressado(1L);
 
         // Lookups
         if (dto.getIdModalidade() != null) {
@@ -409,6 +406,7 @@ public class SolicitacaoCursoService {
 
     @Transactional
     public SolicitacaoCursoResponseDto atualizar(Long id, SolicitacaoCursoRequestDto dto) {
+
         SolicitacaoCurso solicitacao = solicitacaoRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Solicitação não encontrada"));
 
@@ -445,6 +443,7 @@ public class SolicitacaoCursoService {
     @Transactional
     public void excluir(Long id) {
         SolicitacaoCurso solicitacao = solicitacaoRepository.findById(id)
+
                 .orElseThrow(() -> new NotFoundException("Solicitação não encontrada"));
 
         validarPropriedadeOuAdmin(solicitacao);
@@ -518,7 +517,7 @@ public class SolicitacaoCursoService {
 
         Long statusAtualId = solicitacao.getStatus() != null ? solicitacao.getStatus().getId() : 1L;
         log.trace("[Habilitar Edição] Status atual: {}", statusAtualId);
-        
+
         if (statusAtualId == 6L) {
             throw new BusinessRuleException("Não é possível habilitar edição para uma solicitação já convertida.");
         }
@@ -528,7 +527,7 @@ public class SolicitacaoCursoService {
 
         log.trace("[Habilitar Edição] Alterando status para 7 (DEVOLVIDO)");
         solicitacao.setStatus(statusAlvo);
-        
+
         try {
             SolicitacaoCurso salva = solicitacaoRepository.save(solicitacao);
             log.trace("[Habilitar Edição] Salvo com sucesso. Mapeando resposta...");
@@ -923,9 +922,12 @@ public class SolicitacaoCursoService {
     }
 
     private void validarRequisitosSubmissao(SolicitacaoCursoRequestDto dto) {
+
         if ("SUBMETIDO".equalsIgnoreCase(dto.getStatus())) {
+
             // 1. Localização (Se modalidade física/híbrida)
             java.util.List<Long> modalidadesComLocal = java.util.Arrays.asList(2L, 3L);
+
             if (modalidadesComLocal.contains(dto.getIdModalidade())) {
                 if (dto.getIdLocalEvento() == null) {
                     throw new BusinessRuleException(
@@ -934,14 +936,17 @@ public class SolicitacaoCursoService {
 
                 // Verifica se é local externo e se tem descrição
                 LocalEvento local = localEventoRepository.findById(dto.getIdLocalEvento()).orElse(null);
-                if (local != null && Boolean.TRUE.equals(local.getExterno()) && (dto.getDescricaoLocalExterno() == null || dto.getDescricaoLocalExterno().isBlank())) {
+
+                if (local != null && Boolean.TRUE.equals(local.getExterno())
+                        && (dto.getDescricaoLocalExterno() == null || dto.getDescricaoLocalExterno().isBlank())) {
                     throw new BusinessRuleException(
                             "Por favor, especifique o local externo do evento (auditório, hotel, sala, etc).");
                 }
             }
 
             // 2. Órgão Externo
-            if (Boolean.TRUE.equals(dto.getTemOrgaoExterno()) && (dto.getNomeOrgaoExterno() == null || dto.getNomeOrgaoExterno().isBlank())) {
+            if (Boolean.TRUE.equals(dto.getTemOrgaoExterno())
+                    && (dto.getNomeOrgaoExterno() == null || dto.getNomeOrgaoExterno().isBlank())) {
                 throw new BusinessRuleException(
                         "Por favor, informe o nome do órgão externo envolvido.");
             }
