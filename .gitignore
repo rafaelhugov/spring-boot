@@ -35,3 +35,4 @@ gradlew
 .project
 .factorypath
 restapi.env
+restapi/cursos-service/.env.dev

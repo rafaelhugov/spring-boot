@@ -27,10 +27,10 @@ public class SolicitacaoCurso {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "data_criacao", updatable = false)
+    @Column(name = "datacriacao", updatable = false)
     private LocalDateTime dataCriacao;
 
-    @Column(name = "data_modificacao")
+    @Column(name = "datamodificacao")
     private LocalDateTime dataModificacao;
 
     @PrePersist
@@ -49,10 +49,10 @@ public class SolicitacaoCurso {
     @JoinColumn(name = "id_status")
     private StatusTramitacao status;
 
-    @Column(name = "numero_pga_mpvirtual", length = 25)
+    @Column(name = "numeropga", length = 25)
     private String numeroPgaMpVirtual;
 
-    @Column(name = "id_pga_mp_virtual")
+    @Column(name = "id_pga")
     private Long idPgaMpVirtual;
 
     @Column(name = "uuid_referencia", nullable = false, updatable = false)
@@ -61,21 +61,21 @@ public class SolicitacaoCurso {
     // Identificação do Interessado
     // Assumption: we keep ID as bigint to link to public.servidor later if needed,
     // or we fetch details from JWT context for auditoria.
-    @Column(name = "id_servidor_interessado", nullable = false)
+    @Column(name = "id_requerente", nullable = false)
     private Long idServidorInteressado;
 
-    @Column(name = "id_orgao_interessado", nullable = false)
+    @Column(name = "id_orgao", nullable = false)
     private Long idOrgaoInteressado;
 
     // Informações do Evento
-    @Column(name = "nome_curso", nullable = false, length = 255)
+    @Column(name = "nomecurso", nullable = false, length = 255)
     private String nomeCurso;
 
-    @Column(name = "estimativa_participantes", nullable = false)
+    @Column(name = "estimativaparticipantes", nullable = false)
     private Integer estimativaParticipantes;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "solicitacao_publico_alvo", schema = "curso", joinColumns = @JoinColumn(name = "id_solicitacao"), inverseJoinColumns = @JoinColumn(name = "id_publico_alvo"))
+    @JoinTable(name = "solicitacaopublicoalvo", schema = "curso", joinColumns = @JoinColumn(name = "id_solicitacao"), inverseJoinColumns = @JoinColumn(name = "id_publicoalvo"))
     private List<PublicoAlvo> publicosAlvo = new ArrayList<>();
 
     @Column(name = "identificacao_orgao_membros")
@@ -90,57 +90,57 @@ public class SolicitacaoCurso {
     private Modalidade modalidade;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_tipo_evento")
+    @JoinColumn(name = "id_tipoevento")
     private TipoEvento tipoEvento;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_entidade_tutora")
+    @JoinColumn(name = "id_entidadetutora")
     private EntidadeTutora entidadeTutora;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_local_evento")
+    @JoinColumn(name = "id_localevento")
     private LocalEvento localEvento;
 
-    @Column(name = "descricao_local_externo", columnDefinition = "text")
+    @Column(name = "descricaolocalexterno", columnDefinition = "text")
     private String descricaoLocalExterno;
 
     // Apoio Logístico
-    @Column(name = "card_divulgacao")
+    @Column(name = "carddivulgacao")
     private Boolean cardDivulgacao = false;
 
-    @Column(name = "comunicacao_imprensa")
+    @Column(name = "comunicacaoimprensa")
     private Boolean comunicacaoImprensa = false;
 
-    @Column(name = "oficio_convite")
+    @Column(name = "oficioconvite")
     private Boolean oficioConvite = false;
 
-    @Column(name = "coffee_break")
+    @Column(name = "coffeebreak")
     private Boolean coffeeBreak = false;
 
-    @Column(name = "kit_participante")
+    @Column(name = "kitparticipante")
     private Boolean kitParticipante = false;
 
-    @Column(name = "programacao_impressa")
+    @Column(name = "programacaoimpressa")
     private Boolean programacaoImpressa = false;
 
-    @Column(name = "traslado_ministrante")
+    @Column(name = "trasladoministrante")
     private Boolean trasladoMinistrante = false;
 
     // Financeiro (Ônus para o MPPB)
-    @Column(name = "pagamento_honorario")
+    @Column(name = "pagamentohonorario")
     private Boolean pagamentoHonorario = false;
 
-    @Column(name = "passagem_aerea")
+    @Column(name = "passagemaerea")
     private Boolean passagemAerea = false;
 
     @Column(name = "hospedagem")
     private Boolean hospedagem = false;
 
     // Documentação e Notas
-    @Column(name = "observacoes_gerais", columnDefinition = "text")
+    @Column(name = "observacoes", columnDefinition = "text")
     private String observacoesGerais;
 
-    @Column(name = "id_arquivo_programacao_ged")
+    @Column(name = "id_arquivo")
     private Long idArquivoProgramacaoGed;
 
     @OneToMany(mappedBy = "solicitacao", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -172,6 +172,6 @@ public class SolicitacaoCurso {
     @Column(name = "id_minuta")
     private Long idMinuta;
 
-    @Column(name = "id_curso_gerado")
+    @Column(name = "id_cursogerado")
     private Long idCursoGerado;
 }

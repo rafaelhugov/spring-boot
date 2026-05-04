@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "local_evento", schema = "curso")
+@Table(name = "localevento", schema = "curso")
 @Getter
 @Setter
 public class LocalEvento {
