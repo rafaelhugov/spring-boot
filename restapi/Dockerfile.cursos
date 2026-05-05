@@ -1,0 +1,29 @@
+FROM eclipse-temurin:21-jre-alpine
+
+LABEL description="cursos-api-dev"
+
+# Instala Node.js, Chromium e dependências para o Puppeteer rodar no Alpine
+RUN apk add --no-cache \
+    nodejs \
+    npm \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    fontconfig \
+    ttf-dejavu
+
+# Configura o Puppeteer para usar o Chromium do sistema
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+WORKDIR /opt
+
+# O script subir-ambiente.sh gera este arquivo em spring-boot/restapi/
+COPY cursos-api-latest.jar /opt/cursos-api.jar
+
+EXPOSE 9002
+
+ENTRYPOINT ["java", "-jar", "/opt/cursos-api.jar"]
