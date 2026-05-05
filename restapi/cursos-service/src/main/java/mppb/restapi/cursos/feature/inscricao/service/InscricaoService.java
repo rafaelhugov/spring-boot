@@ -93,7 +93,13 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
             throw new NotFoundException("Curso não encontrado: " + cursoId);
         }
 
-        String nomeFiltro = (nome != null && !nome.isBlank()) ? nome : null;
+        String nomeFiltro = null;
+        if (nome != null && !nome.isBlank()) {
+            nomeFiltro = "%" + java.text.Normalizer.normalize(nome, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+                .replace(" ", "%")
+                .toLowerCase() + "%";
+        }
         SituacaoInscricaoEnum situacaoEnum = null;
         if (situacao != null && !situacao.isBlank()) {
             try {

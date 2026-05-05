@@ -28,11 +28,11 @@ public interface InscricaoRepository extends BaseRepository<Inscricao, Long> {
      */
     @Query(value = "SELECT i FROM Inscricao i JOIN FETCH i.participante p " +
             "WHERE i.curso.id = :cursoId " +
-            "AND (:nome IS NULL OR lower(function('funcaosemacentos', p.nome)) LIKE lower(concat('%', replace(function('funcaosemacentos', concat('', :nome)), ' ', '%'), '%'))) " +
+            "AND (:nome IS NULL OR lower(function('funcaosemacentos', p.nome)) LIKE :nome) " +
             "AND (:situacao IS NULL OR i.situacao = :situacao)",
             countQuery = "SELECT count(i) FROM Inscricao i JOIN i.participante p " +
             "WHERE i.curso.id = :cursoId " +
-            "AND (:nome IS NULL OR lower(function('funcaosemacentos', p.nome)) LIKE lower(concat('%', replace(function('funcaosemacentos', concat('', :nome)), ' ', '%'), '%'))) " +
+            "AND (:nome IS NULL OR lower(function('funcaosemacentos', p.nome)) LIKE :nome) " +
             "AND (:situacao IS NULL OR i.situacao = :situacao)")
     Page<Inscricao> findAllByCursoIdWithFilters(
             @Param("cursoId") Long cursoId,
