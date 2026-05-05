@@ -18,12 +18,28 @@ public interface InscricaoRepository extends BaseRepository<Inscricao, Long> {
     /**
      * Busca todas as inscrições de um curso de forma paginada, otimizando a
      * consulta para carregar os dados do participante associado na mesma query via JOIN FETCH.
-     * O JOIN FETCH manual resolve problemas de ordenação por campos da associação.
+     * Suporta filtros por nome do participante e situação da inscrição.
      *
      * @param cursoId  O ID do curso.
+     * @param nome     (Opcional) Nome do participante para filtro parcial.
+     * @param situacao (Opcional) Situação da inscrição para filtro exato.
      * @param pageable As informações de paginação.
-     * @return Uma página de inscrições com os participantes já carregados.
+     * @return Uma página de inscrições filtradas com os participantes já carregados.
      */
+    @Query(value = "SELECT i FROM Inscricao i JOIN FETCH i.participante p " +
+            "WHERE i.curso.id = :cursoId " +
+            "AND (:nome IS NULL OR lower(function('funcaosemacentos', p.nome)) LIKE lower(concat('%', replace(function('funcaosemacentos', concat('', :nome)), ' ', '%'), '%'))) " +
+            "AND (:situacao IS NULL OR i.situacao = :situacao)",
+            countQuery = "SELECT count(i) FROM Inscricao i JOIN i.participante p " +
+            "WHERE i.curso.id = :cursoId " +
+            "AND (:nome IS NULL OR lower(function('funcaosemacentos', p.nome)) LIKE lower(concat('%', replace(function('funcaosemacentos', concat('', :nome)), ' ', '%'), '%'))) " +
+            "AND (:situacao IS NULL OR i.situacao = :situacao)")
+    Page<Inscricao> findAllByCursoIdWithFilters(
+            @Param("cursoId") Long cursoId,
+            @Param("nome") String nome,
+            @Param("situacao") mppb.restapi.cursos.feature.inscricao.enums.SituacaoInscricaoEnum situacao,
+            Pageable pageable);
+
     @Query(value = "SELECT i FROM Inscricao i JOIN FETCH i.participante " +
             "WHERE i.curso.id = :cursoId", countQuery = "SELECT count(i) FROM Inscricao i WHERE i.curso.id = :cursoId")
     Page<Inscricao> findAllByCursoId(@Param("cursoId") Long cursoId, Pageable pageable);

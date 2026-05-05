@@ -85,14 +85,30 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
     // =================================================================================
 
     /**
-     * Busca inscrições para o fluxo administrativo (paginado).
+     * Busca inscrições para o fluxo administrativo (paginado) com filtros.
      */
     @Transactional(readOnly = true)
-    public Page<Inscricao> findAllByCursoId(Long cursoId, Pageable pageable) {
+    public Page<Inscricao> findAllByCursoId(Long cursoId, String nome, String situacao, Pageable pageable) {
         if (!cursoRepository.existsById(cursoId)) {
             throw new NotFoundException("Curso não encontrado: " + cursoId);
         }
-        return inscricaoRepository.findAllByCursoId(cursoId, pageable);
+
+        String nomeFiltro = (nome != null && !nome.isBlank()) ? nome : null;
+        SituacaoInscricaoEnum situacaoEnum = null;
+        if (situacao != null && !situacao.isBlank()) {
+            try {
+                // Tenta converter de código (char) ou nome da enum
+                if (situacao.length() == 1) {
+                    situacaoEnum = SituacaoInscricaoEnum.fromCodigo(situacao.charAt(0));
+                } else {
+                    situacaoEnum = SituacaoInscricaoEnum.valueOf(situacao);
+                }
+            } catch (Exception e) {
+                log.warn("Situação inválida fornecida para filtro: {}", situacao);
+            }
+        }
+
+        return inscricaoRepository.findAllByCursoIdWithFilters(cursoId, nomeFiltro, situacaoEnum, pageable);
     }
 
     /**
@@ -262,6 +278,8 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         Inscricao inscricao = inscricaoRepository.findByIdAndCursoId(inscricaoId, cursoId)
                 .orElseThrow(() -> new NotFoundException("Inscrição não encontrada para este curso."));
 
+        SituacaoInscricaoEnum situacaoAnterior = inscricao.getSituacao();
+
         try {
             Character codigo = novaSituacaoCodigoStr.charAt(0);
             SituacaoInscricaoEnum novaSituacao = SituacaoInscricaoEnum.fromCodigo(codigo);
@@ -270,6 +288,12 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
             if (frequencia != null) {
                 inscricao.setFrequencia(frequencia);
             }
+
+            // Se a situação mudou para INSCRITO, envia e-mail de confirmação
+            if (novaSituacao == SituacaoInscricaoEnum.INSCRITO && situacaoAnterior != SituacaoInscricaoEnum.INSCRITO) {
+                emailService.enviarEmailInscricaoRealizada(inscricao);
+            }
+
         } catch (Exception e) {
             throw new BusinessRuleException("Código de situação inválido: " + novaSituacaoCodigoStr);
         }

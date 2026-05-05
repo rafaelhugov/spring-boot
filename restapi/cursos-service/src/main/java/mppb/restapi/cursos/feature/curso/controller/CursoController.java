@@ -161,10 +161,14 @@ public class CursoController extends AbstractController {
 
     // --- ENDPOINTS PARA GESTÃO DE PARTICIPANTES DO CURSO ---
 
-    @Operation(summary = "Obtém os participantes de um curso", description = "Retorna os participantes inscritos de forma paginada.")
+    @Operation(summary = "Obtém os participantes de um curso", description = "Retorna os participantes inscritos de forma paginada. Suporta filtros por nome e situação.")
     @GetMapping(value = "/{cursoId}/participantes", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Page<InscricaoDto>> findAll(@PathVariable Long cursoId, Pageable pageable) {
-        Page<Inscricao> inscricaoPage = inscricaoService.findAllByCursoId(cursoId, pageable);
+    public ResponseEntity<Page<InscricaoDto>> findAll(
+            @PathVariable Long cursoId,
+            @RequestParam(required = false) String nome,
+            @RequestParam(required = false) String situacao,
+            Pageable pageable) {
+        Page<Inscricao> inscricaoPage = inscricaoService.findAllByCursoId(cursoId, nome, situacao, pageable);
         return ResponseEntity.ok(inscricaoPage.map(inscricaoService::toDto));
     }
 
