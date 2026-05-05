@@ -56,4 +56,19 @@ public class CertificadoController extends AbstractController {
                 .headers(headers)
                 .body(pdf);
     }
+
+    @Operation(summary = "Gera o PDF do folheto de inscrição com QR Code")
+    @GetMapping("/{cursoId}/qrcode-inscricao")
+    @PreAuthorize("hasAuthority('cursos.manter.cursos')")
+    public ResponseEntity<byte[]> downloadFlyerInscricao(@PathVariable Long cursoId, @RequestParam String baseUrl) throws Exception {
+        byte[] pdf = certificadoService.gerarFlyerInscricaoPdf(cursoId, baseUrl);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "ficha_inscricao.pdf");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(pdf);
+    }
 }

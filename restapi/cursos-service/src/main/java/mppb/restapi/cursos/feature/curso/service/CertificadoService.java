@@ -7,6 +7,7 @@ import mppb.restapi.common.core.error.BusinessRuleException;
 import mppb.restapi.common.core.error.NotFoundException;
 import mppb.restapi.cursos.feature.common.entities.Arquivo;
 import mppb.restapi.cursos.feature.common.service.ArquivoService;
+import mppb.restapi.cursos.feature.common.service.QrCodeService;
 import mppb.restapi.cursos.feature.common.service.ServidorService;
 import mppb.restapi.cursos.feature.curso.entity.Curso;
 import mppb.restapi.cursos.feature.curso.repository.CursoMinistranteRepository;
@@ -121,6 +122,8 @@ public class CertificadoService {
     private final InscricaoRepository inscricaoRepository;
     private final CursoMinistranteRepository cursoMinistranteRepository;
 
+    private final QrCodeService qrCodeService;
+
     @Autowired
     public CertificadoService(
             TemplateEngine templateEngine,
@@ -129,7 +132,8 @@ public class CertificadoService {
             ArquivoService arquivoService,
             ServidorService servidorService,
             InscricaoRepository inscricaoRepository,
-            CursoMinistranteRepository cursoMinistranteRepository) {
+            CursoMinistranteRepository cursoMinistranteRepository,
+            QrCodeService qrCodeService) {
         this.templateEngine = templateEngine;
         this.cursoRepository = cursoRepository;
         this.participanteRepository = participanteRepository;
@@ -137,6 +141,7 @@ public class CertificadoService {
         this.servidorService = servidorService;
         this.inscricaoRepository = inscricaoRepository;
         this.cursoMinistranteRepository = cursoMinistranteRepository;
+        this.qrCodeService = qrCodeService;
     }
 
     public byte[] gerarCertificadoPdf(long cursoId, long pessoaId) throws Exception {
@@ -286,5 +291,39 @@ public class CertificadoService {
                     e.getMessage());
             throw e;
         }
+    }
+
+    public byte[] gerarFlyerInscricaoPdf(Long cursoId, String baseUrl) throws Exception {
+        log.info("Gerando flyer de inscrição para curso: {} com baseUrl: {}", cursoId, baseUrl);
+
+        Curso curso = cursoRepository.findById(cursoId)
+                .orElseThrow(() -> new NotFoundException("Curso não encontrado"));
+
+        if (curso.getHashInscricao() == null) {
+            throw new BusinessRuleException("Este curso não possui um link de inscrição ativo.");
+        }
+
+        // Construir URL de inscrição (removendo barra final da baseUrl se existir)
+        String cleanBaseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+        String inscricaoUrl = cleanBaseUrl + "/inscricao/" + curso.getHashInscricao();
+
+        // Gerar QR Code
+        String qrCodeBase64 = qrCodeService.generateQrCodeBase64(inscricaoUrl, 400, 400);
+
+        Context context = new Context();
+        context.setVariable("nomeCurso", curso.getTitulo());
+        context.setVariable("descricaoCurso", curso.getDescricao() != null ? curso.getDescricao() : "");
+        context.setVariable("qrCodeImage", qrCodeBase64);
+
+        String htmlContent = templateEngine.process("qrcode-flyer", context);
+
+        ByteArrayOutputStream target = new ByteArrayOutputStream();
+        PdfRendererBuilder builder = new PdfRendererBuilder();
+        builder.useFastMode();
+        builder.withHtmlContent(htmlContent, "///");
+        builder.toStream(target);
+        builder.run();
+
+        return target.toByteArray();
     }
 }
