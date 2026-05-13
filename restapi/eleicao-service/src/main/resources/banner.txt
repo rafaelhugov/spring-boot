@@ -1,0 +1,12 @@
+
+  ______ _      ______ _____ _____     _  ____  
+ |  ____| |    |  ____|_   _/ ____|   / \|  _ \ 
+ | |__  | |    | |__    | || |       / _ \ |_) |
+ |  __| | |    |  __|   | || |      / ___ \  __/ 
+ | |____| |____| |____ _| || |____ / _   \ |    
+ |______|______|______|_____\_____/_/ \__\_|    
+                                                 
+${project.name} (v${project.version})
+Spring Boot ${spring-boot.version}
+Porta: ${server.port}
+Perfis Ativos: ${spring.profiles.active}
