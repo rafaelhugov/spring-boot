@@ -31,6 +31,7 @@ import mppb.restapi.cursos.feature.participante.enums.TipoParticipanteEnum;
 import mppb.restapi.cursos.feature.participante.repository.ParticipanteRepository;
 import mppb.restapi.cursos.feature.participante.service.ParticipanteService;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -117,6 +118,11 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
             } catch (Exception e) {
                 log.warn("Situação inválida fornecida para filtro: {}", situacao);
             }
+        }
+
+        // Se o tamanho da página for negativo (Vuetify "Todos" envia -1), usa um valor alto para trazer todos
+        if (pageable.isPaged() && pageable.getPageSize() < 0) {
+            pageable = PageRequest.of(0, 10000, pageable.getSort());
         }
 
         return inscricaoRepository.findAllByCursoIdWithFilters(cursoId, nomeFiltro, situacaoEnum, pageable);
