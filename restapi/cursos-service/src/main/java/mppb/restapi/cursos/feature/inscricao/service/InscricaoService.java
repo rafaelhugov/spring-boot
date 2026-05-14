@@ -35,9 +35,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import mppb.restapi.cursos.feature.inscricao.util.InscricaoExcelExporter;
 
 @Service
 @Slf4j
@@ -315,6 +320,21 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
             throw new NotFoundException("Inscrição não encontrada para este curso.");
         }
         inscricaoRepository.deleteById(inscricaoId);
+    }
+
+    /**
+     * Gera um arquivo Excel com a lista de inscritos filtrada.
+     */
+    @Transactional(readOnly = true)
+    public ByteArrayInputStream exportarParaExcel(Long cursoId, String nome, String situacao) throws IOException {
+        // Busca sem paginação (Pageable.unpaged()) para exportar todos os registros filtrados
+        Page<Inscricao> page = findAllByCursoId(cursoId, nome, situacao, Pageable.unpaged());
+        
+        List<InscricaoDto> dtos = page.getContent().stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+                
+        return InscricaoExcelExporter.exportToExcel(dtos);
     }
 
     // =================================================================================

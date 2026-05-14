@@ -28,12 +28,18 @@ import mppb.restapi.cursos.feature.participante.dto.CriarInscricaoDto;
 import mppb.restapi.common.infrastructure.util.Constants;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -195,6 +201,29 @@ public class CursoController extends AbstractController {
                                                  @PathVariable Long inscricaoId) {
         inscricaoService.remover(cursoId, inscricaoId);
         return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Exporta os participantes para Excel", description = "Gera um arquivo .xlsx com a lista de participantes filtrada.")
+    @GetMapping(value = "/{cursoId}/participantes/export")
+    public ResponseEntity<Resource> exportarParaExcel(
+            @PathVariable Long cursoId,
+            @RequestParam(required = false) String nome,
+            @RequestParam(required = false) String situacao) throws IOException {
+
+        ByteArrayInputStream in = inscricaoService.exportarParaExcel(cursoId, nome, situacao);
+
+        CursoDto curso = cursoService.findDetalhesById(cursoId);
+        // Remove caracteres especiais para evitar problemas no nome do arquivo
+        String nomeCurso = curso.getTitulo().replaceAll("[^a-zA-Z0-9]", "_");
+        String fileName = "participantes_" + nomeCurso + ".xlsx";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-Disposition", "attachment; filename=" + fileName);
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .body(new InputStreamResource(in));
     }
 
 
