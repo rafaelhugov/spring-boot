@@ -41,4 +41,13 @@ public class InscricaoInternoController {
         InscricaoDto inscricaoSalva = inscricaoService.realizarInscricaoInterna(hash);
         return new ResponseEntity<>(inscricaoSalva, HttpStatus.CREATED);
     }
+
+    @Operation(summary = "Lista as inscrições do participante logado",
+            description = "Retorna todos os cursos em que o usuário atual está inscrito.",
+            security = @SecurityRequirement(name = "bearerAuth"))
+    @GetMapping("/meus-cursos")
+    @PreAuthorize("hasAuthority('cursos.acesso')")
+    public ResponseEntity<java.util.List<InscricaoDto>> meusCursos() {
+        return ResponseEntity.ok(inscricaoService.findMeusCursos());
+    }
 }

@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -71,5 +72,10 @@ public interface InscricaoRepository extends BaseRepository<Inscricao, Long> {
     Optional<Inscricao> findByCursoAndParticipante(Curso curso, Participante participante);
 
     Optional<Inscricao> findByCursoIdAndParticipanteId(Long cursoId, Long participanteId);
+
+    @Query("SELECT i FROM Inscricao i JOIN FETCH i.curso c JOIN FETCH i.participante p " +
+           "WHERE p.idServidor = :idServidor OR p.cpf = :cpf " +
+           "ORDER BY c.realizacaoDataInicial DESC")
+    List<Inscricao> findByParticipanteIdServidorOrCpf(@Param("idServidor") Integer idServidor, @Param("cpf") String cpf);
 
 }

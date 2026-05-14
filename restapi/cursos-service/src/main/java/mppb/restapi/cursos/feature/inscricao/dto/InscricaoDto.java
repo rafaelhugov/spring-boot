@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class InscricaoDto {
 
     private Long id;
+    private mppb.restapi.cursos.feature.curso.dto.CursoDto curso;
     private LocalDateTime dataInscricao;
     private String situacao;
     private Integer frequencia;

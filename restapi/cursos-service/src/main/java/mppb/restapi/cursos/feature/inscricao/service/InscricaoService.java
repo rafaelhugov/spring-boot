@@ -329,6 +329,34 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
     }
 
     /**
+     * Busca todas as inscrições do participante interno (membro/servidor) logado.
+     * @return Lista de inscrições.
+     */
+    @Transactional(readOnly = true)
+    public List<InscricaoDto> findMeusCursos() {
+        // 1. Obtém o LOGIN do utilizador a partir do contexto de segurança
+        TokenAuthentication auth = SecurityUtils.getAuthenticationToken()
+                .orElseThrow(() -> new BusinessRuleException("Não foi possível identificar o utilizador autenticado."));
+
+        String login = auth.getUsuario().getLogin();
+        
+        // 2. Identifica o ID do Servidor pelo Login
+        Integer idServidor = servidorService.findIdServidorByLogin(login)
+                .orElseThrow(() -> new BusinessRuleException("Não foi possível identificar seu cadastro de servidor para o login: " + login));
+
+        // 3. Busca o CPF do servidor para garantir uma busca resiliente (fallback)
+        String cpf = servidorService.buscarServidorPorId(idServidor)
+                .map(mppb.restapi.cursos.feature.common.projection.ServidorProjection::getCpf)
+                .map(c -> c.replaceAll("\\D", ""))
+                .orElse(null);
+
+        // 4. Busca as inscrições usando ID do Servidor ou CPF
+        return inscricaoRepository.findByParticipanteIdServidorOrCpf(idServidor, cpf).stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Gera um arquivo Excel com a lista de inscritos filtrada.
      */
     @Transactional(readOnly = true)
