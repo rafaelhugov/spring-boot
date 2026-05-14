@@ -12,10 +12,14 @@ public class InscricaoConverter implements DtoConverter<InscricaoDto, Inscricao>
 
     private final ModelMapper modelMapper;
     private final ParticipanteConverter participanteConverter;
+    private final mppb.restapi.cursos.feature.curso.converter.CursoConverter cursoConverter;
 
-    public InscricaoConverter(ModelMapper modelMapper, ParticipanteConverter participanteConverter) {
+    public InscricaoConverter(ModelMapper modelMapper, 
+                             ParticipanteConverter participanteConverter,
+                             mppb.restapi.cursos.feature.curso.converter.CursoConverter cursoConverter) {
         this.modelMapper = modelMapper;
         this.participanteConverter = participanteConverter;
+        this.cursoConverter = cursoConverter;
     }
 
     @Override
@@ -29,6 +33,11 @@ public class InscricaoConverter implements DtoConverter<InscricaoDto, Inscricao>
         // Garante que a descrição da Enum seja usada, e não seu nome.
         if (entity.getSituacao() != null) {
             dto.setSituacao(entity.getSituacao().getDescricao());
+        }
+
+        // Mapeia o curso explicitamente para garantir que as informações apareçam na tela do aluno
+        if (entity.getCurso() != null) {
+            dto.setCurso(cursoConverter.toDto(entity.getCurso()));
         }
 
         // Usa o converter dedicado para o objeto aninhado, garantindo a separação de responsabilidades.
