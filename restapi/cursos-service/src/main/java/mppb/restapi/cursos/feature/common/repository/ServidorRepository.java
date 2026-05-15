@@ -62,14 +62,16 @@ public interface ServidorRepository extends BaseRepository<Servidor, Long> {
                         "    p.id as idPessoa, " +
                         "    s.matricula AS servidorMatricula, " +
                         "    p.nome as nome, " +
+                        "    pf.cpf, " +
+                        "    p.email, " +
                         "    f.nome AS cargoNome, " +
                         "    CASE WHEN tc.tipo = 'S' THEN 'Servidor' ELSE 'Membro' END AS tipoCargoNome, " +
                         "    CASE WHEN s.ativo = 'A' THEN 'ATIVO' ELSE 'INATIVO' END AS situacao " +
                         "FROM public.servidor s " +
-                        "JOIN public.pessoa p ON p.id = s.id_pessoa " +
-                        "JOIN public.pessoafisica pf ON pf.id_pessoa = p.id " +
-                        "JOIN recursoshumanos.funcao f ON f.id = s.id_cargo " +
-                        "JOIN recursoshumanos.tipocargo tc ON tc.id = f.id_tipocargo " +
+                        "LEFT JOIN public.pessoa p ON p.id = s.id_pessoa " +
+                        "LEFT JOIN public.pessoafisica pf ON pf.id_pessoa = p.id " +
+                        "LEFT JOIN recursoshumanos.funcao f ON f.id = s.id_cargo " +
+                        "LEFT JOIN recursoshumanos.tipocargo tc ON tc.id = f.id_tipocargo " +
                         "WHERE pf.cpf = :cpf " +
                         "LIMIT 1", nativeQuery = true)
         Optional<ServidorProjection> buscarServidorPorCpf(@Param("cpf") String cpf);
