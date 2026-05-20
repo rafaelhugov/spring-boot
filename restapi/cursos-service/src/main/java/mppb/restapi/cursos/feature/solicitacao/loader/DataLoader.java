@@ -39,9 +39,13 @@ public class DataLoader implements CommandLineRunner {
     }
 
     private void seedStatus(Long id, String descricao) {
-        if (!repository.existsById(id)) {
-            log.info("[DATA-LOADER] Inserindo status faltante: ID={}, Descrição={}", id, descricao);
-            repository.save(new StatusTramitacao(id, descricao));
+        try {
+            if (!repository.existsById(id)) {
+                log.info("[DATA-LOADER] Inserindo status faltante: ID={}, Descrição={}", id, descricao);
+                repository.save(new StatusTramitacao(id, descricao));
+            }
+        } catch (Exception e) {
+            log.warn("[DATA-LOADER] Erro ao verificar ou inserir status {} (possível erro de permissão): {}", id, e.getMessage());
         }
     }
 }

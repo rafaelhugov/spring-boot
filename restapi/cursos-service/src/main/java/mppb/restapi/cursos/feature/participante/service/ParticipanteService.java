@@ -53,10 +53,21 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
         List<Participante> participantesExternos = participanteRepository
                 .findAllByTipoAndNomeContainingIgnoreCase(TipoParticipanteEnum.EXTERNO, searchTerm);
 
-        Stream<ParticipanteSearchResultDto> internosStream = servidores.stream().map(this::convertServidorToSearchResult);
-        Stream<ParticipanteSearchResultDto> externosStream = participantesExternos.stream().map(this::convertParticipanteToSearchResult);
+        List<ParticipanteSearchResultDto> internos = servidores.stream()
+                .map(this::convertServidorToSearchResult)
+                .collect(Collectors.toList());
 
-        return Stream.concat(internosStream, externosStream).collect(Collectors.toList());
+        // Deduplicação: Remove da lista de externos quem já foi encontrado como interno (pelo nome)
+        List<String> nomesInternos = internos.stream()
+                .map(i -> i.getNome().toLowerCase())
+                .collect(Collectors.toList());
+
+        List<ParticipanteSearchResultDto> externos = participantesExternos.stream()
+                .filter(ext -> !nomesInternos.contains(ext.getNome().toLowerCase()))
+                .map(this::convertParticipanteToSearchResult)
+                .collect(Collectors.toList());
+
+        return Stream.concat(internos.stream(), externos.stream()).collect(Collectors.toList());
     }
 
     /**
@@ -69,7 +80,7 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
         if (participante.getTipo() == TipoParticipanteEnum.INTERNO && participante.getIdServidor() != null) {
             servidorService.buscarServidorPorId(participante.getIdServidor()).ifPresent(servidor -> {
                 dto.setNome(servidor.getNome());
-                dto.setCargo(servidor.getTipoCargoNome());
+                dto.setCargo(servidor.getCargoNome()); // Nome real do cargo
                 dto.setEmail(servidor.getEmail());
             });
         }
@@ -170,7 +181,7 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
      * @return A entidade Participante encontrada.
      * @throws NotFoundException se o participante não for encontrado em nenhuma base.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public Participante identificarParticipantePorCpf(String cpf) {
         String cpfLimpo = cpf.replaceAll("\\D", "");
 
@@ -178,7 +189,7 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
         Optional<ServidorProjection> servidor = servidorService.buscarPorCpf(cpfLimpo);
         if (servidor.isPresent()) {
             return participanteRepository.findByIdServidor(servidor.get().getId())
-                    .orElseThrow(() -> new NotFoundException("Servidor encontrado no RH, mas sem registo de participante (inscrição) neste sistema."));
+                    .orElseGet(() -> createAndSaveInterno(servidor.get().getId()));
         }
 
         // 2. Tenta achar externo
@@ -192,7 +203,9 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
         return ParticipanteSearchResultDto.builder()
                 .idServidor(servidor.getId())
                 .nome(servidor.getNome())
-                .cargo(servidor.getTipoCargoNome())
+                .email(servidor.getEmail())
+                .telefone(servidor.getTelefone())
+                .cargo(servidor.getCargoNome()) // Nome real do cargo (ex: Assessor Voluntário)
                 .tipo(TipoParticipanteEnum.INTERNO.name())
                 .servidorMatricula(servidor.getServidorMatricula())
                 .situacao(servidor.getSituacao())

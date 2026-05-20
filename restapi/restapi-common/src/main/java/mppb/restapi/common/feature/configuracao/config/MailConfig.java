@@ -19,8 +19,14 @@ public class MailConfig {
     public JavaMailSender javaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
 
-        mailSender.setHost(configuracaoService.get("global.instituicao.ip_email"));
-        mailSender.setPort(configuracaoService.getAsInteger("global.instituicao.porta_email"));
+        try {
+            mailSender.setHost(configuracaoService.get("global.instituicao.ip_email"));
+            mailSender.setPort(configuracaoService.getAsInteger("global.instituicao.porta_email"));
+        } catch (Exception e) {
+            System.err.println("Erro ao carregar configuracoes de email (DB indisponível): " + e.getMessage());
+            mailSender.setHost("127.0.0.1");
+            mailSender.setPort(2525);
+        }
 
         // mailSender.setUsername(configuracaoService.get("global.instituicao.email_username"));
         // mailSender.setPassword(configuracaoService.get("global.instituicao.email_password"));
