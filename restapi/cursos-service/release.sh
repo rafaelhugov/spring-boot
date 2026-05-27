@@ -29,6 +29,24 @@ fi
 
 cd "$(dirname "$0")"
 
+if ! docker ps >/dev/null 2>&1; then
+  echo "[release] Sem permissao para acessar o Docker."
+  echo "[release] Grupos da sessao atual: $(id -nG)"
+  echo "[release] Permissao atual do socket Docker:"
+  ls -l /var/run/docker.sock
+  echo
+  echo "Se o grupo docker acabou de ser adicionado, rode nesta mesma janela:"
+  echo "  newgrp docker"
+  echo
+  echo "Se o socket estiver diferente de root:docker, corrija com:"
+  echo "  sudo chown root:docker /var/run/docker.sock"
+  echo "  sudo chmod 660 /var/run/docker.sock"
+  echo
+  echo "Depois teste com:"
+  echo "  docker ps"
+  exit 1
+fi
+
 # Versão atual
 CURRENT_VER=$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version)
 

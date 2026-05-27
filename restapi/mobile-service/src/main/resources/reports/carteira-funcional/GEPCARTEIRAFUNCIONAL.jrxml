@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="FORMULARIO" pageWidth="300" pageHeight="400" columnWidth="300" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0">
+	<property name="ireport.zoom" value="2.1961500000000007"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="468"/>
+	<property name="ireport.scriptlethandling" value="0"/>
+	<property name="ireport.encoding" value="UTF-8"/>
+	<import value="net.sf.jasperreports.engine.*"/>
+	<import value="java.util.*"/>
+	<import value="net.sf.jasperreports.engine.data.*"/>
+	<parameter name="imagem" class="java.lang.String" isForPrompting="false"/>
+	<parameter name="nofoto" class="java.io.InputStream"/>
+	<parameter name="bytesfoto" class="java.lang.Object"/>
+	<parameter name="frente" class="java.io.InputStream"/>
+	<parameter name="verso" class="java.io.InputStream"/>
+	<parameter name="assinatura" class="java.io.InputStream"/>
+	<parameter name="PARLOGIN" class="java.lang.String"/>
+	<parameter name="qrcode" class="java.lang.String"/>
+	<parameter name="PGJ" class="java.lang.String"/>
+	<parameter name="color" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[select s.id as idServidor,
+upper(p.nome) as nome,
+pf.cpf,
+coalesce(pf.rg, '') as rg ,
+coalesce(pf.orgaoExp, '') orgaoExp ,
+upper(f.nome) as cargo, upper(coalesce(e2.nome, '')) as especialidade, s.matricula, coalesce(s.tituloEleitor , '') as titulo, coalesce(pf.nome_pai, '') as nomePai, coalesce(pf.nome_mae , '') as nomeMae, pf.datanascimento as nascimento,
+coalesce(upper(m.nome), '') ||'/'||coalesce(e.sigla, '') as naturalidade ,
+tc.tipo as tipocargo, p.id as idPessoa,
+case
+when f.nome ilike '%procurador%' and pf.sexo = 'M' then 'PROCURADOR DE JUSTIÇA'
+when f.nome ilike '%procurador%' and pf.sexo = 'F' then 'PROCURADORA DE JUSTIÇA'
+when tc.estagiario = 't' and pf.sexo = 'M' then 'ESTAGIÁRIO'
+when tc.estagiario = 't' and pf.sexo = 'F' then 'ESTAGIÁRIA'
+when tc.tipo = 'M' and pf.sexo = 'M' then 'PROMOTOR DE JUSTIÇA'
+when tc.tipo = 'M' and pf.sexo = 'F' then 'PROMOTORA DE JUSTIÇA'
+when tc.tipo = 'S' and pf.sexo = 'M' then 'SERVIDOR'
+when tc.tipo = 'S' and pf.sexo = 'F' then 'SERVIDORA'
+else '' end as titulocargo
+from servidor s
+join pessoafisica pf on pf.id_pessoa = s.id_pessoa
+join pessoa p on p.id = s.id_pessoa
+join recursoshumanos.funcao f on f.id = s.id_cargo
+join recursoshumanos.tipocargo tc on f.id_tipocargo = tc.id
+left join recursoshumanos.especialidade e2 on e2.id = s.id_especialidade
+left join municipio m on m.id = pf.id_municipio
+left join estado e on e.id = m.id_estado
+where s.ativo = 'A' and s.excluido = false and p.excluido = false
+and exists(select id from autorizacao.usuario u where u.matricula= s.matricula and u.login = $P{PARLOGIN} and u.excluido = false limit 1 )
+and exists(select id from recursoshumanos.qrcodecarteira u where u.id_servidor= s.id order by u.id desc limit 1 )]]>
+	</queryString>
+	<field name="idservidor" class="java.lang.Integer"/>
+	<field name="nome" class="java.lang.String"/>
+	<field name="cpf" class="java.lang.String"/>
+	<field name="rg" class="java.lang.String"/>
+	<field name="orgaoexp" class="java.lang.String"/>
+	<field name="cargo" class="java.lang.String"/>
+	<field name="especialidade" class="java.lang.String"/>
+	<field name="matricula" class="java.lang.String"/>
+	<field name="titulo" class="java.lang.String"/>
+	<field name="nomepai" class="java.lang.String"/>
+	<field name="nomemae" class="java.lang.String"/>
+	<field name="nascimento" class="java.sql.Date"/>
+	<field name="naturalidade" class="java.lang.String"/>
+	<field name="tipocargo" class="java.lang.String"/>
+	<field name="idpessoa" class="java.lang.Integer"/>
+	<field name="titulocargo" class="java.lang.String"/>
+	<background>
+		<band height="400" splitType="Stretch">
+			<image>
+				<reportElement x="0" y="6" width="298" height="196"/>
+				<imageExpression class="java.io.InputStream"><![CDATA[$P{frente}]]></imageExpression>
+			</image>
+			<image>
+				<reportElement x="0" y="202" width="298" height="196"/>
+				<imageExpression class="java.io.InputStream"><![CDATA[$P{verso}]]></imageExpression>
+			</image>
+		</band>
+	</background>
+	<title>
+		<band splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band splitType="Stretch"/>
+	</columnHeader>
+	<detail>
+		<band height="400" splitType="Stretch">
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement key="textField" positionType="Float" x="15" y="68" width="140" height="25"/>
+				<textElement markup="html">
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["<span style='color:"+$P{color}+"'>" + $F{nome}+"</span>"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField" positionType="Float" x="162" y="59" width="68" height="11"/>
+				<textElement markup="html">
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["<span style='color:"+$P{color}+"'>" + $F{rg}+"</span>"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField" positionType="Float" x="162" y="70" width="68" height="11"/>
+				<textElement markup="html">
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["<span style='color:"+$P{color}+"'>" +$F{orgaoexp}+"</span>"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField" positionType="Float" x="15" y="108" width="137" height="11"/>
+				<textElement markup="html">
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["<span style='color:"+$P{color}+"'>" +$F{titulo}+"</span>"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField" positionType="Float" x="144" y="94" width="71" height="11"/>
+				<textElement markup="html">
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["<span style='color:"+$P{color}+"'>" +$F{cpf}+"</span>"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField" positionType="Float" x="144" y="121" width="71" height="11"/>
+				<textElement markup="html">
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["<span style='color:"+$P{color}+"'>" +$F{matricula}+"</span>"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField" positionType="Float" x="16" y="132" width="128" height="25"/>
+				<textElement markup="html">
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["<span style='color:"+$P{color}+"'>" +$F{naturalidade}+"</span>"]]></textFieldExpression>
+			</textField>
+			<textField pattern="dd/MM/yyyy" isBlankWhenNull="false">
+				<reportElement key="textField" positionType="Float" x="144" y="147" width="71" height="11"/>
+				<textElement markup="html">
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["<span style='color:" + $P{color} + "'>" +  new java.text.SimpleDateFormat("dd/MM/yyyy").format($F{nascimento}) + "</span>"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField" positionType="Float" x="16" y="163" width="270" height="11"/>
+				<textElement markup="html">
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["<span style='color:"+$P{color}+"'>" +$F{nomemae}+"</span>"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField" positionType="Float" x="16" y="174" width="270" height="11"/>
+				<textElement markup="html">
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["<span style='color:"+$P{color}+"'>" +$F{nomepai}+"</span>"]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField" positionType="Float" x="56" y="257" width="231" height="14"/>
+				<textElement markup="html">
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["<span style='color:"+$P{color}+"'>" +($F{tipocargo} .equals( "S") ? $F{cargo}: "")+"</span>"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement key="staticText-6" x="158" y="312" width="9" height="11"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement markup="html">
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[h]]></text>
+			</staticText>
+			<textField pattern="HH:mm:ss" isBlankWhenNull="false">
+				<reportElement key="textField-5" x="115" y="312" width="43" height="11" forecolor="#000000"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Top" markup="html">
+					<font fontName="SansSerif" size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new Date()]]></textFieldExpression>
+			</textField>
+			<image>
+				<reportElement key="image-1" x="83" y="311" width="164" height="36"/>
+				<imageExpression class="java.io.InputStream"><![CDATA[$P{assinatura}]]></imageExpression>
+			</image>
+			<textField pattern="dd/MM/yy" isBlankWhenNull="false">
+				<reportElement key="textField-4" x="75" y="312" width="40" height="11" forecolor="#000000"/>
+				<box>
+					<topPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+					<bottomPen lineWidth="0.0" lineColor="#000000"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid" lineColor="#000000"/>
+				</box>
+				<textElement verticalAlignment="Top" markup="html">
+					<font fontName="SansSerif" size="8" isBold="true" isItalic="false" isUnderline="false" isStrikeThrough="false" isPdfEmbedded="false"/>
+				</textElement>
+				<textFieldExpression class="java.util.Date"><![CDATA[new Date()]]></textFieldExpression>
+			</textField>
+			<image hAlign="Center">
+				<reportElement x="232" y="111" width="66" height="50"/>
+				<imageExpression class="java.awt.Image"><![CDATA[com.google.zxing.client.j2se.MatrixToImageWriter.toBufferedImage(     new com.google.zxing.qrcode.QRCodeWriter().encode(         $P{qrcode},         com.google.zxing.BarcodeFormat.QR_CODE, 300, 300     ) )]]></imageExpression>
+			</image>
+			<image hAlign="Center">
+				<reportElement key="image" x="237" y="46" width="57" height="57"/>
+				<imageExpression class="java.io.InputStream"><![CDATA[(  $P{bytesfoto} != null       ? new ByteArrayInputStream((byte[])$P{bytesfoto}) 	  : $P{nofoto})]]></imageExpression>
+			</image>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField" positionType="Float" x="56" y="271" width="231" height="21"/>
+				<textElement markup="html">
+					<font fontName="SansSerif" size="8" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["<span style='color:"+$P{color}+"'>" +($F{tipocargo} .equals( "S") ? $F{especialidade}: "")+"</span>" ]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="false">
+				<reportElement key="textField" positionType="Float" x="30" y="347" width="256" height="13"/>
+				<textElement markup="html">
+					<font fontName="SansSerif" size="7" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["<span style='color:"+$P{color}+"'>"  +$P{PGJ}+ ""+"</span>"]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<reportElement key="textField" positionType="Float" x="73" y="40" width="162" height="18"/>
+				<textElement textAlignment="Center" markup="html">
+					<font fontName="DejaVu Serif" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression class="java.lang.String"><![CDATA["<span style='color:"+$P{color}+"'>" +$F{titulocargo}+"</span>"]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band splitType="Stretch"/>
+	</columnFooter>
+	<pageFooter>
+		<band splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

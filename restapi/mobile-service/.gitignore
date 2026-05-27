@@ -34,10 +34,10 @@ build/
 
 ### VS Code ###
 .vscode/
-<<<<<<< HEAD
+
 /src/main/resources/application.properties
-=======
+.env.*
+google-credentials.json
 
 ### Mac OS ###
 .DS_Store
->>>>>>> 9b86d18f67b6684ce0f8f85817a9c1e1e099a0ba

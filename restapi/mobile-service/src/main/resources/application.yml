@@ -59,3 +59,19 @@ cors:
   access-control-headers:
     allow-origin: ${ACCESS_CONTROL_ALLOW_ORIGIN:*}
     allow-credentials: ${ACCESS_CONTROL_ALLOW_CREDENTIALS:false}
+
+carteira:
+  pgj-fallback: ${CARTEIRA_PGJ_FALLBACK:ANTONIO HORTENCIO ROCHA NETO}
+
+google:
+  wallet:
+    issuer-id: ${GOOGLE_WALLET_ISSUER_ID:3388000000023147746}
+    class-id: ${GOOGLE_WALLET_CLASS_ID:3388000000023147746.CarteiraFuncionalMPPB}
+    credentials-path: ${GOOGLE_WALLET_CREDENTIALS_PATH:google-credentials.json}
+    public-base-url: ${GOOGLE_WALLET_PUBLIC_BASE_URL:http://localhost:${PORT:9003}}
+    origins: ${GOOGLE_WALLET_ORIGINS:}
+
+jcr:
+  url: ${JCR_URL://10.94.0.15:54272/jackrabbit.repository}
+  user: ${JCR_USER:admin}
+  password: ${JCR_PASSWORD:admin}

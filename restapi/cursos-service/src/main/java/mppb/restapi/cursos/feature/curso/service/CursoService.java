@@ -13,7 +13,11 @@ import mppb.restapi.cursos.feature.curso.entity.CursoMinistrante;
 import mppb.restapi.cursos.feature.curso.repository.CursoMinistranteRepository;
 import mppb.restapi.cursos.feature.curso.repository.CursoRepository;
 import mppb.restapi.cursos.feature.curso.specification.CursoSpecification;
+import mppb.restapi.cursos.feature.cadastro.entities.EntidadeTutora;
+import mppb.restapi.cursos.feature.lookup.entities.Modalidade;
 import mppb.restapi.cursos.feature.lookup.entities.PapelMinistrante;
+import mppb.restapi.cursos.feature.lookup.entities.PublicoAlvo;
+import mppb.restapi.cursos.feature.lookup.entities.TipoEvento;
 import mppb.restapi.cursos.feature.lookup.repository.PapelMinistranteRepository;
 import mppb.restapi.cursos.feature.ministrante.entity.Ministrante;
 import mppb.restapi.cursos.feature.ministrante.service.MinistranteService;
@@ -26,7 +30,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -122,6 +129,48 @@ public class CursoService extends AbstractService<Curso, Long> {
         }
         // A lógica de gerenciamento de ministrantes foi removida daqui, pois agora é tratada em endpoints específicos.
         return cursoRepository.saveAndFlush(curso);
+    }
+
+    public CursoDto update(Long cursoId, CursoDto dto) {
+        Curso curso = cursoRepository.findById(cursoId)
+                .orElseThrow(() -> new NotFoundException("Curso não encontrado com o id: " + cursoId));
+
+        curso.setTitulo(dto.getTitulo());
+        curso.setDescricao(dto.getDescricao());
+        curso.setInscricaoDataInicial(dto.getInscricaoDataInicial());
+        curso.setInscricaoDataFinal(dto.getInscricaoDataFinal());
+        curso.setRealizacaoDataInicial(dto.getRealizacaoDataInicial());
+        curso.setRealizacaoDataFinal(dto.getRealizacaoDataFinal());
+        curso.setCargaHoraria(dto.getCargaHoraria());
+        curso.setPercentualChAprovacao(dto.getPercentualChAprovacao());
+        curso.setDetalhaCargaHoraria(dto.getDetalhaCargaHoraria());
+        curso.setLinkProgramacao(dto.getLinkProgramacao());
+        curso.setProgressaoFuncional(dto.getProgressaoFuncional());
+
+        curso.setTipoEvento(getRequiredReference(TipoEvento.class, dto.getTipoEvento().getId(), "Tipo de evento"));
+        curso.setEntidadeTutora(getRequiredReference(EntidadeTutora.class, dto.getEntidadeTutora().getId(), "Entidade tutora"));
+        curso.setModalidade(getRequiredReference(Modalidade.class, dto.getModalidade().getId(), "Modalidade"));
+        curso.setPublicosAlvo(toPublicosAlvoReferences(dto));
+
+        Curso saved = cursoRepository.saveAndFlush(curso);
+        return cursoConverter.toDto(saved);
+    }
+
+    private Set<PublicoAlvo> toPublicosAlvoReferences(CursoDto dto) {
+        if (dto.getPublicosAlvo() == null || dto.getPublicosAlvo().isEmpty()) {
+            throw new BusinessRuleException("Ao menos um público-alvo deve ser selecionado.");
+        }
+
+        return dto.getPublicosAlvo().stream()
+                .map(publicoAlvo -> getRequiredReference(PublicoAlvo.class, publicoAlvo.getId(), "Público-alvo"))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private <T> T getRequiredReference(Class<T> entityClass, Long id, String fieldName) {
+        if (Objects.isNull(id)) {
+            throw new BusinessRuleException(fieldName + " é obrigatório.");
+        }
+        return entityManager.getReference(entityClass, id);
     }
 
     @Override
@@ -279,4 +328,3 @@ public class CursoService extends AbstractService<Curso, Long> {
         return true; // Por enquanto, sempre retorna válido.
     }
 }
-

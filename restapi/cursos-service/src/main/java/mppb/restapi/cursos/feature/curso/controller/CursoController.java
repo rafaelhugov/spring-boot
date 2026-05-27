@@ -92,25 +92,7 @@ public class CursoController extends AbstractController {
     @Operation(summary = "Atualiza um curso", description = "Atualiza as informações de um curso.")
     @PutMapping("/{id}")
     public ResponseEntity<CursoDto> update(@PathVariable Long id, @Validated(Update.class) @RequestBody CursoDto cursoDto) {
-        try {
-            return cursoService.findById(id)
-                    .map(existing -> {
-                        cursoDto.setId(id); // Garante que o ID do path é o mesmo do objeto
-                        Curso updatedEntity = cursoConverter.toEntity(cursoDto);
-                        
-                        // Preservar dados internos que o frontend não envia ou não tem controle
-                        updatedEntity.setDataCriacao(existing.getDataCriacao());
-                        updatedEntity.setHashInscricao(existing.getHashInscricao());
-                        updatedEntity.setCertificateTemplateId(existing.getCertificateTemplateId());
-                        
-                        Curso saved = cursoService.save(updatedEntity);
-                        return ResponseEntity.ok(cursoConverter.toDto(saved));
-                    }).orElse(ResponseEntity.notFound().build());
-        } catch (Exception e) {
-            System.err.println("==== ERRO AO ATUALIZAR CURSO ====");
-            e.printStackTrace();
-            throw e;
-        }
+        return ResponseEntity.ok(cursoService.update(id, cursoDto));
     }
 
     @Operation(summary = "Deleta um curso", description = "Deleta um curso (exclusão lógica).")
