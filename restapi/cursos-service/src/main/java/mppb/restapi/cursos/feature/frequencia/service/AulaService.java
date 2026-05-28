@@ -55,13 +55,24 @@ public class AulaService extends AbstractService<Aula, Long> {
         return aulaRepository.save(aula);
     }
 
-    public Chamada adicionarChamada(Long aulaId, String tipo) {
+    public Chamada adicionarChamada(Long aulaId, String tipoStr) {
+        // Obter o enum a partir da string
+        mppb.restapi.cursos.feature.frequencia.enums.TipoChamadaEnum tipo = mppb.restapi.cursos.feature.frequencia.enums.TipoChamadaEnum.valueOf(tipoStr.toUpperCase());
+        
         Aula aula = findById(aulaId)
                 .orElseThrow(() -> new NotFoundException("Aula não encontrada: " + aulaId));
+
+        // Validação movida do ChamadaService para manter simplicidade aqui
+        boolean jaExiste = aula.getChamadas().stream().anyMatch(c -> c.getTipo() == tipo);
+        if (jaExiste) {
+            throw new mppb.restapi.common.core.error.BusinessRuleException("Já existe uma chamada de " + tipo.getDescricao() + " para esta aula.");
+        }
 
         Chamada novaChamada = new Chamada();
         novaChamada.setAula(aula);
         novaChamada.setDataGeracao(LocalDateTime.now());
+        novaChamada.setTipo(tipo);
+        novaChamada.setAberta(true);
         // O token será gerado automaticamente pelo @PrePersist da entidade Chamada
 
         aula.getChamadas().add(novaChamada);

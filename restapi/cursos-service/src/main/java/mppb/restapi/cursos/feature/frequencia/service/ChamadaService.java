@@ -26,6 +26,36 @@ public class ChamadaService extends AbstractService<Chamada, Long> {
                 .orElseThrow(() -> new NotFoundException("Chamada não encontrada ou token inválido."));
     }
 
+    @Transactional
+    public Chamada abrirChamada(Long aulaId, mppb.restapi.cursos.feature.frequencia.enums.TipoChamadaEnum tipo) {
+        // Encontra a aula
+        mppb.restapi.cursos.feature.frequencia.entity.Aula aula = entityManager.find(mppb.restapi.cursos.feature.frequencia.entity.Aula.class, aulaId);
+        if (aula == null) {
+            throw new NotFoundException("Aula não encontrada.");
+        }
+        
+        // Verifica se já existe uma chamada aberta ou já criada para este tipo nesta aula
+        boolean jaExiste = chamadaRepository.findAllByAulaId(aulaId).stream()
+            .anyMatch(c -> c.getTipo() == tipo);
+        if (jaExiste) {
+            throw new mppb.restapi.common.core.error.BusinessRuleException("Já existe uma chamada de " + tipo.getDescricao() + " para esta aula.");
+        }
+
+        Chamada chamada = new Chamada();
+        chamada.setAula(aula);
+        chamada.setTipo(tipo);
+        chamada.setAberta(true);
+        return chamadaRepository.save(chamada);
+    }
+
+    @Transactional
+    public Chamada encerrarChamada(Long chamadaId) {
+        Chamada chamada = chamadaRepository.findById(chamadaId)
+            .orElseThrow(() -> new NotFoundException("Chamada não encontrada."));
+        chamada.setAberta(false);
+        return chamadaRepository.save(chamada);
+    }
+
     /**
      * Mapeia os dados essenciais da Chamada para o DTO de visualização pública.
      * Este método é EAGER por natureza, garantindo o carregamento do Curso aninhado.
@@ -45,6 +75,8 @@ public class ChamadaService extends AbstractService<Chamada, Long> {
                 .data(aula.getData())
                 .horaInicio(aula.getHoraInicio())
                 .horaFim(aula.getHoraFim())
+                .tipoChamada(chamada.getTipo().getDescricao())
+                .aberta(chamada.isAberta())
                 .build();
     }
 }

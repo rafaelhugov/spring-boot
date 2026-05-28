@@ -22,4 +22,7 @@ public class ChamadaPublicaDto {
     private LocalDate data;
     private LocalTime horaInicio;
     private LocalTime horaFim;
+
+    private String tipoChamada;
+    private boolean aberta;
 }

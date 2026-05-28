@@ -135,6 +135,40 @@ public class EmailService {
     }
 
     /**
+     * Envia o e-mail contendo o código de confirmação (OTP) para registro de frequência.
+     */
+    @Transactional(readOnly = true)
+    public void enviarEmailOtpFrequencia(String emailDestinatario, String nomeDestinatario, String codigoOtp, String tituloCurso) {
+        String emailFrom = configuracaoService.get("global.instituicao.email_ceaf");
+
+        try {
+            // 1. Constrói o conteúdo principal do OTP
+            String conteudoPrincipal = String.format(
+                    "<p>Você solicitou o registro de presença para o curso: <strong>%s</strong>.</p>\n" +
+                            "<p>Para confirmar a sua presença, informe o código de 6 dígitos abaixo na tela do sistema:</p>\n" +
+                            "<div style=\"text-align: center; margin: 30px 0;\">\n" +
+                            "    <span style=\"padding: 15px 25px; background-color: #f5f5f5; border: 2px dashed #a01d1e; color: #a01d1e; font-size: 24px; font-weight: bold; letter-spacing: 5px; border-radius: 5px;\">\n" +
+                            "        %s\n" +
+                            "    </span>\n" +
+                            "</div>\n" +
+                            "<p><em>Este código é válido por 5 minutos.</em></p>\n" +
+                            "<p>Se você não está tentando registrar presença neste curso, por favor, ignore este e-mail.</p>",
+                    tituloCurso,
+                    codigoOtp);
+
+            // 2. Constrói o e-mail final usando o template
+            String mensagemHtml = buildEmailTemplate(nomeDestinatario, conteudoPrincipal);
+
+            // 3. Enviar
+            enviarEmail(emailFrom, emailDestinatario, "Código de Presença: " + tituloCurso, mensagemHtml);
+            log.info("E-mail com OTP enviado para: {}", emailDestinatario);
+
+        } catch (Exception e) {
+            log.error("Erro inesperado ao preparar e-mail de OTP para {}: {}", emailDestinatario, e.getMessage());
+        }
+    }
+
+    /**
      * Constrói o "envelope" do e-mail (cabeçalho e rodapé)
      */
     private String buildEmailTemplate(String nomeDestinatario, String conteudoPrincipal) {
