@@ -26,6 +26,11 @@ public class ChamadaService extends AbstractService<Chamada, Long> {
                 .orElseThrow(() -> new NotFoundException("Chamada não encontrada ou token inválido."));
     }
 
+    @Transactional(readOnly = true)
+    public java.util.List<Chamada> findAllByAulaId(Long aulaId) {
+        return chamadaRepository.findAllByAulaId(aulaId);
+    }
+
     @Transactional
     public Chamada abrirChamada(Long aulaId, mppb.restapi.cursos.feature.frequencia.enums.TipoChamadaEnum tipo) {
         // Encontra a aula
