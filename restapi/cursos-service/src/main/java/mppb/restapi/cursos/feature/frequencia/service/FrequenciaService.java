@@ -17,6 +17,7 @@ import mppb.restapi.cursos.feature.participante.entity.Participante;
 import mppb.restapi.cursos.feature.participante.service.ParticipanteService; // Import adicionado
 import mppb.restapi.cursos.feature.frequencia.converter.FrequenciaConverter; // Import adicionado
 import mppb.restapi.cursos.feature.frequencia.dto.FrequenciaDto; // Import adicionado
+import mppb.restapi.cursos.feature.frequencia.repository.FrequenciaOtpTokenRepository; // Import adicionado
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
