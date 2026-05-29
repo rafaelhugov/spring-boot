@@ -123,7 +123,7 @@ public class AulaService extends AbstractService<Aula, Long> {
         }
     }
 
-    private void recalcularStatusCurso(Curso curso) {
+    public void recalcularStatusCurso(Curso curso) {
         Long cargaHorariaTotal = curso.getCargaHorariaMinutos();
         List<Aula> aulas = aulaRepository.findAllByCursoId(curso.getId());
         long totalCadastrado = aulas.stream()

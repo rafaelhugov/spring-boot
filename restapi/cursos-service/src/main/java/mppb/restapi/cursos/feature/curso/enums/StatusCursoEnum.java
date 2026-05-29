@@ -7,7 +7,8 @@ import java.util.stream.Stream;
 @Getter
 public enum StatusCursoEnum {
     EM_CONSTRUCAO('C', "EM CONSTRUÇÃO"),
-    PRONTO_PUBLICACAO('P', "PRONTO PARA PUBLICAÇÃO");
+    PRONTO_PUBLICACAO('P', "PRONTO PARA PUBLICAÇÃO"),
+    FINALIZADO('F', "FINALIZADO");
 
     private final Character codigo;
     private final String descricao;
