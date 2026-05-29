@@ -43,4 +43,12 @@ public class Aula extends AbstractEntity<Long> {
     @OneToMany(mappedBy = "aula", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Chamada> chamadas = new ArrayList<>();
+
+    @Transient
+    public Long getDuracaoMinutos() {
+        if (horaInicio != null && horaFim != null) {
+            return java.time.Duration.between(horaInicio, horaFim).toMinutes();
+        }
+        return 0L;
+    }
 }

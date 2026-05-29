@@ -12,7 +12,7 @@ import java.util.List;
 @Component
 public class CursoSpecification {
 
-    public Specification<Curso> comFiltros(String titulo, Long modalidadeId, Long publicoAlvoId) {
+    public Specification<Curso> comFiltros(String titulo, Long modalidadeId, Long publicoAlvoId, String status) {
         return (root, query, builder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -30,6 +30,11 @@ public class CursoSpecification {
             // Adiciona filtro de título com ILIKE se presente
             if (StringUtils.hasText(titulo)) {
                 predicates.add(builder.like(builder.lower(root.get("titulo")), "%" + titulo.toLowerCase() + "%"));
+            }
+            
+            // Adiciona filtro de status se presente
+            if (StringUtils.hasText(status)) {
+                predicates.add(builder.equal(root.get("status"), mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.valueOf(status)));
             }
 
             // Combina todos os predicates com "AND"

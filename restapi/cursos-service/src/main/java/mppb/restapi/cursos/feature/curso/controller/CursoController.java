@@ -72,8 +72,9 @@ public class CursoController extends AbstractController {
             @RequestParam(required = false) String titulo,
             @RequestParam(required = false) Long modalidadeId,
             @RequestParam(required = false) Long publicoAlvoId,
+            @RequestParam(required = false) String status,
             Pageable pageable) {
-        return ResponseEntity.ok(cursoService.findAll(titulo, modalidadeId, publicoAlvoId, pageable).map(cursoConverter::toDto));
+        return ResponseEntity.ok(cursoService.findAll(titulo, modalidadeId, publicoAlvoId, status, pageable).map(cursoConverter::toDto));
     }
 
     @Operation(summary = "Obtém curso", description = "Retorna informações do curso.")

@@ -11,6 +11,9 @@ import mppb.restapi.cursos.feature.lookup.entities.PublicoAlvo;
 import mppb.restapi.cursos.feature.lookup.entities.TipoEvento;
 import org.hibernate.annotations.CreationTimestamp;
 
+import mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum;
+import mppb.restapi.cursos.feature.curso.converter.enums.StatusCursoEnumConverter;
+
 import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
@@ -92,6 +95,11 @@ public class Curso extends AbstractEntity<Long> {
     @Column(name = "id_arquivo_certificado")
     private Long certificateTemplateId;
 
+    @Column(name = "status")
+    @Convert(converter = StatusCursoEnumConverter.class)
+    @Builder.Default
+    private StatusCursoEnum status = StatusCursoEnum.EM_CONSTRUCAO;
+
     @PrePersist
     private void onPrePersist() {
         this.dataModificacao = LocalDateTime.now();
@@ -102,4 +110,21 @@ public class Curso extends AbstractEntity<Long> {
         this.dataModificacao = LocalDateTime.now();
     }
 
+    @Transient
+    public Long getCargaHorariaMinutos() {
+        if (cargaHoraria == null || cargaHoraria.trim().isEmpty()) {
+            return 0L;
+        }
+        String[] parts = cargaHoraria.split(":");
+        if (parts.length >= 2) {
+            try {
+                long hours = Long.parseLong(parts[0]);
+                long minutes = Long.parseLong(parts[1]);
+                return (hours * 60) + minutes;
+            } catch (NumberFormatException e) {
+                return 0L;
+            }
+        }
+        return 0L;
+    }
 }

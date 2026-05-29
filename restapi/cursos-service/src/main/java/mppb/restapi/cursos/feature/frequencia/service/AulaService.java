@@ -50,9 +50,94 @@ public class AulaService extends AbstractService<Aula, Long> {
         Curso curso = cursoRepository.findById(cursoId)
                 .orElseThrow(() -> new NotFoundException("Curso não encontrado: " + cursoId));
 
+        validarAula(aula, curso, null);
         aula.setCurso(curso);
         // O @PrePersist na entidade Chamada garante que tokens sejam gerados se adicionarmos chamadas aqui
-        return aulaRepository.save(aula);
+        Aula savedAula = aulaRepository.save(aula);
+        recalcularStatusCurso(curso);
+        return savedAula;
+    }
+
+    public Aula updateAula(Long cursoId, Long aulaId, Aula aulaAtualizada) {
+        Curso curso = cursoRepository.findById(cursoId)
+                .orElseThrow(() -> new NotFoundException("Curso não encontrado: " + cursoId));
+
+        Aula aulaExistente = aulaRepository.findById(aulaId)
+                .orElseThrow(() -> new NotFoundException("Aula não encontrada: " + aulaId));
+
+        if (!aulaExistente.getCurso().getId().equals(cursoId)) {
+            throw new mppb.restapi.common.core.error.BusinessRuleException("A aula não pertence a este curso.");
+        }
+
+        validarAula(aulaAtualizada, curso, aulaId);
+        
+        aulaExistente.setDescricao(aulaAtualizada.getDescricao());
+        aulaExistente.setData(aulaAtualizada.getData());
+        aulaExistente.setHoraInicio(aulaAtualizada.getHoraInicio());
+        aulaExistente.setHoraFim(aulaAtualizada.getHoraFim());
+
+        Aula savedAula = aulaRepository.save(aulaExistente);
+        recalcularStatusCurso(curso);
+        return savedAula;
+    }
+
+    public void deleteAula(Long cursoId, Long aulaId) {
+        Curso curso = cursoRepository.findById(cursoId)
+                .orElseThrow(() -> new NotFoundException("Curso não encontrado: " + cursoId));
+
+        Aula aula = aulaRepository.findById(aulaId)
+                .orElseThrow(() -> new NotFoundException("Aula não encontrada: " + aulaId));
+
+        if (!aula.getCurso().getId().equals(cursoId)) {
+            throw new mppb.restapi.common.core.error.BusinessRuleException("A aula não pertence a este curso.");
+        }
+
+        aulaRepository.delete(aula);
+        aulaRepository.flush(); // Garantir que foi removido antes do recalculo
+        recalcularStatusCurso(curso);
+    }
+
+    private void validarAula(Aula aula, Curso curso, Long aulaIdIgnorada) {
+        if (aula.getHoraInicio() == null || aula.getHoraFim() == null) {
+            throw new mppb.restapi.common.core.error.BusinessRuleException("Hora de início e fim são obrigatórias.");
+        }
+        if (!aula.getHoraFim().isAfter(aula.getHoraInicio())) {
+            throw new mppb.restapi.common.core.error.BusinessRuleException("Hora fim deve ser maior que a hora início.");
+        }
+        if (curso.getRealizacaoDataInicial() != null && aula.getData().isBefore(curso.getRealizacaoDataInicial().toLocalDate())) {
+            throw new mppb.restapi.common.core.error.BusinessRuleException("A data da aula não pode ser anterior ao início do curso.");
+        }
+        if (curso.getRealizacaoDataFinal() != null && aula.getData().isAfter(curso.getRealizacaoDataFinal().toLocalDate())) {
+            throw new mppb.restapi.common.core.error.BusinessRuleException("A data da aula não pode ser posterior ao fim do curso.");
+        }
+
+        Long cargaHorariaTotal = curso.getCargaHorariaMinutos();
+        List<Aula> aulas = aulaRepository.findAllByCursoId(curso.getId());
+        long totalCadastrado = aulas.stream()
+                .filter(a -> aulaIdIgnorada == null || !a.getId().equals(aulaIdIgnorada))
+                .mapToLong(Aula::getDuracaoMinutos)
+                .sum();
+
+        if (totalCadastrado + aula.getDuracaoMinutos() > cargaHorariaTotal) {
+            throw new mppb.restapi.common.core.error.BusinessRuleException("A soma das durações das aulas não pode ultrapassar a carga horária do curso.");
+        }
+    }
+
+    private void recalcularStatusCurso(Curso curso) {
+        Long cargaHorariaTotal = curso.getCargaHorariaMinutos();
+        List<Aula> aulas = aulaRepository.findAllByCursoId(curso.getId());
+        long totalCadastrado = aulas.stream()
+                .mapToLong(Aula::getDuracaoMinutos)
+                .sum();
+
+        if (totalCadastrado < cargaHorariaTotal) {
+            curso.setStatus(mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.EM_CONSTRUCAO);
+        } else if (totalCadastrado == cargaHorariaTotal) {
+            curso.setStatus(mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.PRONTO_PUBLICACAO);
+        } else {
+            curso.setStatus(mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.EM_CONSTRUCAO);
+        }
+        cursoRepository.save(curso);
     }
 
     public Chamada adicionarChamada(Long aulaId, String tipoStr) {
@@ -61,6 +146,10 @@ public class AulaService extends AbstractService<Aula, Long> {
         
         Aula aula = findById(aulaId)
                 .orElseThrow(() -> new NotFoundException("Aula não encontrada: " + aulaId));
+
+        if (aula.getCurso().getStatus() != mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.PRONTO_PUBLICACAO) {
+            throw new mppb.restapi.common.core.error.BusinessRuleException("Não é possível gerar chamadas pois a carga horária de aulas está divergente ou o curso está em construção.");
+        }
 
         // Validação movida do ChamadaService para manter simplicidade aqui
         boolean jaExiste = aula.getChamadas().stream().anyMatch(c -> c.getTipo() == tipo);
