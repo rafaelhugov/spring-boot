@@ -7,6 +7,13 @@ import mppb.restapi.cursos.feature.curso.repository.CursoRepository;
 import mppb.restapi.cursos.feature.dashboard.dto.DashboardStatsDto;
 import mppb.restapi.cursos.feature.curso.dto.CursoDto;
 import mppb.restapi.common.core.converter.DtoConverter;
+import mppb.restapi.common.infrastructure.security.authorization.TokenAuthentication;
+import mppb.restapi.common.infrastructure.security.util.SecurityUtils;
+import mppb.restapi.cursos.feature.common.service.ServidorService;
+import mppb.restapi.cursos.feature.inscricao.entity.Inscricao;
+import mppb.restapi.cursos.feature.inscricao.enums.SituacaoInscricaoEnum;
+import mppb.restapi.cursos.feature.inscricao.repository.InscricaoRepository;
+import mppb.restapi.common.core.error.BusinessRuleException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -17,6 +24,7 @@ import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,28 +32,122 @@ public class DashboardService {
 
     private final CursoRepository cursoRepository;
     private final DtoConverter<CursoDto, Curso> cursoConverter;
+    private final InscricaoRepository inscricaoRepository;
+    private final ServidorService servidorService;
 
     @Transactional(readOnly = true)
     public DashboardStatsDto getStats() {
+        Optional<TokenAuthentication> authOpt = SecurityUtils.getAuthenticationToken();
+        
+        if (authOpt.isEmpty()) {
+            return DashboardStatsDto.builder().build(); // Retorna vazio se não logado
+        }
+        
+        String login = authOpt.get().getUsuario().getLogin();
+        
+        Integer idServidor = null;
+        String cpf = null;
+        try {
+            idServidor = servidorService.findIdServidorByLogin(login).orElse(null);
+            if (idServidor != null) {
+                cpf = servidorService.buscarServidorPorId(idServidor)
+                        .map(mppb.restapi.cursos.feature.common.projection.ServidorProjection::getCpf)
+                        .map(c -> c.replaceAll("\\D", ""))
+                        .orElse(null);
+            }
+        } catch (Exception e) {
+            // Ignora erro caso não ache servidor para não quebrar o dashboard
+        }
+        
+        List<Inscricao> minhasInscricoes = new ArrayList<>();
+        if (idServidor != null || cpf != null) {
+            minhasInscricoes = inscricaoRepository.findByParticipanteIdServidorOrCpf(idServidor, cpf);
+        }
+
         LocalDateTime now = LocalDateTime.now();
-        List<Curso> cursos = cursoRepository.findAll((root, query, cb) -> cb.equal(root.get("status"), StatusCursoEnum.PRONTO_PUBLICACAO));
 
-        long abertos = cursos.stream().filter(c -> 
-            c.getInscricaoDataInicial() != null && c.getInscricaoDataFinal() != null &&
-            !now.isBefore(c.getInscricaoDataInicial()) && !now.isAfter(c.getInscricaoDataFinal())
-        ).count();
+        long minhasInscricoesTotal = minhasInscricoes.size();
 
-        long emAndamento = cursos.stream().filter(c -> 
-            c.getRealizacaoDataInicial() != null && c.getRealizacaoDataFinal() != null &&
-            !now.isBefore(c.getRealizacaoDataInicial()) && !now.isAfter(c.getRealizacaoDataFinal())
-        ).count();
+        long cursosConcluidos = minhasInscricoes.stream()
+            .filter(i -> i.getSituacao() == SituacaoInscricaoEnum.APROVADO)
+            .count();
 
-        long vagas = 0; // TODO: Precisamos ver se há um campo de total de vagas no curso. A entidade Curso não possui vagas aparentemente.
+        long cursosEmAndamento = minhasInscricoes.stream().filter(i -> {
+            boolean isInscrito = i.getSituacao() == SituacaoInscricaoEnum.INSCRITO || i.getSituacao() == SituacaoInscricaoEnum.APROVADO;
+            Curso c = i.getCurso();
+            boolean isRunning = c.getRealizacaoDataInicial() != null && c.getRealizacaoDataFinal() != null &&
+                    !now.isBefore(c.getRealizacaoDataInicial()) && !now.isAfter(c.getRealizacaoDataFinal());
+            return isInscrito && isRunning;
+        }).count();
+
+        long certificadosDisponiveis = cursosConcluidos;
+
+        long horasCapacitacao = minhasInscricoes.stream()
+                .filter(i -> i.getSituacao() == SituacaoInscricaoEnum.APROVADO)
+                .mapToLong(i -> {
+                    try {
+                        return i.getCurso().getCargaHorariaMinutos() / 60;
+                    } catch (Exception e) {
+                        return 0;
+                    }
+                })
+                .sum();
+
+        long aguardandoInicio = minhasInscricoes.stream().filter(i -> {
+            if (i.getSituacao() != SituacaoInscricaoEnum.INSCRITO) return false;
+            Curso c = i.getCurso();
+            return c.getRealizacaoDataInicial() != null && now.isBefore(c.getRealizacaoDataInicial());
+        }).count();
+
+        long taxaConclusao = minhasInscricoesTotal > 0 ? (cursosConcluidos * 100) / minhasInscricoesTotal : 0;
+
+        long pendencias = minhasInscricoes.stream()
+            .filter(i -> i.getSituacao() == SituacaoInscricaoEnum.PENDENTE_CONFIRMACAO)
+            .count();
+
+        // Calcular próximo curso (INSCRITO e data inicial futura)
+        String proximoCursoNome = null;
+        Optional<Inscricao> proximoCursoOpt = minhasInscricoes.stream()
+            .filter(i -> i.getSituacao() == SituacaoInscricaoEnum.INSCRITO && i.getCurso().getRealizacaoDataInicial() != null && now.isBefore(i.getCurso().getRealizacaoDataInicial()))
+            .min((i1, i2) -> i1.getCurso().getRealizacaoDataInicial().compareTo(i2.getCurso().getRealizacaoDataInicial()));
+        
+        if (proximoCursoOpt.isPresent()) {
+            proximoCursoNome = proximoCursoOpt.get().getCurso().getTitulo();
+        }
+
+        // Construir Próximas Ações
+        List<mppb.restapi.cursos.feature.dashboard.dto.ProximaAcaoDto> proximasAcoes = new ArrayList<>();
+        
+        minhasInscricoes.forEach(i -> {
+            Curso c = i.getCurso();
+            if (i.getSituacao() == SituacaoInscricaoEnum.PENDENTE_CONFIRMACAO) {
+                proximasAcoes.add(new mppb.restapi.cursos.feature.dashboard.dto.ProximaAcaoDto(
+                    c.getTitulo(), "Confirmação pendente", "WARNING"
+                ));
+            }
+            if (i.getSituacao() == SituacaoInscricaoEnum.INSCRITO && c.getRealizacaoDataInicial() != null && now.isBefore(c.getRealizacaoDataInicial()) && now.plusDays(7).isAfter(c.getRealizacaoDataInicial())) {
+                proximasAcoes.add(new mppb.restapi.cursos.feature.dashboard.dto.ProximaAcaoDto(
+                    c.getTitulo(), "Início em breve", "INFO"
+                ));
+            }
+            if (i.getSituacao() == SituacaoInscricaoEnum.APROVADO) {
+                // Simplificação: apenas como exemplo de 'próximas ações'. Em um caso real,
+                // talvez quiséssemos filtrar certificados recém emitidos não baixados.
+                // Mas vamos deixar apenas pendentes e início em breve para não poluir.
+            }
+        });
 
         return DashboardStatsDto.builder()
-                .cursosAbertos(abertos)
-                .cursosEmAndamento(emAndamento)
-                .vagasDisponiveis(vagas)
+                .minhasInscricoes(minhasInscricoesTotal)
+                .cursosConcluidos(cursosConcluidos)
+                .cursosEmAndamento(cursosEmAndamento)
+                .certificadosDisponiveis(certificadosDisponiveis)
+                .horasCapacitacao(horasCapacitacao)
+                .aguardandoInicio(aguardandoInicio)
+                .taxaConclusao(taxaConclusao)
+                .proximoCurso(proximoCursoNome)
+                .pendencias(pendencias)
+                .proximasAcoes(proximasAcoes)
                 .build();
     }
 
