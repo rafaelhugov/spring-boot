@@ -76,6 +76,7 @@ public class CursoDto {
     @JsonView(CursoView.Listagem.class)
     private StatusCursoEnum status;
 
+    @JsonView(CursoView.Listagem.class)
     private String hashInscricao;
 
     @JsonView(CursoView.Listagem.class)
