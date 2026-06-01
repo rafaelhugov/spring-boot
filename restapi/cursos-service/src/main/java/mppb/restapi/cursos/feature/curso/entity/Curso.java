@@ -92,7 +92,7 @@ public class Curso extends AbstractEntity<Long> {
     @Column(name = "datamodificacao")
     private LocalDateTime dataModificacao;
 
-    @Column(name = "id_arquivo_certificado")
+    @Column(name = "id_arquivocertificado")
     private Long certificateTemplateId;
 
     @Column(name = "status")
