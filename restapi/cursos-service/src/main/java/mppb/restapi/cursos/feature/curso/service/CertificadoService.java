@@ -149,7 +149,11 @@ public class CertificadoService {
             log.info("Iniciando geração de PDF para Curso: {}, Pessoa: {}", cursoId, pessoaId);
 
             Curso curso = cursoRepository.findById(cursoId)
-                    .orElseThrow(() -> new NotFoundException("Curso não encontrado"));
+                    .orElseThrow(() -> new NotFoundException("Curso não encontrado com o ID fornecido: " + cursoId));
+
+            if (curso.getStatus() != mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.PRONTO_PUBLICACAO) {
+                throw new mppb.restapi.common.core.error.BusinessRuleException("Não é possível emitir certificados pois a carga horária de aulas está divergente ou o curso está em construção.");
+            }
 
             String nome = "";
             String papel = "participante";

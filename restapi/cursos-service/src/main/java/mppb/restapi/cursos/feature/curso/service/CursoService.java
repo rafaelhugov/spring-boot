@@ -21,6 +21,7 @@ import mppb.restapi.cursos.feature.lookup.entities.TipoEvento;
 import mppb.restapi.cursos.feature.lookup.repository.PapelMinistranteRepository;
 import mppb.restapi.cursos.feature.ministrante.entity.Ministrante;
 import mppb.restapi.cursos.feature.ministrante.service.MinistranteService;
+import mppb.restapi.cursos.feature.frequencia.service.AulaService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -56,8 +57,9 @@ public class CursoService extends AbstractService<Curso, Long> {
     private final CursoMinistranteConverter cursoMinistranteConverter;
     private final CursoConverter cursoConverter;
 
+    private final AulaService aulaService;
 
-    public CursoService(EntityManager entityManager, CursoRepository cursoRepository, CursoMinistranteRepository cursoMinistranteRepository, PapelMinistranteRepository papelMinistranteRepository, CursoSpecification cursoSpecification, MinistranteService ministranteService, CursoMinistranteConverter cursoMinistranteConverter, CursoConverter cursoConverter) {
+    public CursoService(EntityManager entityManager, CursoRepository cursoRepository, CursoMinistranteRepository cursoMinistranteRepository, PapelMinistranteRepository papelMinistranteRepository, CursoSpecification cursoSpecification, MinistranteService ministranteService, CursoMinistranteConverter cursoMinistranteConverter, CursoConverter cursoConverter, @org.springframework.context.annotation.Lazy AulaService aulaService) {
         super(entityManager, cursoRepository);
         this.cursoRepository = cursoRepository;
         this.cursoMinistranteRepository = cursoMinistranteRepository;
@@ -66,13 +68,14 @@ public class CursoService extends AbstractService<Curso, Long> {
         this.ministranteService = ministranteService;
         this.cursoMinistranteConverter = cursoMinistranteConverter;
         this.cursoConverter = cursoConverter; // Injetando o novo converter
+        this.aulaService = aulaService;
     }
 
     /**
      * Busca cursos usando filtros e uma paginação com ordenação padrão
      */
-    public Page<Curso> findAll(String titulo, Long modalidadeId, Long publicoAlvoId, Pageable pageable) {
-        Specification<Curso> filterSpec = cursoSpecification.comFiltros(titulo, modalidadeId, publicoAlvoId);
+    public Page<Curso> findAll(String titulo, Long modalidadeId, Long publicoAlvoId, String status, Pageable pageable) {
+        Specification<Curso> filterSpec = cursoSpecification.comFiltros(titulo, modalidadeId, publicoAlvoId, status);
         Pageable pageableComOrdenacao = criarPageableComOrdenacaoPadrao(pageable);
 
         return cursoRepository.findAll(filterSpec, pageableComOrdenacao);
@@ -153,6 +156,10 @@ public class CursoService extends AbstractService<Curso, Long> {
         curso.setPublicosAlvo(toPublicosAlvoReferences(dto));
 
         Curso saved = cursoRepository.saveAndFlush(curso);
+        
+        // Recalcular status caso a carga horária tenha mudado e seja compatível com as aulas
+        aulaService.recalcularStatusCurso(saved);
+        
         return cursoConverter.toDto(saved);
     }
 

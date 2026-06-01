@@ -56,6 +56,7 @@ public class CursoController extends AbstractController {
     private final InscricaoService inscricaoService;
     private final AulaService aulaService;
     private final FrequenciaService frequenciaService;
+    private final mppb.restapi.cursos.feature.frequencia.service.ChamadaService chamadaService;
 
     private final DtoConverter<CursoDto, Curso> cursoConverter;
     private final DtoConverter<AulaDto, Aula> aulaConverter;
@@ -71,8 +72,9 @@ public class CursoController extends AbstractController {
             @RequestParam(required = false) String titulo,
             @RequestParam(required = false) Long modalidadeId,
             @RequestParam(required = false) Long publicoAlvoId,
+            @RequestParam(required = false) String status,
             Pageable pageable) {
-        return ResponseEntity.ok(cursoService.findAll(titulo, modalidadeId, publicoAlvoId, pageable).map(cursoConverter::toDto));
+        return ResponseEntity.ok(cursoService.findAll(titulo, modalidadeId, publicoAlvoId, status, pageable).map(cursoConverter::toDto));
     }
 
     @Operation(summary = "Obtém curso", description = "Retorna informações do curso.")
@@ -262,6 +264,15 @@ public class CursoController extends AbstractController {
                                                    @RequestParam String tipo) {
         Chamada chamada = aulaService.adicionarChamada(aulaId, tipo);
         return ResponseEntity.status(HttpStatus.CREATED).body(chamadaConverter.toDto(chamada));
+    }
+
+    @Operation(summary = "Encerra uma chamada ativa", description = "Impede novos registros de frequência para o token desta chamada.")
+    @PostMapping("/{cursoId}/aulas/{aulaId}/chamadas/{chamadaId}/encerrar")
+    public ResponseEntity<ChamadaDto> encerrarChamada(@PathVariable Long cursoId,
+                                                      @PathVariable Long aulaId,
+                                                      @PathVariable Long chamadaId) {
+        Chamada chamadaFechada = chamadaService.encerrarChamada(chamadaId);
+        return ResponseEntity.ok(chamadaConverter.toDto(chamadaFechada));
     }
 
     @Operation(summary = "Lista as frequências de um aula", description = "Busca as frequências de uma determinada aula do curso")

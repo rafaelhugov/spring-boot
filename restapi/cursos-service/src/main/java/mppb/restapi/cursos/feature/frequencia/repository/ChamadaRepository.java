@@ -11,4 +11,6 @@ public interface ChamadaRepository extends BaseRepository<Chamada, Long> {
 
     // Busca uma chamada pelo seu token único (usado no registo público)
     Optional<Chamada> findByToken(String token);
+
+    java.util.List<Chamada> findAllByAulaId(Long aulaId);
 }

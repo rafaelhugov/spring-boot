@@ -14,6 +14,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EnableFeignClients
 @EnableJpaAuditing(auditorAwareRef = "auditorAware")
 @EnableCaching
+@org.springframework.scheduling.annotation.EnableScheduling
 @EnableJpaRepositories(basePackages = {"mppb.restapi.common", "mppb.restapi.cursos"})
 public class CursosApiApplication {
 

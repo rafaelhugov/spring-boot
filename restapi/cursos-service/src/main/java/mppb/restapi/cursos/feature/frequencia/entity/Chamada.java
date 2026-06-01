@@ -27,6 +27,14 @@ public class Chamada extends AbstractEntity<Long> {
     @Column(name = "datageracao")
     private LocalDateTime dataGeracao;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo", nullable = false)
+    private mppb.restapi.cursos.feature.frequencia.enums.TipoChamadaEnum tipo;
+
+    @Column(name = "aberta", nullable = false)
+    @Builder.Default
+    private boolean aberta = true;
+
     @PrePersist
     public void gerarTokenEData() {
         if (this.token == null) {

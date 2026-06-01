@@ -13,6 +13,15 @@ public class AulaConverter extends EntityConverterImpl<AulaDto, Aula> {
     }
 
     @Override
+    public AulaDto toDto(Aula entity) {
+        AulaDto dto = super.toDto(entity);
+        if (dto != null && entity != null) {
+            dto.setDuracaoMinutos(entity.getDuracaoMinutos());
+        }
+        return dto;
+    }
+
+    @Override
     public void map(Aula from, Aula to) {
         to.setHoraFim(from.getHoraFim());
         to.setHoraInicio(from.getHoraInicio());

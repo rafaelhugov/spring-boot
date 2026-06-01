@@ -25,5 +25,6 @@ public class AulaDto {
     private LocalTime horaFim;
 
     private boolean ativa;
+    private Long duracaoMinutos;
     private List<ChamadaDto> chamadas;
 }

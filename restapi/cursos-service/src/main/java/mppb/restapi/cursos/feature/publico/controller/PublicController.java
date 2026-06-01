@@ -96,13 +96,24 @@ public class PublicController {
     }
 
     /**
+     * Solicita o envio do código OTP para o e-mail do participante.
+     */
+    @Operation(summary = "Solicita envio de OTP", description = "Gera e envia um código OTP para o e-mail do participante inscrito.")
+    @PostMapping(value = "/frequencia/{token}/solicitar-codigo", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<SolicitacaoOtpResponseDto> solicitarCodigoOtp(@PathVariable String token,
+                                                                        @Valid @RequestBody SolicitacaoOtpDto dto) {
+        SolicitacaoOtpResponseDto responseDto = frequenciaService.solicitarCodigoOtp(token, dto.getCpf());
+        return ResponseEntity.ok(responseDto);
+    }
+
+    /**
      * Registra a presença do aluno.
      */
-    @Operation(summary = "Registra frequência do participante", description = "Valida o CPF, verifica a inscrição e registra a presença, seja via QR Code ou link.")
+    @Operation(summary = "Registra frequência do participante", description = "Valida o CPF, verifica a inscrição, valida o OTP e registra a presença.")
     @PostMapping(value = "/frequencia/{token}/registrar", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<FrequenciaRegistroResponseDto> registrarFrequencia(@PathVariable String token,
                                                                              @Valid @RequestBody RegistroFrequenciaDto dto) {
-        FrequenciaRegistroResponseDto responseDto = frequenciaService.registrarPresenca(token, dto.getCpf());
+        FrequenciaRegistroResponseDto responseDto = frequenciaService.registrarPresenca(token, dto.getCpf(), dto.getCodigoOtp());
         return ResponseEntity.ok(responseDto);
     }
 

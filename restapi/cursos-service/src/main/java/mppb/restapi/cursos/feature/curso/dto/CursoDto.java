@@ -15,6 +15,8 @@ import mppb.restapi.cursos.feature.lookup.dto.TipoEventoDto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -71,6 +73,10 @@ public class CursoDto {
 
     private String progressaoFuncional;
 
+    @JsonView(CursoView.Listagem.class)
+    private StatusCursoEnum status;
+
+    @JsonView(CursoView.Listagem.class)
     private String hashInscricao;
 
     @JsonView(CursoView.Listagem.class)
