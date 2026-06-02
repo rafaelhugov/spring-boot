@@ -149,6 +149,9 @@ public class SolicitacaoCurso {
     @Column(name = "observacoes", columnDefinition = "text")
     private String observacoesGerais;
 
+    @Column(name = "descricaoajustes", length = 1000)
+    private String descricaoAjustes;
+
     @Column(name = "id_arquivo")
     private Long idArquivoProgramacaoGed;
 

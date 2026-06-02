@@ -68,6 +68,7 @@ public class SolicitacaoCursoResponseDto {
 
     // Documentação
     private String observacoesGerais;
+    private String descricaoAjustes;
     private Long idArquivoProgramacaoGed;
     private Long idCursoGerado;
 

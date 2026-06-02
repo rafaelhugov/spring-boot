@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import mppb.restapi.cursos.feature.solicitacao.dto.HabilitarEdicaoRequestDto;
 import mppb.restapi.cursos.feature.solicitacao.dto.SolicitacaoCursoRequestDto;
 import mppb.restapi.cursos.feature.solicitacao.dto.SolicitacaoCursoResponseDto;
 import mppb.restapi.cursos.feature.solicitacao.service.SolicitacaoCursoService;
@@ -78,15 +79,6 @@ public class SolicitacaoCursoController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Avaliar Solicitação", description = "Define o status da solicitação (Deferido/Indeferido)")
-    @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAuthority('cursos.analisar.solicitacoes')")
-    public ResponseEntity<SolicitacaoCursoResponseDto> avaliarSolicitacao(
-            @PathVariable Long id,
-            @RequestParam Long statusId) {
-        return ResponseEntity.ok(service.avaliarSolicitacao(id, statusId));
-    }
-
     @Operation(summary = "Protocolar no MPVirtual", description = "Inicia manualmente o processo no MPVirtual (Ação do CEAF)")
     @PostMapping("/{id}/protocolar")
     @PreAuthorize("hasAuthority('cursos.manter.cursos')")
@@ -97,8 +89,10 @@ public class SolicitacaoCursoController {
     @Operation(summary = "Habilitar Edição", description = "Disponibiliza uma solicitação protocolada para ajuste pelo usuário (Ação do CEAF)")
     @PatchMapping("/{id}/habilitar-edicao")
     @PreAuthorize("hasAuthority('cursos.manter.cursos')")
-    public ResponseEntity<SolicitacaoCursoResponseDto> habilitarEdicao(@PathVariable Long id) {
-        return ResponseEntity.ok(service.habilitarEdicao(id));
+    public ResponseEntity<SolicitacaoCursoResponseDto> habilitarEdicao(
+            @PathVariable Long id,
+            @Valid @RequestBody HabilitarEdicaoRequestDto dto) {
+        return ResponseEntity.ok(service.habilitarEdicao(id, dto.getDescricaoAjustes()));
     }
 
     @Operation(summary = "Preview do Protocolo", description = "Obtém os metadados que serão enviados ao MPVirtual para fins de conferência")

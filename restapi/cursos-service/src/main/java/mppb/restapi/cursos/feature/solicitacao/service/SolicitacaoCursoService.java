@@ -324,6 +324,7 @@ public class SolicitacaoCursoService {
         dto.setHospedagem(entity.getHospedagem());
         dto.setSemOnusFinanceiro(entity.getSemOnusFinanceiro());
         dto.setObservacoesGerais(entity.getObservacoesGerais());
+        dto.setDescricaoAjustes(entity.getDescricaoAjustes());
         dto.setIdArquivoProgramacaoGed(entity.getIdArquivoProgramacaoGed());
 
         // Agendas
@@ -458,51 +459,14 @@ public class SolicitacaoCursoService {
     }
 
     @Transactional
-    public SolicitacaoCursoResponseDto avaliarSolicitacao(Long id, Long statusId) {
-        if (id == null) {
-            throw new BusinessRuleException("O ID da solicitação é obrigatório.");
-        }
-        SolicitacaoCurso solicitacao = solicitacaoRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Solicitação não encontrada"));
-
-        if (statusId == null) {
-            throw new BusinessRuleException("O ID do status é obrigatório.");
-        }
-        StatusTramitacao statusAlvo = statusTramitacaoRepository.findById(statusId)
-                .orElseThrow(() -> new NotFoundException("Status não encontrado"));
-
-        Long statusAtualId = solicitacao.getStatus() != null ? solicitacao.getStatus().getId() : 1L;
-
-        // Regra: Bloquear qualquer alteração se já estiver CONVERTIDO (6)
-        if (statusAtualId == 6L) {
-            throw new BusinessRuleException(
-                    "Esta solicitação já foi convertida em curso e não pode mais ser alterada.");
-        }
-
-        // Regra: Para Deferir/Homologar (3) ou Indeferir (4), a solicitação deve estar
-        // SUBMETIDA (2) ou RETIFICADA (8) ou já avaliada (3 ou 4)
-        if ((statusId == 3L || statusId == 4L) &&
-                (statusAtualId != 2L && statusAtualId != 8L && statusAtualId != 3L && statusAtualId != 4L)) {
-            throw new BusinessRuleException(
-                    "A solicitação deve estar SUBMETIDA ou RETIFICADA para ser homologada ou indeferida.");
-        }
-
-        // Regra: Para Iniciar Protocolo/Análise (5), a solicitação deve estar SUBMETIDA
-        // (2)
-        if (statusId == 5L && statusAtualId != 2L) {
-            throw new BusinessRuleException(
-                    "Apenas solicitações SUBMETIDAS podem ser enviadas para análise.");
-        }
-
-        solicitacao.setStatus(statusAlvo);
-        return mapToResponseDto(solicitacaoRepository.save(solicitacao));
-    }
-
-    @Transactional
-    public SolicitacaoCursoResponseDto habilitarEdicao(Long id) {
+    public SolicitacaoCursoResponseDto habilitarEdicao(Long id, String descricaoAjustes) {
         log.trace("[Habilitar Edição] Iniciando para ID: {}", id);
         SolicitacaoCurso solicitacao = solicitacaoRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Solicitação não encontrada: " + id));
+
+        if (!StringUtils.hasText(descricaoAjustes)) {
+            throw new BusinessRuleException("Informe o que precisa ser ajustado na solicitação.");
+        }
 
         SecurityUtils.getAuthenticationToken().ifPresent(auth -> {
             log.trace("[Habilitar Edição] Verificando permissões para usuário: {}", auth.getName());
@@ -527,6 +491,7 @@ public class SolicitacaoCursoService {
 
         log.trace("[Habilitar Edição] Alterando status para 7 (DEVOLVIDO)");
         solicitacao.setStatus(statusAlvo);
+        solicitacao.setDescricaoAjustes(descricaoAjustes.trim());
 
         try {
             SolicitacaoCurso salva = solicitacaoRepository.save(solicitacao);
