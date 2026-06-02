@@ -14,6 +14,7 @@ set -euo pipefail
 
 REGISTRY_DEFAULT="gavriel.mppb.mp.br:5000"
 DO_PUSH=false
+ORIGINAL_ARGS=("$@")
 
 if [[ $# -lt 1 ]]; then
   echo "Uso: $0 <nova-versao|patch|minor|major> [--push]"
@@ -29,12 +30,33 @@ fi
 
 cd "$(dirname "$0")"
 
-if ! docker ps >/dev/null 2>&1; then
+ensure_docker_access() {
+  if docker ps >/dev/null 2>&1; then
+    return 0
+  fi
+
+  if [[ ${RELEASE_REEXEC_DOCKER:-} != "1" ]] &&
+     getent group docker | grep -Eq "(^|,)$(id -un)(,|$)" &&
+     ! id -nG | tr ' ' '\n' | grep -qx docker; then
+    local cmd
+    printf -v cmd '%q ' "$0" "${ORIGINAL_ARGS[@]}"
+    if sg docker -c "docker ps >/dev/null 2>&1" >/dev/null 2>&1; then
+      echo "[release] Sessao atual ainda nao carregou o grupo docker; reexecutando com 'sg docker'..."
+      exec sg docker -c "RELEASE_REEXEC_DOCKER=1 $cmd"
+    fi
+  fi
+
   echo "[release] Sem permissao para acessar o Docker."
   echo "[release] Grupos da sessao atual: $(id -nG)"
   echo "[release] Permissao atual do socket Docker:"
   ls -l /var/run/docker.sock
   echo
+  if getent group docker | grep -Eq "(^|,)$(id -un)(,|$)" &&
+     ! id -nG | tr ' ' '\n' | grep -qx docker; then
+    echo "O usuario $(id -un) ja esta no grupo docker, mas esta sessao ainda nao carregou esse grupo."
+    echo "Correcao definitiva: encerre a sessao do VDI/terminal e entre novamente."
+    echo
+  fi
   echo "Se o grupo docker acabou de ser adicionado, rode nesta mesma janela:"
   echo "  newgrp docker"
   echo
@@ -45,6 +67,10 @@ if ! docker ps >/dev/null 2>&1; then
   echo "Depois teste com:"
   echo "  docker ps"
   exit 1
+}
+
+if ! docker ps >/dev/null 2>&1; then
+  ensure_docker_access
 fi
 
 # Versão atual
