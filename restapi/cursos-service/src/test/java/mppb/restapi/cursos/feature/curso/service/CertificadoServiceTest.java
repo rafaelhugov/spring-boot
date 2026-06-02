@@ -67,6 +67,7 @@ public class CertificadoServiceTest {
         curso.setCargaHoraria("40:00:00");
         curso.setRealizacaoDataFinal(LocalDateTime.of(2026, 3, 31, 12, 0));
         curso.setCertificateTemplateId(500L);
+        curso.setStatus(mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.PRONTO_PUBLICACAO);
         
         Modalidade modalidade = new Modalidade();
         modalidade.setId(1L); // Online
@@ -102,7 +103,7 @@ public class CertificadoServiceTest {
         
         Context context = contextCaptor.getValue();
         assertEquals("participante", context.getVariable("papel"));
-        assertEquals("PARTICIPANTE TESTE", context.getVariable("nomeParticipante"));
+        assertEquals("Participante Teste", context.getVariable("nomeParticipante"));
         assertEquals("João Pessoa - PB", context.getVariable("cidade"));
         assertEquals("online", context.getVariable("modalidade"));
         assertTrue(context.getVariable("dataExtenso").toString().contains("de março de 2026"));
@@ -140,7 +141,7 @@ public class CertificadoServiceTest {
         
         Context context = contextCaptor.getValue();
         assertEquals("palestrante", context.getVariable("papel"));
-        assertEquals("MINISTRANTE TESTE", context.getVariable("nomeParticipante"));
+        assertEquals("Ministrante Teste", context.getVariable("nomeParticipante"));
     }
 
     @Test
@@ -166,6 +167,6 @@ public class CertificadoServiceTest {
         verify(templateEngine).process(eq("certificado"), contextCaptor.capture());
         
         Context context = contextCaptor.getValue();
-        assertEquals("NOME DO RH", context.getVariable("nomeParticipante"));
+        assertEquals("Nome do RH", context.getVariable("nomeParticipante"));
     }
 }
