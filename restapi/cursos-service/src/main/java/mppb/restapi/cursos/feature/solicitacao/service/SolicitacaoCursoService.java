@@ -727,30 +727,45 @@ public class SolicitacaoCursoService {
         Curso cursoSalvo = cursoService.save(novoCurso);
 
         // Copiar ministrantes
+        java.util.Set<String> ministrantesAdicionados = new java.util.HashSet<>();
         solicitacao.getMinistrantes().forEach(sm -> {
-            AssociarMinistranteDto tDto = new AssociarMinistranteDto();
-            tDto.setIdServidor(sm.getIdServidor() != null ? sm.getIdServidor().intValue() : null);
-            tDto.setNome(sm.getNomeMinistrante());
-            tDto.setEmail(sm.getEmail());
-            tDto.setTelefone(sm.getTelefone());
-            tDto.setPapelId(sm.getPapelMinistrante() != null ? sm.getPapelMinistrante().getId() : 1L); // Default
-                                                                                                       // Palestrante
-
+            String chaveUnica = "";
             if (sm.getIdServidor() != null) {
-                tDto.setTipo("INTERNO");
+                chaveUnica = "SERV_" + sm.getIdServidor();
+            } else if (sm.getCpf() != null && !sm.getCpf().isEmpty()) {
+                chaveUnica = "CPF_" + sm.getCpf().replaceAll("\\D", "");
+            } else if (sm.getEmail() != null && !sm.getEmail().isEmpty()) {
+                chaveUnica = "EMAIL_" + sm.getEmail().toLowerCase();
             } else {
-                tDto.setTipo("EXTERNO");
-                String cleanCpf = sm.getCpf() != null ? sm.getCpf().replaceAll("\\D", "") : null;
-                tDto.setCpf(cleanCpf);
-                if (sm.getMinistrante() != null) {
-                    tDto.setMinistranteId(sm.getMinistrante().getId());
-                }
+                chaveUnica = "NOME_" + sm.getNomeMinistrante().toLowerCase();
             }
 
-            tDto.setIdFoto(sm.getIdFoto());
-            tDto.setIdCurriculo(sm.getIdCurriculo());
+            if (ministrantesAdicionados.add(chaveUnica)) {
+                AssociarMinistranteDto tDto = new AssociarMinistranteDto();
+                tDto.setIdServidor(sm.getIdServidor() != null ? sm.getIdServidor().intValue() : null);
+                tDto.setNome(sm.getNomeMinistrante());
+                tDto.setEmail(sm.getEmail());
+                tDto.setTelefone(sm.getTelefone());
+                tDto.setPapelId(sm.getPapelMinistrante() != null ? sm.getPapelMinistrante().getId() : 1L); // Default Palestrante
 
-            cursoService.addMinistranteToCurso(cursoSalvo.getId(), tDto);
+                if (sm.getIdServidor() != null) {
+                    tDto.setTipo("INTERNO");
+                } else {
+                    tDto.setTipo("EXTERNO");
+                    String cleanCpf = sm.getCpf() != null ? sm.getCpf().replaceAll("\\D", "") : null;
+                    tDto.setCpf(cleanCpf);
+                    if (sm.getMinistrante() != null) {
+                        tDto.setMinistranteId(sm.getMinistrante().getId());
+                    }
+                }
+
+                tDto.setIdFoto(sm.getIdFoto());
+                tDto.setIdCurriculo(sm.getIdCurriculo());
+
+                cursoService.addMinistranteToCurso(cursoSalvo.getId(), tDto);
+            } else {
+                log.warn("Ministrante duplicado ignorado na conversão da solicitação {}: {}", solicitacao.getId(), sm.getNomeMinistrante());
+            }
         });
 
         // Marcar como CONVERIDO (Novo ID 6)
