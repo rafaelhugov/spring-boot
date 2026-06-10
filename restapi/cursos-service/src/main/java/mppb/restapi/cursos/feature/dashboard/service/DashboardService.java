@@ -189,6 +189,7 @@ public class DashboardService {
                 if (!isAdmin) {
                     boolean isMembro = perfis.stream().anyMatch(p -> p.getNome() != null && p.getNome().toLowerCase().contains("membro"));
                     boolean isServidor = perfis.stream().anyMatch(p -> p.getNome() != null && p.getNome().toLowerCase().contains("servidor"));
+                    boolean isAssessor = perfis.stream().anyMatch(p -> p.getNome() != null && p.getNome().toLowerCase().contains("assessor"));
 
                     List<Predicate> publicoPredicates = new ArrayList<>();
 
@@ -197,6 +198,9 @@ public class DashboardService {
                     }
                     if (isServidor) {
                         publicoPredicates.add(cb.like(cb.lower(publicosAlvoJoin.get("nome")), "%servidor%"));
+                    }
+                    if (isAssessor) {
+                        publicoPredicates.add(cb.like(cb.lower(publicosAlvoJoin.get("nome")), "%assessor%"));
                     }
 
                     // Sempre permitir ver os cursos direcionados ao público externo/geral
