@@ -17,6 +17,7 @@ public class AulaConverter extends EntityConverterImpl<AulaDto, Aula> {
         AulaDto dto = super.toDto(entity);
         if (dto != null && entity != null) {
             dto.setDuracaoMinutos(entity.getDuracaoMinutos());
+            dto.setQuantidadeChamadas(entity.getQuantidadeChamadas());
         }
         return dto;
     }
@@ -27,6 +28,7 @@ public class AulaConverter extends EntityConverterImpl<AulaDto, Aula> {
         to.setHoraInicio(from.getHoraInicio());
         to.setDescricao(from.getDescricao());
         to.setData(from.getData());
+        to.setQuantidadeChamadas(from.getQuantidadeChamadas());
     }
 }
 

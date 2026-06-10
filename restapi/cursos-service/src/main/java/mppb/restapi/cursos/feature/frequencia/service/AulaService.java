@@ -75,6 +75,9 @@ public class AulaService extends AbstractService<Aula, Long> {
         aulaExistente.setData(aulaAtualizada.getData());
         aulaExistente.setHoraInicio(aulaAtualizada.getHoraInicio());
         aulaExistente.setHoraFim(aulaAtualizada.getHoraFim());
+        if (aulaAtualizada.getQuantidadeChamadas() != null) {
+            aulaExistente.setQuantidadeChamadas(aulaAtualizada.getQuantidadeChamadas());
+        }
 
         Aula savedAula = aulaRepository.save(aulaExistente);
         recalcularStatusCurso(curso);
