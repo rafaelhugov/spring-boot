@@ -13,4 +13,6 @@ public interface ChamadaRepository extends BaseRepository<Chamada, Long> {
     Optional<Chamada> findByToken(String token);
 
     java.util.List<Chamada> findAllByAulaId(Long aulaId);
+
+    Optional<Chamada> findByAulaAndTipo(mppb.restapi.cursos.feature.frequencia.entity.Aula aula, mppb.restapi.cursos.feature.frequencia.enums.TipoChamadaEnum tipo);
 }

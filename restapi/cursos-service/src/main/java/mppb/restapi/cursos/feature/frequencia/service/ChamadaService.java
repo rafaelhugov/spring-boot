@@ -61,17 +61,52 @@ public class ChamadaService extends AbstractService<Chamada, Long> {
         return chamadaRepository.save(chamada);
     }
 
+    @Transactional
+    public Chamada obterChamadaAutomatica(Long aulaId) {
+        mppb.restapi.cursos.feature.frequencia.entity.Aula aula = entityManager.find(mppb.restapi.cursos.feature.frequencia.entity.Aula.class, aulaId);
+        if (aula == null) {
+            throw new NotFoundException("Aula não encontrada.");
+        }
+
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.time.LocalTime now = java.time.LocalTime.now();
+
+        if (!today.equals(aula.getData()) || now.isBefore(aula.getHoraInicio()) || now.isAfter(aula.getHoraFim())) {
+            throw new mppb.restapi.common.core.error.BusinessRuleException("O registro de frequência só é permitido durante o horário da aula (" + 
+                aula.getData().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " " + aula.getHoraInicio() + " às " + aula.getHoraFim() + ").");
+        }
+
+        mppb.restapi.cursos.feature.frequencia.enums.TipoChamadaEnum tipoTemp = mppb.restapi.cursos.feature.frequencia.enums.TipoChamadaEnum.INICIO;
+        
+        if (aula.getQuantidadeChamadas() != null && aula.getQuantidadeChamadas() > 1) {
+            long totalDuration = java.time.Duration.between(aula.getHoraInicio(), aula.getHoraFim()).toMinutes();
+            long elapsed = java.time.Duration.between(aula.getHoraInicio(), now).toMinutes();
+            if (elapsed >= totalDuration / 2) {
+                tipoTemp = mppb.restapi.cursos.feature.frequencia.enums.TipoChamadaEnum.FIM;
+            }
+        }
+
+        final mppb.restapi.cursos.feature.frequencia.enums.TipoChamadaEnum tipo = tipoTemp;
+
+        return chamadaRepository.findByAulaAndTipo(aula, tipo).orElseGet(() -> {
+            Chamada nova = new Chamada();
+            nova.setAula(aula);
+            nova.setTipo(tipo);
+            nova.setAberta(true);
+            return chamadaRepository.save(nova);
+        });
+    }
+
     /**
-     * Mapeia os dados essenciais da Chamada para o DTO de visualização pública.
-     * Este método é EAGER por natureza, garantindo o carregamento do Curso aninhado.
+     * Mapeia os dados essenciais da Aula para o DTO de visualização pública.
      */
     @Transactional(readOnly = true)
-    public ChamadaPublicaDto getDadosChamadaPublica(String token) {
-        Chamada chamada = buscarPorToken(token);
+    public ChamadaPublicaDto getDadosChamadaPublica(Long aulaId) {
+        mppb.restapi.cursos.feature.frequencia.entity.Aula aula = entityManager.find(mppb.restapi.cursos.feature.frequencia.entity.Aula.class, aulaId);
+        if (aula == null) {
+            throw new NotFoundException("Aula não encontrada.");
+        }
 
-        // Acesso direto, forçando o carregamento lazy do Aula e Curso
-        // (Nota: Isso funciona se as entidades forem configuradas para acesso lazy no Service)
-        final var aula = chamada.getAula();
         final var curso = aula.getCurso();
 
         return ChamadaPublicaDto.builder()
@@ -80,8 +115,8 @@ public class ChamadaService extends AbstractService<Chamada, Long> {
                 .data(aula.getData())
                 .horaInicio(aula.getHoraInicio())
                 .horaFim(aula.getHoraFim())
-                .tipoChamada(chamada.getTipo().getDescricao())
-                .aberta(chamada.isAberta())
+                .tipoChamada("Registro de Frequência")
+                .aberta(true) // O backend validará a hora no momento do envio do CPF
                 .build();
     }
 }

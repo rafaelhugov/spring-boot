@@ -20,8 +20,4 @@ public class RegistroFrequenciaDto {
     @Schema(description = "CPF do participante, usado para identificação.", example = "12345678900")
     private String cpf;
 
-    @NotBlank(message = "O código OTP é obrigatório.")
-    @Pattern(regexp = "\\d{6}", message = "O código OTP deve conter 6 dígitos numéricos.")
-    @Schema(description = "Código OTP recebido por e-mail.", example = "123456")
-    private String codigoOtp;
 }

@@ -87,36 +87,24 @@ public class PublicController {
     }
 
     /**
-     * Obtém os dados da Aula/Chamada pelo token
+     * Obtém os dados da Aula pelo ID
      */
-    @Operation(summary = "Obtém dados da chamada por token", description = "Retorna os detalhes da aula associada ao token de frequência.")
-    @GetMapping("/frequencia/{token}")
-    public ResponseEntity<ChamadaPublicaDto> getDadosChamada(@PathVariable String token) {
-        return ResponseEntity.ok(chamadaService.getDadosChamadaPublica(token));
-    }
-
-    /**
-     * Solicita o envio do código OTP para o e-mail do participante.
-     */
-    @Operation(summary = "Solicita envio de OTP", description = "Gera e envia um código OTP para o e-mail do participante inscrito.")
-    @PostMapping(value = "/frequencia/{token}/solicitar-codigo", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<SolicitacaoOtpResponseDto> solicitarCodigoOtp(@PathVariable String token,
-                                                                        @Valid @RequestBody SolicitacaoOtpDto dto) {
-        SolicitacaoOtpResponseDto responseDto = frequenciaService.solicitarCodigoOtp(token, dto.getCpf());
-        return ResponseEntity.ok(responseDto);
+    @Operation(summary = "Obtém dados da chamada da aula", description = "Retorna os detalhes da aula associada ao registro de frequência.")
+    @GetMapping("/frequencia/aula/{aulaId}")
+    public ResponseEntity<ChamadaPublicaDto> getDadosChamada(@PathVariable Long aulaId) {
+        return ResponseEntity.ok(chamadaService.getDadosChamadaPublica(aulaId));
     }
 
     /**
      * Registra a presença do aluno.
      */
-    @Operation(summary = "Registra frequência do participante", description = "Valida o CPF, verifica a inscrição, valida o OTP e registra a presença.")
-    @PostMapping(value = "/frequencia/{token}/registrar", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<FrequenciaRegistroResponseDto> registrarFrequencia(@PathVariable String token,
+    @Operation(summary = "Registra frequência do participante", description = "Valida o CPF, verifica a inscrição, horário da aula e registra a presença.")
+    @PostMapping(value = "/frequencia/aula/{aulaId}/registrar", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<FrequenciaRegistroResponseDto> registrarFrequencia(@PathVariable Long aulaId,
                                                                              @Valid @RequestBody RegistroFrequenciaDto dto) {
-        FrequenciaRegistroResponseDto responseDto = frequenciaService.registrarPresenca(token, dto.getCpf(), dto.getCodigoOtp());
+        FrequenciaRegistroResponseDto responseDto = frequenciaService.registrarPresenca(aulaId, dto.getCpf());
         return ResponseEntity.ok(responseDto);
     }
-
 
 }
 
