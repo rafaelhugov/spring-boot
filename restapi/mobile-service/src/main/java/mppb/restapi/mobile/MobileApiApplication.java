@@ -1,4 +1,4 @@
-package mppb.restapi.cursos;
+package mppb.restapi.mobile;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -9,12 +9,12 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-@SpringBootApplication(scanBasePackages = {"mppb.restapi.common", "mppb.restapi.cursos"}, exclude = { SecurityAutoConfiguration.class })
-@EntityScan(basePackages = {"mppb.restapi.common", "mppb.restapi.cursos"})
+@SpringBootApplication(scanBasePackages = {"mppb.restapi.common", "mppb.restapi.cursos", "mppb.restapi.mobile"}, exclude = { SecurityAutoConfiguration.class })
+@EntityScan(basePackages = {"mppb.restapi.common", "mppb.restapi.cursos", "mppb.restapi.mobile"})
 @EnableFeignClients
 @EnableJpaAuditing(auditorAwareRef = "auditorAware")
 @EnableCaching
-@EnableJpaRepositories(basePackages = {"mppb.restapi.common", "mppb.restapi.cursos"})
+@EnableJpaRepositories(basePackages = {"mppb.restapi.common", "mppb.restapi.cursos", "mppb.restapi.mobile"})
 public class MobileApiApplication {
 
 	public static void main(String[] args) {

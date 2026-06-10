@@ -27,4 +27,5 @@ public class AulaDto {
     private boolean ativa;
     private Long duracaoMinutos;
     private List<ChamadaDto> chamadas;
+    private Integer quantidadeChamadas;
 }

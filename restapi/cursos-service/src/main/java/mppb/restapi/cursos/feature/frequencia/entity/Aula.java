@@ -44,6 +44,10 @@ public class Aula extends AbstractEntity<Long> {
     @Builder.Default
     private List<Chamada> chamadas = new ArrayList<>();
 
+    @Column(name = "quantidadechamadas", nullable = false)
+    @Builder.Default
+    private Integer quantidadeChamadas = 1;
+
     @Transient
     public Long getDuracaoMinutos() {
         if (horaInicio != null && horaFim != null) {
