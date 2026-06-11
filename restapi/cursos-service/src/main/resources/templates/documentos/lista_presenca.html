@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 12pt; margin: 30px; }
+        .cabecalho { text-align: center; font-weight: bold; margin-bottom: 30px; }
+        .evento { text-align: center; font-size: 14pt; font-weight: bold; margin-bottom: 20px; text-transform: uppercase; }
+        .detalhes { margin-bottom: 20px; line-height: 1.5; }
+        .titulo-lista { text-align: center; font-weight: bold; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid black; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .col-num { width: 5%; text-align: center; }
+        .col-nome { width: 45%; }
+        .col-ass { width: 50%; }
+    </style>
+</head>
+<body>
+    <div class="cabecalho">
+        MINISTÉRIO PÚBLICO DO ESTADO DA PARAÍBA<br/>
+        PROCURADORIA-GERAL DE JUSTIÇA<br/>
+        CENTRO DE ESTUDOS E APERFEIÇOAMENTO FUNCIONAL
+    </div>
+
+    <div class="evento" th:text="${titulo_evento}">TITULO DO EVENTO</div>
+
+    <div class="detalhes">
+        <strong>LOCAL:</strong> <span th:text="${local}">Local</span><br/>
+        <strong>DATA:</strong> <span th:text="${data}">Data</span> &nbsp;&nbsp;&nbsp;&nbsp;
+        <strong>HORÁRIO:</strong> <span th:text="${horario}">Horário</span>
+    </div>
+
+    <div class="titulo-lista">LISTA DE PRESENÇA - <span th:text="${tipo_publico}">PÚBLICO</span></div>
+
+    <table>
+        <thead>
+            <tr>
+                <th class="col-num">Nº</th>
+                <th class="col-nome">NOME</th>
+                <th class="col-ass">ASSINATURA</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="part : ${linhas_participantes}">
+                <td class="col-num" th:text="${part.numero}">1</td>
+                <td class="col-nome" th:text="${part.nome}">Nome do Participante</td>
+                <td class="col-ass"></td>
+            </tr>
+            <tr th:each="adic : ${linhas_adicionais}">
+                <td class="col-num" th:text="${adic.numero}">2</td>
+                <td class="col-nome"></td>
+                <td class="col-ass"></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

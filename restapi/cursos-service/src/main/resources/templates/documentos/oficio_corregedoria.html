@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <style>
+        body { font-family: "Times New Roman", Times, serif; font-size: 12pt; margin: 40px; text-align: justify; }
+        .cabecalho { text-align: center; font-weight: bold; margin-bottom: 40px; font-size: 14pt; }
+        .numero { font-weight: bold; margin-bottom: 30px; }
+        .destinatario { margin-bottom: 30px; }
+        .assunto { font-weight: bold; margin-bottom: 30px; }
+        .vocativo { margin-bottom: 20px; }
+        .corpo { margin-bottom: 20px; text-indent: 30px; line-height: 1.5; }
+        .lista { margin-bottom: 20px; margin-left: 20px; }
+        .despedida { margin-top: 40px; margin-bottom: 40px; }
+        .assinatura { text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="cabecalho">
+        MINISTÉRIO PÚBLICO DO ESTADO DA PARAÍBA<br/>
+        PROCURADORIA-GERAL DE JUSTIÇA<br/>
+        <span th:text="${unidade_emissora}">CENTRO DE ESTUDOS E APERFEIÇOAMENTO FUNCIONAL</span>
+    </div>
+
+    <div class="numero">
+        Ofício nº <span th:text="${numero_oficio}"></span>/<span th:text="${ano_oficio}"></span>/<span th:text="${unidade_emissora}"></span>
+    </div>
+
+    <div class="destinatario">
+        A Sua Excelência o Senhor<br/>
+        <strong th:text="${destinatario_nome}">Nome Destinatário</strong><br/>
+        <span th:text="${destinatario_cargo}">Cargo</span><br/>
+        <span th:text="${orgao_destinatario}">Órgão</span>
+    </div>
+
+    <div class="assunto">
+        Assunto: <span th:text="${assunto}">Assunto</span>
+    </div>
+
+    <div class="vocativo">
+        <span th:text="${tratamento_destinatario}">Senhor Corregedor-Geral</span>,
+    </div>
+
+    <div class="corpo">
+        Cumprimentando-o, comunicamos a <span th:text="${pronome_tratamento}">Vossa Excelência</span>, para fins de <span th:text="${finalidade_anotacao}">anotação em cadastro funcional</span>, a participação dos membros do MPPB, abaixo relacionados, no <span th:text="${tipo_evento}">curso</span> &quot;<span th:text="${titulo_evento}">Titulo</span>&quot;<span th:text="${descricao_complementar_evento}"></span>, realizado em <span th:text="${data_realizacao}">Data</span>, <span th:text="${plataforma_ou_local}">Local</span>, com carga horária de <span th:text="${carga_horaria}">Carga</span>.
+    </div>
+    
+    <div class="corpo">
+        O supracitado evento foi ofertado indistintamente a <span th:text="${publico_alvo}">Membros</span>, sendo divulgado via <span th:text="${forma_divulgacao}">email</span>.
+    </div>
+
+    <div th:if="${!palestrantes.isEmpty()}" class="lista">
+        <strong>Palestrante(s):</strong>
+        <ul>
+            <li th:each="palestrante : ${palestrantes}" th:text="${palestrante}">Nome Palestrante</li>
+        </ul>
+    </div>
+    
+    <div th:if="${!mediadores.isEmpty()}" class="lista">
+        <strong>Mediador(es):</strong>
+        <ul>
+            <li th:each="mediador : ${mediadores}" th:text="${mediador}">Nome Mediador</li>
+        </ul>
+    </div>
+    
+    <div th:if="${!debatedores.isEmpty()}" class="lista">
+        <strong>Debatedor(es):</strong>
+        <ul>
+            <li th:each="debatedor : ${debatedores}" th:text="${debatedor}">Nome Debatedor</li>
+        </ul>
+    </div>
+
+    <div class="lista">
+        <strong>Membros Participantes:</strong>
+        <ul>
+            <li th:each="part : ${participantes}">
+                <span th:text="${part.nome}">Nome</span> 
+                <span th:if="${part.matricula != null}">- Matrícula: <span th:text="${part.matricula}"></span></span>
+            </li>
+        </ul>
+    </div>
+
+    <div class="despedida">Atenciosamente,</div>
+
+    <div class="assinatura">
+        (documento datado e assinado eletronicamente)<br/><br/>
+        <strong th:text="${assinante_nome}">Assinante</strong><br/>
+        <span th:text="${assinante_cargo}">Cargo</span>
+    </div>
+</body>
+</html>
