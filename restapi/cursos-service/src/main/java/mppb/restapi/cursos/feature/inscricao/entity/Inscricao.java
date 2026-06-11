@@ -47,5 +47,8 @@ public class Inscricao extends AbstractEntity<Long> {
         if (this.situacao == null) {
             this.situacao = SituacaoInscricaoEnum.INSCRITO;
         }
+        if (this.frequencia == null) {
+            this.frequencia = 0;
+        }
     }
 }
