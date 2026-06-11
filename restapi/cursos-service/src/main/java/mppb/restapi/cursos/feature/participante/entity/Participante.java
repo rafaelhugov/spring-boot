@@ -1,6 +1,7 @@
 package mppb.restapi.cursos.feature.participante.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.Formula;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import mppb.restapi.common.core.entity.AbstractEntity;
@@ -34,6 +35,12 @@ public class Participante extends AbstractEntity<Long> {
 
     @Column(name = "id_servidor", unique = true)
     private Integer idServidor;
+
+    @Formula("(SELECT p.nome FROM public.servidor s JOIN public.pessoa p ON p.id = s.id_pessoa WHERE s.id = id_servidor)")
+    private String nomeServidor;
+
+    @Formula("(SELECT p.email FROM public.servidor s JOIN public.pessoa p ON p.id = s.id_pessoa WHERE s.id = id_servidor)")
+    private String emailServidor;
 
     @Convert(converter = TipoParticipanteEnumConverter.class)
     @Column(name = "tipo", nullable = false, length = 1)
