@@ -74,6 +74,10 @@ public class MinistranteService extends AbstractService<Ministrante, Long> {
 
         } else if ("EXTERNO".equals(dto.getTipo())) {
             String cleanCpf = dto.getCpf() != null ? dto.getCpf().replaceAll("\\D", "") : null;
+            if (cleanCpf != null && cleanCpf.isBlank()) {
+                cleanCpf = null;
+            }
+            
             if (dto.getMinistranteId() != null) {
                 ministrante = ministranteRepository.findById(dto.getMinistranteId())
                         .orElseThrow(() -> new NotFoundException(
@@ -139,9 +143,10 @@ public class MinistranteService extends AbstractService<Ministrante, Long> {
 
     private Ministrante buildExternal(AssociarMinistranteDto dto) {
         String cleanCpf = dto.getCpf() != null ? dto.getCpf().replaceAll("\\D", "") : null;
-        if (cleanCpf == null || cleanCpf.isBlank()) {
-            throw new BusinessRuleException("O CPF é obrigatório para ministrantes externos.");
+        if (cleanCpf != null && cleanCpf.isBlank()) {
+            cleanCpf = null;
         }
+
         // A busca por CPF já foi feita no findOrCreateMinistrante via orElseGet,
         // portanto chegando aqui o CPF definitivamente não existe ainda.
         Ministrante ministrante = new Ministrante();
