@@ -173,8 +173,52 @@ public class DashboardService {
             if (modalidadeId != null) {
                 predicates.add(cb.equal(root.get("modalidade").get("id"), modalidadeId));
             }
+
+            jakarta.persistence.criteria.Join<Curso, mppb.restapi.cursos.feature.lookup.entities.PublicoAlvo> publicosAlvoJoin = root.join("publicosAlvo", jakarta.persistence.criteria.JoinType.INNER);
+            query.distinct(true);
+
             if (publicoAlvoId != null) {
-                predicates.add(cb.equal(root.join("publicosAlvo").get("id"), publicoAlvoId));
+                predicates.add(cb.equal(publicosAlvoJoin.get("id"), publicoAlvoId));
+            }
+
+            Optional<TokenAuthentication> authOpt = SecurityUtils.getAuthenticationToken();
+            if (authOpt.isPresent() && authOpt.get().getAcessoData() != null && authOpt.get().getAcessoData().getPerfis() != null) {
+                List<mppb.restapi.common.infrastructure.client.authapi.dto.PerfilAutorizadoResponseDto> perfis = authOpt.get().getAcessoData().getPerfis();
+                boolean isAdmin = perfis.stream().anyMatch(p -> p.getNome() != null && p.getNome().toLowerCase().contains("administrador"));
+
+                if (!isAdmin) {
+                    boolean isMembro = perfis.stream().anyMatch(p -> p.getNome() != null && p.getNome().toLowerCase().contains("membro"));
+                    boolean isServidor = perfis.stream().anyMatch(p -> p.getNome() != null && p.getNome().toLowerCase().contains("servidor"));
+                    boolean isAssessor = perfis.stream().anyMatch(p -> p.getNome() != null && p.getNome().toLowerCase().contains("assessor"));
+
+                    List<Predicate> publicoPredicates = new ArrayList<>();
+
+                    if (isMembro) {
+                        publicoPredicates.add(cb.like(cb.lower(publicosAlvoJoin.get("nome")), "%membro%"));
+                    }
+                    if (isServidor) {
+                        publicoPredicates.add(cb.like(cb.lower(publicosAlvoJoin.get("nome")), "%servidor%"));
+                    }
+                    if (isAssessor) {
+                        publicoPredicates.add(cb.like(cb.lower(publicosAlvoJoin.get("nome")), "%assessor%"));
+                    }
+
+                    // Sempre permitir ver os cursos direcionados ao público externo/geral
+                    publicoPredicates.add(cb.like(cb.lower(publicosAlvoJoin.get("nome")), "%externo%"));
+                    publicoPredicates.add(cb.like(cb.lower(publicosAlvoJoin.get("nome")), "%geral%"));
+                    publicoPredicates.add(cb.like(cb.lower(publicosAlvoJoin.get("nome")), "%todos%"));
+
+                    if (!publicoPredicates.isEmpty()) {
+                        predicates.add(cb.or(publicoPredicates.toArray(new Predicate[0])));
+                    }
+                }
+            } else {
+                // Usuário não autenticado ou sem perfil mapeado, apenas cursos externos
+                predicates.add(cb.or(
+                    cb.like(cb.lower(publicosAlvoJoin.get("nome")), "%externo%"),
+                    cb.like(cb.lower(publicosAlvoJoin.get("nome")), "%geral%"),
+                    cb.like(cb.lower(publicosAlvoJoin.get("nome")), "%todos%")
+                ));
             }
             
             // Filtros específicos de período aplicados de forma aditiva sobre as regras base
