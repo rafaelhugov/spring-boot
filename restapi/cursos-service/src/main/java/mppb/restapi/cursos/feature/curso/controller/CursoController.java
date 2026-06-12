@@ -249,12 +249,8 @@ public class CursoController extends AbstractController {
     @Operation(summary = "Remove uma aula existente")
     @DeleteMapping("/{cursoId}/aulas/{aulaId}")
     public ResponseEntity<Object> removerAula(@PathVariable Long cursoId, @PathVariable Long aulaId) {
-        return aulaService.findById(aulaId)
-                .map(aula -> {
-                    aulaService.deleteById(aulaId);
-                    return ResponseEntity.noContent().build();
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        aulaService.deleteAula(cursoId, aulaId);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Gera uma nova chamada (QR Code) para a aula", description = "Cria uma nova Chamada com um token único para registo de presença.")
@@ -275,11 +271,20 @@ public class CursoController extends AbstractController {
         return ResponseEntity.ok(chamadaConverter.toDto(chamadaFechada));
     }
 
+    @Operation(summary = "Remove uma chamada", description = "Remove a chamada, seus registros de frequência e recalcula as inscrições do curso.")
+    @DeleteMapping("/{cursoId}/aulas/{aulaId}/chamadas/{chamadaId}")
+    public ResponseEntity<Void> removerChamada(@PathVariable Long cursoId,
+                                               @PathVariable Long aulaId,
+                                               @PathVariable Long chamadaId) {
+        aulaService.removerChamada(cursoId, aulaId, chamadaId);
+        return ResponseEntity.noContent().build();
+    }
+
     @Operation(summary = "Lista as frequências de um aula", description = "Busca as frequências de uma determinada aula do curso")
     @GetMapping("/{cursoId}/aulas/{aulaId}/frequencia")
     public ResponseEntity<List<FrequenciaDto>> getFrequencia(
             @PathVariable Long cursoId,
-            @PathVariable Integer aulaId) {
+            @PathVariable Long aulaId) {
 
         List<FrequenciaDto> frequencias = frequenciaService.findAllByAulaId(aulaId)
                 .stream()
@@ -287,5 +292,16 @@ public class CursoController extends AbstractController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(frequencias);
+    }
+
+    @Operation(summary = "Remove um registro de frequência", description = "Remove uma presença específica e recalcula a situação da inscrição.")
+    @DeleteMapping("/{cursoId}/aulas/{aulaId}/frequencia/{frequenciaId}")
+    public ResponseEntity<Void> removerFrequencia(
+            @PathVariable Long cursoId,
+            @PathVariable Long aulaId,
+            @PathVariable Long frequenciaId) {
+
+        frequenciaService.remover(cursoId, aulaId, frequenciaId);
+        return ResponseEntity.noContent().build();
     }
 }

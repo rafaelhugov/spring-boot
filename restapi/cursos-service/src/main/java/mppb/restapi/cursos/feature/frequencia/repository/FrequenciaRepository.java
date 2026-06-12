@@ -4,6 +4,9 @@ import mppb.restapi.common.core.repository.BaseRepository;
 import mppb.restapi.cursos.feature.frequencia.entity.Chamada;
 import mppb.restapi.cursos.feature.frequencia.entity.Frequencia;
 import mppb.restapi.cursos.feature.inscricao.entity.Inscricao;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -17,5 +20,13 @@ public interface FrequenciaRepository extends BaseRepository<Frequencia, Long> {
 
     boolean existsByChamadaAndInscricao(Chamada chamada, Inscricao inscricao);
 
-    List<Frequencia> findAllByChamadaAulaId(Integer aulaId);
+    List<Frequencia> findAllByChamadaAulaId(Long aulaId);
+
+    @Modifying
+    @Query("DELETE FROM Frequencia f WHERE f.chamada.id IN (SELECT c.id FROM Chamada c WHERE c.aula.id = :aulaId)")
+    int deleteByAulaId(@Param("aulaId") Long aulaId);
+
+    @Modifying
+    @Query("DELETE FROM Frequencia f WHERE f.chamada.id = :chamadaId")
+    int deleteByChamadaId(@Param("chamadaId") Long chamadaId);
 }

@@ -15,6 +15,7 @@ import mppb.restapi.cursos.feature.common.service.ServidorService;
 import mppb.restapi.cursos.feature.curso.entity.Curso;
 import mppb.restapi.cursos.feature.curso.repository.CursoRepository;
 import mppb.restapi.cursos.feature.curso.service.CursoService;
+import mppb.restapi.cursos.feature.frequencia.service.FrequenciaService;
 import mppb.restapi.cursos.feature.inscricao.converter.InscricaoConverter;
 import mppb.restapi.cursos.feature.inscricao.dto.InscricaoDto;
 import mppb.restapi.cursos.feature.inscricao.entity.Inscricao;
@@ -33,6 +34,7 @@ import mppb.restapi.cursos.feature.participante.service.ParticipanteService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +63,7 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
     private final ParticipanteRepository participanteRepository;
     private final EmailService emailService;
     private final ConfiguracaoService configuracaoService;
+    private final FrequenciaService frequenciaService;
 
     public InscricaoService(EntityManager entityManager,
                             InscricaoRepository inscricaoRepository,
@@ -72,7 +75,8 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
                             ServidorService servidorService,
                             ParticipanteRepository participanteRepository,
                             EmailService emailService,
-                            ConfiguracaoService configuracaoService) {
+                            ConfiguracaoService configuracaoService,
+                            @Lazy FrequenciaService frequenciaService) {
         super(entityManager, inscricaoRepository);
         this.inscricaoRepository = inscricaoRepository;
         this.cursoRepository = cursoRepository;
@@ -84,6 +88,7 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         this.participanteRepository = participanteRepository;
         this.emailService = emailService;
         this.configuracaoService = configuracaoService;
+        this.frequenciaService = frequenciaService;
     }
 
     // =================================================================================
@@ -93,11 +98,13 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
     /**
      * Busca inscrições para o fluxo administrativo (paginado) com filtros.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public Page<Inscricao> findAllByCursoId(Long cursoId, String nome, String situacao, Pageable pageable) {
         if (!cursoRepository.existsById(cursoId)) {
             throw new NotFoundException("Curso não encontrado: " + cursoId);
         }
+
+        frequenciaService.consolidarFrequenciasPorCurso(cursoId);
 
         String nomeFiltro = null;
         if (nome != null && !nome.isBlank()) {
@@ -363,7 +370,7 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
     /**
      * Gera um arquivo Excel com a lista de inscritos filtrada.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public ByteArrayInputStream exportarParaExcel(Long cursoId, String nome, String situacao) throws IOException {
         // Busca sem paginação (Pageable.unpaged()) para exportar todos os registros filtrados
         Page<Inscricao> page = findAllByCursoId(cursoId, nome, situacao, Pageable.unpaged());

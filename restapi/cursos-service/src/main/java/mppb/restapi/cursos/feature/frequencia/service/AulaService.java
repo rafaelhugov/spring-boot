@@ -11,6 +11,9 @@ import mppb.restapi.cursos.feature.frequencia.dto.AulaDto;
 import mppb.restapi.cursos.feature.frequencia.entity.Aula;
 import mppb.restapi.cursos.feature.frequencia.entity.Chamada;
 import mppb.restapi.cursos.feature.frequencia.repository.AulaRepository;
+import mppb.restapi.cursos.feature.frequencia.repository.ChamadaRepository;
+import mppb.restapi.cursos.feature.frequencia.service.FrequenciaService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,14 +26,18 @@ import java.util.List;
 public class AulaService extends AbstractService<Aula, Long> {
 
     private final AulaRepository aulaRepository;
+    private final ChamadaRepository chamadaRepository;
     private final CursoRepository cursoRepository;
     private final AulaConverter aulaConverter; // Injeção
+    private final FrequenciaService frequenciaService;
 
-    public AulaService(EntityManager entityManager, AulaRepository aulaRepository, CursoRepository cursoRepository, AulaConverter aulaConverter) {
+    public AulaService(EntityManager entityManager, AulaRepository aulaRepository, ChamadaRepository chamadaRepository, CursoRepository cursoRepository, AulaConverter aulaConverter, @Lazy FrequenciaService frequenciaService) {
         super(entityManager, aulaRepository);
         this.aulaRepository = aulaRepository;
+        this.chamadaRepository = chamadaRepository;
         this.cursoRepository = cursoRepository;
         this.aulaConverter = aulaConverter; // Atribuição
+        this.frequenciaService = frequenciaService;
     }
 
 
@@ -55,6 +62,7 @@ public class AulaService extends AbstractService<Aula, Long> {
         // O @PrePersist na entidade Chamada garante que tokens sejam gerados se adicionarmos chamadas aqui
         Aula savedAula = aulaRepository.save(aula);
         recalcularStatusCurso(curso);
+        frequenciaService.consolidarFrequenciasPorCurso(cursoId);
         return savedAula;
     }
 
@@ -81,6 +89,7 @@ public class AulaService extends AbstractService<Aula, Long> {
 
         Aula savedAula = aulaRepository.save(aulaExistente);
         recalcularStatusCurso(curso);
+        frequenciaService.consolidarFrequenciasPorCurso(cursoId);
         return savedAula;
     }
 
@@ -95,9 +104,11 @@ public class AulaService extends AbstractService<Aula, Long> {
             throw new mppb.restapi.common.core.error.BusinessRuleException("A aula não pertence a este curso.");
         }
 
+        frequenciaService.removerPorAula(aulaId);
         aulaRepository.delete(aula);
         aulaRepository.flush(); // Garantir que foi removido antes do recalculo
         recalcularStatusCurso(curso);
+        frequenciaService.consolidarFrequenciasPorCurso(cursoId);
     }
 
     private void validarAula(Aula aula, Curso curso, Long aulaIdIgnorada) {
@@ -169,7 +180,23 @@ public class AulaService extends AbstractService<Aula, Long> {
 
         aula.getChamadas().add(novaChamada);
         aulaRepository.save(aula);
+        frequenciaService.consolidarFrequenciasPorCurso(aula.getCurso().getId());
 
         return novaChamada;
+    }
+
+    public void removerChamada(Long cursoId, Long aulaId, Long chamadaId) {
+        Chamada chamada = chamadaRepository.findById(chamadaId)
+                .orElseThrow(() -> new NotFoundException("Chamada não encontrada: " + chamadaId));
+
+        Aula aula = chamada.getAula();
+        if (!aula.getId().equals(aulaId) || !aula.getCurso().getId().equals(cursoId)) {
+            throw new mppb.restapi.common.core.error.BusinessRuleException("A chamada não pertence a esta aula/curso.");
+        }
+
+        frequenciaService.removerPorChamada(chamadaId);
+        chamadaRepository.delete(chamada);
+        chamadaRepository.flush();
+        frequenciaService.consolidarFrequenciasPorCurso(cursoId);
     }
 }
