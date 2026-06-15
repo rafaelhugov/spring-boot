@@ -10,6 +10,7 @@ import mppb.restapi.cursos.feature.frequencia.repository.AulaRepository;
 import mppb.restapi.cursos.feature.inscricao.entity.Inscricao;
 import mppb.restapi.cursos.feature.inscricao.repository.InscricaoRepository;
 import mppb.restapi.cursos.feature.participante.entity.Participante;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
@@ -45,14 +46,11 @@ public class DocumentosService {
                 .orElseThrow(() -> new IllegalArgumentException("Curso não encontrado"));
 
         List<CursoMinistrante> ministrantes = cursoMinistranteRepository.findByCursoId(cursoId);
-        List<Aula> aulas = aulaRepository.findByCursoIdOrderByDataAscHoraInicioAsc(cursoId);
+        List<Aula> aulas = aulaRepository.findAllByCursoId(cursoId);
         
-        List<Inscricao> inscricoes;
-        if (request.getSituacaoInscricao() != null) {
-            inscricoes = inscricaoRepository.findByCursoIdAndSituacao(cursoId, request.getSituacaoInscricao());
-        } else {
-            inscricoes = inscricaoRepository.findByCursoId(cursoId);
-        }
+        List<Inscricao> inscricoes = inscricaoRepository
+                .findAllByCursoIdWithFilters(cursoId, null, request.getSituacaoInscricao(), Pageable.unpaged())
+                .getContent();
 
         Map<String, Object> vars = new HashMap<>();
         
@@ -117,7 +115,7 @@ public class DocumentosService {
         
         for (CursoMinistrante cm : ministrantes) {
             String nome = cm.getMinistrante().getNome();
-            String papel = cm.getPapel() != null ? cm.getPapel().getDescricao().toLowerCase() : "";
+            String papel = cm.getPapel() != null ? cm.getPapel().getNome().toLowerCase() : "";
             if (papel.contains("palestrante") || papel.contains("instrutor")) {
                 nomesPalestrantes.add(nome);
             } else if (papel.contains("mediador")) {

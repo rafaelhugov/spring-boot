@@ -1,5 +1,6 @@
 package mppb.restapi.cursos.feature.documentos.controller;
 
+import mppb.restapi.common.infrastructure.util.Constants;
 import mppb.restapi.cursos.feature.documentos.dto.GeracaoDocumentoRequest;
 import mppb.restapi.cursos.feature.documentos.service.DocumentosService;
 import org.springframework.http.HttpHeaders;
@@ -9,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/cursos/{id}/documentos")
+@RequestMapping(Constants.API_PREFIX + "/cursos/{id}/documentos")
 public class DocumentosController {
 
     private final DocumentosService documentosService;
