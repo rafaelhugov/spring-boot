@@ -29,6 +29,7 @@ public interface ServidorRepository extends BaseRepository<Servidor, Long> {
                         "LEFT JOIN recursoshumanos.funcao f ON f.id = s.id_cargo " +
                         "LEFT JOIN recursoshumanos.tipocargo tc ON tc.id = f.id_tipocargo " +
                         "WHERE s.excluido = false " +
+                        "AND s.ativo = 'A' " +
                         "AND lower(funcaosemacentos(p.nome)) LIKE lower(concat('%', replace(funcaosemacentos(:nome), ' ', '%'), '%')) "
                         +
                         "ORDER BY " +
@@ -73,6 +74,8 @@ public interface ServidorRepository extends BaseRepository<Servidor, Long> {
                         "LEFT JOIN recursoshumanos.funcao f ON f.id = s.id_cargo " +
                         "LEFT JOIN recursoshumanos.tipocargo tc ON tc.id = f.id_tipocargo " +
                         "WHERE pf.cpf = :cpf " +
+                        "AND s.excluido = false " +
+                        "AND s.ativo = 'A' " +
                         "LIMIT 1", nativeQuery = true)
         Optional<ServidorProjection> buscarServidorPorCpf(@Param("cpf") String cpf);
 
@@ -84,7 +87,13 @@ public interface ServidorRepository extends BaseRepository<Servidor, Long> {
          * @param login O login do utilizador (ex: 'usuario.teste').
          * @return Um Optional contendo o ID do servidor (Integer).
          */
-        @Query(value = "SELECT id_servidor FROM autorizacao.usuarioservidor_vw WHERE login = :login LIMIT 1", nativeQuery = true)
+        @Query(value = "SELECT v.id_servidor " +
+                        "FROM autorizacao.usuarioservidor_vw v " +
+                        "JOIN public.servidor s ON s.id = v.id_servidor " +
+                        "WHERE v.login = :login " +
+                        "AND s.excluido = false " +
+                        "AND s.ativo = 'A' " +
+                        "LIMIT 1", nativeQuery = true)
         Optional<Integer> findIdServidorByLogin(@Param("login") String login);
 
 }

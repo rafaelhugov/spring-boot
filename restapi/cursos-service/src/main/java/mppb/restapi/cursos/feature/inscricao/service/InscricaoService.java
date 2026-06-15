@@ -38,9 +38,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.text.Normalizer;
 import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import mppb.restapi.cursos.feature.inscricao.util.InscricaoExcelExporter;
@@ -140,6 +143,8 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
             throw new BusinessRuleException("Não é possível inscrever neste curso pois a carga horária de aulas está divergente ou o curso está em construção.");
         }
 
+        validarPublicoAlvo(curso, dto);
+
         Participante participante = participanteService.findOrCreateParticipante(dto);
 
         validarInscricaoDuplicada(curso, participante);
@@ -197,6 +202,8 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
      */
     public InscricaoDto realizarInscricaoPublica(UUID hash, InscricaoPublicaDto dto) {
         Curso curso = getCursoByHashAndValidarPeriodo(hash);
+
+        validarPublicoAlvoExterno(curso);
 
         // Delega a lógica de criação/busca de participante
         Participante participante = participanteService.findOrCreateParticipanteExterno(dto);
@@ -414,6 +421,76 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         if (inscricaoRepository.existsByCursoAndParticipante(curso, participante)) {
             throw new BusinessRuleException("Este participante já está inscrito neste curso.");
         }
+    }
+
+    /**
+     * Garante que o participante pertence a um dos públicos-alvo definidos para o curso.
+     */
+    private void validarPublicoAlvo(Curso curso, CriarInscricaoDto dto) {
+        if (TipoParticipanteEnum.EXTERNO.name().equals(dto.getTipo())) {
+            validarPublicoAlvoExterno(curso);
+            return;
+        }
+
+        if (!TipoParticipanteEnum.INTERNO.name().equals(dto.getTipo())) {
+            throw new BusinessRuleException("Tipo de participante inválido: " + dto.getTipo());
+        }
+
+        if (dto.getIdServidor() == null) {
+            throw new BusinessRuleException("O ID do servidor é obrigatório para participantes internos.");
+        }
+
+        ServidorProjection servidor = servidorService.buscarServidorPorId(dto.getIdServidor())
+                .orElseThrow(() -> new BusinessRuleException("Não foi possível localizar o cadastro do servidor no RH."));
+
+        if (!"ATIVO".equalsIgnoreCase(servidor.getSituacao())) {
+            throw new BusinessRuleException("Este participante não pode ser inscrito porque sua matrícula não está ativa.");
+        }
+
+        if (!servidorAtendePublicoAlvoInterno(curso, servidor)) {
+            throw new BusinessRuleException("Este participante não pode ser inscrito porque não faz parte do público-alvo definido para o curso.");
+        }
+    }
+
+    private void validarPublicoAlvoExterno(Curso curso) {
+        boolean permiteExterno = curso.getPublicosAlvo() != null && curso.getPublicosAlvo().stream()
+                .anyMatch(publico -> "E".equalsIgnoreCase(publico.getInternoExterno()));
+
+        if (!permiteExterno) {
+            throw new BusinessRuleException("Este participante não pode ser inscrito porque o curso não permite público externo.");
+        }
+    }
+
+    private boolean servidorAtendePublicoAlvoInterno(Curso curso, ServidorProjection servidor) {
+        if (curso.getPublicosAlvo() == null || curso.getPublicosAlvo().isEmpty()) {
+            return false;
+        }
+
+        Set<String> publicosInternos = curso.getPublicosAlvo().stream()
+                .filter(publico -> "I".equalsIgnoreCase(publico.getInternoExterno()))
+                .map(publico -> normalizar(publico.getNome()))
+                .collect(Collectors.toSet());
+
+        if (publicosInternos.isEmpty()) {
+            return false;
+        }
+
+        String tipoCargo = normalizar(servidor.getTipoCargoNome());
+        String cargo = normalizar(servidor.getCargoNome());
+
+        return (publicosInternos.contains("MEMBROS") && tipoCargo.contains("MEMBRO"))
+                || (publicosInternos.contains("SERVIDORES") && tipoCargo.contains("SERVIDOR"))
+                || (publicosInternos.contains("ASSESSORES") && cargo.contains("ASSESSOR"));
+    }
+
+    private String normalizar(String valor) {
+        if (valor == null) {
+            return "";
+        }
+        return Normalizer.normalize(valor, Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+                .toUpperCase(Locale.ROOT)
+                .trim();
     }
 
     /**
