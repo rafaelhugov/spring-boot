@@ -61,7 +61,7 @@ public class CaptchaService {
             return false;
         }
 
-        return info.text.equalsIgnoreCase(text);
+        return info.text.equalsIgnoreCase(text.trim());
     }
 
     private void cleanUpExpired() {
