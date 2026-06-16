@@ -134,6 +134,31 @@ cd "$DIR_SCRIPT"
 java -jar target/mobile-service-*.jar &
 BACKEND_PID=$!
 
+# Aguardar a API aceitar conexões antes de abrir o frontend. Sem isso, o
+# navegador dispara as primeiras chamadas enquanto o Spring ainda está subindo
+# e o Vite registra ECONNREFUSED no console.
+echo -e "${COLOR_CYAN}Aguardando Backend ficar pronto em http://127.0.0.1:8086...${COLOR_RESET}"
+BACKEND_READY=""
+for i in {1..60}; do
+    if curl --max-time 2 --silent --output /dev/null http://127.0.0.1:8086/; then
+        BACKEND_READY="true"
+        break
+    fi
+
+    if ! kill -0 "$BACKEND_PID" 2>/dev/null; then
+        echo -e "${COLOR_RED}Backend finalizou antes de ficar pronto. Abortando inicialização.${COLOR_RESET}"
+        exit 1
+    fi
+
+    sleep 1
+done
+
+if [ "$BACKEND_READY" != "true" ]; then
+    echo -e "${COLOR_RED}Backend não respondeu na porta 8086 dentro do tempo esperado. Abortando inicialização do frontend.${COLOR_RESET}"
+    exit 1
+fi
+echo -e "${COLOR_GREEN}Backend pronto!${COLOR_RESET}"
+
 # Iniciar o Frontend
 echo -e "${COLOR_CYAN}Iniciando Frontend (Quasar Dev)...${COLOR_RESET}"
 cd "$DIR_FRONTEND" || { echo -e "${COLOR_RED}Diretório do frontend não encontrado.${COLOR_RESET}"; kill "$BACKEND_PID"; exit 1; }
