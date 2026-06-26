@@ -139,7 +139,7 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         Curso curso = cursoRepository.findById(cursoId)
                 .orElseThrow(() -> new NotFoundException("Curso não encontrado: " + cursoId));
 
-        if (curso.getStatus() != mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.PRONTO_PUBLICACAO) {
+        if (curso.getStatus() != mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.PUBLICADO) {
             throw new BusinessRuleException("Não é possível inscrever neste curso pois a carga horária de aulas está divergente ou o curso está em construção.");
         }
 
@@ -404,7 +404,7 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         Curso curso = cursoRepository.findByHashInscricao(hash)
                 .orElseThrow(() -> new NotFoundException("Curso não encontrado ou o link de inscrição é inválido."));
 
-        if (curso.getStatus() != mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.PRONTO_PUBLICACAO) {
+        if (curso.getStatus() != mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.PUBLICADO) {
             throw new BusinessRuleException("Não é possível inscrever neste curso pois a carga horária de aulas está divergente ou o curso está em construção.");
         }
 

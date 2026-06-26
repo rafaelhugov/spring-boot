@@ -98,7 +98,7 @@ class AulaServiceTest {
         Aula result = aulaService.createAula(1L, aulaValida);
 
         assertNotNull(result);
-        assertEquals(StatusCursoEnum.PRONTO_PUBLICACAO, curso.getStatus()); // 60 + 60 = 120
+        assertEquals(StatusCursoEnum.PUBLICADO, curso.getStatus()); // 60 + 60 = 120
     }
 
     @Test

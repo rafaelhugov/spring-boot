@@ -157,7 +157,7 @@ public class DashboardService {
         Specification<Curso> spec = (root, query, cb) -> {
 
             List<Predicate> predicates = new ArrayList<>();
-            predicates.add(cb.equal(root.get("status"), StatusCursoEnum.PRONTO_PUBLICACAO));
+            predicates.add(cb.equal(root.get("status"), StatusCursoEnum.PUBLICADO));
 
             LocalDateTime now = LocalDateTime.now();
 

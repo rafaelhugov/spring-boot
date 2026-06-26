@@ -32,9 +32,13 @@ public class DataLoader implements CommandLineRunner {
             log.warn("[DATA-LOADER] Erro ao verificar esquema: {}", e.getMessage());
         }
 
-        seedStatus(3L, "DEFERIDO");
-        seedStatus(4L, "INDEFERIDO");
-        seedStatus(5L, "EM ANÁLISE");
+        try {
+            jdbcTemplate.execute("DELETE FROM curso.statustramitacao WHERE id IN (3, 4, 5) OR descricao = 'HOMOLOGADO'");
+            log.info("[DATA-LOADER] Status obsoletos removidos da base.");
+        } catch (Exception e) {
+            log.warn("[DATA-LOADER] Erro ao remover status obsoletos: {}", e.getMessage());
+        }
+
         seedStatus(6L, "CONVERTIDO");
     }
 
