@@ -106,4 +106,32 @@ public class ContrachequeRepository {
 
         return response;
     }
+
+    public String getHashContracheque(Integer matricula, Integer mes, Integer ano) {
+        String sql = "SELECT hash FROM consignacao.contracheque WHERE matricula_servidor = ? AND mes = ? AND ano = ? LIMIT 1";
+        try {
+            return jdbcTemplate.queryForObject(sql, String.class, matricula, mes, ano);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    public void insertHashContracheque(String hash, Integer matricula, Integer mes, Integer ano) {
+        String sql = "INSERT INTO consignacao.contracheque(hash, matricula_servidor, mes, ano, emitido, dataregistro, ultima_emissao) " +
+                     "VALUES (?, ?, ?, ?, 1, current_timestamp, current_timestamp)";
+        try {
+            jdbcTemplate.update(sql, hash, matricula, mes, ano);
+        } catch (Exception e) {
+            // Ignora se conflito
+        }
+    }
+
+    public void incrementaEmissaoHash(String hash) {
+        String sql = "UPDATE consignacao.contracheque SET emitido = emitido + 1, ultima_emissao = current_timestamp WHERE upper(hash) = upper(?)";
+        try {
+            jdbcTemplate.update(sql, hash.trim());
+        } catch (Exception e) {
+            // Ignora erro
+        }
+    }
 }

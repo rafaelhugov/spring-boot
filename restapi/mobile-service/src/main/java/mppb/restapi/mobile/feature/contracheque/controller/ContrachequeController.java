@@ -2,6 +2,7 @@ package mppb.restapi.mobile.feature.contracheque.controller;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,7 +25,7 @@ import mppb.restapi.mobile.feature.contracheque.service.ContrachequeService;
 @Slf4j
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping({"/contracheques", "/" + Constants.API_PREFIX + "/contracheques"})
+@RequestMapping({ "/contracheques", "/" + Constants.API_PREFIX + "/contracheques" })
 @RequiredArgsConstructor
 public class ContrachequeController {
 
@@ -43,20 +44,21 @@ public class ContrachequeController {
         if (autorizacao == null || autorizacao.getUsuario() == null || autorizacao.getUsuario().getLogin() == null) {
             return null;
         }
-        
+
         return autorizacao.getUsuario().getLogin();
     }
 
     @GetMapping("/competencias")
     public ResponseEntity<List<CompetenciaDto>> getCompetencias(@RequestParam("token") @NotNull String token) {
         String login = extractLoginFromToken(token);
-        
+
         if (login == null) {
             return ResponseEntity.status(403).build(); // Return 403 or 401 if unauthorized
         }
 
         try {
-            // Em produção, isso virá do RH. Por enquanto, parseamos a string ou usamos um mock se for matrícula numérica
+            // Em produção, isso virá do RH. Por enquanto, parseamos a string ou usamos um
+            // mock se for matrícula numérica
             Integer matricula = contrachequeService.getMatriculaByLogin(login);
 
             if (matricula == null) {
@@ -76,16 +78,16 @@ public class ContrachequeController {
             @PathVariable("mes") Integer mes,
             @PathVariable("ano") Integer ano,
             @RequestParam("token") @NotNull String token) {
-        
+
         String login = extractLoginFromToken(token);
-        
+
         if (login == null) {
             return ResponseEntity.status(403).build();
         }
 
         try {
             Integer matricula = contrachequeService.getMatriculaByLogin(login);
-            
+
             if (matricula == null) {
                 return ResponseEntity.status(400).build();
             }
@@ -97,6 +99,47 @@ public class ContrachequeController {
             return ResponseEntity.ok(contracheque);
         } catch (Exception e) {
             log.error("Erro ao buscar contracheque", e);
+            return ResponseEntity.status(500).build();
+        }
+    }
+
+    @Autowired
+    private mppb.restapi.mobile.feature.contracheque.service.ContrachequePdfService pdfService;
+
+    @GetMapping(value = "/{mes}/{ano}/pdf", produces = org.springframework.http.MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> getContrachequePdf(
+            @PathVariable("mes") Integer mes,
+            @PathVariable("ano") Integer ano,
+            @RequestParam("token") @NotNull String token) {
+
+        String login = extractLoginFromToken(token);
+
+        if (login == null) {
+            return ResponseEntity.status(403).build();
+        }
+
+        try {
+            Integer matricula = contrachequeService.getMatriculaByLogin(login);
+            if (matricula == null) {
+                return ResponseEntity.status(400).build();
+            }
+
+            ContrachequeResponseDto contracheque = contrachequeService.detalharContracheque(matricula, mes, ano);
+            if (contracheque == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            byte[] pdfBytes = pdfService.generatePdf(contracheque);
+
+            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment",
+                    "contracheque_" + ano + "_" + String.format("%02d", mes) + ".pdf");
+
+            return new ResponseEntity<>(pdfBytes, headers, org.springframework.http.HttpStatus.OK);
+
+        } catch (Exception e) {
+            log.error("Erro ao gerar PDF do contracheque", e);
             return ResponseEntity.status(500).build();
         }
     }

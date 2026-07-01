@@ -12,6 +12,7 @@ public class ContrachequeResponseDto {
     private BigDecimal totalVantagens;
     private BigDecimal totalDescontos;
     private BigDecimal salarioLiquido;
+    private String codigoValidacao;
 
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
@@ -36,4 +37,7 @@ public class ContrachequeResponseDto {
 
     public BigDecimal getSalarioLiquido() { return salarioLiquido; }
     public void setSalarioLiquido(BigDecimal salarioLiquido) { this.salarioLiquido = salarioLiquido; }
+
+    public String getCodigoValidacao() { return codigoValidacao; }
+    public void setCodigoValidacao(String codigoValidacao) { this.codigoValidacao = codigoValidacao; }
 }
