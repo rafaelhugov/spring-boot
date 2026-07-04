@@ -198,7 +198,7 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
 
     /**
      * Orquestra a inscrição de um utilizador público (externo).
-     * Define o status como PENDENTE_CONFIRMACAO.
+     * Define o status como INSCRITO.
      */
     public InscricaoDto realizarInscricaoPublica(UUID hash, InscricaoPublicaDto dto) {
         Curso curso = getCursoByHashAndValidarPeriodo(hash);
@@ -208,28 +208,19 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         // Delega a lógica de criação/busca de participante
         Participante participante = participanteService.findOrCreateParticipanteExterno(dto);
 
-        // --- LÓGICA DE REENVIO ---
-        Optional<Inscricao> inscricaoExistenteOpt = inscricaoRepository.findByCursoAndParticipante(curso, participante);
-
-        if (inscricaoExistenteOpt.isPresent()) {
-            Inscricao inscricao = inscricaoExistenteOpt.get();
-
-            // Se a inscrição estiver PENDENTE, tratamos como um pedido de REENVIO.
-            if (inscricao.getSituacao() == SituacaoInscricaoEnum.PENDENTE_CONFIRMACAO) {
-                log.info("Inscrição pendente (ID: {}) encontrada. Reenviando e-mail de confirmação.", inscricao.getId());
-                gerarEEnviarEmailConfirmacao(inscricao); // Reenvia o e-mail
-                return toDto(inscricao); // Retorna sucesso
-            } else {
-                // Se for INSCRITO, APROVADO, etc., então é um erro de duplicidade.
-                throw new BusinessRuleException("Este participante já está inscrito neste curso.");
-            }
-        }
-        // --- FIM DA LÓGICA DE REENVIO ---
+        validarInscricaoDuplicada(curso, participante);
 
         // TODO: RN015 - Implementar a validação de público-alvo aqui
 
-        Inscricao inscricaoSalva = criarInscricaoPendente(curso, participante);
-        gerarEEnviarEmailConfirmacao(inscricaoSalva);
+        Inscricao novaInscricao = new Inscricao();
+        novaInscricao.setCurso(curso);
+        novaInscricao.setParticipante(participante);
+        novaInscricao.setDataInscricao(LocalDateTime.now());
+        novaInscricao.setSituacao(SituacaoInscricaoEnum.INSCRITO); // Efetivado imediatamente
+
+        Inscricao inscricaoSalva = inscricaoRepository.save(novaInscricao);
+
+        emailService.enviarEmailInscricaoRealizada(inscricaoSalva);
 
         return toDto(inscricaoSalva);
     }
@@ -256,15 +247,8 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
 
         // 3. É um externo existente. Verificar se ele já está inscrito NESTE curso.
         Participante participante = participanteOpt.get();
-        Optional<Inscricao> inscricaoExistente = inscricaoRepository.findByCursoAndParticipante(curso, participante);
-        if (inscricaoExistente.isPresent()) {
-            Inscricao inscricao = inscricaoExistente.get();
-            // Se a inscrição estiver PENDENTE, não é um erro. O fluxo deve continuar
-            // para que o utilizador possa receber um novo e-mail (ao submeter).
-            if (inscricao.getSituacao() != SituacaoInscricaoEnum.PENDENTE_CONFIRMACAO) {
-                throw new BusinessRuleException("Este participante já está inscrito neste curso.");
-            }
-            // Se estiver PENDENTE, o fluxo continua e retorna o DTO de verificação
+        if (inscricaoRepository.existsByCursoAndParticipante(curso, participante)) {
+            throw new BusinessRuleException("Este participante já está inscrito neste curso.");
         }
 
         // 4. É um externo existente e NÃO está inscrito. Retorna os dados para reutilização.

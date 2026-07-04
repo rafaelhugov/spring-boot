@@ -130,6 +130,7 @@ public class CursoService extends AbstractService<Curso, Long> {
         if (curso.getHashInscricao() == null) {
             curso.setHashInscricao(UUID.randomUUID());
         }
+        validarDatasCurso(curso);
         // A lógica de gerenciamento de ministrantes foi removida daqui, pois agora é tratada em endpoints específicos.
         return cursoRepository.saveAndFlush(curso);
     }
@@ -155,6 +156,8 @@ public class CursoService extends AbstractService<Curso, Long> {
         curso.setModalidade(getRequiredReference(Modalidade.class, dto.getModalidade().getId(), "Modalidade"));
         curso.setPublicosAlvo(toPublicosAlvoReferences(dto));
 
+        validarDatasCurso(curso);
+
         Curso saved = cursoRepository.saveAndFlush(curso);
         
         // Recalcular status caso a carga horária tenha mudado e seja compatível com as aulas
@@ -178,6 +181,14 @@ public class CursoService extends AbstractService<Curso, Long> {
             throw new BusinessRuleException(fieldName + " é obrigatório.");
         }
         return entityManager.getReference(entityClass, id);
+    }
+
+    private void validarDatasCurso(Curso curso) {
+        if (curso.getInscricaoDataFinal() != null && curso.getRealizacaoDataFinal() != null) {
+            if (curso.getInscricaoDataFinal().isAfter(curso.getRealizacaoDataFinal())) {
+                throw new BusinessRuleException("O término das inscrições não pode ser posterior ao término da realização do curso.");
+            }
+        }
     }
 
     @Override

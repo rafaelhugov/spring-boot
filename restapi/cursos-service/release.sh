@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# release.sh — Backend (cursos-service)
+# release.sh — Unified Backend (cursos-service) and Frontend (cursos-web)
 # Uso:
 #   ./release.sh 0.3.1 [--push]
 #   ./release.sh patch|minor|major [--push]
 #
 # Efeito:
-# - Atualiza versão no pom.xml (mvn versions:set)
-# - Gera o JAR (mvn clean package -DskipTests)
-# - Constrói imagens via ./docker-build.sh (tags versão e latest)
-# - Opcionalmente faz docker push das duas tags
+# - Atualiza versão no pom.xml e package.json
+# - Gera o JAR (mvn clean package -DskipTests) e Build do Vue (npm run build)
+# - Constrói imagens de ambos via scripts originais de docker
+# - Opcionalmente faz docker push das tags
 
 REGISTRY_DEFAULT="gavriel.mppb.mp.br:5000"
 DO_PUSH=false
@@ -29,6 +29,8 @@ if [[ ${1:-} == "--push" ]]; then
 fi
 
 cd "$(dirname "$0")"
+BACKEND_DIR=$(pwd)
+FRONTEND_DIR=$(realpath "../../../mppb-vue/cursos-web")
 
 ensure_docker_access() {
   if docker ps >/dev/null 2>&1; then
@@ -47,25 +49,6 @@ ensure_docker_access() {
   fi
 
   echo "[release] Sem permissao para acessar o Docker."
-  echo "[release] Grupos da sessao atual: $(id -nG)"
-  echo "[release] Permissao atual do socket Docker:"
-  ls -l /var/run/docker.sock
-  echo
-  if getent group docker | grep -Eq "(^|,)$(id -un)(,|$)" &&
-     ! id -nG | tr ' ' '\n' | grep -qx docker; then
-    echo "O usuario $(id -un) ja esta no grupo docker, mas esta sessao ainda nao carregou esse grupo."
-    echo "Correcao definitiva: encerre a sessao do VDI/terminal e entre novamente."
-    echo
-  fi
-  echo "Se o grupo docker acabou de ser adicionado, rode nesta mesma janela:"
-  echo "  newgrp docker"
-  echo
-  echo "Se o socket estiver diferente de root:docker, corrija com:"
-  echo "  sudo chown root:docker /var/run/docker.sock"
-  echo "  sudo chmod 660 /var/run/docker.sock"
-  echo
-  echo "Depois teste com:"
-  echo "  docker ps"
   exit 1
 }
 
@@ -73,10 +56,11 @@ if ! docker ps >/dev/null 2>&1; then
   ensure_docker_access
 fi
 
-# Versão atual
+# --- BACKEND VERSION BUMP ---
+echo "[release] Processando Backend..."
+cd "$BACKEND_DIR"
 CURRENT_VER=$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version)
 
-# Função de bump semver simples
 bump_semver() {
   local ver=$1 kind=$2
   IFS='.' read -r MA MI PA <<<"$ver"
@@ -95,21 +79,52 @@ else
   NEW_VER="$NEWVER_OR_BUMP"
 fi
 
-echo "[release] Versão atual: $CURRENT_VER -> Nova: $NEW_VER"
-
-# 1) Set versão no Maven
+echo "[release] Backend: Versão atual $CURRENT_VER -> Nova: $NEW_VER"
 mvn -q versions:set -DnewVersion="$NEW_VER"
 
-# 2) Build do JAR (pula também compilação de testes)
-mvn -q -Dmaven.test.skip=true clean package
+# --- FRONTEND VERSION BUMP ---
+echo "[release] Processando Frontend..."
+cd "$FRONTEND_DIR"
+FRONT_CURRENT_VER=$(node -p "require('./package.json').version")
 
-# 3) Build das imagens
-./docker-build.sh
-
-if $DO_PUSH; then
-  echo "[release] Fazendo docker push para versão e latest..."
-  docker push "$REGISTRY_DEFAULT/cursos-api:$NEW_VER"
-  docker push "$REGISTRY_DEFAULT/cursos-api:latest"
+if [[ "$NEWVER_OR_BUMP" =~ ^(major|minor|patch)$ ]]; then
+  npm version "$NEWVER_OR_BUMP" --no-git-tag-version >/dev/null
+else
+  npm version "$NEWVER_OR_BUMP" --no-git-tag-version >/dev/null
 fi
 
-echo "[release] Concluído: $NEW_VER"
+FRONT_NEW_VER=$(node -p "require('./package.json').version")
+echo "[release] Frontend: Versão atual $FRONT_CURRENT_VER -> Nova: $FRONT_NEW_VER"
+
+# --- BUILD BACKEND ---
+echo "[release] Fazendo build do Backend..."
+cd "$BACKEND_DIR"
+mvn -q -Dmaven.test.skip=true clean package
+
+# --- BUILD FRONTEND ---
+echo "[release] Fazendo build do Frontend..."
+cd "$FRONTEND_DIR"
+npm run -s build
+
+# --- DOCKER BUILD BACKEND ---
+echo "[release] Construindo imagens do Backend..."
+cd "$BACKEND_DIR"
+./docker-build.sh
+
+# --- DOCKER BUILD FRONTEND ---
+echo "[release] Construindo imagens do Frontend..."
+cd "$FRONTEND_DIR"
+./docker.sh
+
+# --- PUSH ---
+if $DO_PUSH; then
+  echo "[release] Fazendo docker push para Backend..."
+  docker push "$REGISTRY_DEFAULT/cursos-api:$NEW_VER"
+  docker push "$REGISTRY_DEFAULT/cursos-api:latest"
+
+  echo "[release] Fazendo docker push para Frontend..."
+  docker push "$REGISTRY_DEFAULT/cursos-web:$FRONT_NEW_VER"
+  docker push "$REGISTRY_DEFAULT/cursos-web:latest"
+fi
+
+echo "[release] Concluído com sucesso (Backend: $NEW_VER, Frontend: $FRONT_NEW_VER)"
