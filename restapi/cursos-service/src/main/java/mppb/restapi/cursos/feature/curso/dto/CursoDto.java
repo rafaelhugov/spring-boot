@@ -88,5 +88,5 @@ public class CursoDto {
 
     private Long certificateTemplateId;
 
-
+    private Long headerImageId;
 }
