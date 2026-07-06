@@ -74,8 +74,8 @@ public class CursoService extends AbstractService<Curso, Long> {
     /**
      * Busca cursos usando filtros e uma paginação com ordenação padrão
      */
-    public Page<Curso> findAll(String titulo, Long modalidadeId, Long publicoAlvoId, String status, Pageable pageable) {
-        Specification<Curso> filterSpec = cursoSpecification.comFiltros(titulo, modalidadeId, publicoAlvoId, status);
+    public Page<Curso> findAll(String titulo, Long modalidadeId, Long publicoAlvoId, String status, Boolean historico, Pageable pageable) {
+        Specification<Curso> filterSpec = cursoSpecification.comFiltros(titulo, modalidadeId, publicoAlvoId, status, historico);
         Pageable pageableComOrdenacao = criarPageableComOrdenacaoPadrao(pageable);
 
         return cursoRepository.findAll(filterSpec, pageableComOrdenacao);
