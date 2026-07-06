@@ -150,6 +150,7 @@ public class CursoService extends AbstractService<Curso, Long> {
         curso.setDetalhaCargaHoraria(dto.getDetalhaCargaHoraria());
         curso.setLinkProgramacao(dto.getLinkProgramacao());
         curso.setProgressaoFuncional(dto.getProgressaoFuncional());
+        curso.setHeaderImageId(dto.getHeaderImageId());
 
         curso.setTipoEvento(getRequiredReference(TipoEvento.class, dto.getTipoEvento().getId(), "Tipo de evento"));
         curso.setEntidadeTutora(getRequiredReference(EntidadeTutora.class, dto.getEntidadeTutora().getId(), "Entidade tutora"));
