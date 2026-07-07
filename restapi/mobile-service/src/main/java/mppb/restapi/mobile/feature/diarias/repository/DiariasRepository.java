@@ -22,9 +22,23 @@ public class DiariasRepository {
     }
 
     public String getCpfByLogin(String login) {
-        String sql = "SELECT cpf FROM autorizacao.usuario WHERE login = ? AND excluido = false ORDER BY id DESC LIMIT 1";
+        if (login != null && login.matches("\\d{11}")) {
+            return login;
+        }
+
+        String sql = "SELECT s.cpf " +
+                     "FROM autorizacao.usuario u " +
+                     "JOIN consignacao.servidor s ON s.matricula::text = u.matricula " +
+                     "WHERE u.login = ? AND u.excluido = false " +
+                     "ORDER BY u.id DESC LIMIT 1";
         try {
-            return jdbcTemplate.queryForObject(sql, String.class, login);
+            String cpf = jdbcTemplate.queryForObject(sql, String.class, login);
+            if (cpf != null) {
+                while (cpf.length() < 11) {
+                    cpf = "0" + cpf;
+                }
+            }
+            return cpf;
         } catch (Exception e) {
             return null;
         }
@@ -64,16 +78,16 @@ public class DiariasRepository {
             "    ap.nu_cnpj_cpf, " +
             "    mp.ds AS dsmodalidadepag, " +
             "    CASE " +
-            "      WHEN ap.cd_inscricao_rp <> '00000' THEN rp.nu_ne_origem::text " +
+            "      WHEN ap.cd_inscricao_rp::text <> '0' AND ap.cd_inscricao_rp::text <> '00000' THEN rp.nu_ne_origem::text " +
             "      ELSE ap.nu_ne::text " +
             "    END AS nu_ne, " +
             "    CASE " +
-            "      WHEN ap.cd_inscricao_rp <> '00000' THEN rp.fk_exercicio " +
+            "      WHEN ap.cd_inscricao_rp::text <> '0' AND ap.cd_inscricao_rp::text <> '00000' THEN rp.fk_exercicio " +
             "      ELSE ap.nu_exercicio " +
             "    END AS exercicione, " +
             "    CASE " +
             "      WHEN ap.nu_class > 0 THEN ap.nu_class::text " +
-            "      WHEN rp.nu_classificacao::integer > 0 THEN rp.nu_classificacao::text " +
+            "      WHEN NULLIF(rp.nu_classificacao, '')::integer > 0 THEN rp.nu_classificacao::text " +
             "    END AS nuclass, " +
             "    CASE " +
             "      WHEN ap.nu_documento_principal = 0 THEN '' " +
@@ -90,18 +104,18 @@ public class DiariasRepository {
             "  LEFT JOIN siaf.siaf_tb_restos_pagar_difin rp " +
             "         ON rp.fk_cnpj = ap.fk_cnpj " +
             "        AND rp.fk_exercicio = ap.nu_exercicio_rp " +
-            "        AND rp.nu_inscricao::integer = ap.cd_inscricao_rp " +
+            "        AND rp.nu_inscricao::text = ap.cd_inscricao_rp::text " +
             "  WHERE ap.nu_exercicio = ? " +
             ") tt " +
             "LEFT JOIN siaf.siaf_tb_dotacao_orcamentaria soe " +
             "       ON soe.fk_cnpj = tt.fk_cnpj " +
             "      AND soe.fk_exercicio = tt.exercicione " +
-            "      AND soe.nu_classificacao::integer = tt.nuclass::integer " +
+            "      AND soe.nu_classificacao::text = tt.nuclass::text " +
             "LEFT JOIN siaf.par_tb_elemento_despesa elem ON elem.id = SUBSTRING(soe.fk_natureza FROM 5 FOR 2) " +
             "LEFT JOIN siaf.siaf_tb_nota_empenho ne " +
             "       ON ne.fk_cnpj = tt.fk_cnpj " +
             "      AND ne.nu_exercicio = tt.exercicione " +
-            "      AND ne.nu_empenho = tt.nu_ne::integer " +
+            "      AND ne.nu_empenho::text = tt.nu_ne::text " +
             "WHERE tt.nu_exercicio = ? " +
             "  AND tt.nu_cnpj_cpf = ? " +
             "  AND tt.nuclass IS NOT NULL " +

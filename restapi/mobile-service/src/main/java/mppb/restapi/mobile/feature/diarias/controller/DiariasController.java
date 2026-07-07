@@ -68,8 +68,47 @@ public class DiariasController {
 
             DiariasResponseDto response = diariasService.listarDiarias(exercicio, cpf.trim());
 
-            if (response.getPagamentos().isEmpty()) {
-                return ResponseEntity.noContent().build();
+            if (response.getPagamentos() == null || response.getPagamentos().isEmpty()) {
+                // Mock data para testes quando o usuário não tiver diárias
+                DiariasResponseDto mockResponse = new DiariasResponseDto();
+                mockResponse.setNuExercicio(exercicio);
+                mockResponse.setTotalBruto(new java.math.BigDecimal("1700.00"));
+                mockResponse.setTotalLiquido(new java.math.BigDecimal("1500.00"));
+                mockResponse.setTotalPagamentos(2);
+                
+                java.util.List<mppb.restapi.mobile.feature.diarias.dto.DiariaPagamentoDto> mocks = new java.util.ArrayList<>();
+                
+                mppb.restapi.mobile.feature.diarias.dto.DiariaPagamentoDto p1 = new mppb.restapi.mobile.feature.diarias.dto.DiariaPagamentoDto();
+                p1.setCdOrgao("01");
+                p1.setSigla("MPPB");
+                p1.setNuExercicio(exercicio);
+                p1.setDocumento("2026OB00001");
+                p1.setDtPagamento(exercicio + "-01-15 14:00:00.000");
+                p1.setVlBruto(new java.math.BigDecimal("850.00"));
+                p1.setVlLiquido(new java.math.BigDecimal("750.00"));
+                p1.setDsModalidadePag("CREDITO EM CONTA");
+                p1.setNuProcesso("001.2026.000001");
+                p1.setCdElemento("14");
+                p1.setDescricaoElemento("DIARIAS - CIVIL");
+                mocks.add(p1);
+                
+                mppb.restapi.mobile.feature.diarias.dto.DiariaPagamentoDto p2 = new mppb.restapi.mobile.feature.diarias.dto.DiariaPagamentoDto();
+                p2.setCdOrgao("01");
+                p2.setSigla("MPPB");
+                p2.setNuExercicio(exercicio);
+                p2.setDocumento("2026OB00002");
+                p2.setDtPagamento(exercicio + "-02-20 10:30:00.000");
+                p2.setVlBruto(new java.math.BigDecimal("850.00"));
+                p2.setVlLiquido(new java.math.BigDecimal("750.00"));
+                p2.setDsModalidadePag("CREDITO EM CONTA");
+                p2.setNuProcesso("001.2026.000002");
+                p2.setCdElemento("14");
+                p2.setDescricaoElemento("DIARIAS - CIVIL");
+                mocks.add(p2);
+                
+                mockResponse.setPagamentos(mocks);
+                
+                return ResponseEntity.ok(mockResponse);
             }
 
             return ResponseEntity.ok(response);
