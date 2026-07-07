@@ -1,4 +1,4 @@
-package mppb.restapi.mobile.feature.diarias.repository;
+package mppb.restapi.mobile.feature.pagamentos.repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,15 +9,15 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import mppb.restapi.mobile.feature.diarias.dto.DiariaPagamentoDto;
+import mppb.restapi.mobile.feature.pagamentos.dto.PagamentoItemDto;
 
 @Repository
-public class DiariasRepository {
+public class PagamentosRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
-    public DiariasRepository(JdbcTemplate jdbcTemplate) {
+    public PagamentosRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -44,7 +44,7 @@ public class DiariasRepository {
         }
     }
 
-    public List<DiariaPagamentoDto> findDiariasByExercicioAndCpf(String exercicio, String cpf) {
+    public List<PagamentoItemDto> findPagamentosByExercicioAndCpf(String exercicio, String cpf) {
         String sql =
             "SELECT " +
             "  tt.cd_orgao, " +
@@ -123,10 +123,10 @@ public class DiariasRepository {
             "  AND SUBSTRING(soe.fk_natureza FROM 5 FOR 2) IN ('14') " +
             "ORDER BY tt.fk_cnpj, tt.nu_documento";
 
-        return jdbcTemplate.query(sql, new RowMapper<DiariaPagamentoDto>() {
+        return jdbcTemplate.query(sql, new RowMapper<PagamentoItemDto>() {
             @Override
-            public DiariaPagamentoDto mapRow(ResultSet rs, int rowNum) throws SQLException {
-                DiariaPagamentoDto dto = new DiariaPagamentoDto();
+            public PagamentoItemDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+                PagamentoItemDto dto = new PagamentoItemDto();
                 dto.setCdOrgao(rs.getString("cd_orgao"));
                 dto.setSigla(rs.getString("sigla"));
                 dto.setNuExercicio(rs.getString("nu_exercicio"));

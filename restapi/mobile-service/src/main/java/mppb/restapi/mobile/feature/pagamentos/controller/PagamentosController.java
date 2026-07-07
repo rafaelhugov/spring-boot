@@ -1,4 +1,4 @@
-package mppb.restapi.mobile.feature.diarias.controller;
+package mppb.restapi.mobile.feature.pagamentos.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -15,17 +15,18 @@ import mppb.restapi.common.infrastructure.client.authapi.AuthServiceClient;
 import mppb.restapi.common.infrastructure.client.authapi.dto.ConsultaAutorizacaoRequestDto;
 import mppb.restapi.common.infrastructure.client.authapi.dto.ConsultaAutorizacaoResponseDto;
 import mppb.restapi.common.infrastructure.util.Constants;
-import mppb.restapi.mobile.feature.diarias.dto.DiariasResponseDto;
-import mppb.restapi.mobile.feature.diarias.service.DiariasService;
+import mppb.restapi.mobile.feature.pagamentos.dto.PagamentoItemDto;
+import mppb.restapi.mobile.feature.pagamentos.dto.PagamentosResponseDto;
+import mppb.restapi.mobile.feature.pagamentos.service.PagamentosService;
 
 @Slf4j
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping({ "/diarias", "/" + Constants.API_PREFIX + "/diarias" })
+@RequestMapping({ "/pagamentos", "/" + Constants.API_PREFIX + "/pagamentos" })
 @RequiredArgsConstructor
-public class DiariasController {
+public class PagamentosController {
 
-    private final DiariasService diariasService;
+    private final PagamentosService pagamentosService;
     private final AuthServiceClient authServiceClient;
 
     private String extractLoginFromToken(String token) {
@@ -45,11 +46,11 @@ public class DiariasController {
     }
 
     /**
-     * GET /diarias/{exercicio}?token=XXX
-     * Returns all diárias payments for the authenticated user in the given exercício year.
+     * GET /pagamentos/{exercicio}?token=XXX
+     * Returns all pagamentos for the authenticated user in the given exercício year.
      */
     @GetMapping("/{exercicio}")
-    public ResponseEntity<DiariasResponseDto> getDiarias(
+    public ResponseEntity<PagamentosResponseDto> getPagamentos(
             @PathVariable("exercicio") String exercicio,
             @RequestParam("token") @NotNull String token) {
 
@@ -60,25 +61,25 @@ public class DiariasController {
         }
 
         try {
-            String cpf = diariasService.getCpfByLogin(login);
+            String cpf = pagamentosService.getCpfByLogin(login);
 
             if (cpf == null || cpf.isBlank()) {
                 return ResponseEntity.status(400).build();
             }
 
-            DiariasResponseDto response = diariasService.listarDiarias(exercicio, cpf.trim());
+            PagamentosResponseDto response = pagamentosService.listarPagamentos(exercicio, cpf.trim());
 
             if (response.getPagamentos() == null || response.getPagamentos().isEmpty()) {
-                // Mock data para testes quando o usuário não tiver diárias
-                DiariasResponseDto mockResponse = new DiariasResponseDto();
+                // Mock data para testes quando o usuário não tiver pagamentos
+                PagamentosResponseDto mockResponse = new PagamentosResponseDto();
                 mockResponse.setNuExercicio(exercicio);
                 mockResponse.setTotalBruto(new java.math.BigDecimal("1700.00"));
                 mockResponse.setTotalLiquido(new java.math.BigDecimal("1500.00"));
                 mockResponse.setTotalPagamentos(2);
                 
-                java.util.List<mppb.restapi.mobile.feature.diarias.dto.DiariaPagamentoDto> mocks = new java.util.ArrayList<>();
+                java.util.List<PagamentoItemDto> mocks = new java.util.ArrayList<>();
                 
-                mppb.restapi.mobile.feature.diarias.dto.DiariaPagamentoDto p1 = new mppb.restapi.mobile.feature.diarias.dto.DiariaPagamentoDto();
+                PagamentoItemDto p1 = new PagamentoItemDto();
                 p1.setCdOrgao("01");
                 p1.setSigla("MPPB");
                 p1.setNuExercicio(exercicio);
@@ -92,7 +93,7 @@ public class DiariasController {
                 p1.setDescricaoElemento("DIARIAS - CIVIL");
                 mocks.add(p1);
                 
-                mppb.restapi.mobile.feature.diarias.dto.DiariaPagamentoDto p2 = new mppb.restapi.mobile.feature.diarias.dto.DiariaPagamentoDto();
+                PagamentoItemDto p2 = new PagamentoItemDto();
                 p2.setCdOrgao("01");
                 p2.setSigla("MPPB");
                 p2.setNuExercicio(exercicio);
@@ -114,7 +115,7 @@ public class DiariasController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            log.error("Erro ao buscar diarias para exercicio {}", exercicio, e);
+            log.error("Erro ao buscar pagamentos para exercicio {}", exercicio, e);
             return ResponseEntity.status(500).build();
         }
     }

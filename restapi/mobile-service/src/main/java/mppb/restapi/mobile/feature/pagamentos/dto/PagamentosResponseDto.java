@@ -1,15 +1,15 @@
-package mppb.restapi.mobile.feature.diarias.dto;
+package mppb.restapi.mobile.feature.pagamentos.dto;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-public class DiariasResponseDto {
+public class PagamentosResponseDto {
 
     private String nuExercicio;
     private BigDecimal totalBruto;
     private BigDecimal totalLiquido;
     private int totalPagamentos;
-    private List<DiariaPagamentoDto> pagamentos;
+    private List<PagamentoItemDto> pagamentos;
 
     public String getNuExercicio() { return nuExercicio; }
     public void setNuExercicio(String nuExercicio) { this.nuExercicio = nuExercicio; }
@@ -23,6 +23,6 @@ public class DiariasResponseDto {
     public int getTotalPagamentos() { return totalPagamentos; }
     public void setTotalPagamentos(int totalPagamentos) { this.totalPagamentos = totalPagamentos; }
 
-    public List<DiariaPagamentoDto> getPagamentos() { return pagamentos; }
-    public void setPagamentos(List<DiariaPagamentoDto> pagamentos) { this.pagamentos = pagamentos; }
+    public List<PagamentoItemDto> getPagamentos() { return pagamentos; }
+    public void setPagamentos(List<PagamentoItemDto> pagamentos) { this.pagamentos = pagamentos; }
 }

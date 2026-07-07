@@ -1,4 +1,4 @@
-package mppb.restapi.mobile.feature.diarias.service;
+package mppb.restapi.mobile.feature.pagamentos.service;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -7,29 +7,29 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
-import mppb.restapi.mobile.feature.diarias.dto.DiariaPagamentoDto;
-import mppb.restapi.mobile.feature.diarias.dto.DiariasResponseDto;
-import mppb.restapi.mobile.feature.diarias.repository.DiariasRepository;
+import mppb.restapi.mobile.feature.pagamentos.dto.PagamentoItemDto;
+import mppb.restapi.mobile.feature.pagamentos.dto.PagamentosResponseDto;
+import mppb.restapi.mobile.feature.pagamentos.repository.PagamentosRepository;
 
 @Slf4j
 @Service
-public class DiariasService {
+public class PagamentosService {
 
-    private final DiariasRepository diariasRepository;
+    private final PagamentosRepository pagamentosRepository;
 
     @Autowired
-    public DiariasService(DiariasRepository diariasRepository) {
-        this.diariasRepository = diariasRepository;
+    public PagamentosService(PagamentosRepository pagamentosRepository) {
+        this.pagamentosRepository = pagamentosRepository;
     }
 
     public String getCpfByLogin(String login) {
-        return diariasRepository.getCpfByLogin(login);
+        return pagamentosRepository.getCpfByLogin(login);
     }
 
-    public DiariasResponseDto listarDiarias(String exercicio, String cpf) {
-        List<DiariaPagamentoDto> pagamentos = diariasRepository.findDiariasByExercicioAndCpf(exercicio, cpf);
+    public PagamentosResponseDto listarPagamentos(String exercicio, String cpf) {
+        List<PagamentoItemDto> pagamentos = pagamentosRepository.findPagamentosByExercicioAndCpf(exercicio, cpf);
 
-        DiariasResponseDto response = new DiariasResponseDto();
+        PagamentosResponseDto response = new PagamentosResponseDto();
         response.setNuExercicio(exercicio);
         response.setPagamentos(pagamentos);
         response.setTotalPagamentos(pagamentos.size());
