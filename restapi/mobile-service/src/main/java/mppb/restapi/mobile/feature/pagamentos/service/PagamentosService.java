@@ -26,6 +26,10 @@ public class PagamentosService {
         return pagamentosRepository.getCpfByLogin(login);
     }
 
+    public List<Integer> listarAnosDisponiveis(String cpf) {
+        return pagamentosRepository.findAnosComPagamentos(cpf);
+    }
+
     public PagamentosResponseDto listarPagamentos(String exercicio, String cpf) {
         List<PagamentoItemDto> pagamentos = pagamentosRepository.findPagamentosByExercicioAndCpf(exercicio, cpf);
 

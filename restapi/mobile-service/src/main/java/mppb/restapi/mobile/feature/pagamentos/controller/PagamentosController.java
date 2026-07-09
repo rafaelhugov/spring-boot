@@ -45,6 +45,35 @@ public class PagamentosController {
         return autorizacao.getUsuario().getLogin();
     }
 
+    @GetMapping("/exercicios")
+    public ResponseEntity<java.util.List<Integer>> getExerciciosDisponiveis(
+            @RequestParam("token") @NotNull String token) {
+
+        String login = extractLoginFromToken(token);
+
+        if (login == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        try {
+            String cpf = pagamentosService.getCpfByLogin(login);
+
+            if (cpf == null || cpf.isBlank()) {
+                return ResponseEntity.status(400).build();
+            }
+
+            cpf = cpf.replaceAll("\\D", "");
+
+            java.util.List<Integer> response = pagamentosService.listarAnosDisponiveis(cpf);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Erro ao buscar exercicios disponiveis", e);
+            return ResponseEntity.status(500).build();
+        }
+    }
+
     /**
      * GET /pagamentos/{exercicio}?token=XXX
      * Returns all pagamentos for the authenticated user in the given exercício year.
@@ -67,50 +96,10 @@ public class PagamentosController {
                 return ResponseEntity.status(400).build();
             }
 
-            PagamentosResponseDto response = pagamentosService.listarPagamentos(exercicio, cpf.trim());
+            // Remove formatação para realizar a busca no banco apenas com números
+            cpf = cpf.replaceAll("\\D", "");
 
-            if (response.getPagamentos() == null || response.getPagamentos().isEmpty()) {
-                // Mock data para testes quando o usuário não tiver pagamentos
-                PagamentosResponseDto mockResponse = new PagamentosResponseDto();
-                mockResponse.setNuExercicio(exercicio);
-                mockResponse.setTotalBruto(new java.math.BigDecimal("1700.00"));
-                mockResponse.setTotalLiquido(new java.math.BigDecimal("1500.00"));
-                mockResponse.setTotalPagamentos(2);
-                
-                java.util.List<PagamentoItemDto> mocks = new java.util.ArrayList<>();
-                
-                PagamentoItemDto p1 = new PagamentoItemDto();
-                p1.setCdOrgao("01");
-                p1.setSigla("MPPB");
-                p1.setNuExercicio(exercicio);
-                p1.setDocumento("2026OB00001");
-                p1.setDtPagamento(exercicio + "-01-15 14:00:00.000");
-                p1.setVlBruto(new java.math.BigDecimal("850.00"));
-                p1.setVlLiquido(new java.math.BigDecimal("750.00"));
-                p1.setDsModalidadePag("CREDITO EM CONTA");
-                p1.setNuProcesso("001.2026.000001");
-                p1.setCdElemento("14");
-                p1.setDescricaoElemento("DIARIAS - CIVIL");
-                mocks.add(p1);
-                
-                PagamentoItemDto p2 = new PagamentoItemDto();
-                p2.setCdOrgao("01");
-                p2.setSigla("MPPB");
-                p2.setNuExercicio(exercicio);
-                p2.setDocumento("2026OB00002");
-                p2.setDtPagamento(exercicio + "-02-20 10:30:00.000");
-                p2.setVlBruto(new java.math.BigDecimal("850.00"));
-                p2.setVlLiquido(new java.math.BigDecimal("750.00"));
-                p2.setDsModalidadePag("CREDITO EM CONTA");
-                p2.setNuProcesso("001.2026.000002");
-                p2.setCdElemento("14");
-                p2.setDescricaoElemento("DIARIAS - CIVIL");
-                mocks.add(p2);
-                
-                mockResponse.setPagamentos(mocks);
-                
-                return ResponseEntity.ok(mockResponse);
-            }
+            PagamentosResponseDto response = pagamentosService.listarPagamentos(exercicio, cpf);
 
             return ResponseEntity.ok(response);
 
