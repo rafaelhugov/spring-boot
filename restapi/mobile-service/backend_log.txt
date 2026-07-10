@@ -88,3 +88,8 @@ Hibernate: select c1_0.id,c1_0.propriedade,c1_0.valor from administrador.configu
 2026-07-10T11:45:41.239-03:00  WARN 3291191 --- [nio-8086-exec-2] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: CEAF
 2026-07-10T11:45:41.348-03:00  WARN 3291191 --- [nio-8086-exec-1] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: CEAF
 2026-07-10T11:46:29.523-03:00  WARN 3291191 --- [nio-8086-exec-5] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: CEAF
+2026-07-10T13:13:31.867-03:00  INFO 3291191 --- [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-07-10T13:13:31.869-03:00  INFO 3291191 --- [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-07-10T13:13:31.877-03:00  INFO 3291191 --- [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-07-10T13:13:31.879-03:00  INFO 3291191 --- [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-07-10T13:13:31.881-03:00  INFO 3291191 --- [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
