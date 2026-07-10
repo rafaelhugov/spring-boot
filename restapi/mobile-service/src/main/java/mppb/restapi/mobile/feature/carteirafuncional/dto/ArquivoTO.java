@@ -1,4 +1,4 @@
-package mppb.restapi.cursos.feature.carteirafuncional.dto;
+package mppb.restapi.mobile.feature.carteirafuncional.dto;
 
 import lombok.Data;
 
