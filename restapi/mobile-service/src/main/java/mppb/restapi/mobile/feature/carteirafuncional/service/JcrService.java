@@ -1,4 +1,4 @@
-package mppb.restapi.cursos.feature.carteirafuncional.service;
+package mppb.restapi.mobile.feature.carteirafuncional.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.jackrabbit.rmi.repository.RMIRemoteRepository;

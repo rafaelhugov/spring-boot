@@ -1,7 +1,7 @@
-package mppb.restapi.cursos.feature.carteirafuncional.controller;
+package mppb.restapi.mobile.feature.carteirafuncional.controller;
 
-import mppb.restapi.cursos.feature.carteirafuncional.dto.CarteiraFuncionalTO;
-import mppb.restapi.cursos.feature.carteirafuncional.service.CarteiraService;
+import mppb.restapi.mobile.feature.carteirafuncional.dto.CarteiraFuncionalTO;
+import mppb.restapi.mobile.feature.carteirafuncional.service.CarteiraService;
 
 import mppb.restapi.common.infrastructure.client.authapi.AuthServiceClient;
 import mppb.restapi.common.infrastructure.client.authapi.dto.ConsultaAutorizacaoRequestDto;
