@@ -1,7 +1,7 @@
 [INFO] Scanning for projects...
 [INFO] 
 [INFO] -----------------< mppb.microservices:mobile-service >------------------
-[INFO] Building mobile-service 0.2.11
+[INFO] Building mobile-service 0.2.12
 [INFO]   from pom.xml
 [INFO] --------------------------------[ jar ]---------------------------------
 [INFO] 
@@ -46,26 +46,26 @@
 
  
 Powered by Spring Boot 3.5.6
-2026-07-09T14:37:47.709-03:00  INFO 2266820 --- [           main] m.restapi.mobile.MobileApiApplication    : Starting MobileApiApplication using Java 21.0.11 with PID 2266820 (/home/rafaelhugo/projetosMPPB/spring-boot/restapi/mobile-service/target/classes started by rafaelhugo in /home/rafaelhugo/projetosMPPB/spring-boot/restapi/mobile-service)
-2026-07-09T14:37:47.711-03:00  INFO 2266820 --- [           main] m.restapi.mobile.MobileApiApplication    : The following 1 profile is active: "dev"
-2026-07-09T14:37:48.285-03:00  INFO 2266820 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-07-09T14:37:48.336-03:00  INFO 2266820 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 43 ms. Found 3 JPA repository interfaces.
-2026-07-09T14:37:48.774-03:00  INFO 2266820 --- [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=e94afdd8-fdcb-39a3-a8ad-ca0ec1050bd2
-2026-07-09T14:37:49.220-03:00  INFO 2266820 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8086 (http)
-2026-07-09T14:37:49.233-03:00  INFO 2266820 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-07-09T14:37:49.234-03:00  INFO 2266820 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.46]
-2026-07-09T14:37:49.280-03:00  INFO 2266820 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2026-07-09T14:37:49.281-03:00  INFO 2266820 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1527 ms
-2026-07-09T14:37:49.649-03:00  WARN 2266820 --- [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2026-07-09T14:37:49.749-03:00  INFO 2266820 --- [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2026-07-09T14:37:49.787-03:00  INFO 2266820 --- [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.29.Final
-2026-07-09T14:37:49.813-03:00  INFO 2266820 --- [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
-2026-07-09T14:37:50.031-03:00  INFO 2266820 --- [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-07-09T14:37:50.056-03:00  INFO 2266820 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2026-07-09T14:37:50.184-03:00  INFO 2266820 --- [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@8dcacf1
-2026-07-09T14:37:50.185-03:00  INFO 2266820 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2026-07-09T14:37:50.209-03:00  WARN 2266820 --- [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2026-07-09T14:37:50.225-03:00  INFO 2266820 --- [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+2026-07-09T17:02:28.734-03:00  INFO 2400708 --- [           main] m.restapi.mobile.MobileApiApplication    : Starting MobileApiApplication using Java 21.0.11 with PID 2400708 (/home/rafaelhugo/projetosMPPB/spring-boot/restapi/mobile-service/target/classes started by rafaelhugo in /home/rafaelhugo/projetosMPPB/spring-boot/restapi/mobile-service)
+2026-07-09T17:02:28.736-03:00  INFO 2400708 --- [           main] m.restapi.mobile.MobileApiApplication    : The following 1 profile is active: "dev"
+2026-07-09T17:02:29.298-03:00  INFO 2400708 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-07-09T17:02:29.347-03:00  INFO 2400708 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 41 ms. Found 3 JPA repository interfaces.
+2026-07-09T17:02:29.767-03:00  INFO 2400708 --- [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=e94afdd8-fdcb-39a3-a8ad-ca0ec1050bd2
+2026-07-09T17:02:30.189-03:00  INFO 2400708 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8086 (http)
+2026-07-09T17:02:30.201-03:00  INFO 2400708 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-07-09T17:02:30.202-03:00  INFO 2400708 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.46]
+2026-07-09T17:02:30.246-03:00  INFO 2400708 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-07-09T17:02:30.247-03:00  INFO 2400708 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1470 ms
+2026-07-09T17:02:30.613-03:00  WARN 2400708 --- [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-07-09T17:02:30.707-03:00  INFO 2400708 --- [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-07-09T17:02:30.744-03:00  INFO 2400708 --- [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.29.Final
+2026-07-09T17:02:30.770-03:00  INFO 2400708 --- [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-07-09T17:02:30.981-03:00  INFO 2400708 --- [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-07-09T17:02:31.005-03:00  INFO 2400708 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-07-09T17:02:31.129-03:00  INFO 2400708 --- [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@750c23a3
+2026-07-09T17:02:31.130-03:00  INFO 2400708 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-07-09T17:02:31.154-03:00  WARN 2400708 --- [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-07-09T17:02:31.169-03:00  INFO 2400708 --- [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
 	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
 	Database driver: undefined/unknown
 	Database version: 16.3
@@ -73,36 +73,31 @@ Powered by Spring Boot 3.5.6
 	Isolation level: undefined/unknown
 	Minimum pool size: undefined/unknown
 	Maximum pool size: undefined/unknown
-2026-07-09T14:37:50.934-03:00  INFO 2266820 --- [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2026-07-09T14:37:50.936-03:00  INFO 2266820 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-07-09T14:37:51.392-03:00  INFO 2266820 --- [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-07-09T17:02:31.856-03:00  INFO 2400708 --- [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-07-09T17:02:31.859-03:00  INFO 2400708 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-07-09T17:02:32.284-03:00  INFO 2400708 --- [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
 Hibernate: select c1_0.id,c1_0.propriedade,c1_0.valor from administrador.configuracao c1_0 where c1_0.propriedade=?
 Hibernate: select c1_0.id,c1_0.propriedade,c1_0.valor from administrador.configuracao c1_0 where c1_0.propriedade=?
-2026-07-09T14:37:51.918-03:00  INFO 2266820 --- [           main] eAuthenticationProviderManagerConfigurer : Found 2 AuthenticationProvider beans, with names [tokenAuthenticationProvider, usuarioSenhaAuthenticationProvider]. Global Authentication Manager will not be configured with AuthenticationProviders. Consider publishing a single AuthenticationProvider bean, or wiring your Providers directly using the DSL.
-2026-07-09T14:37:52.449-03:00  INFO 2266820 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8086 (http) with context path '/'
-2026-07-09T14:37:52.459-03:00  INFO 2266820 --- [           main] m.restapi.mobile.MobileApiApplication    : Started MobileApiApplication in 5.153 seconds (process running for 5.528)
-2026-07-09T14:38:06.783-03:00  INFO 2266820 --- [nio-8086-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-07-09T14:38:06.783-03:00  INFO 2266820 --- [nio-8086-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-2026-07-09T14:38:06.784-03:00  INFO 2266820 --- [nio-8086-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
-2026-07-09T14:38:08.276-03:00  WARN 2266820 --- [nio-8086-exec-1] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: Saúde
-2026-07-09T14:38:08.277-03:00  WARN 2266820 --- [nio-8086-exec-1] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: MP-Procon
-2026-07-09T14:38:08.278-03:00  WARN 2266820 --- [nio-8086-exec-1] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: Mulher
-2026-07-09T14:38:08.278-03:00  WARN 2266820 --- [nio-8086-exec-1] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: Notícias
-2026-07-09T14:38:08.287-03:00  WARN 2266820 --- [nio-8086-exec-3] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: Saúde
-2026-07-09T14:38:08.288-03:00  WARN 2266820 --- [nio-8086-exec-3] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: MP-Procon
-2026-07-09T14:38:08.289-03:00  WARN 2266820 --- [nio-8086-exec-3] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: Mulher
-2026-07-09T14:38:08.289-03:00  WARN 2266820 --- [nio-8086-exec-3] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: Notícias
-2026-07-09T14:38:08.312-03:00  WARN 2266820 --- [nio-8086-exec-2] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: Saúde
-2026-07-09T14:38:08.313-03:00  WARN 2266820 --- [nio-8086-exec-2] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: MP-Procon
-2026-07-09T14:38:08.313-03:00  WARN 2266820 --- [nio-8086-exec-2] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: Mulher
-2026-07-09T14:38:08.314-03:00  WARN 2266820 --- [nio-8086-exec-2] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: Notícias
-Hibernate: SELECT id, dataPublicacao, numeroEdicao, id_documentoassinado FROM diariooficial.diario_oficial_externo_vw ORDER BY datapublicacao DESC LIMIT 60
-2026-07-09T14:38:52.258-03:00  WARN 2266820 --- [nio-8086-exec-1] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: Saúde
-2026-07-09T14:38:52.258-03:00  WARN 2266820 --- [nio-8086-exec-1] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: MP-Procon
-2026-07-09T14:38:52.259-03:00  WARN 2266820 --- [nio-8086-exec-1] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: Mulher
-2026-07-09T14:38:52.259-03:00  WARN 2266820 --- [nio-8086-exec-1] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: Notícias
-2026-07-09T14:40:32.654-03:00  INFO 2266820 --- [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
-2026-07-09T14:40:32.656-03:00  INFO 2266820 --- [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
-2026-07-09T14:40:32.661-03:00  INFO 2266820 --- [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
-2026-07-09T14:40:32.664-03:00  INFO 2266820 --- [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
-2026-07-09T14:40:32.665-03:00  INFO 2266820 --- [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-07-09T17:02:32.795-03:00  INFO 2400708 --- [           main] eAuthenticationProviderManagerConfigurer : Found 2 AuthenticationProvider beans, with names [tokenAuthenticationProvider, usuarioSenhaAuthenticationProvider]. Global Authentication Manager will not be configured with AuthenticationProviders. Consider publishing a single AuthenticationProvider bean, or wiring your Providers directly using the DSL.
+2026-07-09T17:02:33.279-03:00  INFO 2400708 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8086 (http) with context path '/'
+2026-07-09T17:02:33.289-03:00  INFO 2400708 --- [           main] m.restapi.mobile.MobileApiApplication    : Started MobileApiApplication in 4.952 seconds (process running for 5.313)
+2026-07-09T17:02:47.039-03:00  INFO 2400708 --- [nio-8086-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-07-09T17:02:47.039-03:00  INFO 2400708 --- [nio-8086-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-07-09T17:02:47.041-03:00  INFO 2400708 --- [nio-8086-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-07-09T17:02:48.430-03:00  WARN 2400708 --- [nio-8086-exec-1] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: Saúde
+2026-07-09T17:02:48.430-03:00  WARN 2400708 --- [nio-8086-exec-1] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: MP-Procon
+2026-07-09T17:02:48.431-03:00  WARN 2400708 --- [nio-8086-exec-3] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: Saúde
+2026-07-09T17:02:48.431-03:00  WARN 2400708 --- [nio-8086-exec-3] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: MP-Procon
+2026-07-09T17:02:48.457-03:00  WARN 2400708 --- [nio-8086-exec-2] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: Saúde
+2026-07-09T17:02:48.457-03:00  WARN 2400708 --- [nio-8086-exec-2] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: MP-Procon
+2026-07-09T17:05:45.303-03:00  WARN 2400708 --- [nio-8086-exec-4] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: Saúde
+2026-07-09T17:05:45.304-03:00  WARN 2400708 --- [nio-8086-exec-4] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: MP-Procon
+2026-07-09T17:05:46.027-03:00  WARN 2400708 --- [nio-8086-exec-1] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: Saúde
+2026-07-09T17:05:46.028-03:00  WARN 2400708 --- [nio-8086-exec-1] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: MP-Procon
+2026-07-09T17:05:46.157-03:00  WARN 2400708 --- [nio-8086-exec-3] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: Saúde
+2026-07-09T17:05:46.157-03:00  WARN 2400708 --- [nio-8086-exec-3] m.r.c.f.noticias.service.NoticiaService  : Categoria sem mapeamento para montar link amigavel: MP-Procon
+2026-07-10T10:48:35.090-03:00  INFO 2400708 --- [ionShutdownHook] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2026-07-10T10:48:35.092-03:00  INFO 2400708 --- [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2026-07-10T10:48:35.097-03:00  INFO 2400708 --- [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-07-10T10:48:35.100-03:00  INFO 2400708 --- [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-07-10T10:48:35.101-03:00  INFO 2400708 --- [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
