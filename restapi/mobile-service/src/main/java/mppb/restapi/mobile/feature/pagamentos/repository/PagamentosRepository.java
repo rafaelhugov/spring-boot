@@ -1,4 +1,4 @@
-package mppb.restapi.mobile.feature.diarias.repository;
+package mppb.restapi.mobile.feature.pagamentos.repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,15 +9,15 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-import mppb.restapi.mobile.feature.diarias.dto.DiariaPagamentoDto;
+import mppb.restapi.mobile.feature.pagamentos.dto.PagamentoItemDto;
 
 @Repository
-public class DiariasRepository {
+public class PagamentosRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
-    public DiariasRepository(JdbcTemplate jdbcTemplate) {
+    public PagamentosRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -44,7 +44,54 @@ public class DiariasRepository {
         }
     }
 
-    public List<DiariaPagamentoDto> findDiariasByExercicioAndCpf(String exercicio, String cpf) {
+    public List<Integer> findAnosComPagamentos(String cpf) {
+        String sql = 
+            "SELECT DISTINCT tt.nu_exercicio " +
+            "FROM ( " +
+            "  SELECT " +
+            "    ap.fk_cnpj, " +
+            "    ap.nu_exercicio, " +
+            "    ap.nu_cnpj_cpf, " +
+            "    CASE " +
+            "      WHEN ap.cd_inscricao_rp::text <> '0' AND ap.cd_inscricao_rp::text <> '00000' THEN rp.nu_ne_origem::text " +
+            "      ELSE ap.nu_ne::text " +
+            "    END AS nu_ne, " +
+            "    CASE " +
+            "      WHEN ap.cd_inscricao_rp::text <> '0' AND ap.cd_inscricao_rp::text <> '00000' THEN rp.fk_exercicio " +
+            "      ELSE ap.nu_exercicio " +
+            "    END AS exercicione, " +
+            "    CASE " +
+            "      WHEN ap.nu_class > 0 THEN ap.nu_class::text " +
+            "      WHEN NULLIF(rp.nu_classificacao, '')::integer > 0 THEN rp.nu_classificacao::text " +
+            "    END AS nuclass, " +
+            "    CASE " +
+            "      WHEN ap.nu_documento_principal = 0 THEN '' " +
+            "      WHEN length(ap.nu_documento_principal::text) = 1 THEN '0000' || ap.nu_documento_principal::text " +
+            "      WHEN length(ap.nu_documento_principal::text) = 2 THEN '000'  || ap.nu_documento_principal::text " +
+            "      WHEN length(ap.nu_documento_principal::text) = 3 THEN '00'   || ap.nu_documento_principal::text " +
+            "      WHEN length(ap.nu_documento_principal::text) = 4 THEN '0'    || ap.nu_documento_principal::text " +
+            "      ELSE ap.nu_documento_principal::text " +
+            "    END AS apprincipal " +
+            "  FROM siaf.siaf_tb_autorizacao_pagamento ap " +
+            "  LEFT JOIN siaf.siaf_tb_restos_pagar_difin rp " +
+            "         ON rp.fk_cnpj = ap.fk_cnpj " +
+            "        AND rp.fk_exercicio = ap.nu_exercicio_rp " +
+            "        AND rp.nu_inscricao::text = ap.cd_inscricao_rp::text " +
+            "  WHERE ap.nu_cnpj_cpf = ? " +
+            ") tt " +
+            "INNER JOIN siaf.siaf_tb_dotacao_orcamentaria soe " +
+            "       ON soe.fk_cnpj = tt.fk_cnpj " +
+            "      AND soe.fk_exercicio = tt.exercicione " +
+            "      AND soe.nu_classificacao::integer = tt.nuclass::integer " +
+            "WHERE tt.nuclass IS NOT NULL " +
+            "  AND tt.apprincipal = '' " +
+            "  AND SUBSTRING(soe.fk_natureza FROM 5 FOR 2) IN ('14') " +
+            "ORDER BY tt.nu_exercicio DESC";
+
+        return jdbcTemplate.queryForList(sql, Integer.class, cpf);
+    }
+
+    public List<PagamentoItemDto> findPagamentosByExercicioAndCpf(String exercicio, String cpf) {
         String sql =
             "SELECT " +
             "  tt.cd_orgao, " +
@@ -110,7 +157,7 @@ public class DiariasRepository {
             "LEFT JOIN siaf.siaf_tb_dotacao_orcamentaria soe " +
             "       ON soe.fk_cnpj = tt.fk_cnpj " +
             "      AND soe.fk_exercicio = tt.exercicione " +
-            "      AND soe.nu_classificacao::text = tt.nuclass::text " +
+            "      AND soe.nu_classificacao::integer = tt.nuclass::integer " +
             "LEFT JOIN siaf.par_tb_elemento_despesa elem ON elem.id = SUBSTRING(soe.fk_natureza FROM 5 FOR 2) " +
             "LEFT JOIN siaf.siaf_tb_nota_empenho ne " +
             "       ON ne.fk_cnpj = tt.fk_cnpj " +
@@ -123,10 +170,10 @@ public class DiariasRepository {
             "  AND SUBSTRING(soe.fk_natureza FROM 5 FOR 2) IN ('14') " +
             "ORDER BY tt.fk_cnpj, tt.nu_documento";
 
-        return jdbcTemplate.query(sql, new RowMapper<DiariaPagamentoDto>() {
+        return jdbcTemplate.query(sql, new RowMapper<PagamentoItemDto>() {
             @Override
-            public DiariaPagamentoDto mapRow(ResultSet rs, int rowNum) throws SQLException {
-                DiariaPagamentoDto dto = new DiariaPagamentoDto();
+            public PagamentoItemDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+                PagamentoItemDto dto = new PagamentoItemDto();
                 dto.setCdOrgao(rs.getString("cd_orgao"));
                 dto.setSigla(rs.getString("sigla"));
                 dto.setNuExercicio(rs.getString("nu_exercicio"));

@@ -5,169 +5,40 @@
  | |  | | (_) | |_) | | |  __/      ____) |  __/ |   \ V /| | (_|  __/
  |_|  |_|\___/|_.__/|_|_|\___|     |_____/ \___|_|    \_/ |_|\___\___|
 
-mobile-service 0.2.7
+mobile-service 0.2.11
 Powered by Spring Boot 3.5.6
-2026-06-30T13:39:36.056-03:00  INFO 3061335 --- [           main] m.restapi.mobile.MobileApiApplication    : Starting MobileApiApplication v0.2.7 using Java 21.0.11 with PID 3061335 (/home/rafaelhugo/projetosMPPB/spring-boot/restapi/mobile-service/target/mobile-service-0.2.7.jar started by rafaelhugo in /home/rafaelhugo/projetosMPPB/spring-boot/restapi/mobile-service)
-2026-06-30T13:39:36.059-03:00  INFO 3061335 --- [           main] m.restapi.mobile.MobileApiApplication    : The following 1 profile is active: "dev"
-2026-06-30T13:39:36.845-03:00  INFO 3061335 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-06-30T13:39:36.901-03:00  INFO 3061335 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 46 ms. Found 3 JPA repository interfaces.
-2026-06-30T13:39:37.434-03:00  INFO 3061335 --- [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=ca459ad4-b757-3e7f-af6d-d656c6dfa22c
-2026-06-30T13:39:38.008-03:00  INFO 3061335 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 9003 (http)
-2026-06-30T13:39:38.024-03:00  INFO 3061335 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-06-30T13:39:38.025-03:00  INFO 3061335 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.46]
-2026-06-30T13:39:38.056-03:00  INFO 3061335 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2026-06-30T13:39:38.057-03:00  INFO 3061335 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1936 ms
-2026-06-30T13:39:38.526-03:00  WARN 3061335 --- [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2026-06-30T13:39:38.637-03:00  INFO 3061335 --- [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2026-06-30T13:39:38.694-03:00  INFO 3061335 --- [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.29.Final
-2026-06-30T13:39:38.729-03:00  INFO 3061335 --- [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
-2026-06-30T13:39:39.003-03:00  INFO 3061335 --- [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-06-30T13:39:39.037-03:00  INFO 3061335 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2026-06-30T13:39:40.101-03:00  WARN 3061335 --- [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Error: 0, SQLState: 28000
-2026-06-30T13:39:40.101-03:00 ERROR 3061335 --- [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : FATAL: no pg_hba.conf entry for host "10.128.4.57", user "postgres", database "ATENDIMENTO", no encryption
-2026-06-30T13:39:40.102-03:00  WARN 3061335 --- [           main] o.h.e.j.e.i.JdbcEnvironmentInitiator     : HHH000342: Could not obtain connection to query metadata
-
-org.hibernate.exception.GenericJDBCException: unable to obtain isolated JDBC connection [FATAL: no pg_hba.conf entry for host "10.128.4.57", user "postgres", database "ATENDIMENTO", no encryption] [n/a]
-	at org.hibernate.exception.internal.StandardSQLExceptionConverter.convert(StandardSQLExceptionConverter.java:63) ~[hibernate-core-6.6.29.Final.jar!/:6.6.29.Final]
-	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:108) ~[hibernate-core-6.6.29.Final.jar!/:6.6.29.Final]
-	at org.hibernate.engine.jdbc.spi.SqlExceptionHelper.convert(SqlExceptionHelper.java:94) ~[hibernate-core-6.6.29.Final.jar!/:6.6.29.Final]
-	at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcIsolationDelegate.delegateWork(JdbcIsolationDelegate.java:116) ~[hibernate-core-6.6.29.Final.jar!/:6.6.29.Final]
-	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.getJdbcEnvironmentUsingJdbcMetadata(JdbcEnvironmentInitiator.java:334) ~[hibernate-core-6.6.29.Final.jar!/:6.6.29.Final]
-	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:129) ~[hibernate-core-6.6.29.Final.jar!/:6.6.29.Final]
-	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator.initiateService(JdbcEnvironmentInitiator.java:81) ~[hibernate-core-6.6.29.Final.jar!/:6.6.29.Final]
-	at org.hibernate.boot.registry.internal.StandardServiceRegistryImpl.initiateService(StandardServiceRegistryImpl.java:130) ~[hibernate-core-6.6.29.Final.jar!/:6.6.29.Final]
-	at org.hibernate.service.internal.AbstractServiceRegistryImpl.createService(AbstractServiceRegistryImpl.java:263) ~[hibernate-core-6.6.29.Final.jar!/:6.6.29.Final]
-	at org.hibernate.service.internal.AbstractServiceRegistryImpl.initializeService(AbstractServiceRegistryImpl.java:238) ~[hibernate-core-6.6.29.Final.jar!/:6.6.29.Final]
-	at org.hibernate.service.internal.AbstractServiceRegistryImpl.getService(AbstractServiceRegistryImpl.java:215) ~[hibernate-core-6.6.29.Final.jar!/:6.6.29.Final]
-	at org.hibernate.boot.model.relational.Database.<init>(Database.java:45) ~[hibernate-core-6.6.29.Final.jar!/:6.6.29.Final]
-	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.getDatabase(InFlightMetadataCollectorImpl.java:226) ~[hibernate-core-6.6.29.Final.jar!/:6.6.29.Final]
-	at org.hibernate.boot.internal.InFlightMetadataCollectorImpl.<init>(InFlightMetadataCollectorImpl.java:194) ~[hibernate-core-6.6.29.Final.jar!/:6.6.29.Final]
-	at org.hibernate.boot.model.process.spi.MetadataBuildingProcess.complete(MetadataBuildingProcess.java:171) ~[hibernate-core-6.6.29.Final.jar!/:6.6.29.Final]
-	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.metadata(EntityManagerFactoryBuilderImpl.java:1442) ~[hibernate-core-6.6.29.Final.jar!/:6.6.29.Final]
-	at org.hibernate.jpa.boot.internal.EntityManagerFactoryBuilderImpl.build(EntityManagerFactoryBuilderImpl.java:1513) ~[hibernate-core-6.6.29.Final.jar!/:6.6.29.Final]
-	at org.springframework.orm.jpa.vendor.SpringHibernateJpaPersistenceProvider.createContainerEntityManagerFactory(SpringHibernateJpaPersistenceProvider.java:66) ~[spring-orm-6.2.11.jar!/:6.2.11]
-	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.createNativeEntityManagerFactory(LocalContainerEntityManagerFactoryBean.java:390) ~[spring-orm-6.2.11.jar!/:6.2.11]
-	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.buildNativeEntityManagerFactory(AbstractEntityManagerFactoryBean.java:419) ~[spring-orm-6.2.11.jar!/:6.2.11]
-	at org.springframework.orm.jpa.AbstractEntityManagerFactoryBean.afterPropertiesSet(AbstractEntityManagerFactoryBean.java:400) ~[spring-orm-6.2.11.jar!/:6.2.11]
-	at org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean.afterPropertiesSet(LocalContainerEntityManagerFactoryBean.java:366) ~[spring-orm-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeInitMethods(AbstractAutowireCapableBeanFactory.java:1873) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1822) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:607) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:529) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:373) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:227) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveNamedBean(DefaultListableBeanFactory.java:1613) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveNamedBean(DefaultListableBeanFactory.java:1571) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveBean(DefaultListableBeanFactory.java:564) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.getBean(DefaultListableBeanFactory.java:393) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.getBean(DefaultListableBeanFactory.java:386) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.orm.jpa.EntityManagerFactoryUtils.findEntityManagerFactory(EntityManagerFactoryUtils.java:120) ~[spring-orm-6.2.11.jar!/:6.2.11]
-	at org.springframework.orm.jpa.EntityManagerFactoryAccessor.setBeanFactory(EntityManagerFactoryAccessor.java:153) ~[spring-orm-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.invokeAwareMethods(AbstractAutowireCapableBeanFactory.java:1847) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1814) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:607) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:529) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:373) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:254) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1760) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1643) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:913) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:546) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1375) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1205) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:569) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:529) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:373) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:254) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.addCandidateEntry(DefaultListableBeanFactory.java:2011) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.findAutowireCandidates(DefaultListableBeanFactory.java:1975) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveMultipleBeanCollection(DefaultListableBeanFactory.java:1865) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveMultipleBeans(DefaultListableBeanFactory.java:1833) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1709) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1643) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredMethodElement.resolveMethodArguments(AutowiredAnnotationBeanPostProcessor.java:888) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor$AutowiredMethodElement.inject(AutowiredAnnotationBeanPostProcessor.java:849) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.annotation.InjectionMetadata.inject(InjectionMetadata.java:146) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor.postProcessProperties(AutowiredAnnotationBeanPostProcessor.java:509) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.populateBean(AbstractAutowireCapableBeanFactory.java:1459) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:606) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:529) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:373) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:202) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:413) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1375) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1205) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:569) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:529) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:339) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:373) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:337) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:207) ~[spring-beans-6.2.11.jar!/:6.2.11]
-	at org.springframework.context.event.AbstractApplicationEventMulticaster.retrieveApplicationListeners(AbstractApplicationEventMulticaster.java:267) ~[spring-context-6.2.11.jar!/:6.2.11]
-	at org.springframework.context.event.AbstractApplicationEventMulticaster.getApplicationListeners(AbstractApplicationEventMulticaster.java:223) ~[spring-context-6.2.11.jar!/:6.2.11]
-	at org.springframework.context.event.SimpleApplicationEventMulticaster.multicastEvent(SimpleApplicationEventMulticaster.java:145) ~[spring-context-6.2.11.jar!/:6.2.11]
-	at org.springframework.context.event.SimpleApplicationEventMulticaster.multicastEvent(SimpleApplicationEventMulticaster.java:138) ~[spring-context-6.2.11.jar!/:6.2.11]
-	at org.springframework.context.support.AbstractApplicationContext.registerListeners(AbstractApplicationContext.java:928) ~[spring-context-6.2.11.jar!/:6.2.11]
-	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:624) ~[spring-context-6.2.11.jar!/:6.2.11]
-	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.5.6.jar!/:3.5.6]
-	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:752) ~[spring-boot-3.5.6.jar!/:3.5.6]
-	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:439) ~[spring-boot-3.5.6.jar!/:3.5.6]
-	at org.springframework.boot.SpringApplication.run(SpringApplication.java:318) ~[spring-boot-3.5.6.jar!/:3.5.6]
-	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1361) ~[spring-boot-3.5.6.jar!/:3.5.6]
-	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1350) ~[spring-boot-3.5.6.jar!/:3.5.6]
-	at mppb.restapi.mobile.MobileApiApplication.main(MobileApiApplication.java:21) ~[!/:0.2.7]
-	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
-	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
-	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:102) ~[mobile-service-0.2.7.jar:0.2.7]
-	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:64) ~[mobile-service-0.2.7.jar:0.2.7]
-	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:40) ~[mobile-service-0.2.7.jar:0.2.7]
-Caused by: org.postgresql.util.PSQLException: FATAL: no pg_hba.conf entry for host "10.128.4.57", user "postgres", database "ATENDIMENTO", no encryption
-	at org.postgresql.core.v3.ConnectionFactoryImpl.doAuthentication(ConnectionFactoryImpl.java:777) ~[postgresql-42.7.7.jar!/:42.7.7]
-	at org.postgresql.core.v3.ConnectionFactoryImpl.tryConnect(ConnectionFactoryImpl.java:234) ~[postgresql-42.7.7.jar!/:42.7.7]
-	at org.postgresql.core.v3.ConnectionFactoryImpl.openConnectionImpl(ConnectionFactoryImpl.java:289) ~[postgresql-42.7.7.jar!/:42.7.7]
-	at org.postgresql.core.ConnectionFactory.openConnection(ConnectionFactory.java:57) ~[postgresql-42.7.7.jar!/:42.7.7]
-	at org.postgresql.jdbc.PgConnection.<init>(PgConnection.java:277) ~[postgresql-42.7.7.jar!/:42.7.7]
-	at org.postgresql.Driver.makeConnection(Driver.java:448) ~[postgresql-42.7.7.jar!/:42.7.7]
-	at org.postgresql.Driver.connect(Driver.java:298) ~[postgresql-42.7.7.jar!/:42.7.7]
-	at com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:144) ~[HikariCP-6.3.3.jar!/:na]
-	at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:370) ~[HikariCP-6.3.3.jar!/:na]
-	at com.zaxxer.hikari.pool.PoolBase.newPoolEntry(PoolBase.java:207) ~[HikariCP-6.3.3.jar!/:na]
-	at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:488) ~[HikariCP-6.3.3.jar!/:na]
-	at com.zaxxer.hikari.pool.HikariPool.checkFailFast(HikariPool.java:576) ~[HikariCP-6.3.3.jar!/:na]
-	at com.zaxxer.hikari.pool.HikariPool.<init>(HikariPool.java:97) ~[HikariCP-6.3.3.jar!/:na]
-	at com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:111) ~[HikariCP-6.3.3.jar!/:na]
-	at org.hibernate.engine.jdbc.connections.internal.DatasourceConnectionProviderImpl.getConnection(DatasourceConnectionProviderImpl.java:126) ~[hibernate-core-6.6.29.Final.jar!/:6.6.29.Final]
-	at org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator$ConnectionProviderJdbcConnectionAccess.obtainConnection(JdbcEnvironmentInitiator.java:485) ~[hibernate-core-6.6.29.Final.jar!/:6.6.29.Final]
-	at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcIsolationDelegate.delegateWork(JdbcIsolationDelegate.java:61) ~[hibernate-core-6.6.29.Final.jar!/:6.6.29.Final]
-	... 100 common frames omitted
-
-2026-06-30T13:39:40.124-03:00  WARN 3061335 --- [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2026-06-30T13:39:40.136-03:00  INFO 3061335 --- [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
-	Database JDBC URL [Connecting through datasource 'HikariDataSource (null)']
+2026-07-07T15:21:12.067-03:00  INFO 4063106 --- [           main] m.restapi.mobile.MobileApiApplication    : Starting MobileApiApplication v0.2.11 using Java 21.0.11 with PID 4063106 (/home/rafaelhugo/projetosMPPB/spring-boot/restapi/mobile-service/target/mobile-service-0.2.11.jar started by rafaelhugo in /home/rafaelhugo/projetosMPPB/spring-boot/restapi/mobile-service)
+2026-07-07T15:21:12.070-03:00  INFO 4063106 --- [           main] m.restapi.mobile.MobileApiApplication    : The following 1 profile is active: "dev"
+2026-07-07T15:21:12.877-03:00  INFO 4063106 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-07-07T15:21:12.935-03:00  INFO 4063106 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 48 ms. Found 3 JPA repository interfaces.
+2026-07-07T15:21:13.462-03:00  INFO 4063106 --- [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=3a2f42c5-ca6f-31d9-8728-3fc8f04c9d5f
+2026-07-07T15:21:14.064-03:00  INFO 4063106 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8086 (http)
+2026-07-07T15:21:14.080-03:00  INFO 4063106 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-07-07T15:21:14.081-03:00  INFO 4063106 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.46]
+2026-07-07T15:21:14.112-03:00  INFO 4063106 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-07-07T15:21:14.113-03:00  INFO 4063106 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1985 ms
+2026-07-07T15:21:14.587-03:00  WARN 4063106 --- [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-07-07T15:21:14.710-03:00  INFO 4063106 --- [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-07-07T15:21:14.768-03:00  INFO 4063106 --- [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.29.Final
+2026-07-07T15:21:14.802-03:00  INFO 4063106 --- [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-07-07T15:21:15.092-03:00  INFO 4063106 --- [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-07-07T15:21:15.129-03:00  INFO 4063106 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-07-07T15:21:15.312-03:00  INFO 4063106 --- [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@3ec211cc
+2026-07-07T15:21:15.313-03:00  INFO 4063106 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-07-07T15:21:15.345-03:00  WARN 4063106 --- [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-07-07T15:21:15.367-03:00  INFO 4063106 --- [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
 	Database driver: undefined/unknown
-	Database version: 12.0
+	Database version: 16.3
 	Autocommit mode: undefined/unknown
 	Isolation level: undefined/unknown
 	Minimum pool size: undefined/unknown
 	Maximum pool size: undefined/unknown
-2026-06-30T13:39:40.985-03:00  INFO 3061335 --- [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2026-06-30T13:39:40.989-03:00  INFO 3061335 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-06-30T13:39:41.433-03:00  INFO 3061335 --- [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
-2026-06-30T13:39:41.575-03:00  INFO 3061335 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2026-06-30T13:39:42.579-03:00  WARN 3061335 --- [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Error: 0, SQLState: 28000
-2026-06-30T13:39:42.579-03:00 ERROR 3061335 --- [           main] o.h.engine.jdbc.spi.SqlExceptionHelper   : FATAL: no pg_hba.conf entry for host "10.128.4.57", user "postgres", database "ATENDIMENTO", no encryption
-Erro ao carregar configuracoes de email (DB indisponível): Could not open JPA EntityManager for transaction
-2026-06-30T13:39:42.803-03:00  INFO 3061335 --- [           main] eAuthenticationProviderManagerConfigurer : Found 2 AuthenticationProvider beans, with names [tokenAuthenticationProvider, usuarioSenhaAuthenticationProvider]. Global Authentication Manager will not be configured with AuthenticationProviders. Consider publishing a single AuthenticationProvider bean, or wiring your Providers directly using the DSL.
-2026-06-30T13:39:43.311-03:00  INFO 3061335 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 9003 (http) with context path '/'
-2026-06-30T13:39:43.323-03:00  INFO 3061335 --- [           main] m.restapi.mobile.MobileApiApplication    : Started MobileApiApplication in 7.878 seconds (process running for 8.438)
+2026-07-07T15:21:16.288-03:00  INFO 4063106 --- [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-07-07T15:21:16.291-03:00  INFO 4063106 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-07-07T15:21:16.770-03:00  INFO 4063106 --- [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+Hibernate: select c1_0.id,c1_0.propriedade,c1_0.valor from administrador.configuracao c1_0 where c1_0.propriedade=?
+Hibernate: select c1_0.id,c1_0.propriedade,c1_0.valor from administrador.configuracao c1_0 where c1_0.propriedade=?
+2026-07-07T15:21:17.358-03:00  INFO 4063106 --- [           main] eAuthenticationProviderManagerConfigurer : Found 2 AuthenticationProvider beans, with names [tokenAuthenticationProvider, usuarioSenhaAuthenticationProvider]. Global Authentication Manager will not be configured with AuthenticationProviders. Consider publishing a single AuthenticationProvider bean, or wiring your Providers directly using the DSL.
+2026-07-07T15:21:17.872-03:00  INFO 4063106 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8086 (http) with context path '/'
+2026-07-07T15:21:17.884-03:00  INFO 4063106 --- [           main] m.restapi.mobile.MobileApiApplication    : Started MobileApiApplication in 6.353 seconds (process running for 6.878)

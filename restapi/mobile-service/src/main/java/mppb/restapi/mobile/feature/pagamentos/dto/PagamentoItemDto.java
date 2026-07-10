@@ -1,8 +1,8 @@
-package mppb.restapi.mobile.feature.diarias.dto;
+package mppb.restapi.mobile.feature.pagamentos.dto;
 
 import java.math.BigDecimal;
 
-public class DiariaPagamentoDto {
+public class PagamentoItemDto {
 
     private String cdOrgao;
     private String sigla;
