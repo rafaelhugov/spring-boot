@@ -37,3 +37,4 @@ gradlew
 restapi.env
 restapi/cursos-service/.env.dev
 restapi/mobile-service/backend_log.txt
+restapi/mobile-service/backend_log.txt
