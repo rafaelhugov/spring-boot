@@ -1,4 +1,4 @@
-package mppb.restapi.cursos.feature.diariooficial.dto;
+package mppb.restapi.mobile.feature.diariooficial.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;

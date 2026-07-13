@@ -1,13 +1,13 @@
-package mppb.restapi.cursos.feature.diariooficial.controller;
+package mppb.restapi.mobile.feature.diariooficial.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.core.controller.AbstractController;
-import mppb.restapi.cursos.feature.diariooficial.converter.DiarioOficialConverter;
-import mppb.restapi.cursos.feature.diariooficial.dto.DiarioOficialDto;
-import mppb.restapi.cursos.feature.diariooficial.entity.DiarioOficial;
-import mppb.restapi.cursos.feature.diariooficial.service.DiarioOficialService;
+import mppb.restapi.mobile.feature.diariooficial.converter.DiarioOficialConverter;
+import mppb.restapi.mobile.feature.diariooficial.dto.DiarioOficialDto;
+import mppb.restapi.mobile.feature.diariooficial.entity.DiarioOficial;
+import mppb.restapi.mobile.feature.diariooficial.service.DiarioOficialService;
 import mppb.restapi.common.infrastructure.util.Constants;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

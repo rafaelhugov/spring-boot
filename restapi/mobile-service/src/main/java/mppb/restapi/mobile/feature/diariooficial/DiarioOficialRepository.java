@@ -1,7 +1,7 @@
-package mppb.restapi.cursos.feature.diariooficial;
+package mppb.restapi.mobile.feature.diariooficial;
 
 import mppb.restapi.common.core.repository.BaseRepository;
-import mppb.restapi.cursos.feature.diariooficial.entity.DiarioOficial;
+import mppb.restapi.mobile.feature.diariooficial.entity.DiarioOficial;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
