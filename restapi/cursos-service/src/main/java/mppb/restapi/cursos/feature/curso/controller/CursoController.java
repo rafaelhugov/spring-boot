@@ -61,6 +61,7 @@ public class CursoController extends AbstractController {
     private final DtoConverter<CursoDto, Curso> cursoConverter;
     private final DtoConverter<AulaDto, Aula> aulaConverter;
     private final DtoConverter<ChamadaDto, Chamada> chamadaConverter;
+    private final mppb.restapi.cursos.feature.curso.service.CursoDocumentoService cursoDocumentoService;
 
 
 
@@ -303,5 +304,34 @@ public class CursoController extends AbstractController {
 
         frequenciaService.remover(cursoId, aulaId, frequenciaId);
         return ResponseEntity.noContent().build();
+    }
+
+    // --- ENDPOINTS PARA DOCUMENTOS ---
+
+    @Operation(summary = "Exporta a lista de presença em PDF", description = "Gera a lista de presença para todos os participantes do curso.")
+    @GetMapping(value = "/{cursoId}/documentos/presenca", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> gerarListaPresenca(@PathVariable Long cursoId) {
+        byte[] pdf = cursoDocumentoService.gerarListaPresenca(cursoId);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=lista_presenca_" + cursoId + ".pdf");
+        return ResponseEntity.ok().headers(headers).body(pdf);
+    }
+
+    @Operation(summary = "Exporta o ofício da Corregedoria em PDF", description = "Gera ofício listando apenas os Membros.")
+    @GetMapping(value = "/{cursoId}/documentos/corregedoria", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> gerarOficioCorregedoria(@PathVariable Long cursoId) {
+        byte[] pdf = cursoDocumentoService.gerarOficioCorregedoria(cursoId);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=oficio_corregedoria_" + cursoId + ".pdf");
+        return ResponseEntity.ok().headers(headers).body(pdf);
+    }
+
+    @Operation(summary = "Exporta o ofício do DRH em PDF", description = "Gera ofício listando todos os participantes (Membros, Servidores e Assessores).")
+    @GetMapping(value = "/{cursoId}/documentos/drh", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> gerarOficioDrh(@PathVariable Long cursoId) {
+        byte[] pdf = cursoDocumentoService.gerarOficioDrh(cursoId);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=oficio_drh_" + cursoId + ".pdf");
+        return ResponseEntity.ok().headers(headers).body(pdf);
     }
 }

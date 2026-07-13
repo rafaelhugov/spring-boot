@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport name="lista_presenca" language="java" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="d53fa7b1-b7e3-430a-896b-8182018ad049">
+	<parameter name="NOME_CURSO" class="java.lang.String"/>
+	
+	<field name="nome" class="java.lang.String"/>
+	
+	<title height="60" splitType="Stretch">
+		<element kind="textField" uuid="b905e0c0-913c-4612-8cbb-2e086a3b5660" x="0" y="0" width="555" height="60" hTextAlign="Center" fontName="SansSerif" fontSize="14" bold="true">
+			<expression><![CDATA["MINISTÉRIO PÚBLICO DO ESTADO DA PARAÍBA\nCENTRO DE ESTUDOS E APERFEIÇOAMENTO FUNCIONAL\n\nLISTA DE PRESENÇA - " + $P{NOME_CURSO}]]></expression>
+		</element>
+	</title>
+	
+	<columnHeader height="30" splitType="Stretch">
+		<element kind="staticText" uuid="e0fb806b-4e0d-4f10-9c2b-285b0d68f76e" x="0" y="0" width="300" height="30" fontName="SansSerif" fontSize="12" bold="true">
+			<text><![CDATA[NOME DO PARTICIPANTE]]></text>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<box>
+				<pen lineWidth="1.0"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="1e0fb806b-4e0d-4f10-9c2b-285b0d68f7" x="300" y="0" width="255" height="30" fontName="SansSerif" fontSize="12" bold="true">
+			<text><![CDATA[ASSINATURA]]></text>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+			<box>
+				<pen lineWidth="1.0"/>
+			</box>
+		</element>
+	</columnHeader>
+	
+	<detail>
+		<band height="30" splitType="Stretch">
+			<element kind="textField" uuid="b680f769-65ea-4cbb-bd31-50e50f3bcf07" x="0" y="0" width="300" height="30" fontName="SansSerif" fontSize="11" vTextAlign="Middle">
+				<expression><![CDATA[" " + $F{nome}]]></expression>
+				<box>
+					<pen lineWidth="1.0"/>
+				</box>
+			</element>
+			<element kind="staticText" uuid="c120f769-65ea-4cbb-bd31-50e50f3bcf08" x="300" y="0" width="255" height="30">
+				<text><![CDATA[]]></text>
+				<box>
+					<pen lineWidth="1.0"/>
+				</box>
+			</element>
+		</band>
+	</detail>
+	
+</jasperReport>
