@@ -54,6 +54,7 @@ public class CursoDto {
     // Isso requer uma anotação de validação a nível de classe, que podemos implementar depois.
     private LocalDateTime realizacaoDataInicial;
 
+    @JsonView(CursoView.Listagem.class)
     private LocalDateTime realizacaoDataFinal;
 
     @Pattern(regexp = "^([0-9]{1,4}):([0-5][0-9]):([0-5][0-9])$", message = "O formato da carga horária deve ser HHHH:MM:SS.")
@@ -87,5 +88,5 @@ public class CursoDto {
 
     private Long certificateTemplateId;
 
-
+    private Long headerImageId;
 }

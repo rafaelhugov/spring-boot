@@ -40,9 +40,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.text.Normalizer;
 import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import mppb.restapi.cursos.feature.inscricao.util.InscricaoExcelExporter;
@@ -143,9 +146,11 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         Curso curso = cursoRepository.findById(cursoId)
                 .orElseThrow(() -> new NotFoundException("Curso não encontrado: " + cursoId));
 
-        if (curso.getStatus() != mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.PRONTO_PUBLICACAO) {
+        if (curso.getStatus() != mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.PUBLICADO) {
             throw new BusinessRuleException("Não é possível inscrever neste curso pois a carga horária de aulas está divergente ou o curso está em construção.");
         }
+
+        validarPublicoAlvo(curso, dto);
 
         Participante participante = participanteService.findOrCreateParticipante(dto);
 
@@ -200,36 +205,29 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
 
     /**
      * Orquestra a inscrição de um utilizador público (externo).
-     * Define o status como PENDENTE_CONFIRMACAO.
+     * Define o status como INSCRITO.
      */
     public InscricaoDto realizarInscricaoPublica(UUID hash, InscricaoPublicaDto dto) {
         Curso curso = getCursoByHashAndValidarPeriodo(hash);
 
+        validarPublicoAlvoExterno(curso);
+
         // Delega a lógica de criação/busca de participante
         Participante participante = participanteService.findOrCreateParticipanteExterno(dto);
 
-        // --- LÓGICA DE REENVIO ---
-        Optional<Inscricao> inscricaoExistenteOpt = inscricaoRepository.findByCursoAndParticipante(curso, participante);
-
-        if (inscricaoExistenteOpt.isPresent()) {
-            Inscricao inscricao = inscricaoExistenteOpt.get();
-
-            // Se a inscrição estiver PENDENTE, tratamos como um pedido de REENVIO.
-            if (inscricao.getSituacao() == SituacaoInscricaoEnum.PENDENTE_CONFIRMACAO) {
-                log.info("Inscrição pendente (ID: {}) encontrada. Reenviando e-mail de confirmação.", inscricao.getId());
-                gerarEEnviarEmailConfirmacao(inscricao); // Reenvia o e-mail
-                return toDto(inscricao); // Retorna sucesso
-            } else {
-                // Se for INSCRITO, APROVADO, etc., então é um erro de duplicidade.
-                throw new BusinessRuleException("Este participante já está inscrito neste curso.");
-            }
-        }
-        // --- FIM DA LÓGICA DE REENVIO ---
+        validarInscricaoDuplicada(curso, participante);
 
         // TODO: RN015 - Implementar a validação de público-alvo aqui
 
-        Inscricao inscricaoSalva = criarInscricaoPendente(curso, participante);
-        gerarEEnviarEmailConfirmacao(inscricaoSalva);
+        Inscricao novaInscricao = new Inscricao();
+        novaInscricao.setCurso(curso);
+        novaInscricao.setParticipante(participante);
+        novaInscricao.setDataInscricao(LocalDateTime.now());
+        novaInscricao.setSituacao(SituacaoInscricaoEnum.INSCRITO); // Efetivado imediatamente
+
+        Inscricao inscricaoSalva = inscricaoRepository.save(novaInscricao);
+
+        emailService.enviarEmailInscricaoRealizada(inscricaoSalva);
 
         return toDto(inscricaoSalva);
     }
@@ -256,15 +254,8 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
 
         // 3. É um externo existente. Verificar se ele já está inscrito NESTE curso.
         Participante participante = participanteOpt.get();
-        Optional<Inscricao> inscricaoExistente = inscricaoRepository.findByCursoAndParticipante(curso, participante);
-        if (inscricaoExistente.isPresent()) {
-            Inscricao inscricao = inscricaoExistente.get();
-            // Se a inscrição estiver PENDENTE, não é um erro. O fluxo deve continuar
-            // para que o utilizador possa receber um novo e-mail (ao submeter).
-            if (inscricao.getSituacao() != SituacaoInscricaoEnum.PENDENTE_CONFIRMACAO) {
-                throw new BusinessRuleException("Este participante já está inscrito neste curso.");
-            }
-            // Se estiver PENDENTE, o fluxo continua e retorna o DTO de verificação
+        if (inscricaoRepository.existsByCursoAndParticipante(curso, participante)) {
+            throw new BusinessRuleException("Este participante já está inscrito neste curso.");
         }
 
         // 4. É um externo existente e NÃO está inscrito. Retorna os dados para reutilização.
@@ -404,7 +395,7 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         Curso curso = cursoRepository.findByHashInscricao(hash)
                 .orElseThrow(() -> new NotFoundException("Curso não encontrado ou o link de inscrição é inválido."));
 
-        if (curso.getStatus() != mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.PRONTO_PUBLICACAO) {
+        if (curso.getStatus() != mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.PUBLICADO) {
             throw new BusinessRuleException("Não é possível inscrever neste curso pois a carga horária de aulas está divergente ou o curso está em construção.");
         }
 
@@ -421,6 +412,76 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         if (inscricaoRepository.existsByCursoAndParticipante(curso, participante)) {
             throw new BusinessRuleException("Este participante já está inscrito neste curso.");
         }
+    }
+
+    /**
+     * Garante que o participante pertence a um dos públicos-alvo definidos para o curso.
+     */
+    private void validarPublicoAlvo(Curso curso, CriarInscricaoDto dto) {
+        if (TipoParticipanteEnum.EXTERNO.name().equals(dto.getTipo())) {
+            validarPublicoAlvoExterno(curso);
+            return;
+        }
+
+        if (!TipoParticipanteEnum.INTERNO.name().equals(dto.getTipo())) {
+            throw new BusinessRuleException("Tipo de participante inválido: " + dto.getTipo());
+        }
+
+        if (dto.getIdServidor() == null) {
+            throw new BusinessRuleException("O ID do servidor é obrigatório para participantes internos.");
+        }
+
+        ServidorProjection servidor = servidorService.buscarServidorPorId(dto.getIdServidor())
+                .orElseThrow(() -> new BusinessRuleException("Não foi possível localizar o cadastro do servidor no RH."));
+
+        if (!"ATIVO".equalsIgnoreCase(servidor.getSituacao())) {
+            throw new BusinessRuleException("Este participante não pode ser inscrito porque sua matrícula não está ativa.");
+        }
+
+        if (!servidorAtendePublicoAlvoInterno(curso, servidor)) {
+            throw new BusinessRuleException("Este participante não pode ser inscrito porque não faz parte do público-alvo definido para o curso.");
+        }
+    }
+
+    private void validarPublicoAlvoExterno(Curso curso) {
+        boolean permiteExterno = curso.getPublicosAlvo() != null && curso.getPublicosAlvo().stream()
+                .anyMatch(publico -> "E".equalsIgnoreCase(publico.getInternoExterno()));
+
+        if (!permiteExterno) {
+            throw new BusinessRuleException("Este participante não pode ser inscrito porque o curso não permite público externo.");
+        }
+    }
+
+    private boolean servidorAtendePublicoAlvoInterno(Curso curso, ServidorProjection servidor) {
+        if (curso.getPublicosAlvo() == null || curso.getPublicosAlvo().isEmpty()) {
+            return false;
+        }
+
+        Set<String> publicosInternos = curso.getPublicosAlvo().stream()
+                .filter(publico -> "I".equalsIgnoreCase(publico.getInternoExterno()))
+                .map(publico -> normalizar(publico.getNome()))
+                .collect(Collectors.toSet());
+
+        if (publicosInternos.isEmpty()) {
+            return false;
+        }
+
+        String tipoCargo = normalizar(servidor.getTipoCargoNome());
+        String cargo = normalizar(servidor.getCargoNome());
+
+        return (publicosInternos.contains("MEMBROS") && tipoCargo.contains("MEMBRO"))
+                || (publicosInternos.contains("SERVIDORES") && tipoCargo.contains("SERVIDOR"))
+                || (publicosInternos.contains("ASSESSORES") && cargo.contains("ASSESSOR"));
+    }
+
+    private String normalizar(String valor) {
+        if (valor == null) {
+            return "";
+        }
+        return Normalizer.normalize(valor, Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+                .toUpperCase(Locale.ROOT)
+                .trim();
     }
 
     /**

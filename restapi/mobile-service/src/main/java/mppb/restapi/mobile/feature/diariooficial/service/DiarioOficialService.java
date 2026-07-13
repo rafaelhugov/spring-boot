@@ -1,10 +1,10 @@
-package mppb.restapi.cursos.feature.diariooficial.service;
+package mppb.restapi.mobile.feature.diariooficial.service;
 
 import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.core.service.AbstractService;
-import mppb.restapi.cursos.feature.diariooficial.DiarioOficialRepository;
-import mppb.restapi.cursos.feature.diariooficial.entity.DiarioOficial;
+import mppb.restapi.mobile.feature.diariooficial.DiarioOficialRepository;
+import mppb.restapi.mobile.feature.diariooficial.entity.DiarioOficial;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

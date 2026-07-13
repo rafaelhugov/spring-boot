@@ -1,4 +1,4 @@
-package mppb.restapi.cursos.feature.carteirafuncional.dto;
+package mppb.restapi.mobile.feature.carteirafuncional.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

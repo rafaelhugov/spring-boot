@@ -19,6 +19,11 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class CaptchaService {
 
+    static {
+        System.setProperty("java.awt.headless", "true");
+        javax.imageio.ImageIO.setUseCache(false);
+    }
+
     private static class CaptchaInfo {
         String text;
         long expiryTime;
@@ -61,7 +66,7 @@ public class CaptchaService {
             return false;
         }
 
-        return info.text.equalsIgnoreCase(text);
+        return info.text.equalsIgnoreCase(text.trim());
     }
 
     private void cleanUpExpired() {

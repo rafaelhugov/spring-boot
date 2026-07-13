@@ -74,8 +74,8 @@ public class CursoService extends AbstractService<Curso, Long> {
     /**
      * Busca cursos usando filtros e uma paginação com ordenação padrão
      */
-    public Page<Curso> findAll(String titulo, Long modalidadeId, Long publicoAlvoId, String status, Pageable pageable) {
-        Specification<Curso> filterSpec = cursoSpecification.comFiltros(titulo, modalidadeId, publicoAlvoId, status);
+    public Page<Curso> findAll(String titulo, Long modalidadeId, Long publicoAlvoId, String status, Boolean historico, Pageable pageable) {
+        Specification<Curso> filterSpec = cursoSpecification.comFiltros(titulo, modalidadeId, publicoAlvoId, status, historico);
         Pageable pageableComOrdenacao = criarPageableComOrdenacaoPadrao(pageable);
 
         return cursoRepository.findAll(filterSpec, pageableComOrdenacao);
@@ -130,6 +130,7 @@ public class CursoService extends AbstractService<Curso, Long> {
         if (curso.getHashInscricao() == null) {
             curso.setHashInscricao(UUID.randomUUID());
         }
+        validarDatasCurso(curso);
         // A lógica de gerenciamento de ministrantes foi removida daqui, pois agora é tratada em endpoints específicos.
         return cursoRepository.saveAndFlush(curso);
     }
@@ -149,11 +150,14 @@ public class CursoService extends AbstractService<Curso, Long> {
         curso.setDetalhaCargaHoraria(dto.getDetalhaCargaHoraria());
         curso.setLinkProgramacao(dto.getLinkProgramacao());
         curso.setProgressaoFuncional(dto.getProgressaoFuncional());
+        curso.setHeaderImageId(dto.getHeaderImageId());
 
         curso.setTipoEvento(getRequiredReference(TipoEvento.class, dto.getTipoEvento().getId(), "Tipo de evento"));
         curso.setEntidadeTutora(getRequiredReference(EntidadeTutora.class, dto.getEntidadeTutora().getId(), "Entidade tutora"));
         curso.setModalidade(getRequiredReference(Modalidade.class, dto.getModalidade().getId(), "Modalidade"));
         curso.setPublicosAlvo(toPublicosAlvoReferences(dto));
+
+        validarDatasCurso(curso);
 
         Curso saved = cursoRepository.saveAndFlush(curso);
         
@@ -178,6 +182,14 @@ public class CursoService extends AbstractService<Curso, Long> {
             throw new BusinessRuleException(fieldName + " é obrigatório.");
         }
         return entityManager.getReference(entityClass, id);
+    }
+
+    private void validarDatasCurso(Curso curso) {
+        if (curso.getInscricaoDataFinal() != null && curso.getRealizacaoDataFinal() != null) {
+            if (curso.getInscricaoDataFinal().isAfter(curso.getRealizacaoDataFinal())) {
+                throw new BusinessRuleException("O término das inscrições não pode ser posterior ao término da realização do curso.");
+            }
+        }
     }
 
     @Override

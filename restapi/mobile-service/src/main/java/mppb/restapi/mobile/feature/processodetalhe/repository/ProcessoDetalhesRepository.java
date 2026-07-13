@@ -23,8 +23,8 @@ public class ProcessoDetalhesRepository {
                      "LEFT JOIN protocolo.numeracao num ON p.id_numeracao = num.id " +
                      "LEFT JOIN taxonomia.itens c ON p.id_classe = c.id " +
                      "LEFT JOIN taxonomia.itens a ON p.id_assunto = a.id " +
-                     "LEFT JOIN public.orgao orgao_info ON p.id_orgaocriador = orgao_info.id_pessoa " +
-                     "LEFT JOIN public.pessoa org ON orgao_info.id_pessoa = org.id " +
+                     "LEFT JOIN orgao orgao_info ON p.id_orgaocriador = orgao_info.id_pessoa " +
+                     "LEFT JOIN pessoa org ON orgao_info.id_pessoa = org.id " +
                      "WHERE p.id = ?";
 
         List<ProcessoDetalheDTO> processos = jdbcTemplate.query(sql, new Object[]{idProcesso}, (rs, rowNum) -> {
@@ -44,11 +44,20 @@ public class ProcessoDetalhesRepository {
     }
 
     public List<InteressadoDTO> findInteressadosPorProcesso(Long idProcesso) {
-        String sql = "SELECT ti.nome AS tipoParte, i.nome, i.nomesocial, i.cpfcnpj AS documento " +
-                     "FROM protocolo.interessado i " +
-                     "LEFT JOIN protocolo.tipointeressado ti ON i.id_tipointeressado = ti.id " +
-                     "WHERE i.id_protocolo = ? " +
-                     "ORDER BY i.nome ASC";
+        String sql = "SELECT NULL AS tipoParte, " +
+                     "       COALESCE(i.nome, pes.nome) AS nome, " +
+                     "       NULL AS nomesocial, " +
+                     "       COALESCE(i.cpfcnpj, pf.cpf, pj.cnpj) AS documento " +
+                     "FROM protocolo.pasta pasta " +
+                     "JOIN protocolo.pastadocumento pd ON pd.id_protocolomovimento = pasta.id_pastadocumentopecainicial " +
+                     "JOIN protocolo.interessado i ON i.id_protocolo = pd.id_documento " +
+                     "LEFT JOIN pessoa pes ON pes.id = i.id_pessoa " +
+                     "LEFT JOIN pessoafisica pf ON pf.id_pessoa = i.id_pessoa " +
+                     "LEFT JOIN pessoajuridica pj ON pj.id_pessoa = i.id_pessoa " +
+                     "WHERE pasta.id_protocolo = ? " +
+                     "  AND i.sigiloso = false " +
+                     "  AND i.dataexclusao IS NULL " +
+                     "ORDER BY COALESCE(i.nome, pes.nome) ASC";
 
         return jdbcTemplate.query(sql, new Object[]{idProcesso}, (rs, rowNum) -> {
             InteressadoDTO dto = new InteressadoDTO();
@@ -70,10 +79,12 @@ public class ProcessoDetalhesRepository {
     }
 
     public List<MovimentoDTO> findMovimentosPorProcesso(Long idProcesso) {
-        String sql = "SELECT pm.dataregistro AS data, m.nome AS tipo, " +
-                     "(SELECT pdoc.resumo FROM protocolo.protocolo pdoc WHERE pdoc.id = pm.id_documentogerado) AS complemento " +
+        String sql = "SELECT pm.dataregistro AS data, i.nome AS tipo, " +
+                     "pdoc.resumo AS complemento " +
                      "FROM protocolo.protocolomovimento pm " +
-                     "LEFT JOIN taxonomia.movimentos m ON pm.id_movimento = m.id_item " +
+                     "LEFT JOIN taxonomia.itens i ON i.id = pm.id_movimento " +
+                     "LEFT JOIN protocolo.pastadocumento pd ON pd.id_protocolomovimento = pm.id " +
+                     "LEFT JOIN protocolo.protocolo pdoc ON pdoc.id = pd.id_documento " +
                      "WHERE pm.id_protocolo = ? " +
                      "ORDER BY pm.dataregistro DESC";
 

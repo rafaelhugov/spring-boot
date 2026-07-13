@@ -147,7 +147,7 @@ public class AulaService extends AbstractService<Aula, Long> {
         if (totalCadastrado < cargaHorariaTotal) {
             curso.setStatus(mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.EM_CONSTRUCAO);
         } else if (totalCadastrado == cargaHorariaTotal) {
-            curso.setStatus(mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.PRONTO_PUBLICACAO);
+            curso.setStatus(mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.PUBLICADO);
         } else {
             curso.setStatus(mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.EM_CONSTRUCAO);
         }
@@ -161,7 +161,7 @@ public class AulaService extends AbstractService<Aula, Long> {
         Aula aula = findById(aulaId)
                 .orElseThrow(() -> new NotFoundException("Aula não encontrada: " + aulaId));
 
-        if (aula.getCurso().getStatus() != mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.PRONTO_PUBLICACAO) {
+        if (aula.getCurso().getStatus() != mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.PUBLICADO) {
             throw new mppb.restapi.common.core.error.BusinessRuleException("Não é possível gerar chamadas pois a carga horária de aulas está divergente ou o curso está em construção.");
         }
 

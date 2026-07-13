@@ -95,6 +95,9 @@ public class Curso extends AbstractEntity<Long> {
     @Column(name = "id_arquivocertificado")
     private Long certificateTemplateId;
 
+    @Column(name = "id_imagemcabecalho")
+    private Long headerImageId;
+
     @Column(name = "status")
     @Convert(converter = StatusCursoEnumConverter.class)
     @Builder.Default

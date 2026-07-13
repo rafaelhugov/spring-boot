@@ -1,0 +1,44 @@
+  __  __       _     _ _             _____                 _
+ |  \/  |     | |   (_) |           / ____|               (_)
+ | \  / | ___ | |__  _| | ___ _____| (___   ___ _ ____   ___  ___ ___
+ | |\/| |/ _ \| '_ \| | |/ _ \______\___ \ / _ \ '__\ \ / / |/ __/ _ \
+ | |  | | (_) | |_) | | |  __/      ____) |  __/ |   \ V /| | (_|  __/
+ |_|  |_|\___/|_.__/|_|_|\___|     |_____/ \___|_|    \_/ |_|\___\___|
+
+mobile-service 0.2.11
+Powered by Spring Boot 3.5.6
+2026-07-07T15:21:12.067-03:00  INFO 4063106 --- [           main] m.restapi.mobile.MobileApiApplication    : Starting MobileApiApplication v0.2.11 using Java 21.0.11 with PID 4063106 (/home/rafaelhugo/projetosMPPB/spring-boot/restapi/mobile-service/target/mobile-service-0.2.11.jar started by rafaelhugo in /home/rafaelhugo/projetosMPPB/spring-boot/restapi/mobile-service)
+2026-07-07T15:21:12.070-03:00  INFO 4063106 --- [           main] m.restapi.mobile.MobileApiApplication    : The following 1 profile is active: "dev"
+2026-07-07T15:21:12.877-03:00  INFO 4063106 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-07-07T15:21:12.935-03:00  INFO 4063106 --- [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 48 ms. Found 3 JPA repository interfaces.
+2026-07-07T15:21:13.462-03:00  INFO 4063106 --- [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=3a2f42c5-ca6f-31d9-8728-3fc8f04c9d5f
+2026-07-07T15:21:14.064-03:00  INFO 4063106 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8086 (http)
+2026-07-07T15:21:14.080-03:00  INFO 4063106 --- [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-07-07T15:21:14.081-03:00  INFO 4063106 --- [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.46]
+2026-07-07T15:21:14.112-03:00  INFO 4063106 --- [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-07-07T15:21:14.113-03:00  INFO 4063106 --- [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1985 ms
+2026-07-07T15:21:14.587-03:00  WARN 4063106 --- [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-07-07T15:21:14.710-03:00  INFO 4063106 --- [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-07-07T15:21:14.768-03:00  INFO 4063106 --- [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.29.Final
+2026-07-07T15:21:14.802-03:00  INFO 4063106 --- [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-07-07T15:21:15.092-03:00  INFO 4063106 --- [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-07-07T15:21:15.129-03:00  INFO 4063106 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-07-07T15:21:15.312-03:00  INFO 4063106 --- [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@3ec211cc
+2026-07-07T15:21:15.313-03:00  INFO 4063106 --- [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-07-07T15:21:15.345-03:00  WARN 4063106 --- [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-07-07T15:21:15.367-03:00  INFO 4063106 --- [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 16.3
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-07-07T15:21:16.288-03:00  INFO 4063106 --- [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-07-07T15:21:16.291-03:00  INFO 4063106 --- [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-07-07T15:21:16.770-03:00  INFO 4063106 --- [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+Hibernate: select c1_0.id,c1_0.propriedade,c1_0.valor from administrador.configuracao c1_0 where c1_0.propriedade=?
+Hibernate: select c1_0.id,c1_0.propriedade,c1_0.valor from administrador.configuracao c1_0 where c1_0.propriedade=?
+2026-07-07T15:21:17.358-03:00  INFO 4063106 --- [           main] eAuthenticationProviderManagerConfigurer : Found 2 AuthenticationProvider beans, with names [tokenAuthenticationProvider, usuarioSenhaAuthenticationProvider]. Global Authentication Manager will not be configured with AuthenticationProviders. Consider publishing a single AuthenticationProvider bean, or wiring your Providers directly using the DSL.
+2026-07-07T15:21:17.872-03:00  INFO 4063106 --- [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8086 (http) with context path '/'
+2026-07-07T15:21:17.884-03:00  INFO 4063106 --- [           main] m.restapi.mobile.MobileApiApplication    : Started MobileApiApplication in 6.353 seconds (process running for 6.878)
