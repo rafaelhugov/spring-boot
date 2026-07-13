@@ -1,4 +1,4 @@
-package mppb.restapi.cursos.feature.diariooficial.entity;
+package mppb.restapi.mobile.feature.diariooficial.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
