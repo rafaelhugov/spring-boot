@@ -1,44 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jasperReport name="oficio_corregedoria" language="java" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="d53fa7b1-b7e3-430a-896b-8182018ad049">
+<jasperReport name="oficio_corregedoria" language="java" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="455" leftMargin="70" rightMargin="70" topMargin="40" bottomMargin="40" uuid="d53fa7b1-b7e3-430a-896b-8182018ad049">
 	<parameter name="NOME_CURSO" class="java.lang.String"/>
 	<parameter name="NOME_CORREGEDOR" class="java.lang.String"/>
 	<parameter name="NOME_DIRETOR_CEAF" class="java.lang.String"/>
-	
+	<parameter name="NUMERO_OFICIO" class="java.lang.String"/>
+	<parameter name="ANO_OFICIO" class="java.lang.String"/>
+	<parameter name="ASSUNTO" class="java.lang.String"/>
+	<parameter name="TEXTO_CORPO" class="java.lang.String"/>
+	<parameter name="LOGO_BRASAO" class="java.io.InputStream"/>
 	<field name="nome" class="java.lang.String"/>
 	<field name="cargo" class="java.lang.String"/>
-	
-	<title height="120" splitType="Stretch">
-		<element kind="textField" uuid="b905e0c0-913c-4612-8cbb-2e086a3b5660" x="0" y="0" width="555" height="30" hTextAlign="Center" fontName="SansSerif" fontSize="14" bold="true">
+	<title height="320" splitType="Stretch">
+		<element kind="image" uuid="123e4567-e89b-12d3-a456-426614174001" x="197" y="0" width="60" height="60">
+			<expression><![CDATA[$P{LOGO_BRASAO}]]></expression>
+		</element>
+		<element kind="textField" uuid="123e4567-e89b-12d3-a456-426614174002" x="0" y="70" width="455" height="40" hTextAlign="Center" fontName="SansSerif" fontSize="11" bold="true">
 			<expression><![CDATA["MINISTÉRIO PÚBLICO DO ESTADO DA PARAÍBA\nPROCURADORIA-GERAL DE JUSTIÇA\nCENTRO DE ESTUDOS E APERFEIÇOAMENTO FUNCIONAL"]]></expression>
 		</element>
-		<element kind="textField" uuid="4fc9f35f-22a7-47b2-bd74-323e2fb3bc49" x="0" y="40" width="555" height="40" fontName="SansSerif" fontSize="12">
-			<expression><![CDATA["A Sua Excelência o Senhor(a)\n" + $P{NOME_CORREGEDOR}]]></expression>
+		<element kind="textField" uuid="123e4567-e89b-12d3-a456-426614174003" x="0" y="130" width="455" height="15" fontName="SansSerif" fontSize="11" bold="true">
+			<expression><![CDATA["Ofício nº " + $P{NUMERO_OFICIO} + "/" + $P{ANO_OFICIO} + "/CEAF/MPPB"]]></expression>
 		</element>
-		<element kind="textField" uuid="a63e9f31-897b-40f4-b258-0eb9473b98c3" x="0" y="80" width="555" height="40" fontName="SansSerif" fontSize="12">
-			<expression><![CDATA["Senhor(a) Corregedor(a),\n\nCumprimentando-o(a), comunicamos a Vossa Excelência, para fins de anotação em cadastro funcional, a participação dos membros do MPPB abaixo relacionados, no evento: " + $P{NOME_CURSO} + "."]]></expression>
+		<element kind="textField" uuid="123e4567-e89b-12d3-a456-426614174004" x="0" y="145" width="455" height="15" fontName="SansSerif" fontSize="11" hTextAlign="Right">
+			<expression><![CDATA["João Pessoa, " + new java.text.SimpleDateFormat("dd 'de' MMMM 'de' yyyy", new java.util.Locale("pt", "BR")).format(new java.util.Date()) + "."]]></expression>
+		</element>
+		<element kind="textField" uuid="123e4567-e89b-12d3-a456-426614174005" x="0" y="170" width="455" height="70" fontName="SansSerif" fontSize="11">
+			<expression><![CDATA["A Sua Excelência o Senhor\n" + $P{NOME_CORREGEDOR} + "\nCorregedor-Geral\nMinistério Público da Paraíba"]]></expression>
+		</element>
+		<element kind="textField" uuid="123e4567-e89b-12d3-a456-426614174006" positionType="Float" x="0" y="240" width="455" height="20" fontName="SansSerif" fontSize="11" textAdjust="StretchHeight" markup="html" hTextAlign="Justified">
+			<expression><![CDATA["Assunto: <b>" + $P{ASSUNTO} + "</b>"]]></expression>
+		</element>
+		<element kind="textField" uuid="123e4567-e89b-12d3-a456-426614174007" positionType="Float" x="0" y="280" width="455" height="20" fontName="SansSerif" fontSize="11" textAdjust="StretchHeight" hTextAlign="Justified" markup="html">
+			<expression><![CDATA[$P{TEXTO_CORPO}]]></expression>
 		</element>
 	</title>
-	
-	<columnHeader height="20" splitType="Stretch">
-		<element kind="staticText" uuid="e0fb806b-4e0d-4f10-9c2b-285b0d68f76e" x="0" y="0" width="277" height="20" fontName="SansSerif" fontSize="12" bold="true">
+	<columnHeader height="30" splitType="Stretch">
+		<element kind="staticText" uuid="123e4567-e89b-12d3-a456-426614174008" x="0" y="10" width="220" height="20" fontName="SansSerif" fontSize="11" bold="true">
 			<text><![CDATA[Membros:]]></text>
 		</element>
 	</columnHeader>
-	
 	<detail>
-		<band height="20" splitType="Stretch">
-			<element kind="textField" uuid="b680f769-65ea-4cbb-bd31-50e50f3bcf07" x="0" y="0" width="277" height="20" fontName="SansSerif" fontSize="12">
-				<expression><![CDATA[$F{nome}]]></expression>
+		<band height="25" splitType="Stretch">
+			<element kind="textField" uuid="123e4567-e89b-12d3-a456-426614174009" x="0" y="0" width="220" height="15" fontName="SansSerif" fontSize="10" textAdjust="StretchHeight">
+				<expression><![CDATA["- " + $F{nome}]]></expression>
 			</element>
-			<element kind="textField" uuid="c120f769-65ea-4cbb-bd31-50e50f3bcf08" x="280" y="0" width="275" height="20" fontName="SansSerif" fontSize="12">
+			<element kind="textField" uuid="123e4567-e89b-12d3-a456-426614174010" x="230" y="0" width="225" height="15" fontName="SansSerif" fontSize="10" textAdjust="StretchHeight">
 				<expression><![CDATA[$F{cargo}]]></expression>
 			</element>
 		</band>
 	</detail>
-	
-	<summary height="100" splitType="Stretch">
-		<element kind="textField" uuid="a180f769-65ea-4cbb-bd31-50e50f3bcf09" x="0" y="20" width="555" height="80" fontName="SansSerif" fontSize="12" hTextAlign="Center">
-			<expression><![CDATA["Atenciosamente,\n\n\n(documento datado e assinado eletronicamente)\n" + $P{NOME_DIRETOR_CEAF} + "\nDiretor do CEAF"]]></expression>
+	<summary height="140" splitType="Stretch">
+		<element kind="textField" uuid="123e4567-e89b-12d3-a456-426614174011" positionType="Float" x="0" y="30" width="455" height="110" fontName="SansSerif" fontSize="11" hTextAlign="Center" textAdjust="StretchHeight" markup="html">
+			<expression><![CDATA["Atenciosamente,<br/><br/><br/><font color=\"blue\">(documento datado e assinado eletronicamente)</font><br/>" + $P{NOME_DIRETOR_CEAF} + "<br/>Procurador de Justiça<br/>Diretor do CEAF"]]></expression>
 		</element>
 	</summary>
 </jasperReport>

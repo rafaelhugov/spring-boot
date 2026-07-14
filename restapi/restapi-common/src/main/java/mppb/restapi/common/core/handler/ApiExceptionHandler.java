@@ -20,6 +20,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.time.Instant;
@@ -86,8 +88,24 @@ public class ApiExceptionHandler {
         return createProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Erro genérico da aplicação", exception, null);
     }
 
-    @ExceptionHandler(value = Exception.class, produces = "application/json")
-    public ResponseEntity<ProblemDetail> handleGenericException(Exception exception) {
+    @ExceptionHandler(value = Exception.class)
+    public ResponseEntity<ProblemDetail> handleGenericException(Exception exception, HttpServletResponse response) {
+        // Se o Content-Type já foi definido como PDF, não podemos retornar ProblemDetail via ResponseEntity.
+        // Gravamos o JSON diretamente no response stream para não causar HttpMessageNotWritableException.
+        String contentType = response.getContentType();
+        if (contentType != null && contentType.contains("application/pdf")) {
+            log.error("Erro durante geração de PDF. Respondendo com JSON direto.", exception);
+            response.reset();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.setContentType("application/problem+json;charset=UTF-8");
+            try {
+                response.getWriter().write("{\"status\":500,\"title\":\"Erro interno no servidor\",\"detail\":\"" + exception.getMessage() + "\"}");
+                response.getWriter().flush();
+            } catch (IOException e) {
+                log.error("Falha ao escrever resposta de erro JSON", e);
+            }
+            return null;
+        }
         return createProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno no servidor", exception, "Ocorreu um erro inesperado no sistema. Por favor, tente novamente mais tarde.");
     }
 
