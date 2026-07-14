@@ -42,6 +42,12 @@ public class Participante extends AbstractEntity<Long> {
     @Formula("(SELECT p.email FROM public.servidor s JOIN public.pessoa p ON p.id = s.id_pessoa WHERE s.id = id_servidor)")
     private String emailServidor;
 
+    @Formula("(SELECT s.matricula FROM public.servidor s WHERE s.id = id_servidor)")
+    private String matriculaServidor;
+
+    @Formula("(SELECT f.nome FROM public.servidor s LEFT JOIN recursoshumanos.funcao f ON f.id = s.id_cargo WHERE s.id = id_servidor)")
+    private String cargoServidor;
+
     @Convert(converter = TipoParticipanteEnumConverter.class)
     @Column(name = "tipo", nullable = false, length = 1)
     private TipoParticipanteEnum tipo;

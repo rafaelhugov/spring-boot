@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport name="oficio_drh" language="java" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="455" leftMargin="70" rightMargin="70" topMargin="40" bottomMargin="40" uuid="b1c2d3e4-f5a6-8901-bcde-fa1234567891">
+	<parameter name="NOME_CURSO" class="java.lang.String"/>
+	<parameter name="NOME_CHEFE_DRH" class="java.lang.String"/>
+	<parameter name="NOME_DIRETOR_CEAF" class="java.lang.String"/>
+	<parameter name="PRONOME_VOCATIVO" class="java.lang.String"/>
+	<parameter name="FUNCAO_CHEFE" class="java.lang.String"/>
+	<parameter name="SAUDACAO" class="java.lang.String"/>
+	<parameter name="NUMERO_OFICIO" class="java.lang.String"/>
+	<parameter name="ANO_OFICIO" class="java.lang.String"/>
+	<parameter name="ASSUNTO" class="java.lang.String"/>
+	<parameter name="TEXTO_CORPO" class="java.lang.String"/>
+	<parameter name="LOGO_BRASAO" class="java.io.InputStream"/>
+	<field name="nome" class="java.lang.String"/>
+	<field name="cargo" class="java.lang.String"/>
+	<title height="320" splitType="Stretch">
+		<!-- Brasão centralizado -->
+		<element kind="image" uuid="a1b2c3d4-e5f6-7890-ab01-ef1234560001" x="197" y="0" width="60" height="60">
+			<expression><![CDATA[$P{LOGO_BRASAO}]]></expression>
+		</element>
+		<!-- Cabeçalho institucional -->
+		<element kind="textField" uuid="a1b2c3d4-e5f6-7890-ab01-ef1234560002" x="0" y="70" width="455" height="40" hTextAlign="Center" fontName="SansSerif" fontSize="11" bold="true">
+			<expression><![CDATA["MINISTÉRIO PÚBLICO DO ESTADO DA PARAÍBA\nPROCURADORIA-GERAL DE JUSTIÇA\nCENTRO DE ESTUDOS E APERFEIÇOAMENTO FUNCIONAL"]]></expression>
+		</element>
+		<!-- Número do Ofício -->
+		<element kind="textField" uuid="a1b2c3d4-e5f6-7890-ab01-ef1234560003" x="0" y="130" width="455" height="15" fontName="SansSerif" fontSize="11" bold="true">
+			<expression><![CDATA["Ofício nº " + $P{NUMERO_OFICIO} + "/" + $P{ANO_OFICIO} + "/CEAF/MPPB"]]></expression>
+		</element>
+		<!-- Data alinhada à direita -->
+		<element kind="textField" uuid="a1b2c3d4-e5f6-7890-ab01-ef1234560004" x="0" y="145" width="455" height="15" fontName="SansSerif" fontSize="11" hTextAlign="Right">
+			<expression><![CDATA["João Pessoa, " + new java.text.SimpleDateFormat("dd 'de' MMMM 'de' yyyy", new java.util.Locale("pt", "BR")).format(new java.util.Date()) + "."]]></expression>
+		</element>
+		<!-- Pronome de tratamento + nome + função + órgão -->
+		<element kind="textField" uuid="a1b2c3d4-e5f6-7890-ab01-ef1234560005" x="0" y="170" width="455" height="70" fontName="SansSerif" fontSize="11">
+			<expression><![CDATA[$P{PRONOME_VOCATIVO} + "\n" + $P{NOME_CHEFE_DRH} + "\n" + $P{FUNCAO_CHEFE} + "\nMinistério Público da Paraíba"]]></expression>
+		</element>
+		<!-- Assunto em negrito -->
+		<element kind="textField" uuid="a1b2c3d4-e5f6-7890-ab01-ef1234560006" positionType="Float" x="0" y="240" width="455" height="20" fontName="SansSerif" fontSize="11" textAdjust="StretchHeight" markup="html" hTextAlign="Justified">
+			<expression><![CDATA["Assunto: <b>" + $P{ASSUNTO} + "</b>"]]></expression>
+		</element>
+		<!-- Texto do corpo (HTML rico) -->
+		<element kind="textField" uuid="a1b2c3d4-e5f6-7890-ab01-ef1234560007" positionType="Float" x="0" y="280" width="455" height="20" fontName="SansSerif" fontSize="11" textAdjust="StretchHeight" hTextAlign="Justified" markup="html">
+			<expression><![CDATA[$P{TEXTO_CORPO}]]></expression>
+		</element>
+	</title>
+	<columnHeader height="30" splitType="Stretch">
+		<element kind="staticText" uuid="a1b2c3d4-e5f6-7890-ab01-ef1234560008" x="0" y="10" width="220" height="20" fontName="SansSerif" fontSize="11" bold="true">
+			<text><![CDATA[Membros:]]></text>
+		</element>
+	</columnHeader>
+	<detail>
+		<band height="25" splitType="Stretch">
+			<element kind="textField" uuid="a1b2c3d4-e5f6-7890-ab01-ef1234560009" x="0" y="0" width="220" height="15" fontName="SansSerif" fontSize="10" textAdjust="StretchHeight">
+				<expression><![CDATA["- " + $F{nome}]]></expression>
+			</element>
+			<element kind="textField" uuid="a1b2c3d4-e5f6-7890-ab01-ef1234560010" x="230" y="0" width="225" height="15" fontName="SansSerif" fontSize="10" textAdjust="StretchHeight">
+				<expression><![CDATA[$F{cargo}]]></expression>
+			</element>
+		</band>
+	</detail>
+	<summary height="140" splitType="Stretch">
+		<element kind="textField" uuid="a1b2c3d4-e5f6-7890-ab01-ef1234560011" positionType="Float" x="0" y="30" width="455" height="110" fontName="SansSerif" fontSize="11" hTextAlign="Center" textAdjust="StretchHeight" markup="html">
+			<expression><![CDATA["Atenciosamente,<br/><br/><br/><font color=\"blue\">(documento datado e assinado eletronicamente)</font><br/>" + $P{NOME_DIRETOR_CEAF} + "<br/>Procurador de Justiça<br/>Diretor do CEAF"]]></expression>
+		</element>
+	</summary>
+</jasperReport>

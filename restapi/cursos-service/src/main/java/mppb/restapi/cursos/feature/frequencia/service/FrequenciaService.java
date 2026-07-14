@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.core.error.BusinessRuleException; // Import adicionado
 import mppb.restapi.common.core.service.AbstractService;
 import mppb.restapi.cursos.feature.curso.entity.Curso; // Import adicionado
+import mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum;
 import mppb.restapi.cursos.feature.frequencia.dto.FrequenciaRegistroResponseDto;
 import mppb.restapi.cursos.feature.frequencia.entity.Chamada;
 import mppb.restapi.cursos.feature.frequencia.entity.Frequencia;
@@ -73,7 +74,9 @@ public class FrequenciaService extends AbstractService<Frequencia, Long> { // Ti
 
         Inscricao inscricao = inscricaoOpt.get();
 
-        if (inscricao.getSituacao() != SituacaoInscricaoEnum.INSCRITO) {
+        if (inscricao.getSituacao() != SituacaoInscricaoEnum.INSCRITO &&
+            inscricao.getSituacao() != SituacaoInscricaoEnum.APROVADO &&
+            inscricao.getSituacao() != SituacaoInscricaoEnum.REPROVADO) {
             throw new BusinessRuleException("A sua inscrição não está ativa.");
         }
 
@@ -88,6 +91,7 @@ public class FrequenciaService extends AbstractService<Frequencia, Long> { // Ti
         frequencia.setDataHoraRegistro(LocalDateTime.now());
 
         Frequencia frequenciaSalva = frequenciaRepository.save(frequencia);
+        frequenciaRepository.flush();
         log.info("Presença registrada via QR Estático: Participante {} na Chamada {} (Aula {})", participante.getId(), chamada.getId(), chamada.getAula().getId());
 
         // Consolidar frequência (75% / regras do turno)
@@ -117,8 +121,43 @@ public class FrequenciaService extends AbstractService<Frequencia, Long> { // Ti
     }
 
     @Transactional(readOnly = true)
-    public List<Frequencia> findAllByAulaId(Integer aulaId) {
+    public List<Frequencia> findAllByAulaId(Long aulaId) {
         return frequenciaRepository.findAllByChamadaAulaId(aulaId);
+    }
+
+    @Transactional
+    public void remover(Long cursoId, Long aulaId, Long frequenciaId) {
+        Frequencia frequencia = frequenciaRepository.findById(frequenciaId)
+            .orElseThrow(() -> new mppb.restapi.common.core.error.NotFoundException("Registro de frequência não encontrado."));
+
+        if (!frequencia.getChamada().getAula().getId().equals(aulaId)
+                || !frequencia.getChamada().getAula().getCurso().getId().equals(cursoId)) {
+            throw new BusinessRuleException("O registro de frequência não pertence a esta aula/curso.");
+        }
+
+        frequenciaRepository.delete(frequencia);
+        frequenciaRepository.flush();
+        consolidarFrequenciasPorCurso(cursoId);
+    }
+
+    @Transactional
+    public void removerPorAula(Long aulaId) {
+        frequenciaRepository.deleteByAulaId(aulaId);
+        frequenciaRepository.flush();
+    }
+
+    @Transactional
+    public void removerPorChamada(Long chamadaId) {
+        frequenciaRepository.deleteByChamadaId(chamadaId);
+        frequenciaRepository.flush();
+    }
+
+    @Transactional
+    public void consolidarFrequenciasPorCurso(Long cursoId) {
+        List<Inscricao> inscricoes = inscricaoRepository.findAllByCursoId(cursoId, org.springframework.data.domain.Pageable.unpaged()).getContent();
+        for (Inscricao inscricao : inscricoes) {
+            consolidarFrequencias(inscricao.getId());
+        }
     }
 
     @Transactional
@@ -134,15 +173,24 @@ public class FrequenciaService extends AbstractService<Frequencia, Long> { // Ti
             .setParameter("cursoId", curso.getId())
             .getResultList();
 
-        if (aulas.isEmpty()) return;
+        if (aulas.isEmpty()) {
+            inscricao.setFrequencia(0);
+            if (inscricao.getSituacao() == SituacaoInscricaoEnum.APROVADO || inscricao.getSituacao() == SituacaoInscricaoEnum.REPROVADO) {
+                inscricao.setSituacao(SituacaoInscricaoEnum.INSCRITO);
+            }
+            inscricaoRepository.save(inscricao);
+            return;
+        }
 
         int aulasComPresencaIntegral = 0;
+        int aulasJaRealizadas = 0;
 
         for (mppb.restapi.cursos.feature.frequencia.entity.Aula aula : aulas) {
             List<Chamada> chamadasDaAula = chamadaService.findAllByAulaId(aula.getId());
             if (chamadasDaAula.isEmpty()) {
                 continue; // Aula sem chamada ainda
             }
+            aulasJaRealizadas++;
 
             int chamadasExigidas = aula.getQuantidadeChamadas() != null ? aula.getQuantidadeChamadas() : 1;
 
@@ -162,8 +210,19 @@ public class FrequenciaService extends AbstractService<Frequencia, Long> { // Ti
         int percentual = (int) (((double) aulasComPresencaIntegral / aulas.size()) * 100);
         inscricao.setFrequencia(percentual);
         
-        // Regra de aprovação/reprovação pode ser aplicada aqui (ex: < 75%) caso o curso tenha encerrado,
-        // mas por hora mantemos a gravação do percentual dinamicamente.
+        int minimoAprovacao = curso.getPercentualChAprovacao() != null ? curso.getPercentualChAprovacao() : 75;
+        int aulasRestantes = aulas.size() - aulasJaRealizadas;
+        int frequenciaMaximaPossivel = (int) (((double) (aulasComPresencaIntegral + aulasRestantes) / aulas.size()) * 100);
+        boolean cursoFinalizado = curso.getStatus() == StatusCursoEnum.FINALIZADO;
+
+        if (percentual >= minimoAprovacao) {
+            inscricao.setSituacao(SituacaoInscricaoEnum.APROVADO);
+        } else if (cursoFinalizado && frequenciaMaximaPossivel < minimoAprovacao) {
+            inscricao.setSituacao(SituacaoInscricaoEnum.REPROVADO);
+        } else if (inscricao.getSituacao() == SituacaoInscricaoEnum.APROVADO || inscricao.getSituacao() == SituacaoInscricaoEnum.REPROVADO) {
+            inscricao.setSituacao(SituacaoInscricaoEnum.INSCRITO);
+        }
+        
         inscricaoRepository.save(inscricao);
     }
 }

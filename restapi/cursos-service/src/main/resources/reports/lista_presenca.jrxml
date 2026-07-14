@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport name="lista_presenca" language="java" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="a1b2c3d4-e5f6-7890-abcd-ef1234567890">
+	<parameter name="NOME_CURSO" class="java.lang.String"/>
+	<parameter name="TIPO_EVENTO" class="java.lang.String"/>
+	<parameter name="LOCAL_EVENTO" class="java.lang.String"/>
+	<parameter name="DATA_EVENTO" class="java.lang.String"/>
+	<parameter name="HORARIO_EVENTO" class="java.lang.String"/>
+	<parameter name="TITULO_LISTA" class="java.lang.String"/>
+	<parameter name="LOGO_BRASAO" class="java.io.InputStream"/>
+
+	<field name="nome" class="java.lang.String"/>
+
+	<title height="200" splitType="Stretch">
+		<!-- Brasão centralizado -->
+		<element kind="image" uuid="a1b2c3d4-e5f6-7890-abcd-000000000001" x="371" y="0" width="60" height="60">
+			<expression><![CDATA[$P{LOGO_BRASAO}]]></expression>
+		</element>
+		<!-- Cabeçalho institucional: 3 linhas -->
+		<element kind="textField" uuid="a1b2c3d4-e5f6-7890-abcd-000000000002" x="0" y="65" width="802" height="50" hTextAlign="Center" fontName="SansSerif" fontSize="11" bold="true" textAdjust="StretchHeight">
+			<expression><![CDATA["MINISTÉRIO PÚBLICO DO ESTADO DA PARAÍBA\nPROCURADORIA-GERAL DE JUSTIÇA\nCENTRO DE ESTUDOS E APERFEIÇOAMENTO FUNCIONAL"]]></expression>
+		</element>
+		<!-- Tipo do evento + nome -->
+		<element kind="textField" uuid="a1b2c3d4-e5f6-7890-abcd-000000000003" x="0" y="120" width="802" height="20" hTextAlign="Center" fontName="SansSerif" fontSize="11" bold="true" textAdjust="StretchHeight">
+			<expression><![CDATA[$P{TIPO_EVENTO} + " \"" + $P{NOME_CURSO} + "\""]]></expression>
+		</element>
+		<!-- Local -->
+		<element kind="textField" uuid="a1b2c3d4-e5f6-7890-abcd-000000000004" x="0" y="142" width="802" height="15" hTextAlign="Center" fontName="SansSerif" fontSize="10" bold="true">
+			<expression><![CDATA["LOCAL: " + $P{LOCAL_EVENTO}]]></expression>
+		</element>
+		<!-- Data e Horário -->
+		<element kind="textField" uuid="a1b2c3d4-e5f6-7890-abcd-000000000005" x="0" y="158" width="802" height="15" hTextAlign="Center" fontName="SansSerif" fontSize="10" bold="true">
+			<expression><![CDATA["DATA: " + $P{DATA_EVENTO} + "     HORÁRIO: " + $P{HORARIO_EVENTO}]]></expression>
+		</element>
+		<!-- Título da Lista -->
+		<element kind="textField" uuid="a1b2c3d4-e5f6-7890-abcd-000000000006" x="0" y="175" width="802" height="17" hTextAlign="Center" fontName="SansSerif" fontSize="11" bold="true">
+			<expression><![CDATA["LISTA DE PRESENÇA  -  " + $P{TITULO_LISTA}]]></expression>
+		</element>
+	</title>
+
+	<columnHeader height="30" splitType="Stretch">
+		<element kind="staticText" uuid="a1b2c3d4-e5f6-7890-abcd-000000000007" x="0" y="0" width="450" height="30" fontName="SansSerif" fontSize="11" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[NOME DO PARTICIPANTE]]></text>
+			<box>
+				<pen lineWidth="1.0"/>
+			</box>
+		</element>
+		<element kind="staticText" uuid="a1b2c3d4-e5f6-7890-abcd-000000000008" x="450" y="0" width="352" height="30" fontName="SansSerif" fontSize="11" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[ASSINATURA]]></text>
+			<box>
+				<pen lineWidth="1.0"/>
+			</box>
+		</element>
+	</columnHeader>
+
+	<detail>
+		<band height="30" splitType="Stretch">
+			<element kind="textField" uuid="a1b2c3d4-e5f6-7890-abcd-000000000009" x="0" y="0" width="450" height="30" fontName="SansSerif" fontSize="10" vTextAlign="Middle" hTextAlign="Center" textAdjust="StretchHeight">
+				<expression><![CDATA[$F{nome}]]></expression>
+				<box>
+					<pen lineWidth="1.0"/>
+				</box>
+			</element>
+			<element kind="staticText" uuid="a1b2c3d4-e5f6-7890-abcd-000000000010" x="450" y="0" width="352" height="30" hTextAlign="Center" vTextAlign="Middle">
+				<text><![CDATA[]]></text>
+				<box>
+					<pen lineWidth="1.0"/>
+				</box>
+			</element>
+		</band>
+	</detail>
+
+</jasperReport>
