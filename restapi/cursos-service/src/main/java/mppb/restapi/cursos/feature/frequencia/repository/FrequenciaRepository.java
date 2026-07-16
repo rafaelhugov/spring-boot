@@ -20,7 +20,11 @@ public interface FrequenciaRepository extends BaseRepository<Frequencia, Long> {
 
     boolean existsByChamadaAndInscricao(Chamada chamada, Inscricao inscricao);
 
+    boolean existsByInscricaoIdAndManualTrue(Long inscricaoId);
+
     List<Frequencia> findAllByChamadaAulaId(Long aulaId);
+
+    List<Frequencia> findAllByInscricaoId(Long inscricaoId);
 
     @Modifying
     @Query("DELETE FROM Frequencia f WHERE f.chamada.id IN (SELECT c.id FROM Chamada c WHERE c.aula.id = :aulaId)")

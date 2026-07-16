@@ -13,13 +13,16 @@ public class InscricaoConverter implements DtoConverter<InscricaoDto, Inscricao>
     private final ModelMapper modelMapper;
     private final ParticipanteConverter participanteConverter;
     private final mppb.restapi.cursos.feature.curso.converter.CursoConverter cursoConverter;
+    private final mppb.restapi.cursos.feature.frequencia.repository.FrequenciaRepository frequenciaRepository;
 
     public InscricaoConverter(ModelMapper modelMapper, 
                              ParticipanteConverter participanteConverter,
-                             mppb.restapi.cursos.feature.curso.converter.CursoConverter cursoConverter) {
+                             mppb.restapi.cursos.feature.curso.converter.CursoConverter cursoConverter,
+                             @org.springframework.context.annotation.Lazy mppb.restapi.cursos.feature.frequencia.repository.FrequenciaRepository frequenciaRepository) {
         this.modelMapper = modelMapper;
         this.participanteConverter = participanteConverter;
         this.cursoConverter = cursoConverter;
+        this.frequenciaRepository = frequenciaRepository;
     }
 
     @Override
@@ -43,6 +46,10 @@ public class InscricaoConverter implements DtoConverter<InscricaoDto, Inscricao>
         // Usa o converter dedicado para o objeto aninhado, garantindo a separação de responsabilidades.
         if (entity.getParticipante() != null) {
             dto.setParticipante(participanteConverter.toDto(entity.getParticipante()));
+        }
+
+        if (entity.getId() != null) {
+            dto.setPossuiFrequenciaManual(frequenciaRepository.existsByInscricaoIdAndManualTrue(entity.getId()));
         }
 
         return dto;

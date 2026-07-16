@@ -17,5 +17,6 @@ public class InscricaoDto {
     private String situacao;
     private Integer frequencia;
     private ParticipanteDto participante;
+    private Boolean possuiFrequenciaManual;
 
 }

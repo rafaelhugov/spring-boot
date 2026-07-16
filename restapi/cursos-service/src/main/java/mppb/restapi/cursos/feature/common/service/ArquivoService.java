@@ -31,4 +31,9 @@ public class ArquivoService {
     public Optional<Arquivo> buscarPorId(Long id) {
         return arquivoRepository.findById(id);
     }
+
+    @Transactional
+    public void remover(Long id) {
+        arquivoRepository.deleteById(id);
+    }
 }

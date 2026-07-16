@@ -225,4 +225,101 @@ public class FrequenciaService extends AbstractService<Frequencia, Long> { // Ti
         
         inscricaoRepository.save(inscricao);
     }
+
+    @Transactional
+    public void registrarPresencasManuais(Long cursoId, Long inscricaoId, mppb.restapi.cursos.feature.frequencia.dto.AtualizarFrequenciasManuaisDto dto) {
+        Inscricao inscricao = inscricaoRepository.findById(inscricaoId)
+            .orElseThrow(() -> new mppb.restapi.common.core.error.NotFoundException("Inscrição não encontrada."));
+
+        List<mppb.restapi.cursos.feature.frequencia.entity.Aula> aulas = entityManager.createQuery(
+            "SELECT a FROM Aula a WHERE a.curso.id = :cursoId", mppb.restapi.cursos.feature.frequencia.entity.Aula.class)
+            .setParameter("cursoId", cursoId)
+            .getResultList();
+
+        for (mppb.restapi.cursos.feature.frequencia.entity.Aula aula : aulas) {
+            Optional<mppb.restapi.cursos.feature.frequencia.dto.RegistroPresencaManualDto> registroOpt = dto.getPresencas().stream()
+                .filter(p -> p.getAulaId().equals(aula.getId()))
+                .findFirst();
+
+            List<Chamada> chamadas = chamadaService.findAllByAulaId(aula.getId());
+
+            if (registroOpt.isPresent()) {
+                List<String> horarios = registroOpt.get().getHorarios();
+                int quantidadeExigida = aula.getQuantidadeChamadas() != null ? aula.getQuantidadeChamadas() : 1;
+                
+                for (int i = 0; i < quantidadeExigida; i++) {
+                    mppb.restapi.cursos.feature.frequencia.enums.TipoChamadaEnum tipo = (i == 0) ? mppb.restapi.cursos.feature.frequencia.enums.TipoChamadaEnum.INICIO : mppb.restapi.cursos.feature.frequencia.enums.TipoChamadaEnum.FIM;
+                    String horarioStr = (horarios != null && horarios.size() > i) ? horarios.get(i) : null;
+
+                    Chamada chamada = chamadas.stream()
+                        .filter(c -> c.getTipo() == tipo)
+                        .findFirst()
+                        .orElseGet(() -> {
+                            Chamada nova = new Chamada();
+                            nova.setAula(aula);
+                            nova.setTipo(tipo);
+                            nova.setAberta(false);
+                            return chamadaService.save(nova);
+                        });
+
+                    if (horarioStr != null && !horarioStr.isBlank()) {
+                        java.time.LocalTime horario = java.time.LocalTime.parse(horarioStr);
+                        if (horario.isBefore(aula.getHoraInicio()) || horario.isAfter(aula.getHoraFim())) {
+                            throw new BusinessRuleException(String.format("O horário %s está fora do período da aula (%s às %s).", horarioStr, aula.getHoraInicio(), aula.getHoraFim()));
+                        }
+                        
+                        Frequencia frequencia = frequenciaRepository.findByChamadaAndInscricao(chamada, inscricao)
+                            .orElse(new Frequencia());
+                        
+                        frequencia.setChamada(chamada);
+                        frequencia.setInscricao(inscricao);
+                        frequencia.setDataHoraRegistro(LocalDateTime.of(aula.getData(), horario));
+                        frequencia.setManual(true);
+                        
+                        frequenciaRepository.save(frequencia);
+                    } else {
+                        frequenciaRepository.findByChamadaAndInscricao(chamada, inscricao)
+                            .ifPresent(frequenciaRepository::delete);
+                    }
+                }
+            } else {
+                for (Chamada chamada : chamadas) {
+                    frequenciaRepository.findByChamadaAndInscricao(chamada, inscricao)
+                        .ifPresent(frequenciaRepository::delete);
+                }
+            }
+        }
+        
+        frequenciaRepository.flush();
+        consolidarFrequencias(inscricaoId);
+    }
+
+    @Transactional(readOnly = true)
+    public mppb.restapi.cursos.feature.frequencia.dto.AtualizarFrequenciasManuaisDto buscarPresencasPorInscricao(Long inscricaoId) {
+        List<Frequencia> frequencias = frequenciaRepository.findAllByInscricaoId(inscricaoId);
+        java.util.Map<Long, List<String>> mapAulas = new java.util.HashMap<>();
+        
+        for (Frequencia freq : frequencias) {
+            Long aulaId = freq.getChamada().getAula().getId();
+            mapAulas.putIfAbsent(aulaId, new java.util.ArrayList<>());
+            int index = freq.getChamada().getTipo() == mppb.restapi.cursos.feature.frequencia.enums.TipoChamadaEnum.INICIO ? 0 : 1;
+            List<String> list = mapAulas.get(aulaId);
+            while (list.size() <= index) {
+                list.add(null);
+            }
+            list.set(index, freq.getDataHoraRegistro().toLocalTime().toString());
+        }
+        
+        List<mppb.restapi.cursos.feature.frequencia.dto.RegistroPresencaManualDto> presencas = new java.util.ArrayList<>();
+        for (java.util.Map.Entry<Long, List<String>> entry : mapAulas.entrySet()) {
+            mppb.restapi.cursos.feature.frequencia.dto.RegistroPresencaManualDto dto = new mppb.restapi.cursos.feature.frequencia.dto.RegistroPresencaManualDto();
+            dto.setAulaId(entry.getKey());
+            dto.setHorarios(entry.getValue());
+            presencas.add(dto);
+        }
+        
+        mppb.restapi.cursos.feature.frequencia.dto.AtualizarFrequenciasManuaisDto dto = new mppb.restapi.cursos.feature.frequencia.dto.AtualizarFrequenciasManuaisDto();
+        dto.setPresencas(presencas);
+        return dto;
+    }
 }

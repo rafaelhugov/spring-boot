@@ -40,4 +40,7 @@ public class GeracaoDocumentoRequest {
     // Sobrescrita de evento
     private String localEvento;
     private String descricaoComplementarEvento;
+    private String nomeCurso;
+    private String dataEvento;
+    private String horarioEvento;
 }

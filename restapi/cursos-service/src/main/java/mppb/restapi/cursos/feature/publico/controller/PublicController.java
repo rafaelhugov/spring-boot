@@ -85,11 +85,11 @@ public class PublicController {
     }
 
     /**
-     * Confirma uma inscrição do participante externo a partir do token enviado por e-mail.
+     * Confirma uma inscrição externa legada a partir do token enviado por e-mail.
      * @param token O token de confirmação.
      * @return Uma resposta de sucesso se o token for válido.
      */
-    @Operation(summary = "Confirma uma inscrição do participante externo por e-mail", description = "Valida o token recebido e, se for válido, efetiva a inscrição do participante externo.")
+    @Operation(summary = "Confirma uma inscrição externa legada por e-mail", description = "Mantém compatibilidade com tokens antigos. O fluxo público atual já efetiva a inscrição externa imediatamente.")
     @GetMapping("/inscricoes/confirmar/{token}")
     public ResponseEntity<Void> confirmarInscricaoExterno(@PathVariable String token) {
         inscricaoService.confirmarInscricao(token);
@@ -119,4 +119,3 @@ public class PublicController {
     }
 
 }
-

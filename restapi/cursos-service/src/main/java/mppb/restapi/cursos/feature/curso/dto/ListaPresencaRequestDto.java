@@ -9,4 +9,5 @@ public class ListaPresencaRequestDto {
     private String localEvento;
     private String dataEvento;
     private String horarioEvento;
+    private mppb.restapi.cursos.feature.inscricao.enums.SituacaoInscricaoEnum situacaoInscricao;
 }

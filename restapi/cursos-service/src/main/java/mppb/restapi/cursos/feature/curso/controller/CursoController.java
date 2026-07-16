@@ -12,6 +12,7 @@ import mppb.restapi.common.core.converter.DtoConverter;
 import mppb.restapi.common.core.validation.groups.Update;
 import mppb.restapi.cursos.feature.curso.dto.*;
 import mppb.restapi.cursos.feature.curso.entity.Curso;
+import mppb.restapi.cursos.feature.curso.service.CursoArquivoComprobatorioService;
 import mppb.restapi.cursos.feature.curso.service.CursoService;
 import mppb.restapi.cursos.feature.frequencia.dto.AulaDto;
 import mppb.restapi.cursos.feature.frequencia.dto.ChamadaDto;
@@ -37,6 +38,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -62,6 +64,7 @@ public class CursoController extends AbstractController {
     private final DtoConverter<AulaDto, Aula> aulaConverter;
     private final DtoConverter<ChamadaDto, Chamada> chamadaConverter;
     private final mppb.restapi.cursos.feature.curso.service.CursoDocumentoService cursoDocumentoService;
+    private final CursoArquivoComprobatorioService cursoArquivoComprobatorioService;
 
 
 
@@ -97,6 +100,26 @@ public class CursoController extends AbstractController {
     @PutMapping("/{id}")
     public ResponseEntity<CursoDto> update(@PathVariable Long id, @Validated(Update.class) @RequestBody CursoDto cursoDto) {
         return ResponseEntity.ok(cursoService.update(id, cursoDto));
+    }
+
+    @Operation(summary = "Lista os arquivos comprobatórios do curso", description = "Retorna os arquivos PDF e imagens vinculados como comprovação de um curso finalizado.")
+    @GetMapping(value = "/{cursoId}/arquivos-comprobatorios", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<CursoArquivoComprobatorioDto>> listarArquivosComprobatorios(@PathVariable Long cursoId) {
+        return ResponseEntity.ok(cursoArquivoComprobatorioService.listar(cursoId));
+    }
+
+    @Operation(summary = "Envia um arquivo comprobatório do curso", description = "Salva o arquivo no GED e cria o vínculo comprobatório com o curso finalizado.")
+    @PostMapping(value = "/{cursoId}/arquivos-comprobatorios", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CursoArquivoComprobatorioDto> uploadArquivoComprobatorio(@PathVariable Long cursoId,
+                                                                                   @RequestParam("file") MultipartFile file) throws IOException {
+        return ResponseEntity.status(HttpStatus.CREATED).body(cursoArquivoComprobatorioService.upload(cursoId, file));
+    }
+
+    @Operation(summary = "Remove um arquivo comprobatório do curso", description = "Remove o vínculo do arquivo comprobatório com o curso.")
+    @DeleteMapping("/{cursoId}/arquivos-comprobatorios/{comprovanteId}")
+    public ResponseEntity<Void> removerArquivoComprobatorio(@PathVariable Long cursoId, @PathVariable Long comprovanteId) {
+        cursoArquivoComprobatorioService.remover(cursoId, comprovanteId);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Deleta um curso", description = "Deleta um curso (exclusão lógica).")
@@ -172,13 +195,23 @@ public class CursoController extends AbstractController {
         return ResponseEntity.status(HttpStatus.CREATED).body(inscricaoCriadaDto);
     }
 
-    @Operation(summary = "Atualiza a situação de um participante", description = "Atualiza a situação de uma inscrição específica (ex: APROVADO, REPROVADO).")
-    @PatchMapping("/{cursoId}/participantes/{inscricaoId}")
-    public ResponseEntity<InscricaoDto> atualizarSituacao(@PathVariable Long cursoId,
-                                                          @PathVariable Long inscricaoId,
-                                                          @Valid @RequestBody AtualizarSituacaoDto dto) {
-        InscricaoDto inscricaoAtualizada = inscricaoService.atualizarSituacao(cursoId, inscricaoId, dto.getSituacao(), dto.getFrequencia());
-        return ResponseEntity.ok(inscricaoAtualizada);
+    @Operation(summary = "Busca as frequências manuais de um participante")
+    @GetMapping("/{cursoId}/participantes/{inscricaoId}/frequencias-manuais")
+    public ResponseEntity<mppb.restapi.cursos.feature.frequencia.dto.AtualizarFrequenciasManuaisDto> buscarFrequenciasManuais(
+            @PathVariable Long cursoId,
+            @PathVariable Long inscricaoId) {
+        mppb.restapi.cursos.feature.frequencia.dto.AtualizarFrequenciasManuaisDto dto = frequenciaService.buscarPresencasPorInscricao(inscricaoId);
+        return ResponseEntity.ok(dto);
+    }
+
+    @Operation(summary = "Atualiza as frequências manuais de um participante")
+    @PutMapping("/{cursoId}/participantes/{inscricaoId}/frequencias-manuais")
+    public ResponseEntity<Void> atualizarFrequenciasManuais(
+            @PathVariable Long cursoId,
+            @PathVariable Long inscricaoId,
+            @RequestBody mppb.restapi.cursos.feature.frequencia.dto.AtualizarFrequenciasManuaisDto dto) {
+        frequenciaService.registrarPresencasManuais(cursoId, inscricaoId, dto);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Remove um participante de um curso", description = "Remove a inscrição de um participante do curso.")

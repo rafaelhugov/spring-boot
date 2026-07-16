@@ -10,15 +10,20 @@ import mppb.restapi.cursos.feature.frequencia.repository.AulaRepository;
 import mppb.restapi.cursos.feature.inscricao.entity.Inscricao;
 import mppb.restapi.cursos.feature.inscricao.repository.InscricaoRepository;
 import mppb.restapi.cursos.feature.participante.entity.Participante;
+import mppb.restapi.cursos.feature.participante.enums.TipoParticipanteEnum;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.Arrays;
 
 @Service
 public class DocumentosService {
@@ -69,7 +74,7 @@ public class DocumentosService {
         vars.put("assinante_cargo", request.getAssinanteCargo());
         
         // Dados do curso
-        vars.put("titulo_evento", curso.getTitulo());
+        vars.put("titulo_evento", (request.getNomeCurso() != null && !request.getNomeCurso().isEmpty()) ? request.getNomeCurso() : curso.getTitulo());
         vars.put("tipo_evento", curso.getTipoEvento() != null ? curso.getTipoEvento().getDescricao() : "Evento");
         vars.put("descricao_complementar_evento", request.getDescricaoComplementarEvento() != null ? " " + request.getDescricaoComplementarEvento() : "");
         vars.put("modalidade", curso.getModalidade() != null ? curso.getModalidade().getDescricao() : "");
@@ -77,15 +82,21 @@ public class DocumentosService {
         vars.put("publico_alvo", request.getTipoPublico());
         vars.put("forma_divulgacao", "sítio e e-mail institucionais");
         vars.put("orgao_promotor", request.getOrgaoPromotor());
+        vars.put("brasao_src", getBrasaoDataUri());
 
         // Datas / Locais
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        String dataRealizacao = aulas.stream()
-                .map(a -> a.getData().format(dtf))
-                .distinct()
-                .collect(Collectors.joining(", "));
+        String dataRealizacao = (request.getDataEvento() != null && !request.getDataEvento().isEmpty())
+                ? request.getDataEvento() 
+                : (!aulas.isEmpty() ?
+                        aulas.stream()
+                                .map(a -> a.getData().format(dtf))
+                                .distinct()
+                                .collect(Collectors.joining(", ")) : "Data não informada");
+        
         vars.put("data_realizacao", dataRealizacao);
         vars.put("periodo_realizacao", dataRealizacao);
+        vars.put("data", dataRealizacao);
         
         if (request.getLocalEvento() != null && !request.getLocalEvento().isEmpty()) {
             vars.put("plataforma_ou_local", request.getLocalEvento());
@@ -99,14 +110,11 @@ public class DocumentosService {
             vars.put("local", locais);
         }
 
-        // Horário (primeira aula)
-        if (!aulas.isEmpty()) {
-            vars.put("horario", aulas.get(0).getHoraInicio().toString() + " às " + aulas.get(0).getHoraFim().toString());
-            vars.put("data", aulas.get(0).getData().format(dtf));
-        } else {
-            vars.put("horario", "");
-            vars.put("data", "");
-        }
+        // Horário
+        String horarioEvento = (request.getHorarioEvento() != null && !request.getHorarioEvento().isEmpty())
+                ? request.getHorarioEvento()
+                : (!aulas.isEmpty() ? aulas.get(0).getHoraInicio().toString() + " às " + aulas.get(0).getHoraFim().toString() : "");
+        vars.put("horario", horarioEvento);
 
         // Ministrantes
         List<String> nomesPalestrantes = new ArrayList<>();
@@ -133,31 +141,70 @@ public class DocumentosService {
 
         // Participantes
         List<ParticipanteDTO> participantes = inscricoes.stream()
-                .map(i -> new ParticipanteDTO(i.getParticipante().getNome(), i.getParticipante().getMatriculaServidor()))
+                .map(i -> new ParticipanteDTO(nomeParticipante(i.getParticipante()), i.getParticipante().getMatriculaServidor()))
                 .collect(Collectors.toList());
         vars.put("participantes", participantes);
         
         // Para lista de presença
         if ("LISTA_PRESENCA".equals(request.getTipoDocumento())) {
-            List<Map<String, Object>> linhasParticipantes = new ArrayList<>();
-            for (int i = 0; i < participantes.size(); i++) {
-                Map<String, Object> map = new HashMap<>();
-                map.put("numero", i + 1);
-                map.put("nome", participantes.get(i).getNome());
-                linhasParticipantes.add(map);
+            List<String> filtros = request.getTipoPublico() != null ? Arrays.asList(request.getTipoPublico().toUpperCase().split(",")) : new ArrayList<>();
+            boolean todos = filtros.isEmpty() || filtros.contains("TODOS");
+
+            Map<String, List<Map<String, Object>>> grupos = new HashMap<>();
+            grupos.put("MEMBROS", new ArrayList<>());
+            grupos.put("SERVIDORES", new ArrayList<>());
+            grupos.put("ASSESSORES", new ArrayList<>());
+            grupos.put("EXTERNOS", new ArrayList<>());
+
+            for (Inscricao inscricao : inscricoes) {
+                Participante p = inscricao.getParticipante();
+                String categoria = classificarParticipante(p);
+
+                // Aplica o filtro selecionado pelo usuário (se não for "TODOS")
+                if (todos || filtros.contains(categoria)) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("nome", nomeParticipante(p));
+                    grupos.get(categoria).add(map);
+                }
             }
-            vars.put("linhas_participantes", linhasParticipantes);
-            
+
+            List<Map<String, Object>> gruposParticipantes = new ArrayList<>();
+            String[] ordemGrupos = {"MEMBROS", "SERVIDORES", "ASSESSORES", "EXTERNOS"};
+
+            for (String cat : ordemGrupos) {
+                List<Map<String, Object>> lista = grupos.get(cat);
+                if (!lista.isEmpty()) {
+                    // Ordenar alfabeticamente e atribuir numeração
+                    lista.sort((m1, m2) -> {
+                        String n1 = (String) m1.get("nome");
+                        String n2 = (String) m2.get("nome");
+                        n1 = n1 != null ? n1 : "";
+                        n2 = n2 != null ? n2 : "";
+                        return n1.compareToIgnoreCase(n2);
+                    });
+                    for (int i = 0; i < lista.size(); i++) {
+                        lista.get(i).put("numero", i + 1);
+                    }
+                    Map<String, Object> grupoInfo = new HashMap<>();
+                    grupoInfo.put("nomeGrupo", cat);
+                    grupoInfo.put("participantes", lista);
+                    gruposParticipantes.add(grupoInfo);
+                }
+            }
+
+            vars.put("grupos_participantes", gruposParticipantes);
+
             int adic = request.getQuantidadeLinhasAdicionais() != null ? request.getQuantidadeLinhasAdicionais() : 0;
             List<Map<String, Object>> linhasAdicionais = new ArrayList<>();
             for (int i = 0; i < adic; i++) {
                 Map<String, Object> map = new HashMap<>();
-                map.put("numero", participantes.size() + i + 1);
+                map.put("numero", i + 1);
                 linhasAdicionais.add(map);
             }
             vars.put("linhas_adicionais", linhasAdicionais);
             
-            vars.put("tipo_publico", request.getTipoPublico() != null ? request.getTipoPublico().toUpperCase() : "TODOS");
+            vars.put("tipo_publico", formatarTipoPublico(request.getTipoPublico()));
+            vars.put("titulo_documento", "APROVADO".equals(request.getSituacaoInscricao() != null ? request.getSituacaoInscricao().name() : null) ? "LISTA DE PRESENÇA" : "LISTA DE INSCRITOS");
         }
 
         // Determinar template
@@ -180,6 +227,58 @@ public class DocumentosService {
         }
 
         return pdfGeneratorService.generatePdf(templateName, vars);
+    }
+
+    private String classificarParticipante(Participante p) {
+        if (p.getTipo() == TipoParticipanteEnum.EXTERNO) {
+            return "EXTERNOS";
+        }
+        String cargo = p.getCargoServidor() != null ? p.getCargoServidor().toUpperCase() : "";
+        if (cargo.contains("PROMOTOR") || cargo.contains("PROCURADOR")) {
+            return "MEMBROS";
+        } else if (cargo.contains("ASSESSOR")) {
+            return "ASSESSORES";
+        } else {
+            return "SERVIDORES";
+        }
+    }
+
+    private String nomeParticipante(Participante p) {
+        if (p == null) {
+            return "";
+        }
+        if (p.getNome() != null && !p.getNome().isBlank()) {
+            return p.getNome();
+        }
+        if (p.getNomeServidor() != null && !p.getNomeServidor().isBlank()) {
+            return p.getNomeServidor();
+        }
+        return "";
+    }
+
+    private String getBrasaoDataUri() {
+        try (InputStream is = getClass().getResourceAsStream("/reports/brasao_mppb_sem_fundo.png")) {
+            if (is == null) {
+                return "";
+            }
+            return "data:image/png;base64," + Base64.getEncoder().encodeToString(is.readAllBytes());
+        } catch (IOException e) {
+            return "";
+        }
+    }
+
+    private String formatarTipoPublico(String tipoPublico) {
+        if (tipoPublico == null || tipoPublico.isBlank()) {
+            return "TODOS";
+        }
+        List<String> tipos = Arrays.stream(tipoPublico.toUpperCase().split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+        if (tipos.isEmpty() || tipos.contains("TODOS")) {
+            return "TODOS";
+        }
+        return String.join(", ", tipos);
     }
     
     public static class ParticipanteDTO {

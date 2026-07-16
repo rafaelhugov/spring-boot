@@ -21,7 +21,7 @@ public class PdfGeneratorService {
         Context context = new Context();
         context.setVariables(variables);
         
-        String html = templateEngine.process("documentos/" + templateName, context);
+        String html = normalizeHtmlForPdf(templateEngine.process("documentos/" + templateName, context));
         
         try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
             PdfRendererBuilder builder = new PdfRendererBuilder();
@@ -33,5 +33,12 @@ public class PdfGeneratorService {
         } catch (Exception e) {
             throw new RuntimeException("Erro ao gerar PDF", e);
         }
+    }
+
+    private String normalizeHtmlForPdf(String html) {
+        if (html == null) {
+            return null;
+        }
+        return html.replaceAll("(?i)&nbsp;", "&#160;");
     }
 }
