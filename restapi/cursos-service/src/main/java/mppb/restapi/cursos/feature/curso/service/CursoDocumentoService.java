@@ -12,6 +12,9 @@ import mppb.restapi.cursos.feature.inscricao.repository.InscricaoRepository;
 import mppb.restapi.cursos.feature.participante.entity.Participante;
 import mppb.restapi.cursos.feature.participante.enums.TipoParticipanteEnum;
 import mppb.restapi.cursos.feature.curso.dto.ParticipanteDocumentoDto;
+import mppb.restapi.cursos.feature.frequencia.entity.Aula;
+import mppb.restapi.cursos.feature.frequencia.repository.AulaRepository;
+import java.time.format.DateTimeFormatter;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import java.io.InputStream;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.Arrays;
 
 @Slf4j
 @Service
@@ -29,6 +33,7 @@ public class CursoDocumentoService {
     private final JasperService jasperService;
     private final CursoRepository cursoRepository;
     private final InscricaoRepository inscricaoRepository;
+    private final AulaRepository aulaRepository;
     private final JdbcTemplate jdbcTemplate;
 
     public byte[] gerarListaPresenca(Long cursoId, ListaPresencaRequestDto request) {
@@ -37,22 +42,34 @@ public class CursoDocumentoService {
 
         String tipoPublico = request != null && request.getTipoPublico() != null ? request.getTipoPublico().toUpperCase() : "TODOS";
 
-        List<ParticipanteDocumentoDto> participantes = buscarParticipantesPorTipo(cursoId, tipoPublico);
+        List<ParticipanteDocumentoDto> participantes = buscarParticipantesPorTipo(cursoId, tipoPublico, true);
 
-        String tituloLista = switch (tipoPublico) {
-            case "MEMBROS" -> "MEMBROS";
-            case "SERVIDORES" -> "SERVIDORES";
-            case "ASSESSORES" -> "ASSESSORES";
-            default -> "TODOS OS PARTICIPANTES";
-        };
+        String tituloLista;
+        if (tipoPublico.contains(",")) {
+            tituloLista = String.join(", ", tipoPublico.split(","));
+        } else {
+            tituloLista = switch (tipoPublico) {
+                case "MEMBROS" -> "MEMBROS";
+                case "SERVIDORES" -> "SERVIDORES";
+                case "ASSESSORES" -> "ASSESSORES";
+                case "EXTERNOS" -> "EXTERNOS";
+                default -> "TODOS OS PARTICIPANTES";
+            };
+        }
 
         String tipoEvento = curso.getTipoEvento() != null ? curso.getTipoEvento().getDescricao() : "EVENTO";
         String localEvento = (request != null && request.getLocalEvento() != null && !request.getLocalEvento().isBlank())
-                ? request.getLocalEvento() : "Local não informado";
+                ? request.getLocalEvento() : (curso.getMunicipio() != null ? curso.getMunicipio().getNome() : "Local não informado");
+        
+        List<Aula> aulas = aulaRepository.findAllByCursoId(cursoId);
+        DateTimeFormatter dtFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+
         String dataEvento = (request != null && request.getDataEvento() != null && !request.getDataEvento().isBlank())
-                ? request.getDataEvento() : "Data não informada";
+                ? request.getDataEvento() : (!aulas.isEmpty() ? aulas.stream().map(a -> a.getData().format(dtFormatter)).distinct().collect(Collectors.joining(", ")) : "Data não informada");
+        
         String horarioEvento = (request != null && request.getHorarioEvento() != null && !request.getHorarioEvento().isBlank())
-                ? request.getHorarioEvento() : "Horário não informado";
+                ? request.getHorarioEvento() : (!aulas.isEmpty() ? aulas.stream().map(a -> "das " + a.getHoraInicio().format(timeFormatter) + " às " + a.getHoraFim().format(timeFormatter)).distinct().collect(Collectors.joining(" e ")) : "Horário não informado");
         String nomeCurso = (request != null && request.getNomeCurso() != null && !request.getNomeCurso().isBlank())
                 ? request.getNomeCurso() : curso.getTitulo();
 
@@ -125,30 +142,47 @@ public class CursoDocumentoService {
         return jasperService.gerarPdfDatasource("oficio_drh.jrxml", parametros, new JRBeanCollectionDataSource(todos));
     }
 
-    private List<ParticipanteDocumentoDto> buscarParticipantesPorTipo(Long cursoId, String tipoPublico) {
+    private List<ParticipanteDocumentoDto> buscarParticipantesPorTipo(Long cursoId, String tipoPublico, boolean apenasAprovados) {
         List<Inscricao> inscricoes = inscricaoRepository.findAllByCursoId(cursoId, Pageable.unpaged()).getContent();
 
         return inscricoes.stream()
+                .filter(i -> !apenasAprovados || i.getSituacao() == mppb.restapi.cursos.feature.inscricao.enums.SituacaoInscricaoEnum.APROVADO)
                 .map(Inscricao::getParticipante)
                 .filter(p -> {
-                    if ("TODOS".equals(tipoPublico)) return true;
-                    if ("MEMBROS".equals(tipoPublico)) return isMembro(p);
-                    if ("SERVIDORES".equals(tipoPublico)) return isServidor(p);
-                    if ("ASSESSORES".equals(tipoPublico)) return isAssessor(p);
-                    return true;
+                    if (tipoPublico == null || tipoPublico.isEmpty() || tipoPublico.contains("TODOS")) return true;
+                    if ("DRH".equals(tipoPublico)) return isMembro(p) || isServidor(p) || isAssessor(p);
+                    
+                    boolean match = false;
+                    List<String> tipos = Arrays.asList(tipoPublico.split(","));
+                    if (tipos.contains("MEMBROS") && isMembro(p)) match = true;
+                    if (tipos.contains("SERVIDORES") && isServidor(p)) match = true;
+                    if (tipos.contains("ASSESSORES") && isAssessor(p)) match = true;
+                    if (tipos.contains("EXTERNOS") && !isMembro(p) && !isServidor(p) && !isAssessor(p)) match = true;
+                    return match;
                 })
-                .map(p -> ParticipanteDocumentoDto.builder()
+                .map(p -> {
+                    String grupo = "Externos";
+                    int ordemGrupo = 4;
+                    if (isMembro(p)) { grupo = "Membros"; ordemGrupo = 1; }
+                    else if (isServidor(p)) { grupo = "Servidores"; ordemGrupo = 2; }
+                    else if (isAssessor(p)) { grupo = "Assessores"; ordemGrupo = 3; }
+
+                    return ParticipanteDocumentoDto.builder()
                         .nome(p.getNome() != null ? p.getNome() : p.getNomeServidor())
                         .cargo(p.getCargoServidor() != null ? p.getCargoServidor() : "Não informado")
                         .matricula(p.getMatriculaServidor() != null ? p.getMatriculaServidor() : "Não informado")
                         .tipo(p.getTipo() != null ? p.getTipo().getDescricao() : "")
-                        .build())
-                .sorted(Comparator.comparing(ParticipanteDocumentoDto::getNome))
+                        .grupo(grupo)
+                        .ordemGrupo(ordemGrupo)
+                        .build();
+                })
+                .sorted(Comparator.comparing(ParticipanteDocumentoDto::getOrdemGrupo)
+                                  .thenComparing(ParticipanteDocumentoDto::getNome))
                 .collect(Collectors.toList());
     }
 
     private List<ParticipanteDocumentoDto> buscarParticipantes(Long cursoId, boolean apenasMembros) {
-        return buscarParticipantesPorTipo(cursoId, apenasMembros ? "MEMBROS" : "TODOS");
+        return buscarParticipantesPorTipo(cursoId, apenasMembros ? "MEMBROS" : "DRH", true); // Ofícios só enviam APROVADOS
     }
 
     private boolean isMembro(Participante p) {

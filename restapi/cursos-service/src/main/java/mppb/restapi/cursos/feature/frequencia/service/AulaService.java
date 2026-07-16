@@ -61,7 +61,7 @@ public class AulaService extends AbstractService<Aula, Long> {
         aula.setCurso(curso);
         // O @PrePersist na entidade Chamada garante que tokens sejam gerados se adicionarmos chamadas aqui
         Aula savedAula = aulaRepository.save(aula);
-        recalcularStatusCurso(curso);
+        recalcularDadosCurso(curso);
         frequenciaService.consolidarFrequenciasPorCurso(cursoId);
         return savedAula;
     }
@@ -88,7 +88,7 @@ public class AulaService extends AbstractService<Aula, Long> {
         }
 
         Aula savedAula = aulaRepository.save(aulaExistente);
-        recalcularStatusCurso(curso);
+        recalcularDadosCurso(curso);
         frequenciaService.consolidarFrequenciasPorCurso(cursoId);
         return savedAula;
     }
@@ -107,7 +107,7 @@ public class AulaService extends AbstractService<Aula, Long> {
         frequenciaService.removerPorAula(aulaId);
         aulaRepository.delete(aula);
         aulaRepository.flush(); // Garantir que foi removido antes do recalculo
-        recalcularStatusCurso(curso);
+        recalcularDadosCurso(curso);
         frequenciaService.consolidarFrequenciasPorCurso(cursoId);
     }
 
@@ -118,35 +118,36 @@ public class AulaService extends AbstractService<Aula, Long> {
         if (!aula.getHoraFim().isAfter(aula.getHoraInicio())) {
             throw new mppb.restapi.common.core.error.BusinessRuleException("Hora fim deve ser maior que a hora início.");
         }
-        if (curso.getRealizacaoDataInicial() != null && aula.getData().isBefore(curso.getRealizacaoDataInicial().toLocalDate())) {
-            throw new mppb.restapi.common.core.error.BusinessRuleException("A data da aula não pode ser anterior ao início do curso.");
-        }
-        if (curso.getRealizacaoDataFinal() != null && aula.getData().isAfter(curso.getRealizacaoDataFinal().toLocalDate())) {
-            throw new mppb.restapi.common.core.error.BusinessRuleException("A data da aula não pode ser posterior ao fim do curso.");
-        }
-
-        Long cargaHorariaTotal = curso.getCargaHorariaMinutos();
-        List<Aula> aulas = aulaRepository.findAllByCursoId(curso.getId());
-        long totalCadastrado = aulas.stream()
-                .filter(a -> aulaIdIgnorada == null || !a.getId().equals(aulaIdIgnorada))
-                .mapToLong(Aula::getDuracaoMinutos)
-                .sum();
-
-        if (totalCadastrado + aula.getDuracaoMinutos() > cargaHorariaTotal) {
-            throw new mppb.restapi.common.core.error.BusinessRuleException("A soma das durações das aulas não pode ultrapassar a carga horária do curso.");
-        }
     }
 
-    public void recalcularStatusCurso(Curso curso) {
-        Long cargaHorariaTotal = curso.getCargaHorariaMinutos();
+    public void recalcularDadosCurso(Curso curso) {
         List<Aula> aulas = aulaRepository.findAllByCursoId(curso.getId());
-        long totalCadastrado = aulas.stream()
-                .mapToLong(Aula::getDuracaoMinutos)
-                .sum();
+        long totalMinutos = 0;
+        LocalDateTime dataInicial = null;
+        LocalDateTime dataFinal = null;
 
-        if (totalCadastrado < cargaHorariaTotal) {
-            curso.setStatus(mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.EM_CONSTRUCAO);
-        } else if (totalCadastrado == cargaHorariaTotal) {
+        for (Aula aula : aulas) {
+            totalMinutos += aula.getDuracaoMinutos();
+            LocalDateTime inicioAula = aula.getData().atTime(aula.getHoraInicio());
+            LocalDateTime fimAula = aula.getData().atTime(aula.getHoraFim());
+
+            if (dataInicial == null || inicioAula.isBefore(dataInicial)) {
+                dataInicial = inicioAula;
+            }
+            if (dataFinal == null || fimAula.isAfter(dataFinal)) {
+                dataFinal = fimAula;
+            }
+        }
+
+        long hours = totalMinutos / 60;
+        long minutes = totalMinutos % 60;
+        String chCalculada = String.format("%02d:%02d:00", hours, minutes);
+
+        curso.setCargaHoraria(chCalculada);
+        curso.setRealizacaoDataInicial(dataInicial);
+        curso.setRealizacaoDataFinal(dataFinal);
+
+        if (totalMinutos > 0) {
             curso.setStatus(mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.PUBLICADO);
         } else {
             curso.setStatus(mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.EM_CONSTRUCAO);

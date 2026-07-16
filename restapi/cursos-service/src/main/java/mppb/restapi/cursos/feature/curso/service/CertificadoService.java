@@ -151,8 +151,8 @@ public class CertificadoService {
             Curso curso = cursoRepository.findById(cursoId)
                     .orElseThrow(() -> new NotFoundException("Curso não encontrado com o ID fornecido: " + cursoId));
 
-            if (curso.getStatus() != mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.PUBLICADO) {
-                throw new mppb.restapi.common.core.error.BusinessRuleException("Não é possível emitir certificados pois a carga horária de aulas está divergente ou o curso está em construção.");
+            if (curso.getStatus() != mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.FINALIZADO) {
+                throw new mppb.restapi.common.core.error.BusinessRuleException("Não é possível emitir certificados, pois o curso ainda não foi finalizado.");
             }
 
             String nome = "";
