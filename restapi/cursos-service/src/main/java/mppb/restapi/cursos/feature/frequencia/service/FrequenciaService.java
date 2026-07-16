@@ -213,7 +213,7 @@ public class FrequenciaService extends AbstractService<Frequencia, Long> { // Ti
         int minimoAprovacao = curso.getPercentualChAprovacao() != null ? curso.getPercentualChAprovacao() : 75;
         int aulasRestantes = aulas.size() - aulasJaRealizadas;
         int frequenciaMaximaPossivel = (int) (((double) (aulasComPresencaIntegral + aulasRestantes) / aulas.size()) * 100);
-        boolean cursoFinalizado = curso.getStatus() == StatusCursoEnum.FINALIZADO;
+        boolean cursoFinalizado = isCursoFinalizado(curso);
 
         if (percentual >= minimoAprovacao) {
             inscricao.setSituacao(SituacaoInscricaoEnum.APROVADO);
@@ -224,6 +224,11 @@ public class FrequenciaService extends AbstractService<Frequencia, Long> { // Ti
         }
         
         inscricaoRepository.save(inscricao);
+    }
+
+    private boolean isCursoFinalizado(Curso curso) {
+        return curso.getStatus() == StatusCursoEnum.FINALIZADO
+                || (curso.getRealizacaoDataFinal() != null && curso.getRealizacaoDataFinal().isBefore(LocalDateTime.now()));
     }
 
     @Transactional
