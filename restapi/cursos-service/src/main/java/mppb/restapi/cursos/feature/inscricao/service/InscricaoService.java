@@ -248,26 +248,27 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
     public ParticipanteVerificacaoDto verificarParticipanteParaInscricao(UUID hash, String cpf) {
         Curso curso = getCursoByHashAndValidarPeriodo(hash);
 
-        // 1. (RN017) Verificar se o CPF é de um servidor interno
-        Optional<ServidorProjection> servidor = servidorService.buscarPorCpf(cpf);
-        if (servidor.isPresent()) {
-            throw new BusinessRuleException("Este CPF pertence a um membro ou servidor. Por favor, utilize a aba 'Membros e Servidores'.");
-        }
-
-        // 2. Verificar se já existe participante com este CPF.
+        // 1. Verificar se já existe participante com este CPF.
         // Há registros legados que possuem o CPF cadastrado, mas não têm o tipo externo consistente.
         // A busca por CPF evita que a verificação diga "não encontrado" e o cadastro falhe logo depois por CPF duplicado.
         Optional<Participante> participanteOpt = participanteRepository.findByCpf(cpf);
         if (participanteOpt.isEmpty()) {
+            Optional<ServidorProjection> servidor = servidorService.buscarPorCpf(cpf);
+            if (servidor.isPresent()) {
+                throw new BusinessRuleException("Este CPF pertence a um membro ou servidor. Por favor, utilize a aba 'Membros e Servidores'.");
+            }
+
             throw new NotFoundException("Participante não encontrado. Prossiga com o cadastro.");
         }
 
-        // 3. É um externo existente. Verificar se ele já está inscrito NESTE curso.
+        // 2. Se já existe como participante interno do curso, deve seguir o fluxo de membros/servidores.
+        // Se existe como participante externo/legado, pode ser reutilizado mesmo que tenha tido vínculo antigo no RH.
         Participante participante = participanteOpt.get();
         if (participante.getIdServidor() != null || participante.getTipo() == TipoParticipanteEnum.INTERNO) {
             throw new BusinessRuleException("Este CPF pertence a um membro ou servidor. Por favor, utilize a aba 'Membros e Servidores'.");
         }
 
+        // 3. É um externo existente. Verificar se ele já está inscrito NESTE curso.
         if (inscricaoRepository.existsByCursoAndParticipante(curso, participante)) {
             throw new BusinessRuleException("Este participante já está inscrito neste curso.");
         }
