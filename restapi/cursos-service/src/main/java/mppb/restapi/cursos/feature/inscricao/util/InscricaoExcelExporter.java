@@ -12,7 +12,7 @@ import java.util.List;
 
 public class InscricaoExcelExporter {
 
-    private static final String[] HEADERS = {"Nome do Participante", "E-mail", "Cargo", "Situação", "Data de Inscrição"};
+    private static final String[] HEADERS = {"Nome do Participante", "E-mail", "Cargo", "PcD", "Necessidade Especial", "Situação", "Data de Inscrição"};
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     public static ByteArrayInputStream exportToExcel(List<InscricaoDto> inscricoes) throws IOException {
@@ -43,10 +43,12 @@ public class InscricaoExcelExporter {
                 row.createCell(0).setCellValue(inscricao.getParticipante().getNome());
                 row.createCell(1).setCellValue(inscricao.getParticipante().getEmail());
                 row.createCell(2).setCellValue(inscricao.getParticipante().getCargo());
-                row.createCell(3).setCellValue(inscricao.getSituacao());
+                row.createCell(3).setCellValue(Boolean.TRUE.equals(inscricao.getPcd()) ? "Sim" : "Não");
+                row.createCell(4).setCellValue(inscricao.getNecessidadeEspecial() != null ? inscricao.getNecessidadeEspecial() : "");
+                row.createCell(5).setCellValue(inscricao.getSituacao());
                 
                 if (inscricao.getDataInscricao() != null) {
-                    row.createCell(4).setCellValue(inscricao.getDataInscricao().format(DATE_FORMATTER));
+                    row.createCell(6).setCellValue(inscricao.getDataInscricao().format(DATE_FORMATTER));
                 }
             }
 
