@@ -122,6 +122,10 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
     public Participante findOrCreateParticipanteExterno(InscricaoPublicaDto dto) {
         String cpfLimpo = dto.getCpf() != null ? dto.getCpf().replaceAll("\\D", "") : null;
 
+        if (!StringUtils.hasText(dto.getEmail()) || !StringUtils.hasText(dto.getTelefone())) {
+            throw new BusinessRuleException("E-mail e telefone são obrigatórios para participantes externos.");
+        }
+
         // 1. Reutilizar participante se o ID foi fornecido
         if (dto.getParticipanteId() != null) {
             Participante participante = this.findById(dto.getParticipanteId())
@@ -217,11 +221,11 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
             participante.setNome(dto.getNome());
         }
 
-        if (!StringUtils.hasText(participante.getEmail())) {
+        if (StringUtils.hasText(dto.getEmail())) {
             participante.setEmail(dto.getEmail());
         }
 
-        if (!StringUtils.hasText(participante.getTelefone()) && StringUtils.hasText(dto.getTelefone())) {
+        if (StringUtils.hasText(dto.getTelefone())) {
             participante.setTelefone(dto.getTelefone().replaceAll("\\D", ""));
         }
 

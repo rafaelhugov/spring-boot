@@ -31,5 +31,8 @@ public class CriarInscricaoDto {
     private String email;
 
     private String telefone;
-}
 
+    private Boolean pcd;
+
+    private String necessidadeEspecial;
+}

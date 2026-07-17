@@ -16,6 +16,7 @@ import mppb.restapi.cursos.feature.curso.repository.CursoRepository;
 import mppb.restapi.cursos.feature.curso.service.CursoService;
 import mppb.restapi.cursos.feature.frequencia.service.FrequenciaService;
 import mppb.restapi.cursos.feature.inscricao.converter.InscricaoConverter;
+import mppb.restapi.cursos.feature.inscricao.dto.InscricaoAcessibilidadeDto;
 import mppb.restapi.cursos.feature.inscricao.dto.InscricaoDto;
 import mppb.restapi.cursos.feature.inscricao.entity.Inscricao;
 import mppb.restapi.cursos.feature.inscricao.entity.InscricaoConfirmacaoToken;
@@ -169,6 +170,7 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         novaInscricao.setParticipante(participante);
         novaInscricao.setDataInscricao(LocalDateTime.now());
         novaInscricao.setSituacao(SituacaoInscricaoEnum.INSCRITO); // Efetivado imediatamente
+        aplicarDadosAcessibilidade(novaInscricao, dto.getPcd(), dto.getNecessidadeEspecial());
 
         Inscricao inscricaoSalva = inscricaoRepository.save(novaInscricao);
 
@@ -182,7 +184,7 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
     /**
      * Orquestra a inscrição de um utilizador interno (servidor/membro) autenticado.
      */
-    public InscricaoDto realizarInscricaoInterna(UUID hash) {
+    public InscricaoDto realizarInscricaoInterna(UUID hash, InscricaoAcessibilidadeDto dto) {
         // 1. Obtém o LOGIN do utilizador a partir do contexto de segurança
         TokenAuthentication auth = SecurityUtils.getAuthenticationToken()
                 .orElseThrow(() -> new BusinessRuleException("Não foi possível identificar o utilizador autenticado."));
@@ -206,6 +208,10 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         CriarInscricaoDto inscricaoPayload = new CriarInscricaoDto();
         inscricaoPayload.setTipo(TipoParticipanteEnum.INTERNO.name());
         inscricaoPayload.setIdServidor(idServidor); // Agora usa o ID correto do RH
+        if (dto != null) {
+            inscricaoPayload.setPcd(dto.getPcd());
+            inscricaoPayload.setNecessidadeEspecial(dto.getNecessidadeEspecial());
+        }
 
         // 6. Reutiliza o método 'inscrever' que já trata a duplicidade
         return inscrever(curso.getId(), inscricaoPayload);
@@ -232,6 +238,7 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         novaInscricao.setParticipante(participante);
         novaInscricao.setDataInscricao(LocalDateTime.now());
         novaInscricao.setSituacao(SituacaoInscricaoEnum.INSCRITO); // Efetivado imediatamente
+        aplicarDadosAcessibilidade(novaInscricao, dto.getPcd(), dto.getNecessidadeEspecial());
 
         Inscricao inscricaoSalva = inscricaoRepository.save(novaInscricao);
 
@@ -429,6 +436,19 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         if (inscricaoRepository.existsByCursoAndParticipante(curso, participante)) {
             throw new BusinessRuleException("Este participante já está inscrito neste curso.");
         }
+    }
+
+    private void aplicarDadosAcessibilidade(Inscricao inscricao, Boolean pcd, String necessidadeEspecial) {
+        if (pcd == null) {
+            throw new BusinessRuleException("Informe se o participante é Pessoa com Deficiência (PcD).");
+        }
+
+        if (Boolean.TRUE.equals(pcd) && (necessidadeEspecial == null || necessidadeEspecial.isBlank())) {
+            throw new BusinessRuleException("Informe a necessidade especial ou recurso de acessibilidade necessário.");
+        }
+
+        inscricao.setPcd(pcd);
+        inscricao.setNecessidadeEspecial(Boolean.TRUE.equals(pcd) ? necessidadeEspecial.trim() : null);
     }
 
     /**

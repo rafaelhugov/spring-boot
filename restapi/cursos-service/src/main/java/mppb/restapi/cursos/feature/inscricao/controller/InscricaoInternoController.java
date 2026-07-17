@@ -3,6 +3,7 @@ package mppb.restapi.cursos.feature.inscricao.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import mppb.restapi.cursos.feature.inscricao.dto.InscricaoAcessibilidadeDto;
 import lombok.RequiredArgsConstructor;
 import mppb.restapi.cursos.feature.inscricao.dto.InscricaoDto;
 import mppb.restapi.cursos.feature.inscricao.service.InscricaoService;
@@ -37,8 +38,10 @@ public class InscricaoInternoController {
             security = @SecurityRequirement(name = "bearerAuth")) // Assume que a sua segurança OpenAPI chama-se 'bearerAuth'
     @PostMapping("/{hash}/interno")
     @PreAuthorize("hasAuthority('cursos.acesso')") // Protegido pela permissão base
-    public ResponseEntity<InscricaoDto> inscreverInterno(@PathVariable UUID hash) {
-        InscricaoDto inscricaoSalva = inscricaoService.realizarInscricaoInterna(hash);
+    public ResponseEntity<InscricaoDto> inscreverInterno(
+            @PathVariable UUID hash,
+            @RequestBody(required = false) InscricaoAcessibilidadeDto dto) {
+        InscricaoDto inscricaoSalva = inscricaoService.realizarInscricaoInterna(hash, dto);
         return new ResponseEntity<>(inscricaoSalva, HttpStatus.CREATED);
     }
 

@@ -16,6 +16,8 @@ public class InscricaoDto {
     private LocalDateTime dataInscricao;
     private String situacao;
     private Integer frequencia;
+    private Boolean pcd;
+    private String necessidadeEspecial;
     private ParticipanteDto participante;
     private Boolean possuiFrequenciaManual;
 

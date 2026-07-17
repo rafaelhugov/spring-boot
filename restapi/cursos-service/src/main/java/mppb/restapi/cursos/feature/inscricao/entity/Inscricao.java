@@ -42,6 +42,12 @@ public class Inscricao extends AbstractEntity<Long> {
     @Column(name = "frequencia")
     private Integer frequencia;
 
+    @Column(name = "pcd", nullable = false)
+    private Boolean pcd;
+
+    @Column(name = "necessidadeespecial", length = 500)
+    private String necessidadeEspecial;
+
     @PrePersist
     private void onPrePersist() {
         if (this.situacao == null) {
@@ -49,6 +55,9 @@ public class Inscricao extends AbstractEntity<Long> {
         }
         if (this.frequencia == null) {
             this.frequencia = 0;
+        }
+        if (this.pcd == null) {
+            this.pcd = false;
         }
     }
 }
