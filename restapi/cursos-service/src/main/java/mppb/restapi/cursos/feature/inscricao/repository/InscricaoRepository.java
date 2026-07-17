@@ -43,6 +43,40 @@ public interface InscricaoRepository extends BaseRepository<Inscricao, Long> {
             @Param("situacao") mppb.restapi.cursos.feature.inscricao.enums.SituacaoInscricaoEnum situacao,
             Pageable pageable);
 
+    @Query(value = "SELECT i FROM Inscricao i JOIN FETCH i.participante p " +
+            "WHERE i.curso.id = :cursoId " +
+            "AND (:nome IS NULL OR (lower(function('funcaosemacentos', COALESCE(p.nome, p.nomeServidor, ''))) LIKE :nome " +
+            "OR lower(function('funcaosemacentos', COALESCE(p.email, p.emailServidor, ''))) LIKE :nome)) " +
+            "AND (:situacao IS NULL OR i.situacao = :situacao) " +
+            "ORDER BY lower(function('funcaosemacentos', COALESCE(p.nome, p.nomeServidor, ''))) ASC",
+            countQuery = "SELECT count(i) FROM Inscricao i JOIN i.participante p " +
+            "WHERE i.curso.id = :cursoId " +
+            "AND (:nome IS NULL OR (lower(function('funcaosemacentos', COALESCE(p.nome, p.nomeServidor, ''))) LIKE :nome " +
+            "OR lower(function('funcaosemacentos', COALESCE(p.email, p.emailServidor, ''))) LIKE :nome)) " +
+            "AND (:situacao IS NULL OR i.situacao = :situacao)")
+    Page<Inscricao> findAllByCursoIdWithFiltersOrderByNomeAsc(
+            @Param("cursoId") Long cursoId,
+            @Param("nome") String nome,
+            @Param("situacao") mppb.restapi.cursos.feature.inscricao.enums.SituacaoInscricaoEnum situacao,
+            Pageable pageable);
+
+    @Query(value = "SELECT i FROM Inscricao i JOIN FETCH i.participante p " +
+            "WHERE i.curso.id = :cursoId " +
+            "AND (:nome IS NULL OR (lower(function('funcaosemacentos', COALESCE(p.nome, p.nomeServidor, ''))) LIKE :nome " +
+            "OR lower(function('funcaosemacentos', COALESCE(p.email, p.emailServidor, ''))) LIKE :nome)) " +
+            "AND (:situacao IS NULL OR i.situacao = :situacao) " +
+            "ORDER BY lower(function('funcaosemacentos', COALESCE(p.nome, p.nomeServidor, ''))) DESC",
+            countQuery = "SELECT count(i) FROM Inscricao i JOIN i.participante p " +
+            "WHERE i.curso.id = :cursoId " +
+            "AND (:nome IS NULL OR (lower(function('funcaosemacentos', COALESCE(p.nome, p.nomeServidor, ''))) LIKE :nome " +
+            "OR lower(function('funcaosemacentos', COALESCE(p.email, p.emailServidor, ''))) LIKE :nome)) " +
+            "AND (:situacao IS NULL OR i.situacao = :situacao)")
+    Page<Inscricao> findAllByCursoIdWithFiltersOrderByNomeDesc(
+            @Param("cursoId") Long cursoId,
+            @Param("nome") String nome,
+            @Param("situacao") mppb.restapi.cursos.feature.inscricao.enums.SituacaoInscricaoEnum situacao,
+            Pageable pageable);
+
     @Query(value = "SELECT i FROM Inscricao i JOIN FETCH i.participante " +
             "WHERE i.curso.id = :cursoId", countQuery = "SELECT count(i) FROM Inscricao i WHERE i.curso.id = :cursoId")
     Page<Inscricao> findAllByCursoId(@Param("cursoId") Long cursoId, Pageable pageable);

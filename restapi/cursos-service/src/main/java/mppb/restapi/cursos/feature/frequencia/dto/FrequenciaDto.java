@@ -15,4 +15,5 @@ public class FrequenciaDto {
     private LocalDateTime dataHoraRegistro;
     private InscricaoDto inscricao;
     private ChamadaDto chamada;
+    private Boolean manual;
 }

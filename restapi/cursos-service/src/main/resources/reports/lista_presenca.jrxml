@@ -38,14 +38,14 @@
 	</title>
 
 	<columnHeader height="30" splitType="Stretch">
-		<element kind="staticText" uuid="a1b2c3d4-e5f6-7890-abcd-000000000007" x="0" y="0" width="450" height="30" fontName="SansSerif" fontSize="11" bold="true" hTextAlign="Center" vTextAlign="Middle">
+		<element kind="staticText" uuid="a1b2c3d4-e5f6-7890-abcd-000000000007" x="0" y="0" width="401" height="30" fontName="SansSerif" fontSize="11" bold="true" hTextAlign="Center" vTextAlign="Middle">
 			<text><![CDATA[NOME DO PARTICIPANTE]]></text>
 			<box>
 				<pen lineWidth="1.0"/>
 			</box>
 		</element>
-		<element kind="staticText" uuid="a1b2c3d4-e5f6-7890-abcd-000000000008" x="450" y="0" width="352" height="30" fontName="SansSerif" fontSize="11" bold="true" hTextAlign="Center" vTextAlign="Middle">
-			<text><![CDATA[ASSINATURA]]></text>
+		<element kind="staticText" uuid="a1b2c3d4-e5f6-7890-abcd-000000000017" x="401" y="0" width="401" height="30" fontName="SansSerif" fontSize="11" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[CONFIRMAÇÃO DE LEITURA]]></text>
 			<box>
 				<pen lineWidth="1.0"/>
 			</box>
@@ -54,13 +54,13 @@
 
 	<detail>
 		<band height="30" splitType="Stretch">
-			<element kind="textField" uuid="a1b2c3d4-e5f6-7890-abcd-000000000009" x="0" y="0" width="450" height="30" fontName="SansSerif" fontSize="10" vTextAlign="Middle" hTextAlign="Center" textAdjust="StretchHeight">
+			<element kind="textField" uuid="a1b2c3d4-e5f6-7890-abcd-000000000009" x="0" y="0" width="401" height="30" fontName="SansSerif" fontSize="10" vTextAlign="Middle" hTextAlign="Center" textAdjust="StretchHeight">
 				<expression><![CDATA[$F{nome}]]></expression>
 				<box>
 					<pen lineWidth="1.0"/>
 				</box>
 			</element>
-			<element kind="staticText" uuid="a1b2c3d4-e5f6-7890-abcd-000000000010" x="450" y="0" width="352" height="30" hTextAlign="Center" vTextAlign="Middle">
+			<element kind="staticText" uuid="a1b2c3d4-e5f6-7890-abcd-000000000019" x="401" y="0" width="401" height="30" fontName="SansSerif" fontSize="10" vTextAlign="Middle" hTextAlign="Center" stretchType="ElementGroupHeight">
 				<text><![CDATA[]]></text>
 				<box>
 					<pen lineWidth="1.0"/>

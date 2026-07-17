@@ -11,6 +11,8 @@ import mppb.restapi.cursos.feature.lookup.entities.Modalidade;
 import mppb.restapi.cursos.feature.lookup.entities.PapelMinistrante;
 import mppb.restapi.cursos.feature.lookup.entities.PublicoAlvo;
 import mppb.restapi.cursos.feature.lookup.entities.TipoEvento;
+import mppb.restapi.cursos.feature.lookup.entities.Municipio;
+import mppb.restapi.cursos.feature.lookup.repository.MunicipioRepository;
 import mppb.restapi.cursos.feature.lookup.repository.LocalEventoRepository;
 import mppb.restapi.cursos.feature.lookup.repository.ModalidadeRepository;
 import mppb.restapi.cursos.feature.lookup.repository.PapelMinistranteRepository;
@@ -33,6 +35,7 @@ public class LookupService {
     private final PapelMinistranteRepository papelMinistranteRepository;
     private final EntidadeTutoraRepository entidadeTutoraRepository;
     private final LocalEventoRepository localEventoRepository;
+    private final MunicipioRepository municipioRepository;
 
     @Transactional(readOnly = true)
     public List<Modalidade> findAllModalidades() {
@@ -66,5 +69,10 @@ public class LookupService {
     @Transactional(readOnly = true)
     public List<LocalEvento> findAllLocalEvento() {
         return localEventoRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Municipio> findAllMunicipiosPB() {
+        return municipioRepository.findByEstadoSiglaOrderByNomeAsc("PB");
     }
 }

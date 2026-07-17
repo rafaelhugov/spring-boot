@@ -15,6 +15,8 @@ import mppb.restapi.cursos.feature.lookup.entities.PublicoAlvo;
 import mppb.restapi.cursos.feature.lookup.entities.TipoEvento;
 import mppb.restapi.cursos.feature.lookup.converter.LocalEventoConverter;
 import mppb.restapi.cursos.feature.lookup.dto.LocalEventoDto;
+import mppb.restapi.cursos.feature.lookup.dto.MunicipioDto;
+import mppb.restapi.cursos.feature.lookup.converter.MunicipioConverter;
 import mppb.restapi.cursos.feature.lookup.service.LookupService;
 import mppb.restapi.common.infrastructure.util.Constants;
 import org.springframework.http.MediaType;
@@ -44,6 +46,7 @@ public class LookupController extends AbstractController {
     private final DtoConverter<PapelMinistranteDto, PapelMinistrante> papelMinistranteConverter;
     private final DtoConverter<EntidadeTutoraDto, EntidadeTutora> entidadeTutoraConverter;
     private final DtoConverter<LocalEventoDto, LocalEvento> localEventoConverter;
+    private final MunicipioConverter municipioConverter;
 
     @GetMapping(value = "/modalidades", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<ModalidadeDto>> listModalidades() {
@@ -83,5 +86,10 @@ public class LookupController extends AbstractController {
     @GetMapping(value = "/locais-evento", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<LocalEventoDto>> listLocaisEvento() {
         return ResponseEntity.ok(lookupService.findAllLocalEvento().stream().map(localEventoConverter::toDto).toList());
+    }
+
+    @GetMapping(value = "/municipios-pb", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<MunicipioDto>> listMunicipiosPB() {
+        return ResponseEntity.ok(lookupService.findAllMunicipiosPB().stream().map(municipioConverter::toDto).toList());
     }
 }

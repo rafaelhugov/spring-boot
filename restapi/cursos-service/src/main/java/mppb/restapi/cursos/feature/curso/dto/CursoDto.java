@@ -11,6 +11,7 @@ import mppb.restapi.cursos.feature.cadastro.dto.EntidadeTutoraDto;
 import mppb.restapi.cursos.feature.lookup.dto.ModalidadeDto;
 import mppb.restapi.cursos.feature.lookup.dto.PublicoAlvoDto;
 import mppb.restapi.cursos.feature.lookup.dto.TipoEventoDto;
+import mppb.restapi.cursos.feature.lookup.dto.MunicipioDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -89,4 +90,7 @@ public class CursoDto {
     private Long certificateTemplateId;
 
     private Long headerImageId;
+
+    @JsonView(CursoView.Listagem.class)
+    private MunicipioDto municipio;
 }

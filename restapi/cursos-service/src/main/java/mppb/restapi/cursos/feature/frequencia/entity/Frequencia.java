@@ -30,6 +30,10 @@ public class Frequencia extends AbstractEntity<Long> {
     @Column(name = "datahoraregistro", nullable = false)
     private LocalDateTime dataHoraRegistro;
 
+    @Column(name = "manual")
+    @Builder.Default
+    private Boolean manual = false;
+
     @PrePersist
     public void registrarDataHora() {
         if (this.dataHoraRegistro == null) {

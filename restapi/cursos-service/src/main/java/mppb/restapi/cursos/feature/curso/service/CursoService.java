@@ -18,6 +18,7 @@ import mppb.restapi.cursos.feature.lookup.entities.Modalidade;
 import mppb.restapi.cursos.feature.lookup.entities.PapelMinistrante;
 import mppb.restapi.cursos.feature.lookup.entities.PublicoAlvo;
 import mppb.restapi.cursos.feature.lookup.entities.TipoEvento;
+import mppb.restapi.cursos.feature.lookup.entities.Municipio;
 import mppb.restapi.cursos.feature.lookup.repository.PapelMinistranteRepository;
 import mppb.restapi.cursos.feature.ministrante.entity.Ministrante;
 import mppb.restapi.cursos.feature.ministrante.service.MinistranteService;
@@ -156,13 +157,19 @@ public class CursoService extends AbstractService<Curso, Long> {
         curso.setEntidadeTutora(getRequiredReference(EntidadeTutora.class, dto.getEntidadeTutora().getId(), "Entidade tutora"));
         curso.setModalidade(getRequiredReference(Modalidade.class, dto.getModalidade().getId(), "Modalidade"));
         curso.setPublicosAlvo(toPublicosAlvoReferences(dto));
+        
+        if (dto.getMunicipio() != null && dto.getMunicipio().getId() != null) {
+            curso.setMunicipio(entityManager.getReference(Municipio.class, dto.getMunicipio().getId()));
+        } else {
+            curso.setMunicipio(null);
+        }
 
         validarDatasCurso(curso);
 
         Curso saved = cursoRepository.saveAndFlush(curso);
         
         // Recalcular status caso a carga horária tenha mudado e seja compatível com as aulas
-        aulaService.recalcularStatusCurso(saved);
+        aulaService.recalcularDadosCurso(curso);
         
         return cursoConverter.toDto(saved);
     }

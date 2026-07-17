@@ -14,4 +14,6 @@ public class ParticipanteDocumentoDto {
     private String cargo;
     private String matricula;
     private String tipo;
+    private String grupo;
+    private Integer ordemGrupo;
 }

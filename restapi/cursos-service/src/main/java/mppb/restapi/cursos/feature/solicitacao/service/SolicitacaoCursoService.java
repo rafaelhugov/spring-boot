@@ -18,6 +18,8 @@ import mppb.restapi.cursos.feature.curso.service.CursoService;
 import mppb.restapi.cursos.feature.lookup.entities.*;
 import mppb.restapi.cursos.feature.lookup.repository.*;
 import mppb.restapi.cursos.feature.ministrante.repository.MinistranteRepository;
+import mppb.restapi.cursos.feature.frequencia.entity.Aula;
+import mppb.restapi.cursos.feature.frequencia.repository.AulaRepository;
 import mppb.restapi.cursos.feature.solicitacao.dto.SolicitacaoCursoRequestDto;
 import mppb.restapi.cursos.feature.solicitacao.dto.SolicitacaoCursoResponseDto;
 import mppb.restapi.cursos.feature.solicitacao.entity.SolicitacaoAgenda;
@@ -59,6 +61,7 @@ public class SolicitacaoCursoService {
     private final CursoService cursoService;
     private final ServidorRepository servidorRepository;
     private final EntidadeTutoraRepository entidadeTutoraRepository;
+    private final AulaRepository aulaRepository;
 
     /**
      * Fluxo de criação de solicitação:
@@ -725,6 +728,22 @@ public class SolicitacaoCursoService {
         novoCurso.setPublicosAlvo(new HashSet<>(solicitacao.getPublicosAlvo()));
 
         Curso cursoSalvo = cursoService.save(novoCurso);
+
+        // Gerar Aulas automaticamente baseadas na agenda da solicitação
+        if (!solicitacao.getAgendas().isEmpty()) {
+            for (SolicitacaoAgenda agenda : solicitacao.getAgendas()) {
+                long days = ChronoUnit.DAYS.between(agenda.getDataInicio(), agenda.getDataFim()) + 1;
+                for (long d = 0; d < days; d++) {
+                    Aula aula = new Aula();
+                    aula.setCurso(cursoSalvo);
+                    aula.setData(agenda.getDataInicio().plusDays(d));
+                    aula.setHoraInicio(agenda.getHorarioInicio());
+                    aula.setHoraFim(agenda.getHorarioFim());
+                    aula.setDescricao("Aula " + (d + 1) + " - " + agenda.getHorarioInicio() + " às " + agenda.getHorarioFim());
+                    aulaRepository.save(aula);
+                }
+            }
+        }
 
         // Copiar ministrantes
         java.util.Set<String> ministrantesAdicionados = new java.util.HashSet<>();

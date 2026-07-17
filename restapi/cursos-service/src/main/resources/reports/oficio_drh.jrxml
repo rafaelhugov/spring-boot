@@ -43,11 +43,16 @@
 			<expression><![CDATA[$P{TEXTO_CORPO}]]></expression>
 		</element>
 	</title>
-	<columnHeader height="30" splitType="Stretch">
-		<element kind="staticText" uuid="a1b2c3d4-e5f6-7890-ab01-ef1234560008" x="0" y="10" width="220" height="20" fontName="SansSerif" fontSize="11" bold="true">
-			<text><![CDATA[Membros:]]></text>
-		</element>
-	</columnHeader>
+	<group name="GrupoParticipantes">
+		<groupExpression><![CDATA[$F{grupo}]]></groupExpression>
+		<groupHeader>
+			<band height="30" splitType="Stretch">
+				<element kind="textField" uuid="a1b2c3d4-e5f6-7890-ab01-ef1234560008" x="0" y="10" width="400" height="20" fontName="SansSerif" fontSize="11" bold="true">
+					<expression><![CDATA[$F{grupo} + ":"]]></expression>
+				</element>
+			</band>
+		</groupHeader>
+	</group>
 	<detail>
 		<band height="25" splitType="Stretch">
 			<element kind="textField" uuid="a1b2c3d4-e5f6-7890-ab01-ef1234560009" x="0" y="0" width="220" height="15" fontName="SansSerif" fontSize="10" textAdjust="StretchHeight">

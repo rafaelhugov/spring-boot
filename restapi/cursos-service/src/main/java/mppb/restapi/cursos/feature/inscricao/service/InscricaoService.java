@@ -6,7 +6,6 @@ import mppb.restapi.common.core.error.BusinessRuleException;
 import mppb.restapi.common.core.error.NotFoundException;
 import mppb.restapi.common.core.service.AbstractService;
 import mppb.restapi.common.core.util.StringUtil;
-import mppb.restapi.common.feature.configuracao.service.ConfiguracaoService;
 import mppb.restapi.common.infrastructure.security.authorization.TokenAuthentication;
 import mppb.restapi.common.infrastructure.security.util.SecurityUtils;
 import mppb.restapi.cursos.feature.common.projection.ServidorProjection;
@@ -34,6 +33,7 @@ import mppb.restapi.cursos.feature.participante.service.ParticipanteService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,7 +65,6 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
     private final ServidorService servidorService;
     private final ParticipanteRepository participanteRepository;
     private final EmailService emailService;
-    private final ConfiguracaoService configuracaoService;
     private final FrequenciaService frequenciaService;
 
     public InscricaoService(EntityManager entityManager,
@@ -78,7 +77,6 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
                             ServidorService servidorService,
                             ParticipanteRepository participanteRepository,
                             EmailService emailService,
-                            ConfiguracaoService configuracaoService,
                             @Lazy FrequenciaService frequenciaService) {
         super(entityManager, inscricaoRepository);
         this.inscricaoRepository = inscricaoRepository;
@@ -90,7 +88,6 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         this.servidorService = servidorService;
         this.participanteRepository = participanteRepository;
         this.emailService = emailService;
-        this.configuracaoService = configuracaoService;
         this.frequenciaService = frequenciaService;
     }
 
@@ -133,6 +130,17 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         // Se o tamanho da página for negativo (Vuetify "Todos" envia -1), usa um valor alto para trazer todos
         if (pageable.isPaged() && pageable.getPageSize() < 0) {
             pageable = PageRequest.of(0, 10000, pageable.getSort());
+        }
+
+        Optional<Sort.Order> nomeSort = pageable.getSort().stream()
+                .filter(order -> "participante.nome".equals(order.getProperty()))
+                .findFirst();
+        if (nomeSort.isPresent()) {
+            Pageable pageableSemSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+            if (nomeSort.get().isDescending()) {
+                return inscricaoRepository.findAllByCursoIdWithFiltersOrderByNomeDesc(cursoId, nomeFiltro, situacaoEnum, pageableSemSort);
+            }
+            return inscricaoRepository.findAllByCursoIdWithFiltersOrderByNomeAsc(cursoId, nomeFiltro, situacaoEnum, pageableSemSort);
         }
 
         return inscricaoRepository.findAllByCursoIdWithFilters(cursoId, nomeFiltro, situacaoEnum, pageable);
@@ -266,7 +274,7 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
     }
 
     /**
-     * Valida um token de confirmação e efetiva a inscrição (muda status para INSCRITO).
+     * Valida um token de confirmação legado e efetiva a inscrição (muda status para INSCRITO).
      */
     public InscricaoDto confirmarInscricao(String tokenStr) {
         InscricaoConfirmacaoToken token = tokenRepository.findByToken(tokenStr)
@@ -484,34 +492,4 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
                 .trim();
     }
 
-    /**
-     * Cria e persiste uma nova inscrição com o status PENDENTE_CONFIRMACAO.
-     */
-    private Inscricao criarInscricaoPendente(Curso curso, Participante participante) {
-        Inscricao novaInscricao = new Inscricao();
-        novaInscricao.setCurso(curso);
-        novaInscricao.setParticipante(participante);
-        novaInscricao.setDataInscricao(LocalDateTime.now());
-        novaInscricao.setSituacao(SituacaoInscricaoEnum.PENDENTE_CONFIRMACAO);
-        return inscricaoRepository.save(novaInscricao);
-    }
-
-    /**
-     * Gera, salva e envia o token de confirmação por e-mail.
-     */
-    private void gerarEEnviarEmailConfirmacao(Inscricao inscricao) {
-        // 1. Apaga tokens antigos para esta inscrição
-        tokenRepository.findByInscricaoId(inscricao.getId()).ifPresent(tokenAntigo -> {
-            tokenRepository.delete(tokenAntigo);
-            log.info("Token antigo da inscrição {} foi invalidado.", inscricao.getId());
-        });
-
-        // 2. Cria o novo token
-        Integer validadeMinutos = configuracaoService.getAsInteger("cursos.inscricao.token-validade-minutos");
-        InscricaoConfirmacaoToken token = new InscricaoConfirmacaoToken(inscricao, validadeMinutos);
-        tokenRepository.save(token);
-
-        // 3. Envia o e-mail
-        emailService.enviarEmailConfirmacao(inscricao, token);
-    }
 }

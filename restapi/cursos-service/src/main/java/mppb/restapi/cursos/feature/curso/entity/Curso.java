@@ -9,6 +9,7 @@ import mppb.restapi.cursos.feature.cadastro.entities.EntidadeTutora;
 import mppb.restapi.cursos.feature.lookup.entities.Modalidade;
 import mppb.restapi.cursos.feature.lookup.entities.PublicoAlvo;
 import mppb.restapi.cursos.feature.lookup.entities.TipoEvento;
+import mppb.restapi.cursos.feature.lookup.entities.Municipio;
 import org.hibernate.annotations.CreationTimestamp;
 
 import mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum;
@@ -97,6 +98,10 @@ public class Curso extends AbstractEntity<Long> {
 
     @Column(name = "id_imagemcabecalho")
     private Long headerImageId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_municipio")
+    private Municipio municipio;
 
     @Column(name = "status")
     @Convert(converter = StatusCursoEnumConverter.class)
