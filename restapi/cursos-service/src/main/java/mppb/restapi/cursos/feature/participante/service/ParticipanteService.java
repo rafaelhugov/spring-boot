@@ -120,10 +120,22 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
      * @return A entidade Participante (existente ou recém-criada).
      */
     public Participante findOrCreateParticipanteExterno(InscricaoPublicaDto dto) {
+        String cpfLimpo = dto.getCpf() != null ? dto.getCpf().replaceAll("\\D", "") : null;
+
         // 1. Reutilizar participante se o ID foi fornecido
         if (dto.getParticipanteId() != null) {
-            return this.findById(dto.getParticipanteId())
+            Participante participante = this.findById(dto.getParticipanteId())
                     .orElseThrow(() -> new NotFoundException("Participante não encontrado para reutilização."));
+
+            if (cpfLimpo != null && participante.getCpf() != null && !cpfLimpo.equals(participante.getCpf())) {
+                throw new BusinessRuleException("O CPF informado não corresponde ao participante encontrado.");
+            }
+
+            if (participante.getIdServidor() != null || participante.getTipo() == TipoParticipanteEnum.INTERNO) {
+                throw new BusinessRuleException("Este CPF pertence a um membro ou servidor. Por favor, utilize a aba 'Membros e Servidores'.");
+            }
+
+            return participante;
         }
 
         // 2. Validar e converter o DTO
@@ -131,10 +143,19 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
             throw new BusinessRuleException("Nome e E-mail são obrigatórios para um novo cadastro.");
         }
 
+        if (!StringUtils.hasText(cpfLimpo)) {
+            throw new BusinessRuleException("O CPF é obrigatório para participantes externos.");
+        }
+
+        Optional<Participante> participanteExistente = participanteRepository.findByCpf(cpfLimpo);
+        if (participanteExistente.isPresent()) {
+            return reutilizarParticipanteExternoExistente(participanteExistente.get(), dto, cpfLimpo);
+        }
+
         CriarInscricaoDto payload = new CriarInscricaoDto();
         payload.setTipo(TipoParticipanteEnum.EXTERNO.name());
         payload.setNome(dto.getNome());
-        payload.setCpf(dto.getCpf().replaceAll("\\D", ""));
+        payload.setCpf(cpfLimpo);
         payload.setEmail(dto.getEmail());
         payload.setTelefone(dto.getTelefone() != null ? dto.getTelefone().replaceAll("\\D", "") : null);
 
@@ -173,6 +194,34 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
         p.setTelefone(dto.getTelefone());
         p.setTipo(TipoParticipanteEnum.EXTERNO);
         return repository.save(p);
+    }
+
+    private Participante reutilizarParticipanteExternoExistente(Participante participante, InscricaoPublicaDto dto, String cpfLimpo) {
+        if (participante.getIdServidor() != null || participante.getTipo() == TipoParticipanteEnum.INTERNO) {
+            throw new BusinessRuleException("Este CPF pertence a um membro ou servidor. Por favor, utilize a aba 'Membros e Servidores'.");
+        }
+
+        if (participante.getTipo() == null) {
+            participante.setTipo(TipoParticipanteEnum.EXTERNO);
+        }
+
+        if (!StringUtils.hasText(participante.getCpf())) {
+            participante.setCpf(cpfLimpo);
+        }
+
+        if (!StringUtils.hasText(participante.getNome())) {
+            participante.setNome(dto.getNome());
+        }
+
+        if (!StringUtils.hasText(participante.getEmail())) {
+            participante.setEmail(dto.getEmail());
+        }
+
+        if (!StringUtils.hasText(participante.getTelefone()) && StringUtils.hasText(dto.getTelefone())) {
+            participante.setTelefone(dto.getTelefone().replaceAll("\\D", ""));
+        }
+
+        return repository.save(participante);
     }
 
     /**

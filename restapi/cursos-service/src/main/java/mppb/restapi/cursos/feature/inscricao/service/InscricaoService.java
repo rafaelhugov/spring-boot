@@ -254,14 +254,20 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
             throw new BusinessRuleException("Este CPF pertence a um membro ou servidor. Por favor, utilize a aba 'Membros e Servidores'.");
         }
 
-        // 2. Verificar se é um participante externo existente
-        Optional<Participante> participanteOpt = participanteRepository.findByCpfAndTipo(cpf, TipoParticipanteEnum.EXTERNO);
+        // 2. Verificar se já existe participante com este CPF.
+        // Há registros legados que possuem o CPF cadastrado, mas não têm o tipo externo consistente.
+        // A busca por CPF evita que a verificação diga "não encontrado" e o cadastro falhe logo depois por CPF duplicado.
+        Optional<Participante> participanteOpt = participanteRepository.findByCpf(cpf);
         if (participanteOpt.isEmpty()) {
             throw new NotFoundException("Participante não encontrado. Prossiga com o cadastro.");
         }
 
         // 3. É um externo existente. Verificar se ele já está inscrito NESTE curso.
         Participante participante = participanteOpt.get();
+        if (participante.getIdServidor() != null || participante.getTipo() == TipoParticipanteEnum.INTERNO) {
+            throw new BusinessRuleException("Este CPF pertence a um membro ou servidor. Por favor, utilize a aba 'Membros e Servidores'.");
+        }
+
         if (inscricaoRepository.existsByCursoAndParticipante(curso, participante)) {
             throw new BusinessRuleException("Este participante já está inscrito neste curso.");
         }
