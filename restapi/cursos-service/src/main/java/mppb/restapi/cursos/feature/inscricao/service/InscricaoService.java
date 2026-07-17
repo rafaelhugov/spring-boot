@@ -261,10 +261,12 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
             throw new NotFoundException("Participante não encontrado. Prossiga com o cadastro.");
         }
 
-        // 2. Se já existe como participante interno do curso, deve seguir o fluxo de membros/servidores.
-        // Se existe como participante externo/legado, pode ser reutilizado mesmo que tenha tido vínculo antigo no RH.
+        // 2. Se já existe como participante interno e ainda possui vínculo ativo no RH,
+        // deve seguir o fluxo de membros/servidores. Sem vínculo ativo, trata como ex-interno
+        // e permite a reutilização pelo fluxo externo.
         Participante participante = participanteOpt.get();
-        if (participante.getIdServidor() != null || participante.getTipo() == TipoParticipanteEnum.INTERNO) {
+        boolean participanteInterno = participante.getIdServidor() != null || participante.getTipo() == TipoParticipanteEnum.INTERNO;
+        if (participanteInterno && servidorService.buscarPorCpf(cpf).isPresent()) {
             throw new BusinessRuleException("Este CPF pertence a um membro ou servidor. Por favor, utilize a aba 'Membros e Servidores'.");
         }
 

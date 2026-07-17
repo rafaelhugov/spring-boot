@@ -131,11 +131,7 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
                 throw new BusinessRuleException("O CPF informado não corresponde ao participante encontrado.");
             }
 
-            if (participante.getIdServidor() != null || participante.getTipo() == TipoParticipanteEnum.INTERNO) {
-                throw new BusinessRuleException("Este CPF pertence a um membro ou servidor. Por favor, utilize a aba 'Membros e Servidores'.");
-            }
-
-            return participante;
+            return reutilizarParticipanteExternoExistente(participante, dto, cpfLimpo);
         }
 
         // 2. Validar e converter o DTO
@@ -197,8 +193,16 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
     }
 
     private Participante reutilizarParticipanteExternoExistente(Participante participante, InscricaoPublicaDto dto, String cpfLimpo) {
-        if (participante.getIdServidor() != null || participante.getTipo() == TipoParticipanteEnum.INTERNO) {
+        String cpfParaConsulta = StringUtils.hasText(cpfLimpo) ? cpfLimpo : participante.getCpf();
+        boolean participanteInterno = participante.getIdServidor() != null || participante.getTipo() == TipoParticipanteEnum.INTERNO;
+
+        if (participanteInterno && possuiVinculoAtivoNoRh(cpfParaConsulta)) {
             throw new BusinessRuleException("Este CPF pertence a um membro ou servidor. Por favor, utilize a aba 'Membros e Servidores'.");
+        }
+
+        if (participanteInterno) {
+            participante.setIdServidor(null);
+            participante.setTipo(TipoParticipanteEnum.EXTERNO);
         }
 
         if (participante.getTipo() == null) {
@@ -222,6 +226,10 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
         }
 
         return repository.save(participante);
+    }
+
+    private boolean possuiVinculoAtivoNoRh(String cpf) {
+        return StringUtils.hasText(cpf) && servidorService.buscarPorCpf(cpf).isPresent();
     }
 
     /**
