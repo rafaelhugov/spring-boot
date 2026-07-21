@@ -312,64 +312,90 @@ public class DocumentosService {
     }
 
     private String buscarNomeAutoridade(Long orgaoExecucaoId, String fallback, CriterioAutoridade... criterios) {
-        String textoOrgaoExecucao = "lower(funcaosemacentos(orgao_execucao_nome))";
-        StringBuilder query = new StringBuilder("""
+        String queryPorId = """
                 SELECT servidor_nome
                   FROM diariooficial.mapa_por_membro_vw
                  WHERE ativo = 'A'
-                   AND (
-                        orgao_execucao_id = ?
-                """);
-        List<Object> params = new ArrayList<>();
-        params.add(orgaoExecucaoId);
-
-        for (CriterioAutoridade criterio : criterios) {
-            query.append(" OR (");
-            for (int i = 0; i < criterio.termos().length; i++) {
-                if (i > 0) {
-                    query.append(" AND ");
-                }
-                query.append(textoOrgaoExecucao).append(" LIKE lower(funcaosemacentos(?))");
-                params.add("%" + criterio.termos()[i] + "%");
-            }
-            query.append(")");
+                   AND orgao_execucao_id = ?
+                   AND servidor_nome IS NOT NULL
+                   AND trim(servidor_nome) <> ''
+                 ORDER BY orgao_execucao_id
+                 LIMIT 1
+                """;
+        Optional<String> nomePorId = consultarNomeAutoridade(queryPorId, orgaoExecucaoId);
+        if (nomePorId.isPresent()) {
+            return nomePorId.get();
         }
 
-        query.append("""
+        StringBuilder queryPorNomeOrgao = new StringBuilder("""
+                SELECT servidor_nome
+                  FROM diariooficial.mapa_por_membro_vw
+                 WHERE ativo = 'A'
+                   AND servidor_nome IS NOT NULL
+                   AND trim(servidor_nome) <> ''
+                   AND (
+                """);
+        List<Object> params = new ArrayList<>();
+
+        for (int c = 0; c < criterios.length; c++) {
+            if (c > 0) {
+                queryPorNomeOrgao.append(" OR ");
+            }
+            CriterioAutoridade criterio = criterios[c];
+            queryPorNomeOrgao.append("(");
+            for (int i = 0; i < criterio.termos().length; i++) {
+                if (i > 0) {
+                    queryPorNomeOrgao.append(" AND ");
+                }
+                queryPorNomeOrgao.append("UPPER(orgao_execucao_nome) LIKE ?");
+                params.add("%" + criterio.termos()[i].toUpperCase() + "%");
+            }
+            queryPorNomeOrgao.append(")");
+        }
+
+        queryPorNomeOrgao.append("""
                        )
                  ORDER BY
                        CASE
                 """);
         for (CriterioAutoridade criterio : criterios) {
-            query.append(" WHEN ");
+            queryPorNomeOrgao.append(" WHEN ");
             for (int i = 0; i < criterio.termos().length; i++) {
                 if (i > 0) {
-                    query.append(" AND ");
+                    queryPorNomeOrgao.append(" AND ");
                 }
-                query.append(textoOrgaoExecucao).append(" LIKE lower(funcaosemacentos(?))");
-                params.add("%" + criterio.termos()[i] + "%");
+                queryPorNomeOrgao.append("UPPER(orgao_execucao_nome) LIKE ?");
+                params.add("%" + criterio.termos()[i].toUpperCase() + "%");
             }
-            query.append(" THEN 0");
+            queryPorNomeOrgao.append(" THEN 0");
         }
-        query.append("""
-                         WHEN orgao_execucao_id = ? THEN 1
-                         ELSE 2
+        queryPorNomeOrgao.append("""
+                         ELSE 1
                        END,
                        orgao_execucao_id
                  LIMIT 1
                 """);
-        params.add(orgaoExecucaoId);
 
+        Optional<String> nomePorOrgao = consultarNomeAutoridade(queryPorNomeOrgao.toString(), params.toArray());
+        if (nomePorOrgao.isPresent()) {
+            return nomePorOrgao.get();
+        }
+
+        log.warn("Autoridade não encontrada na view diariooficial.mapa_por_membro_vw. Usando fallback '{}'.", fallback);
+        return fallback;
+    }
+
+    private Optional<String> consultarNomeAutoridade(String query, Object... params) {
         try {
-            List<String> nomes = jdbcTemplate.query(query.toString(), params.toArray(),
+            List<String> nomes = jdbcTemplate.query(query, params,
                     (rs, rowNum) -> rs.getString("servidor_nome"));
             if (!nomes.isEmpty() && !isBlank(nomes.get(0))) {
-                return nomes.get(0);
+                return Optional.of(nomes.get(0));
             }
         } catch (Exception e) {
-            log.warn("Erro ao consultar autoridade na view diariooficial.mapa_por_membro_vw. Usando fallback.", e);
+            log.warn("Erro ao consultar autoridade na view diariooficial.mapa_por_membro_vw.", e);
         }
-        return fallback;
+        return Optional.empty();
     }
 
     private boolean contem(String texto, String termo) {
