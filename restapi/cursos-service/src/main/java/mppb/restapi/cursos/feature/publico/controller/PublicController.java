@@ -17,6 +17,8 @@ import mppb.restapi.cursos.feature.participante.dto.InscricaoPublicaDto;
 import mppb.restapi.cursos.feature.participante.dto.ParticipanteVerificacaoDto;
 import mppb.restapi.common.infrastructure.util.Constants;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +41,16 @@ public class PublicController {
     private final ArquivoService arquivoService;
     private final ModelMapper modelMapper;
     private final AulaConverter aulaConverter;
+
+    @Operation(summary = "Lista cursos públicos", description = "Retorna cursos publicados disponíveis para o público externo.")
+    @GetMapping(value = "/cursos", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Page<CursoPublicoDto>> listarCursosPublicos(
+            @RequestParam(required = false) String titulo,
+            @RequestParam(required = false) Long modalidadeId,
+            @RequestParam(required = false, defaultValue = "INSCRICOES_ABERTAS") String periodo,
+            Pageable pageable) {
+        return ResponseEntity.ok(cursoService.findCursosPublicos(titulo, modalidadeId, periodo, pageable));
+    }
 
     /**
      * Busca os detalhes de um curso pelo seu hash de inscrição.
