@@ -11,7 +11,9 @@ import mppb.restapi.cursos.feature.inscricao.entity.Inscricao;
 import mppb.restapi.cursos.feature.inscricao.repository.InscricaoRepository;
 import mppb.restapi.cursos.feature.participante.entity.Participante;
 import mppb.restapi.cursos.feature.participante.enums.TipoParticipanteEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -25,6 +27,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.Arrays;
 
+@Slf4j
 @Service
 public class DocumentosService {
 
@@ -33,17 +36,20 @@ public class DocumentosService {
     private final AulaRepository aulaRepository;
     private final InscricaoRepository inscricaoRepository;
     private final PdfGeneratorService pdfGeneratorService;
+    private final JdbcTemplate jdbcTemplate;
 
     public DocumentosService(CursoRepository cursoRepository,
                              CursoMinistranteRepository cursoMinistranteRepository,
                              AulaRepository aulaRepository,
                              InscricaoRepository inscricaoRepository,
-                             PdfGeneratorService pdfGeneratorService) {
+                             PdfGeneratorService pdfGeneratorService,
+                             JdbcTemplate jdbcTemplate) {
         this.cursoRepository = cursoRepository;
         this.cursoMinistranteRepository = cursoMinistranteRepository;
         this.aulaRepository = aulaRepository;
         this.inscricaoRepository = inscricaoRepository;
         this.pdfGeneratorService = pdfGeneratorService;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     public byte[] gerarDocumento(Long cursoId, GeracaoDocumentoRequest request) {
@@ -63,15 +69,16 @@ public class DocumentosService {
         vars.put("numero_oficio", request.getNumeroOficio());
         vars.put("ano_oficio", request.getAnoOficio());
         vars.put("unidade_emissora", "CEAF/MPPB");
-        vars.put("destinatario_nome", request.getDestinatarioNome());
-        vars.put("destinatario_cargo", request.getDestinatarioCargo());
+        DadosAutoridades autoridades = resolverAutoridades(request);
+        vars.put("destinatario_nome", autoridades.destinatarioNome());
+        vars.put("destinatario_cargo", autoridades.destinatarioCargo());
         vars.put("orgao_destinatario", request.getOrgaoDestinatario());
         vars.put("assunto", request.getAssunto());
         vars.put("tratamento_destinatario", request.getTratamentoDestinatario());
         vars.put("pronome_tratamento", request.getPronomeTratamento());
         vars.put("finalidade_anotacao", request.getFinalidadeAnotacao());
-        vars.put("assinante_nome", request.getAssinanteNome());
-        vars.put("assinante_cargo", request.getAssinanteCargo());
+        vars.put("assinante_nome", autoridades.assinanteNome());
+        vars.put("assinante_cargo", autoridades.assinanteCargo());
         
         // Dados do curso
         vars.put("titulo_evento", (request.getNomeCurso() != null && !request.getNomeCurso().isEmpty()) ? request.getNomeCurso() : curso.getTitulo());
@@ -256,6 +263,127 @@ public class DocumentosService {
         return "";
     }
 
+    private DadosAutoridades resolverAutoridades(GeracaoDocumentoRequest request) {
+        String tipoDocumento = request.getTipoDocumento();
+        String destinatarioNome = request.getDestinatarioNome();
+        String destinatarioCargo = request.getDestinatarioCargo();
+        String assinanteNome = request.getAssinanteNome();
+        String assinanteCargo = textoOuPadrao(request.getAssinanteCargo(), "Diretor do CEAF");
+
+        if (isBlank(assinanteNome) || "Diretor do Centro de Estudos e Aperfeiçoamento Funcional".equalsIgnoreCase(assinanteNome)) {
+            assinanteNome = buscarNomeAutoridade(
+                    65L,
+                    "",
+                    new CriterioAutoridade("diretor", "ceaf"),
+                    new CriterioAutoridade("diretor", "centro", "estudos", "aperfeicoamento", "funcional"));
+        }
+
+        if ("OFICIO_DRH".equals(tipoDocumento)) {
+            destinatarioNome = textoOuPadrao(destinatarioNome, buscarNomeAutoridade(
+                    15L,
+                    "Chefe do Departamento de Recursos Humanos",
+                    new CriterioAutoridade("chefe", "departamento", "recursos", "humanos"),
+                    new CriterioAutoridade("chefe", "drh")));
+            destinatarioCargo = textoOuPadrao(destinatarioCargo, "Chefe do Departamento de Recursos Humanos");
+        } else if ("OFICIO_CORREGEDORIA".equals(tipoDocumento)) {
+            destinatarioNome = textoOuPadrao(destinatarioNome, buscarNomeAutoridade(
+                    64L,
+                    "Corregedor-Geral do Ministério Público",
+                    new CriterioAutoridade("corregedor", "geral"),
+                    new CriterioAutoridade("corregedoria", "geral")));
+            destinatarioCargo = textoOuPadrao(destinatarioCargo, "Corregedor-Geral");
+        } else if ("OFICIO_CONSOLIDADO".equals(tipoDocumento)) {
+            if (isBlank(destinatarioNome) && contem(request.getTratamentoDestinatario(), "corregedor")) {
+                destinatarioNome = buscarNomeAutoridade(
+                        64L,
+                        "Corregedor-Geral do Ministério Público",
+                        new CriterioAutoridade("corregedor", "geral"),
+                        new CriterioAutoridade("corregedoria", "geral"));
+            } else if (isBlank(destinatarioNome) && contem(request.getTratamentoDestinatario(), "chefe")) {
+                destinatarioNome = buscarNomeAutoridade(
+                        15L,
+                        "Chefe do Departamento de Recursos Humanos",
+                        new CriterioAutoridade("chefe", "departamento", "recursos", "humanos"),
+                        new CriterioAutoridade("chefe", "drh"));
+            }
+        }
+
+        return new DadosAutoridades(destinatarioNome, destinatarioCargo, assinanteNome, assinanteCargo);
+    }
+
+    private String buscarNomeAutoridade(Long orgaoExecucaoId, String fallback, CriterioAutoridade... criterios) {
+        String textoOrgaoExecucao = "lower(funcaosemacentos(orgao_execucao_nome))";
+        StringBuilder query = new StringBuilder("""
+                SELECT servidor_nome
+                  FROM diariooficial.mapa_por_membro_vw
+                 WHERE ativo = 'A'
+                   AND (
+                        orgao_execucao_id = ?
+                """);
+        List<Object> params = new ArrayList<>();
+        params.add(orgaoExecucaoId);
+
+        for (CriterioAutoridade criterio : criterios) {
+            query.append(" OR (");
+            for (int i = 0; i < criterio.termos().length; i++) {
+                if (i > 0) {
+                    query.append(" AND ");
+                }
+                query.append(textoOrgaoExecucao).append(" LIKE lower(funcaosemacentos(?))");
+                params.add("%" + criterio.termos()[i] + "%");
+            }
+            query.append(")");
+        }
+
+        query.append("""
+                       )
+                 ORDER BY
+                       CASE
+                """);
+        for (CriterioAutoridade criterio : criterios) {
+            query.append(" WHEN ");
+            for (int i = 0; i < criterio.termos().length; i++) {
+                if (i > 0) {
+                    query.append(" AND ");
+                }
+                query.append(textoOrgaoExecucao).append(" LIKE lower(funcaosemacentos(?))");
+                params.add("%" + criterio.termos()[i] + "%");
+            }
+            query.append(" THEN 0");
+        }
+        query.append("""
+                         WHEN orgao_execucao_id = ? THEN 1
+                         ELSE 2
+                       END,
+                       orgao_execucao_id
+                 LIMIT 1
+                """);
+        params.add(orgaoExecucaoId);
+
+        try {
+            List<String> nomes = jdbcTemplate.query(query.toString(), params.toArray(),
+                    (rs, rowNum) -> rs.getString("servidor_nome"));
+            if (!nomes.isEmpty() && !isBlank(nomes.get(0))) {
+                return nomes.get(0);
+            }
+        } catch (Exception e) {
+            log.warn("Erro ao consultar autoridade na view diariooficial.mapa_por_membro_vw. Usando fallback.", e);
+        }
+        return fallback;
+    }
+
+    private boolean contem(String texto, String termo) {
+        return texto != null && texto.toLowerCase().contains(termo);
+    }
+
+    private String textoOuPadrao(String texto, String padrao) {
+        return isBlank(texto) ? padrao : texto;
+    }
+
+    private boolean isBlank(String texto) {
+        return texto == null || texto.isBlank();
+    }
+
     private String getBrasaoDataUri() {
         try (InputStream is = getClass().getResourceAsStream("/reports/brasao_mppb_sem_fundo.png")) {
             if (is == null) {
@@ -279,6 +407,16 @@ public class DocumentosService {
             return "TODOS";
         }
         return String.join(", ", tipos);
+    }
+
+    private record DadosAutoridades(
+            String destinatarioNome,
+            String destinatarioCargo,
+            String assinanteNome,
+            String assinanteCargo) {
+    }
+
+    private record CriterioAutoridade(String... termos) {
     }
     
     public static class ParticipanteDTO {

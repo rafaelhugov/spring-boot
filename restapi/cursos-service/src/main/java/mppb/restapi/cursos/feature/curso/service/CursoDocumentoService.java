@@ -90,8 +90,16 @@ public class CursoDocumentoService {
         Curso curso = cursoRepository.findById(cursoId)
                 .orElseThrow(() -> new NotFoundException("Curso não encontrado."));
 
-        String nomeCorregedor = buscarNomeAutoridade(64L, "Corregedor-Geral do Ministério Público");
-        String nomeDiretorCeaf = buscarNomeAutoridade(65L, "Diretor do Centro de Estudos e Aperfeiçoamento Funcional");
+        String nomeCorregedor = buscarNomeAutoridade(
+                64L,
+                "Corregedor-Geral do Ministério Público",
+                new CriterioAutoridade("corregedor", "geral"),
+                new CriterioAutoridade("corregedoria", "geral"));
+        String nomeDiretorCeaf = buscarNomeAutoridade(
+                65L,
+                "Diretor do Centro de Estudos e Aperfeiçoamento Funcional",
+                new CriterioAutoridade("diretor", "ceaf"),
+                new CriterioAutoridade("diretor", "centro", "estudos", "aperfeicoamento", "funcional"));
 
         // Somente MEMBROS
         List<ParticipanteDocumentoDto> membros = buscarParticipantes(cursoId, true);
@@ -114,8 +122,16 @@ public class CursoDocumentoService {
         Curso curso = cursoRepository.findById(cursoId)
                 .orElseThrow(() -> new NotFoundException("Curso não encontrado."));
 
-        String nomeChefeDrh = buscarNomeAutoridade(15L, "Chefe do Departamento de Recursos Humanos");
-        String nomeDiretorCeaf = buscarNomeAutoridade(65L, "Diretor do Centro de Estudos e Aperfeiçoamento Funcional");
+        String nomeChefeDrh = buscarNomeAutoridade(
+                15L,
+                "Chefe do Departamento de Recursos Humanos",
+                new CriterioAutoridade("chefe", "departamento", "recursos", "humanos"),
+                new CriterioAutoridade("chefe", "drh"));
+        String nomeDiretorCeaf = buscarNomeAutoridade(
+                65L,
+                "Diretor do Centro de Estudos e Aperfeiçoamento Funcional",
+                new CriterioAutoridade("diretor", "ceaf"),
+                new CriterioAutoridade("diretor", "centro", "estudos", "aperfeicoamento", "funcional"));
         // Tenta detectar sexo pelo próprio nome (heurística simples)
         boolean chefeFeminino = nomeChefeDrh.matches(".*\\bANA\\b.*|.*\\bMARIA\\b.*|.*\\bLUCIA\\b.*|.*\\bFERNANDA\\b.*|.*\\bKEYLA\\b.*|.*\\bPATRICIA\\b.*|.*\\bANDREA\\b.*|.*\\bSILVIA\\b.*|.*\\bJULIANA\\b.*|.*\\bRAQUEL\\b.*|.*\\bCLAUDIA\\b.*|.*\\bCARLA\\b.*|.*\\bSABRINA\\b.*|.*\\bRENATA\\b.*|.*\\bTATIANA\\b.*|.*\\bROSANE\\b.*|.*\\bCRISTINA\\b.*|.*\\bCINTIA\\b.*|.*\\bKAREN\\b.*|.*\\bMONICA\\b.*|.*\\bDENISE\\b.*|.*\\bANGELA\\b.*|.*\\bSORAYA\\b.*|.*\\bGERALDINE\\b.*");
         String pronomeVocativo = chefeFeminino ? "À Senhora" : "Ao Senhor";
@@ -204,17 +220,68 @@ public class CursoDocumentoService {
         return tipo.contains("ASSESSOR");
     }
 
-    private String buscarNomeAutoridade(Long orgaoExecucaoId, String fallbackRoleName) {
-        String query = "SELECT servidor_nome FROM diariooficial.mapa_por_membro_vw WHERE orgao_execucao_id = ? AND ativo = 'A' LIMIT 1";
+    private String buscarNomeAutoridade(Long orgaoExecucaoId, String fallbackRoleName, CriterioAutoridade... criterios) {
+        String textoDesignacao = "lower(funcaosemacentos(orgao_execucao_nome))";
+        StringBuilder query = new StringBuilder("""
+                SELECT servidor_nome
+                  FROM diariooficial.mapa_por_membro_vw
+                 WHERE ativo = 'A'
+                   AND (
+                        orgao_execucao_id = ?
+                """);
+        List<Object> params = new ArrayList<>();
+        params.add(orgaoExecucaoId);
+
+        for (CriterioAutoridade criterio : criterios) {
+            query.append(" OR (");
+            for (int i = 0; i < criterio.termos().length; i++) {
+                if (i > 0) {
+                    query.append(" AND ");
+                }
+                query.append(textoDesignacao).append(" LIKE lower(funcaosemacentos(?))");
+                params.add("%" + criterio.termos()[i] + "%");
+            }
+            query.append(")");
+        }
+
+        query.append("""
+                       )
+                 ORDER BY
+                       CASE
+                """);
+        for (CriterioAutoridade criterio : criterios) {
+            query.append(" WHEN ");
+            for (int i = 0; i < criterio.termos().length; i++) {
+                if (i > 0) {
+                    query.append(" AND ");
+                }
+                query.append(textoDesignacao).append(" LIKE lower(funcaosemacentos(?))");
+                params.add("%" + criterio.termos()[i] + "%");
+            }
+            query.append(" THEN 0");
+        }
+        query.append("""
+                         WHEN orgao_execucao_id = ? THEN 1
+                         ELSE 2
+                       END,
+                       orgao_execucao_id
+                 LIMIT 1
+                """);
+        params.add(orgaoExecucaoId);
+
         try {
-            List<String> nomes = jdbcTemplate.query(query, new Object[]{orgaoExecucaoId},
+            List<String> nomes = jdbcTemplate.query(query.toString(), params.toArray(),
                     (rs, rowNum) -> rs.getString("servidor_nome"));
             if (!nomes.isEmpty() && nomes.get(0) != null && !nomes.get(0).isBlank()) {
                 return nomes.get(0);
             }
         } catch (Exception e) {
-            log.warn("Erro ao consultar view diariooficial.mapa_por_membro_vw para orgao_execucao_id {}. Usando fallback.", orgaoExecucaoId, e);
+            log.warn("Erro ao consultar autoridade '{}' na view diariooficial.mapa_por_membro_vw. Usando fallback.", fallbackRoleName, e);
         }
+        log.warn("Autoridade '{}' não encontrada na view diariooficial.mapa_por_membro_vw. Usando fallback.", fallbackRoleName);
         return fallbackRoleName;
+    }
+
+    private record CriterioAutoridade(String... termos) {
     }
 }
