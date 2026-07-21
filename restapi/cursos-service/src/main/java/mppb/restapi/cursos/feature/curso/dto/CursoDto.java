@@ -47,12 +47,15 @@ public class CursoDto {
     @JsonView(CursoView.Listagem.class)
     private LocalDateTime dataCriacao;
 
+    @JsonView(CursoView.Listagem.class)
     private LocalDateTime inscricaoDataInicial;
 
+    @JsonView(CursoView.Listagem.class)
     private LocalDateTime inscricaoDataFinal;
 
     // TODO: Adicionar validação para garantir que a data final seja após a data inicial.
     // Isso requer uma anotação de validação a nível de classe, que podemos implementar depois.
+    @JsonView(CursoView.Listagem.class)
     private LocalDateTime realizacaoDataInicial;
 
     @JsonView(CursoView.Listagem.class)
