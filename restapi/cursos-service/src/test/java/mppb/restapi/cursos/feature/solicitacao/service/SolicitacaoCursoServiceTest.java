@@ -6,8 +6,11 @@ import mppb.restapi.cursos.feature.cadastro.repository.EntidadeTutoraRepository;
 import mppb.restapi.cursos.feature.curso.entity.Curso;
 import mppb.restapi.cursos.feature.curso.service.CursoService;
 import mppb.restapi.cursos.feature.lookup.entities.Modalidade;
+import mppb.restapi.cursos.feature.lookup.entities.Municipio;
 import mppb.restapi.cursos.feature.lookup.entities.StatusTramitacao;
+import mppb.restapi.cursos.feature.lookup.repository.MunicipioRepository;
 import mppb.restapi.cursos.feature.lookup.repository.StatusTramitacaoRepository;
+import mppb.restapi.cursos.feature.frequencia.repository.AulaRepository;
 import mppb.restapi.cursos.feature.solicitacao.entity.SolicitacaoAgenda;
 import mppb.restapi.cursos.feature.solicitacao.entity.SolicitacaoCurso;
 import mppb.restapi.cursos.feature.solicitacao.entity.SolicitacaoMinistrante;
@@ -43,7 +46,13 @@ public class SolicitacaoCursoServiceTest {
     private StatusTramitacaoRepository statusTramitacaoRepository;
 
     @Mock
+    private MunicipioRepository municipioRepository;
+
+    @Mock
     private EntidadeTutoraRepository entidadeTutoraRepository;
+
+    @Mock
+    private AulaRepository aulaRepository;
 
     @InjectMocks
     private SolicitacaoCursoService solicitacaoCursoService;
@@ -138,5 +147,41 @@ public class SolicitacaoCursoServiceTest {
 
         assertTrue(exception.getMessage().contains("Apenas solicitações PROTOCOLADAS"));
         verify(cursoService, never()).save(any());
+    }
+
+    @Test
+    void deveConverterSolicitacaoParaUmCursoPorMunicipioSelecionado() {
+        // GIVEN
+        Municipio joaoPessoa = new Municipio();
+        joaoPessoa.setId(1L);
+        joaoPessoa.setNome("João Pessoa");
+
+        Municipio cajazeiras = new Municipio();
+        cajazeiras.setId(2L);
+        cajazeiras.setNome("Cajazeiras");
+
+        Curso cursoJoaoPessoa = new Curso();
+        cursoJoaoPessoa.setId(100L);
+
+        Curso cursoCajazeiras = new Curso();
+        cursoCajazeiras.setId(101L);
+
+        when(solicitacaoRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(solicitacao));
+        when(municipioRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(joaoPessoa, cajazeiras));
+        when(cursoService.save(any(Curso.class))).thenReturn(cursoJoaoPessoa, cursoCajazeiras);
+        when(statusTramitacaoRepository.findById(6L)).thenReturn(Optional.of(statusConvertido));
+
+        // WHEN
+        List<Long> cursoIds = solicitacaoCursoService.converterParaCursos(1L, List.of(1L, 2L));
+
+        // THEN
+        assertEquals(List.of(100L, 101L), cursoIds);
+        assertEquals(statusConvertido, solicitacao.getStatus());
+        assertEquals(100L, solicitacao.getIdCursoGerado());
+
+        verify(cursoService, times(2)).save(any(Curso.class));
+        verify(cursoService).save(argThat(curso -> joaoPessoa.equals(curso.getMunicipio())));
+        verify(cursoService).save(argThat(curso -> cajazeiras.equals(curso.getMunicipio())));
+        verify(solicitacaoRepository).save(solicitacao);
     }
 }

@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import mppb.restapi.cursos.feature.solicitacao.dto.ConverterSolicitacaoRequestDto;
 import mppb.restapi.cursos.feature.solicitacao.dto.HabilitarEdicaoRequestDto;
 import mppb.restapi.cursos.feature.solicitacao.dto.SolicitacaoCursoRequestDto;
 import mppb.restapi.cursos.feature.solicitacao.dto.SolicitacaoCursoResponseDto;
@@ -105,8 +106,14 @@ public class SolicitacaoCursoController {
     @Operation(summary = "Converter em Curso", description = "Cria um curso oficial a partir de uma solicitação deferida")
     @PostMapping(value = "/{id}/converter", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAuthority('cursos.manter.cursos')")
-    public ResponseEntity<java.util.Map<String, Long>> converterEmCurso(@PathVariable Long id) {
-        Long cursoId = service.converterParaCurso(id);
-        return ResponseEntity.ok(java.util.Map.of("id", cursoId));
+    public ResponseEntity<java.util.Map<String, Object>> converterEmCurso(
+            @PathVariable Long id,
+            @RequestBody(required = false) ConverterSolicitacaoRequestDto request) {
+        java.util.List<Long> cursoIds = service.converterParaCursos(
+                id,
+                request != null ? request.getMunicipioIds() : null);
+        return ResponseEntity.ok(java.util.Map.of(
+                "id", cursoIds.get(0),
+                "ids", cursoIds));
     }
 }

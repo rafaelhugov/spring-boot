@@ -56,6 +56,7 @@ public class SolicitacaoCursoService {
     private final LocalEventoRepository localEventoRepository;
     private final TipoEventoRepository tipoEventoRepository;
     private final StatusTramitacaoRepository statusTramitacaoRepository;
+    private final MunicipioRepository municipioRepository;
     private final PapelMinistranteRepository papelMinistranteRepository;
     private final MinistranteRepository ministranteRepositoryRef;
     private final CursoService cursoService;
@@ -638,6 +639,11 @@ public class SolicitacaoCursoService {
 
     @Transactional
     public Long converterParaCurso(Long id) {
+        return converterParaCursos(id, null).get(0);
+    }
+
+    @Transactional
+    public List<Long> converterParaCursos(Long id, List<Long> municipioIds) {
         SolicitacaoCurso solicitacao = solicitacaoRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new NotFoundException("Solicitação não encontrada"));
 
@@ -650,10 +656,61 @@ public class SolicitacaoCursoService {
                                     : "null"));
         }
 
+        List<Municipio> municipios = buscarMunicipiosConversao(municipioIds);
+        List<Long> cursoIds = new ArrayList<>();
+
+        for (Municipio municipio : municipios) {
+            Curso cursoSalvo = criarCursoAPartirDaSolicitacao(solicitacao, municipio);
+            cursoIds.add(cursoSalvo.getId());
+        }
+
+        // Marcar como CONVERTIDO (Novo ID 6)
+        statusTramitacaoRepository.findById(6L).ifPresent(solicitacao::setStatus);
+        solicitacao.setIdCursoGerado(cursoIds.get(0));
+        solicitacaoRepository.save(solicitacao);
+        return cursoIds;
+    }
+
+    private List<Municipio> buscarMunicipiosConversao(List<Long> municipioIds) {
+        if (municipioIds == null || municipioIds.isEmpty()) {
+            return Collections.singletonList(null);
+        }
+
+        List<Long> idsUnicos = municipioIds.stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        if (idsUnicos.isEmpty()) {
+            return Collections.singletonList(null);
+        }
+
+        List<Municipio> municipios = municipioRepository.findAllById(idsUnicos);
+        Set<Long> encontrados = municipios.stream()
+                .map(Municipio::getId)
+                .collect(Collectors.toSet());
+        List<Long> idsNaoEncontrados = idsUnicos.stream()
+                .filter(id -> !encontrados.contains(id))
+                .toList();
+
+        if (!idsNaoEncontrados.isEmpty()) {
+            throw new NotFoundException("Município(s) não encontrado(s): " + idsNaoEncontrados);
+        }
+
+        return idsUnicos.stream()
+                .map(id -> municipios.stream()
+                        .filter(municipio -> id.equals(municipio.getId()))
+                        .findFirst()
+                        .orElseThrow())
+                .toList();
+    }
+
+    private Curso criarCursoAPartirDaSolicitacao(SolicitacaoCurso solicitacao, Municipio municipio) {
         Curso novoCurso = new Curso();
         novoCurso.setTitulo(solicitacao.getNomeCurso());
         novoCurso.setModalidade(solicitacao.getModalidade());
         novoCurso.setTipoEvento(solicitacao.getTipoEvento());
+        novoCurso.setMunicipio(municipio);
         novoCurso.setLinkProgramacao(null); // Poderia vir do GED depois
         novoCurso.setDescricao("Curso gerado a partir da solicitação #" + solicitacao.getId() + " ("
                 + solicitacao.getNumeroPgaMpVirtual() + ")");
@@ -690,7 +747,8 @@ public class SolicitacaoCursoService {
             novoCurso.setRealizacaoDataInicial(dataInicial);
             novoCurso.setRealizacaoDataFinal(dataFinal);
 
-            log.info("Calculando carga horária para Solicitação {}. Total Agendas: {}. Duração acumulada: {}", id,
+            log.info("Calculando carga horária para Solicitação {}. Total Agendas: {}. Duração acumulada: {}",
+                    solicitacao.getId(),
                     solicitacao.getAgendas().size(), totalDuration);
 
             long hours = totalDuration.toHours();
@@ -698,13 +756,13 @@ public class SolicitacaoCursoService {
             int seconds = totalDuration.toSecondsPart();
             String chCalculada = String.format("%02d:%02d:%02d", hours, minutes, seconds);
 
-            log.info("Convertendo Solicitação {} para Curso. Carga Horária Calculada: {}", id, chCalculada);
+            log.info("Convertendo Solicitação {} para Curso. Carga Horária Calculada: {}", solicitacao.getId(), chCalculada);
             novoCurso.setCargaHoraria(chCalculada);
         } else {
             // Fallback se não houver agendas
             log.warn(
                     "Solicitação {} convertida sem agendas. Carga Horária definida como 00:00:00. Verifique se a solicitação possui itens na lista de agendas.",
-                    id);
+                    solicitacao.getId());
             novoCurso.setCargaHoraria("00:00:00");
         }
 
@@ -787,11 +845,7 @@ public class SolicitacaoCursoService {
             }
         });
 
-        // Marcar como CONVERIDO (Novo ID 6)
-        statusTramitacaoRepository.findById(6L).ifPresent(solicitacao::setStatus);
-        solicitacao.setIdCursoGerado(cursoSalvo.getId());
-        solicitacaoRepository.save(solicitacao);
-        return cursoSalvo.getId();
+        return cursoSalvo;
     }
 
     private void validarPropriedadeOuAdmin(SolicitacaoCurso solicitacao) {
