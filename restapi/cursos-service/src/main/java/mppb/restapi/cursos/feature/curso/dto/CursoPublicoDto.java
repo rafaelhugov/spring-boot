@@ -3,6 +3,7 @@ package mppb.restapi.cursos.feature.curso.dto;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * DTO para expor publicamente os detalhes de um curso para a página de inscrição.
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 @Builder
 public class CursoPublicoDto {
 
+    private String hashInscricao;
     private String titulo;
     private String descricao;
     private LocalDateTime inscricaoDataInicial;
@@ -25,10 +27,11 @@ public class CursoPublicoDto {
     private String cargaHoraria;
     private String linkProgramacao;
     private String modalidade;
+    private String municipio;
+    private List<String> publicosAlvo;
 
     /**
      * Campo que informa ao frontend se o curso está aberto a inscrições de externos.
      */
     private boolean aceitaInscricaoExterna;
 }
-

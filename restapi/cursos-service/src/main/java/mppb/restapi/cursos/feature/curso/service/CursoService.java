@@ -10,6 +10,7 @@ import mppb.restapi.cursos.feature.curso.converter.CursoMinistranteConverter;
 import mppb.restapi.cursos.feature.curso.dto.*;
 import mppb.restapi.cursos.feature.curso.entity.Curso;
 import mppb.restapi.cursos.feature.curso.entity.CursoMinistrante;
+import mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum;
 import mppb.restapi.cursos.feature.curso.repository.CursoMinistranteRepository;
 import mppb.restapi.cursos.feature.curso.repository.CursoRepository;
 import mppb.restapi.cursos.feature.curso.specification.CursoSpecification;
@@ -32,8 +33,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -124,6 +127,64 @@ public class CursoService extends AbstractService<Curso, Long> {
         cursoDto.setMinistrantes(ministrantesDto);
 
         return cursoDto;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CursoPublicoDto> findCursosPublicos(String titulo, Long modalidadeId, String periodo, Pageable pageable) {
+        String periodoFiltro = periodo == null ? "" : periodo;
+        Specification<Curso> spec = (root, query, builder) -> {
+            List<jakarta.persistence.criteria.Predicate> predicates = new java.util.ArrayList<>();
+            LocalDateTime agora = LocalDateTime.now();
+
+            predicates.add(builder.equal(root.get("status"), StatusCursoEnum.PUBLICADO));
+
+            jakarta.persistence.criteria.Join<Curso, PublicoAlvo> publicosAlvoJoin =
+                    root.join("publicosAlvo", jakarta.persistence.criteria.JoinType.INNER);
+            query.distinct(true);
+
+            predicates.add(builder.or(
+                    builder.like(builder.lower(publicosAlvoJoin.get("nome")), "%externo%"),
+                    builder.like(builder.lower(publicosAlvoJoin.get("nome")), "%geral%"),
+                    builder.like(builder.lower(publicosAlvoJoin.get("nome")), "%todos%"),
+                    builder.like(builder.lower(publicosAlvoJoin.get("internoExterno")), "%externo%"),
+                    builder.like(builder.lower(publicosAlvoJoin.get("internoExterno")), "%geral%"),
+                    builder.like(builder.lower(publicosAlvoJoin.get("internoExterno")), "%todos%")
+            ));
+
+            if (org.springframework.util.StringUtils.hasText(titulo)) {
+                predicates.add(builder.like(builder.lower(root.get("titulo")), "%" + titulo.toLowerCase(Locale.ROOT) + "%"));
+            }
+
+            if (modalidadeId != null) {
+                predicates.add(builder.equal(root.get("modalidade").get("id"), modalidadeId));
+            }
+
+            if ("INSCRICOES_ABERTAS".equalsIgnoreCase(periodoFiltro)) {
+                predicates.add(builder.isNotNull(root.get("inscricaoDataInicial")));
+                predicates.add(builder.isNotNull(root.get("inscricaoDataFinal")));
+                predicates.add(builder.lessThanOrEqualTo(root.get("inscricaoDataInicial"), agora));
+                predicates.add(builder.greaterThanOrEqualTo(root.get("inscricaoDataFinal"), agora));
+            } else if ("PROXIMOS".equalsIgnoreCase(periodoFiltro)) {
+                predicates.add(builder.isNotNull(root.get("inscricaoDataInicial")));
+                predicates.add(builder.greaterThan(root.get("inscricaoDataInicial"), agora));
+            } else if (!"TODOS".equalsIgnoreCase(periodoFiltro)) {
+                predicates.add(builder.or(
+                        builder.isNull(root.get("realizacaoDataFinal")),
+                        builder.greaterThanOrEqualTo(root.get("realizacaoDataFinal"), agora)
+                ));
+            }
+
+            return builder.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
+
+        Pageable pageableOrdenado = pageable.getSort().isSorted()
+                ? pageable
+                : PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(
+                        Sort.Order.asc("inscricaoDataInicial"),
+                        Sort.Order.asc("realizacaoDataInicial")
+                ));
+
+        return cursoRepository.findAll(spec, pageableOrdenado).map(this::toCursoPublicoDto);
     }
 
     @Override
@@ -310,8 +371,12 @@ public class CursoService extends AbstractService<Curso, Long> {
         Curso curso = cursoRepository.findByHashInscricao(hash)
                 .orElseThrow(() -> new NotFoundException("Curso não encontrado ou o link de inscrição é inválido."));
 
-        // Mapeamento manual para o DTO público
+        return toCursoPublicoDto(curso);
+    }
+
+    private CursoPublicoDto toCursoPublicoDto(Curso curso) {
         CursoPublicoDto dto = new CursoPublicoDto();
+        dto.setHashInscricao(curso.getHashInscricao() != null ? curso.getHashInscricao().toString() : null);
         dto.setTitulo(curso.getTitulo());
         dto.setDescricao(curso.getDescricao());
         dto.setInscricaoDataInicial(curso.getInscricaoDataInicial());
@@ -323,13 +388,40 @@ public class CursoService extends AbstractService<Curso, Long> {
         if (curso.getModalidade() != null) {
             dto.setModalidade(curso.getModalidade().getDescricao());
         }
-
-        // AJUSTE: O campo internoExterno foi removido para seguir o padrão de produção.
-        // TODO: Definir nova regra para identificar se um curso aceita inscrições externas baseado no público-alvo.
-        boolean aceitaExterno = true;
-        dto.setAceitaInscricaoExterna(aceitaExterno);
+        if (curso.getMunicipio() != null) {
+            dto.setMunicipio(curso.getMunicipio().getNome());
+        }
+        dto.setPublicosAlvo(curso.getPublicosAlvo() == null
+                ? Collections.emptyList()
+                : curso.getPublicosAlvo().stream()
+                        .map(PublicoAlvo::getNome)
+                        .filter(Objects::nonNull)
+                        .sorted()
+                        .toList());
+        dto.setAceitaInscricaoExterna(aceitaInscricaoExterna(curso));
 
         return dto;
+    }
+
+    private boolean aceitaInscricaoExterna(Curso curso) {
+        if (curso.getPublicosAlvo() == null) {
+            return false;
+        }
+
+        return curso.getPublicosAlvo().stream().anyMatch(publicoAlvo -> {
+            String nome = normalizarTexto(publicoAlvo.getNome());
+            String tipo = normalizarTexto(publicoAlvo.getInternoExterno());
+            return nome.contains("externo")
+                    || nome.contains("geral")
+                    || nome.contains("todos")
+                    || tipo.contains("externo")
+                    || tipo.contains("geral")
+                    || tipo.contains("todos");
+        });
+    }
+
+    private String normalizarTexto(String valor) {
+        return valor == null ? "" : valor.toLowerCase(Locale.ROOT);
     }
 
 
