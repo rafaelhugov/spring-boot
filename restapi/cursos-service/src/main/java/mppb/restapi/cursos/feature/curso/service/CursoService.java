@@ -427,8 +427,12 @@ public class CursoService extends AbstractService<Curso, Long> {
         String tipo = normalizarTexto(publicoAlvo.getInternoExterno());
         String referencia = nome + " " + tipo;
 
-        boolean temInterno = referencia.contains("interno");
-        boolean temExterno = referencia.contains("externo");
+        boolean temInterno = referencia.contains("interno")
+                || referencia.contains("membro")
+                || referencia.contains("servidor")
+                || referencia.contains("assessor")
+                || "i".equals(tipo);
+        boolean temExterno = referencia.contains("externo") || "e".equals(tipo);
 
         if (temInterno || temExterno) {
             return "interno".equals(tipoDesejado) ? temInterno : temExterno;
