@@ -31,6 +31,11 @@ public class CursoPublicoDto {
     private List<String> publicosAlvo;
 
     /**
+     * Campo que informa ao frontend se o curso está aberto a inscrições de internos.
+     */
+    private boolean aceitaInscricaoInterna;
+
+    /**
      * Campo que informa ao frontend se o curso está aberto a inscrições de externos.
      */
     private boolean aceitaInscricaoExterna;

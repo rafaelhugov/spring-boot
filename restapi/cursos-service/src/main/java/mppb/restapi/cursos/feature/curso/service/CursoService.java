@@ -400,9 +400,18 @@ public class CursoService extends AbstractService<Curso, Long> {
                         .filter(Objects::nonNull)
                         .sorted()
                         .toList());
+        dto.setAceitaInscricaoInterna(aceitaInscricaoInterna(curso));
         dto.setAceitaInscricaoExterna(aceitaInscricaoExterna(curso));
 
         return dto;
+    }
+
+    private boolean aceitaInscricaoInterna(Curso curso) {
+        if (curso.getPublicosAlvo() == null) {
+            return false;
+        }
+
+        return curso.getPublicosAlvo().stream().anyMatch(publicoAlvo -> publicoAlvoPermite(publicoAlvo, "interno"));
     }
 
     private boolean aceitaInscricaoExterna(Curso curso) {
@@ -410,16 +419,22 @@ public class CursoService extends AbstractService<Curso, Long> {
             return false;
         }
 
-        return curso.getPublicosAlvo().stream().anyMatch(publicoAlvo -> {
-            String nome = normalizarTexto(publicoAlvo.getNome());
-            String tipo = normalizarTexto(publicoAlvo.getInternoExterno());
-            return nome.contains("externo")
-                    || nome.contains("geral")
-                    || nome.contains("todos")
-                    || tipo.contains("externo")
-                    || tipo.contains("geral")
-                    || tipo.contains("todos");
-        });
+        return curso.getPublicosAlvo().stream().anyMatch(publicoAlvo -> publicoAlvoPermite(publicoAlvo, "externo"));
+    }
+
+    private boolean publicoAlvoPermite(PublicoAlvo publicoAlvo, String tipoDesejado) {
+        String nome = normalizarTexto(publicoAlvo.getNome());
+        String tipo = normalizarTexto(publicoAlvo.getInternoExterno());
+        String referencia = nome + " " + tipo;
+
+        boolean temInterno = referencia.contains("interno");
+        boolean temExterno = referencia.contains("externo");
+
+        if (temInterno || temExterno) {
+            return "interno".equals(tipoDesejado) ? temInterno : temExterno;
+        }
+
+        return referencia.contains("geral") || referencia.contains("todos");
     }
 
     private String normalizarTexto(String valor) {
