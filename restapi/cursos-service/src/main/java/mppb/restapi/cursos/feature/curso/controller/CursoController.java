@@ -156,14 +156,14 @@ public class CursoController extends AbstractController {
     }
 
     /**
-     * Atualiza o papel de um ministrante em uma associação específica com um curso.
+     * Atualiza os dados editáveis de um ministrante em uma associação específica com um curso.
      *
      * @param cursoId      O ID do curso ao qual a associação pertence.
      * @param associacaoId O ID da associação (CursoMinistrante) a ser atualizada.
-     * @param dto          O corpo da requisição contendo o ID do novo papel.
+     * @param dto          O corpo da requisição contendo papel, contatos e anexos.
      * @return Um ResponseEntity contendo o DTO da associação atualizada.
      */
-    @Operation(summary = "Atualiza o papel de um ministrante em um curso", description = "Altera o papel de um ministrante em uma associação específica, retornando a associação atualizada.")
+    @Operation(summary = "Atualiza os dados de um ministrante em um curso", description = "Altera papel, contatos e anexos de um ministrante em uma associação específica, retornando a associação atualizada.")
     @PutMapping("/{cursoId}/ministrantes/{associacaoId}")
     public ResponseEntity<CursoMinistranteDto> atualizarPapelDoMinistrante(
             @PathVariable Long cursoId,
