@@ -61,6 +61,7 @@ public class CursoDto {
     @JsonView(CursoView.Listagem.class)
     private LocalDateTime realizacaoDataFinal;
 
+    @JsonView(CursoView.Listagem.class)
     @Pattern(regexp = "^([0-9]{1,4}):([0-5][0-9]):([0-5][0-9])$", message = "O formato da carga horária deve ser HHHH:MM:SS.")
     private String cargaHoraria;
 
