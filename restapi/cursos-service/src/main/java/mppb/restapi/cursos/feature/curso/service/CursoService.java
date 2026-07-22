@@ -332,11 +332,11 @@ public class CursoService extends AbstractService<Curso, Long> {
 
 
     /**
-     * Atualiza o papel de um ministrante em uma associação existente com um curso.
+     * Atualiza os dados editáveis de um ministrante em uma associação existente com um curso.
      *
      * @param cursoId O ID do curso, para garantir que a associação pertence ao curso correto.
      * @param associacaoId O ID da associação (CursoMinistrante) a ser atualizada.
-     * @param dto O DTO contendo o ID do novo papel a ser atribuído.
+     * @param dto O DTO contendo os dados editáveis do ministrante.
      * @return O DTO da associação atualizada e enriquecida.
      * @throws NotFoundException se o curso, a associação ou o novo papel não forem encontrados.
      */
@@ -351,12 +351,14 @@ public class CursoService extends AbstractService<Curso, Long> {
         PapelMinistrante novoPapel = papelMinistranteRepository.findById(dto.getPapelId())
                 .orElseThrow(() -> new NotFoundException("Papel de ministrante não encontrado: " + dto.getPapelId()));
 
-        // 3. Atualiza o papel na associação.
         associacao.setPapel(novoPapel);
 
-        // 4. A persistência é gerenciada pela transação (@Transactional), então um save() explícito não é necessário
-        //    para a atualização. O Hibernate detecta a mudança e a salva no banco de dados.
-        //    Apenas retornamos o DTO da entidade atualizada em memória.
+        var ministrante = associacao.getMinistrante();
+        ministrante.setEmail(dto.getEmail());
+        ministrante.setTelefone(dto.getTelefone());
+        ministrante.setIdFoto(dto.getIdFoto());
+        ministrante.setIdCurriculo(dto.getIdCurriculo());
+
         return ministranteService.toEnrichedDto(associacao);
     }
 
