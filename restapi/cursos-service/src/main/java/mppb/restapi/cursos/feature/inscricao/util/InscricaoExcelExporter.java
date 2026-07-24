@@ -13,7 +13,7 @@ import java.util.List;
 public class InscricaoExcelExporter {
 
     private static final String[] HEADERS = {"Nome do Participante", "E-mail", "Cargo", "PcD", "Necessidade Especial", "Situação", "Data de Inscrição"};
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
     public static ByteArrayInputStream exportToExcel(List<InscricaoDto> inscricoes) throws IOException {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {

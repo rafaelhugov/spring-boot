@@ -204,7 +204,7 @@ public class CursoDocumentoService {
     private boolean isMembro(Participante p) {
         if (p.getCargoServidor() == null) return false;
         String cargo = p.getCargoServidor().toUpperCase();
-        return cargo.contains("PROMOTOR") || cargo.contains("PROCURADOR");
+        return (cargo.contains("PROMOTOR") || cargo.contains("PROCURADOR")) && !cargo.contains("ASSESSOR");
     }
 
     private boolean isServidor(Participante p) {
@@ -215,9 +215,9 @@ public class CursoDocumentoService {
     }
 
     private boolean isAssessor(Participante p) {
-        if (p.getTipo() == null) return false;
-        String tipo = p.getTipo().name().toUpperCase();
-        return tipo.contains("ASSESSOR");
+        if (p.getCargoServidor() == null) return false;
+        String cargo = p.getCargoServidor().toUpperCase();
+        return cargo.contains("ASSESSOR");
     }
 
     private String buscarNomeAutoridade(Long orgaoExecucaoId, String fallbackRoleName, CriterioAutoridade... criterios) {
