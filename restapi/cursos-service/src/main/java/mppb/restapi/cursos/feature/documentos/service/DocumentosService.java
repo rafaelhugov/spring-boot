@@ -1,5 +1,6 @@
 package mppb.restapi.cursos.feature.documentos.service;
 
+import mppb.restapi.common.core.error.NotFoundException;
 import mppb.restapi.cursos.feature.curso.entity.Curso;
 import mppb.restapi.cursos.feature.curso.entity.CursoMinistrante;
 import mppb.restapi.cursos.feature.curso.repository.CursoMinistranteRepository;
@@ -55,7 +56,7 @@ public class DocumentosService {
 
     public byte[] gerarDocumento(Long cursoId, GeracaoDocumentoRequest request) {
         Curso curso = cursoRepository.findById(cursoId)
-                .orElseThrow(() -> new IllegalArgumentException("Curso não encontrado"));
+                .orElseThrow(() -> new NotFoundException("Curso não encontrado"));
 
         List<CursoMinistrante> ministrantes = cursoMinistranteRepository.findByCursoId(cursoId);
         List<Aula> aulas = aulaRepository.findAllByCursoId(cursoId);
@@ -242,10 +243,10 @@ public class DocumentosService {
             return "EXTERNOS";
         }
         String cargo = p.getCargoServidor() != null ? p.getCargoServidor().toUpperCase() : "";
-        if (cargo.contains("PROMOTOR") || cargo.contains("PROCURADOR")) {
-            return "MEMBROS";
-        } else if (cargo.contains("ASSESSOR")) {
+        if (cargo.contains("ASSESSOR")) {
             return "ASSESSORES";
+        } else if (cargo.contains("PROMOTOR") || cargo.contains("PROCURADOR")) {
+            return "MEMBROS";
         } else {
             return "SERVIDORES";
         }

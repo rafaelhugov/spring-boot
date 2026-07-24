@@ -12,8 +12,9 @@ import java.util.List;
 
 public class InscricaoExcelExporter {
 
-    private static final String[] HEADERS = {"Nome do Participante", "E-mail", "Cargo", "PcD", "Necessidade Especial", "Situação", "Data de Inscrição"};
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final String[] HEADERS = {"Nome do Participante", "E-mail", "Cargo", "PcD", "Necessidade Especial", "Situação", "Data de Inscrição", "Horário de Inscrição"};
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     public static ByteArrayInputStream exportToExcel(List<InscricaoDto> inscricoes) throws IOException {
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
@@ -49,6 +50,7 @@ public class InscricaoExcelExporter {
                 
                 if (inscricao.getDataInscricao() != null) {
                     row.createCell(6).setCellValue(inscricao.getDataInscricao().format(DATE_FORMATTER));
+                    row.createCell(7).setCellValue(inscricao.getDataInscricao().format(TIME_FORMATTER));
                 }
             }
 
