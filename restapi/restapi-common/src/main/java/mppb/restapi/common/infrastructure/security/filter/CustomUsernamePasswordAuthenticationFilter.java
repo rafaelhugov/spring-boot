@@ -6,6 +6,7 @@ import java.io.IOException;
 import mppb.restapi.common.infrastructure.security.authorization.UsuarioSenhaAuthentication;
 import mppb.restapi.common.infrastructure.security.manager.CustomAuthenticationManager;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -33,11 +34,19 @@ public class CustomUsernamePasswordAuthenticationFilter extends OncePerRequestFi
 
         if (basic != null) {
 
-            String credentials = new String(java.util.Base64.getDecoder().decode(basic));
+            try {
+                String credentials = new String(java.util.Base64.getDecoder().decode(basic));
 
-            UsuarioSenhaAuthentication authRequest= new UsuarioSenhaAuthentication(credentials);
-            Authentication authentication = manager.authenticate(authRequest);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+                UsuarioSenhaAuthentication authRequest= new UsuarioSenhaAuthentication(credentials);
+                Authentication authentication = manager.authenticate(authRequest);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } catch (AuthenticationException | IllegalArgumentException ex) {
+                SecurityContextHolder.clearContext();
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().write("{\"error\":\"Unauthorized\"}");
+                return;
+            }
         }
 
         filterChain.doFilter(request, response);

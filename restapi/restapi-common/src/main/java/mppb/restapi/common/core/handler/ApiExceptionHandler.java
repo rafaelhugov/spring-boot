@@ -15,10 +15,13 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -61,6 +64,18 @@ public class ApiExceptionHandler {
         return createProblemDetail(HttpStatus.NOT_FOUND, "Recurso não encontrado", exception, null);
     }
 
+    @ExceptionHandler(value = ResponseStatusException.class)
+    public ResponseEntity<ProblemDetail> handleResponseStatusException(ResponseStatusException exception) {
+        HttpStatus status = HttpStatus.valueOf(exception.getStatusCode().value());
+        String title = exception.getReason() != null ? exception.getReason() : status.getReasonPhrase();
+        return createProblemDetail(status, title, exception, title);
+    }
+
+    @ExceptionHandler(value = {AccessDeniedException.class, AuthorizationDeniedException.class})
+    public ResponseEntity<ProblemDetail> handleAccessDeniedException(Exception exception) {
+        return createProblemDetail(HttpStatus.FORBIDDEN, "Acesso negado", exception, "Acesso negado.");
+    }
+
     @ExceptionHandler(value = feign.RetryableException.class)
     public ResponseEntity<ProblemDetail> handleRetryableException(feign.RetryableException exception) {
         return createProblemDetail(
@@ -85,7 +100,8 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(value = AppException.class)
     public ResponseEntity<ProblemDetail> handleAppException(AppException exception) {
-        return createProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Erro genérico da aplicação", exception, null);
+        return createProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Erro genérico da aplicação", exception,
+                "Ocorreu um erro inesperado no sistema. Por favor, tente novamente mais tarde.");
     }
 
     @ExceptionHandler(value = Exception.class)
@@ -99,7 +115,7 @@ public class ApiExceptionHandler {
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             response.setContentType("application/problem+json;charset=UTF-8");
             try {
-                response.getWriter().write("{\"status\":500,\"title\":\"Erro interno no servidor\",\"detail\":\"" + exception.getMessage() + "\"}");
+                response.getWriter().write("{\"status\":500,\"title\":\"Erro interno no servidor\",\"detail\":\"Ocorreu um erro inesperado no sistema. Por favor, tente novamente mais tarde.\"}");
                 response.getWriter().flush();
             } catch (IOException e) {
                 log.error("Falha ao escrever resposta de erro JSON", e);

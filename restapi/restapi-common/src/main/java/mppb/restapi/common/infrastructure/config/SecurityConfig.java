@@ -32,7 +32,8 @@ public class SecurityConfig {
             "/" + Constants.API_PREFIX + "/ferias/**",
             "/pagamentos/**",
             "/" + Constants.API_PREFIX + "/pagamentos/**",
-            "/" + Constants.API_PREFIX + "/manuais/pdf/**", // Permitir download nativo via browser (validação manual)
+            "/" + Constants.API_PREFIX + "/manuais/pdf/solicitante",
+            "/" + Constants.API_PREFIX + "/manuais/pdf/manual_solicitante.pdf",
             "/swagger-ui/index.html", "/swagger-ui.html", "/swagger-ui/**",
             "/v3/api-docs",
     };

@@ -48,7 +48,7 @@ public class ConsultaAutorizacaoRequestDto implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("ConsultaAutorizacaoRequestDto [response=%s, siglaSistema=%s]", token, siglaSistema);
+        return String.format("ConsultaAutorizacaoRequestDto [response=***, siglaSistema=%s]", siglaSistema);
     }
 
 }

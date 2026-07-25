@@ -28,7 +28,7 @@ public class AutenticaResponseDto implements Serializable {
 
     @Override
     public String toString() {
-        return String.format("AutenticaResponseDto [response=%s]", token);
+        return "AutenticaResponseDto [response=***]";
     }
 
 }

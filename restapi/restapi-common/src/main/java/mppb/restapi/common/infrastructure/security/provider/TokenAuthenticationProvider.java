@@ -52,9 +52,8 @@ public class TokenAuthenticationProvider implements AuthenticationProvider {
             UsuarioAutorizadoResponseDto usuario = consultaAutorizacaoResponseTO.getUsuario();
             AcessoDataResponseDto acessoData = consultaAutorizacaoResponseTO.getAcessoData();
 
-            log.info("[DEBUG-TOKEN] Token: {}, Usuario: {}, Permissoes: {}",
-                    token != null && token.length() > 20 ? token.substring(0, 20) + "..." : token,
-                    usuario,
+            log.info("[AUTH] Token validado para usuarioId: {}, permissoes: {}",
+                    usuario != null ? usuario.getId() : null,
                     acessoData != null ? acessoData.getFuncionalidadesPermitidas().size() : 0);
 
             // Injeção dinâmica de permissões para o perfil Servidor
@@ -83,8 +82,9 @@ public class TokenAuthenticationProvider implements AuthenticationProvider {
 
             return new TokenAuthentication(token, usuario, acessoData, null, SecurityUtils.getAuthorities(acessoData));
         } catch (FeignException exception) {
-            log.error("[DEBUG-TOKEN] Erro na consulta de autorização para o token {}: {}", token,
-                    exception.getMessage());
+            log.error("[AUTH] Erro na consulta de autorização. status={}, tipo={}",
+                    exception.status(),
+                    exception.getClass().getSimpleName());
             throw new BadCredentialsException("security.invalid-response");
         }
     }
