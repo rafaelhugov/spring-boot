@@ -67,7 +67,7 @@ public class CertificadoServiceTest {
         curso.setCargaHoraria("40:00:00");
         curso.setRealizacaoDataFinal(LocalDateTime.of(2026, 3, 31, 12, 0));
         curso.setCertificateTemplateId(500L);
-        curso.setStatus(mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.PUBLICADO);
+        curso.setStatus(mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.FINALIZADO);
         
         Modalidade modalidade = new Modalidade();
         modalidade.setId(1L); // Online

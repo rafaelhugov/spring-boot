@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import mppb.restapi.common.core.error.BusinessRuleException;
 import mppb.restapi.common.core.error.NotFoundException;
 import mppb.restapi.cursos.feature.common.entities.Arquivo;
+import mppb.restapi.cursos.feature.common.service.ArquivoSecurityUtils;
 import mppb.restapi.cursos.feature.common.service.ArquivoService;
 import mppb.restapi.cursos.feature.curso.dto.CursoArquivoComprobatorioDto;
 import mppb.restapi.cursos.feature.curso.entity.Curso;
@@ -18,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Service
@@ -76,12 +76,10 @@ public class CursoArquivoComprobatorioService {
     }
 
     private void validarArquivo(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new BusinessRuleException("Selecione um arquivo para envio.");
-        }
-        String mimeType = file.getContentType() != null ? file.getContentType().toLowerCase(Locale.ROOT) : "";
-        if (!"application/pdf".equals(mimeType) && !mimeType.startsWith("image/")) {
-            throw new BusinessRuleException("Envie apenas arquivos PDF ou imagens.");
+        try {
+            ArquivoSecurityUtils.validateUpload(file);
+        } catch (IOException e) {
+            throw new mppb.restapi.common.core.error.BusinessRuleException("Não foi possível validar o arquivo enviado.");
         }
     }
 

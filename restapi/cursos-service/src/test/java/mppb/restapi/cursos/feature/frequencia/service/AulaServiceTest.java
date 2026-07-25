@@ -8,6 +8,7 @@ import mppb.restapi.cursos.feature.curso.repository.CursoRepository;
 import mppb.restapi.cursos.feature.frequencia.converter.AulaConverter;
 import mppb.restapi.cursos.feature.frequencia.entity.Aula;
 import mppb.restapi.cursos.feature.frequencia.repository.AulaRepository;
+import mppb.restapi.cursos.feature.frequencia.repository.ChamadaRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,10 +38,16 @@ class AulaServiceTest {
     private CursoRepository cursoRepository;
 
     @Mock
+    private ChamadaRepository chamadaRepository;
+
+    @Mock
     private AulaConverter aulaConverter;
 
     @Mock
     private EntityManager entityManager;
+
+    @Mock
+    private FrequenciaService frequenciaService;
 
     @InjectMocks
     private AulaService aulaService;
@@ -68,17 +75,19 @@ class AulaServiceTest {
     @Test
     void createAula_Success() {
         when(cursoRepository.findById(1L)).thenReturn(Optional.of(curso));
-        when(aulaRepository.findAllByCursoId(1L))
-            .thenReturn(new ArrayList<>())
-            .thenReturn(List.of(aulaValida));
+        when(aulaRepository.findAllByCursoId(1L)).thenReturn(List.of(aulaValida));
         when(aulaRepository.save(any(Aula.class))).thenReturn(aulaValida);
 
         Aula result = aulaService.createAula(1L, aulaValida);
 
         assertNotNull(result);
-        assertEquals(StatusCursoEnum.EM_CONSTRUCAO, curso.getStatus()); // Total: 60, Max: 120
+        assertEquals(StatusCursoEnum.PUBLICADO, curso.getStatus());
+        assertEquals("01:00:00", curso.getCargaHoraria());
+        assertEquals(LocalDateTime.of(2023, 1, 10, 14, 0), curso.getRealizacaoDataInicial());
+        assertEquals(LocalDateTime.of(2023, 1, 10, 15, 0), curso.getRealizacaoDataFinal());
         verify(aulaRepository, times(1)).save(aulaValida);
         verify(cursoRepository, times(1)).save(curso);
+        verify(frequenciaService).consolidarFrequenciasPorCurso(1L);
     }
 
     @Test
@@ -87,49 +96,28 @@ class AulaServiceTest {
         
         Aula aulaExistente = new Aula();
         aulaExistente.setId(11L);
+        aulaExistente.setData(LocalDate.of(2023, 1, 9));
         aulaExistente.setHoraInicio(LocalTime.of(10, 0));
         aulaExistente.setHoraFim(LocalTime.of(11, 0)); // 60 minutes
 
         when(aulaRepository.findAllByCursoId(1L))
-            .thenReturn(List.of(aulaExistente)) // Primeira chamada (validarAula)
             .thenReturn(List.of(aulaExistente, aulaValida)); // Segunda chamada (recalcularStatusCurso)
         when(aulaRepository.save(any(Aula.class))).thenReturn(aulaValida);
 
         Aula result = aulaService.createAula(1L, aulaValida);
 
         assertNotNull(result);
-        assertEquals(StatusCursoEnum.PUBLICADO, curso.getStatus()); // 60 + 60 = 120
+        assertEquals(StatusCursoEnum.PUBLICADO, curso.getStatus());
+        assertEquals("02:00:00", curso.getCargaHoraria());
     }
 
     @Test
-    void createAula_FailsWhenExceedsCargaHoraria() {
-        when(cursoRepository.findById(1L)).thenReturn(Optional.of(curso));
-        
-        Aula aulaExistente = new Aula();
-        aulaExistente.setId(11L);
-        aulaExistente.setHoraInicio(LocalTime.of(10, 0));
-        aulaExistente.setHoraFim(LocalTime.of(11, 30)); // 90 minutes
+    void createAula_FailsWhenCourseDoesNotExist() {
+        when(cursoRepository.findById(1L)).thenReturn(Optional.empty());
 
-        when(aulaRepository.findAllByCursoId(1L)).thenReturn(List.of(aulaExistente));
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> aulaService.createAula(1L, aulaValida));
 
-        BusinessRuleException exception = assertThrows(BusinessRuleException.class, () -> {
-            aulaService.createAula(1L, aulaValida);
-        });
-
-        assertTrue(exception.getMessage().contains("não pode ultrapassar a carga horária"));
-    }
-
-    @Test
-    void createAula_FailsWhenOutsideCourseDates() {
-        when(cursoRepository.findById(1L)).thenReturn(Optional.of(curso));
-        
-        aulaValida.setData(LocalDate.of(2022, 12, 31)); // Before course start
-
-        BusinessRuleException exception = assertThrows(BusinessRuleException.class, () -> {
-            aulaService.createAula(1L, aulaValida);
-        });
-
-        assertTrue(exception.getMessage().contains("anterior ao início do curso"));
+        assertTrue(exception.getMessage().contains("Curso não encontrado"));
     }
 
     @Test

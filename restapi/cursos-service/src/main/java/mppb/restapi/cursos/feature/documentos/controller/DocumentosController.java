@@ -7,6 +7,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,6 +21,7 @@ public class DocumentosController {
     }
 
     @PostMapping("/gerar")
+    @PreAuthorize("hasAuthority('cursos.manter.cursos')")
     public ResponseEntity<byte[]> gerarDocumento(
             @PathVariable Long id,
             @RequestBody GeracaoDocumentoRequest request) {

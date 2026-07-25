@@ -10,6 +10,8 @@ import mppb.restapi.cursos.feature.frequencia.converter.AulaConverter;
 import mppb.restapi.cursos.feature.frequencia.dto.*;
 import mppb.restapi.cursos.feature.frequencia.service.ChamadaService;
 import mppb.restapi.cursos.feature.frequencia.service.FrequenciaService;
+import mppb.restapi.cursos.feature.common.entities.Arquivo;
+import mppb.restapi.cursos.feature.common.service.ArquivoSecurityUtils;
 import mppb.restapi.cursos.feature.common.service.ArquivoService;
 import mppb.restapi.cursos.feature.inscricao.dto.InscricaoDto;
 import mppb.restapi.cursos.feature.inscricao.service.InscricaoService;
@@ -66,11 +68,8 @@ public class PublicController {
     @Operation(summary = "Obtém um arquivo público", description = "Retorna os bytes de um arquivo público (ex: imagem de cabeçalho e certificados públicos).")
     @GetMapping("/arquivos/{id}")
     public ResponseEntity<byte[]> getArquivoPublico(@PathVariable Long id) {
-        return arquivoService.buscarPorId(id)
-                .map(arquivo -> ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(arquivo.getMimeType()))
-                        .body(arquivo.getBytes()))
-                .orElse(ResponseEntity.notFound().build());
+        Arquivo arquivo = arquivoService.buscarArquivoPublicoAutorizado(id);
+        return ArquivoSecurityUtils.secureDownloadResponse(arquivo, true);
     }
 
     @Operation(summary = "Realiza a inscrição de um participante externo", description = "Submete os dados de um participante externo para inscrição em um curso através do link público.")

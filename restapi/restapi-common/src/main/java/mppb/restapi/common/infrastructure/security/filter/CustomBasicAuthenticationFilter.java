@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import mppb.restapi.common.infrastructure.security.authorization.TokenAuthentication;
 import mppb.restapi.common.infrastructure.security.manager.CustomAuthenticationManager;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -32,8 +33,16 @@ public class CustomBasicAuthenticationFilter extends OncePerRequestFilter {
 
         if (token != null) {
             TokenAuthentication authRequest= new TokenAuthentication(token);
-            Authentication authentication = manager.authenticate(authRequest);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            try {
+                Authentication authentication = manager.authenticate(authRequest);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } catch (AuthenticationException ex) {
+                SecurityContextHolder.clearContext();
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().write("{\"error\":\"Unauthorized\"}");
+                return;
+            }
         }
 
         filterChain.doFilter(request, response);

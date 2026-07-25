@@ -17,9 +17,6 @@ public class ManualPdfService {
     @Value("${app.manual.frontend-url:https://cursos.mppb.mp.br}")
     private String frontendUrl;
 
-    @Value("${app.manual.system-token:mppb-manual-secret-token-2026}")
-    private String systemToken;
-
     @Value("${app.manual.node-engine-path}")
     private String nodeEnginePath;
 
@@ -29,7 +26,7 @@ public class ManualPdfService {
         String outputPath = tempFile.getAbsolutePath();
 
         String route = tipo.equalsIgnoreCase("solicitante") ? "/manual/solicitante" : "/manual/administrativo";
-        String fullUrl = frontendUrl + route + "?token=" + systemToken;
+        String fullUrl = frontendUrl + route;
 
         log.info("Iniciando geração de PDF para {} usando URL: {}", tipo, fullUrl);
 
