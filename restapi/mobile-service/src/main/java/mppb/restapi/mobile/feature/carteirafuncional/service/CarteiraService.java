@@ -5,20 +5,13 @@ import mppb.restapi.mobile.feature.carteirafuncional.dto.CarteiraFuncionalTO;
 import mppb.restapi.mobile.feature.carteirafuncional.dto.ServidorResponseTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jasperreports.engine.*;
-import net.sf.jasperreports.engine.util.JRLoader;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.io.InputStream;
-import java.sql.Connection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -224,61 +217,6 @@ public class CarteiraService {
         } catch (Exception e) {
             log.error("Erro ao buscar login por matricula: " + matricula, e);
             return null;
-        }
-    }
-
-    public byte[] getDadosCarteiraPDF(String login, CarteiraFuncionalTO carteira) throws Exception {
-        Map<String, Object> parametros = new HashMap<>();
-
-        String root = "reports/carteira-funcional/";
-
-        String modeloName = "GEPCARTEIRAFUNCIONAL.jasper";
-        String frenteName;
-        String versoName;
-        String assinaturaName;
-
-        if ("bruno.coitinho".equals(login)) {
-            carteira.setTituloCargo("PROCURADORA DE JUSTIÇA");
-        }
-
-        if (carteira.getTipoCargo() == null || carteira.getTipoCargo().equals("S")) {
-            // servidor
-            frenteName = "img/carteira_servidor_frente.png";
-            versoName = "img/carteira_servidor_verso.png";
-            assinaturaName = "img/assinaturapgj_black.png";
-            parametros.put("color", "black");
-        } else {
-            // membro
-            frenteName = "img/carteira_membro_frente.png";
-            versoName = "img/carteira_membro_verso.png";
-            assinaturaName = "img/assinaturapgj_white.png";
-            parametros.put("color", "white");
-        }
-
-        try (InputStream modeloIs = new ClassPathResource(root + modeloName).getInputStream();
-             InputStream frenteIs = new ClassPathResource(root + frenteName).getInputStream();
-             InputStream versoIs = new ClassPathResource(root + versoName).getInputStream();
-             InputStream assinaturaIs = new ClassPathResource(root + assinaturaName).getInputStream();
-             InputStream nofotoIs = new ClassPathResource(root + "img/nofoto.jpg").getInputStream()) {
-
-            byte[] bytesFoto = getBytesFotoServidorPorLogin(login);
-
-            parametros.put("nofoto", nofotoIs);
-            parametros.put("frente", frenteIs);
-            parametros.put("verso", versoIs);
-            parametros.put("assinatura", assinaturaIs);
-            parametros.put("bytesfoto", bytesFoto);
-            parametros.put("PARLOGIN", login);
-            parametros.put("PGJ", getAtualPGJ());
-            parametros.put("qrcode", "https://mobile-api.mppb.mp.br/public/validar-carteira/" + carteira.getMd5());
-
-            JasperReport jReport = (JasperReport) JRLoader.loadObject(modeloIs);
-
-            // get connection from jdbc template
-            try(Connection connection = jdbcTemplate.getDataSource().getConnection()) {
-                JasperPrint jPrint = JasperFillManager.fillReport(jReport, parametros, connection);
-                return JasperExportManager.exportReportToPdf(jPrint);
-            }
         }
     }
 }

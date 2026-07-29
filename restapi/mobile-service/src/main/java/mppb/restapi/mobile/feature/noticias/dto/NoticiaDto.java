@@ -1,4 +1,4 @@
-package mppb.restapi.cursos.feature.noticias.dto;
+package mppb.restapi.mobile.feature.noticias.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
