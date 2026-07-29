@@ -7,9 +7,11 @@ import jakarta.validation.Valid;
 import jakarta.validation.groups.Default;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import mppb.restapi.common.core.controller.AbstractController;
 import mppb.restapi.common.core.converter.DtoConverter;
+import mppb.restapi.common.core.controller.AbstractController;
+import mppb.restapi.common.core.error.BusinessRuleException;
 import mppb.restapi.common.core.validation.groups.Update;
+import mppb.restapi.common.core.validation.groups.Create;
 import mppb.restapi.cursos.feature.curso.dto.*;
 import mppb.restapi.cursos.feature.curso.entity.Curso;
 import mppb.restapi.cursos.feature.curso.service.CursoArquivoComprobatorioService;
@@ -39,6 +41,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -78,7 +81,12 @@ public class CursoController extends AbstractController {
             @RequestParam(required = false) Long publicoAlvoId,
             @RequestParam(required = false) String status,
             @RequestParam(required = false, defaultValue = "false") Boolean historico,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
             Pageable pageable) {
+        if ((page != null && page < 0) || (size != null && size < 1)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Parâmetros de paginação inválidos.");
+        }
         return ResponseEntity.ok(cursoService.findAll(titulo, modalidadeId, publicoAlvoId, status, historico, pageable).map(cursoConverter::toDto));
     }
 
@@ -91,7 +99,7 @@ public class CursoController extends AbstractController {
 
     @Operation(summary = "Cadastra um curso", description = "Castrada um novo curso.")
     @PostMapping
-    public ResponseEntity<CursoDto> create(@Validated({Default.class}) @RequestBody CursoDto cursoDto) {
+    public ResponseEntity<CursoDto> create(@Validated({Default.class, Create.class}) @RequestBody CursoDto cursoDto) {
         Curso createdEntity = cursoService.save(cursoConverter.toEntity(cursoDto));
         return new ResponseEntity<>(cursoConverter.toDto(createdEntity), HttpStatus.CREATED);
     }
@@ -99,6 +107,9 @@ public class CursoController extends AbstractController {
     @Operation(summary = "Atualiza um curso", description = "Atualiza as informações de um curso.")
     @PutMapping("/{id}")
     public ResponseEntity<CursoDto> update(@PathVariable Long id, @Validated(Update.class) @RequestBody CursoDto cursoDto) {
+        if (cursoDto.getId() != null && !id.equals(cursoDto.getId())) {
+            throw new BusinessRuleException("ID do payload diverge do ID da URL.");
+        }
         return ResponseEntity.ok(cursoService.update(id, cursoDto));
     }
 

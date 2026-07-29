@@ -189,6 +189,9 @@ public class CursoService extends AbstractService<Curso, Long> {
 
     @Override
     public Curso save(Curso curso) {
+        if (curso.getStatus() == null) {
+            curso.setStatus(StatusCursoEnum.EM_CONSTRUCAO);
+        }
         if (curso.getHashInscricao() == null) {
             curso.setHashInscricao(UUID.randomUUID());
         }
@@ -228,10 +231,6 @@ public class CursoService extends AbstractService<Curso, Long> {
         validarDatasCurso(curso);
 
         Curso saved = cursoRepository.saveAndFlush(curso);
-        
-        // Recalcular status caso a carga horária tenha mudado e seja compatível com as aulas
-        aulaService.recalcularDadosCurso(curso);
-        
         return cursoConverter.toDto(saved);
     }
 
