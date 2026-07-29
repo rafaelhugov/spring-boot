@@ -1,7 +1,7 @@
-package mppb.restapi.cursos.feature.noticias.controller;
+package mppb.restapi.mobile.feature.noticias.controller;
 
-import mppb.restapi.cursos.feature.noticias.dto.NoticiaDto;
-import mppb.restapi.cursos.feature.noticias.service.NoticiaService;
+import mppb.restapi.mobile.feature.noticias.dto.NoticiaDto;
+import mppb.restapi.mobile.feature.noticias.service.NoticiaService;
 import mppb.restapi.common.infrastructure.util.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;

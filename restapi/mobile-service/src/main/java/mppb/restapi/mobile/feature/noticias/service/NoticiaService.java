@@ -1,7 +1,7 @@
-package mppb.restapi.cursos.feature.noticias.service;
+package mppb.restapi.mobile.feature.noticias.service;
 
 import lombok.extern.slf4j.Slf4j;
-import mppb.restapi.cursos.feature.noticias.dto.NoticiaDto;
+import mppb.restapi.mobile.feature.noticias.dto.NoticiaDto;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
