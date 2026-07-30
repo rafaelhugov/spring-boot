@@ -74,8 +74,8 @@ public class CarteiraFuncionalController {
 
             return ResponseEntity.ok(carteira);
         } catch (Exception e) {
-            log.error("Erro interno ao buscar dados da carteira para o token: " + token, e);
-            return ResponseEntity.status(500).body("Erro interno do servidor: " + e.getMessage());
+            log.error("Erro interno ao buscar dados da carteira", e);
+            return ResponseEntity.status(500).body("Não foi possível carregar a carteira funcional.");
         }
     }
 
@@ -97,7 +97,7 @@ public class CarteiraFuncionalController {
 
             return ResponseEntity.ok(bytes);
         } catch (Exception e) {
-            log.error("Erro ao buscar foto da carteira para o token: " + token, e);
+            log.error("Erro ao buscar foto da carteira", e);
             return ResponseEntity.status(500).build();
         }
     }

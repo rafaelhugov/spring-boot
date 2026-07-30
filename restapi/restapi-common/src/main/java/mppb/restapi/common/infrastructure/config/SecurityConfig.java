@@ -30,6 +30,8 @@ public class SecurityConfig {
             "/contracheques/**",
             "/ferias/**",
             "/" + Constants.API_PREFIX + "/ferias/**",
+            "/recursos-humanos/**",
+            "/" + Constants.API_PREFIX + "/recursos-humanos/**",
             "/pagamentos/**",
             "/" + Constants.API_PREFIX + "/pagamentos/**",
             "/" + Constants.API_PREFIX + "/manuais/pdf/solicitante",
