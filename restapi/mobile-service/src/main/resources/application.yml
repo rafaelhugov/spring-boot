@@ -33,7 +33,7 @@ spring:
     password: ${PG_PASSWORD:senha}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: ${POOL_MAX:1}
+      maximum-pool-size: ${POOL_MAX:5}
       minimum-idle: ${POOL_MIN:1}
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
@@ -62,6 +62,15 @@ cors:
 
 carteira:
   pgj-fallback: ${CARTEIRA_PGJ_FALLBACK:ANTONIO HORTENCIO ROCHA NETO}
+
+designacoes:
+  notificacao:
+    enabled: ${DESIGNACOES_NOTIFICACAO_ENABLED:false}
+    cron: ${DESIGNACOES_NOTIFICACAO_CRON:0 */15 * * * *}
+    batch-size: ${DESIGNACOES_NOTIFICACAO_BATCH_SIZE:100}
+    max-tentativas: ${DESIGNACOES_NOTIFICACAO_MAX_TENTATIVAS:3}
+    fcm:
+      enabled: ${DESIGNACOES_FCM_ENABLED:false}
 
 google:
   wallet:
