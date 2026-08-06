@@ -1,0 +1,73 @@
+{
+  "id": 1108,
+  "nome": "Formulário Visita Técnica à Delegacia Estadual",
+  "ambiente": "Resolução 279",
+  "versao": 1,
+  "periodicidade": "Semestral",
+  "anoInicio": 2017,
+  "periodoInicio": 1,
+  "tiposEntidadeAceitos": [
+    {
+      "id": 250,
+      "descricao": "POLICIA_CIVIL"
+    }
+  ],
+  "secoes": [
+    {
+      "id": 1,
+      "indice": 1,
+      "nome": "Informações Gerais",
+      "campos": [
+        {
+          "id": 101,
+          "codigo": "TXT_OBSERVACOES_FINAIS_REPRESENTANTE_MINISTERIO_PUBLICO",
+          "descricao": "Observações Finais",
+          "label": "Observações Finais",
+          "indice": 1,
+          "tabulacao": 0,
+          "obrigatorio": true,
+          "tipoCampo": {
+            "tipo": "TEXTO",
+            "descricao": "Campo texto"
+          }
+        },
+        {
+          "id": 102,
+          "codigo": "PERG_EFETIVO_TOTAL",
+          "descricao": "Efetivo Total",
+          "label": "Efetivo Total",
+          "indice": 2,
+          "tabulacao": 0,
+          "obrigatorio": false,
+          "tipoCampo": {
+            "tipo": "INTEIRO",
+            "descricao": "Inteiro"
+          }
+        },
+        {
+          "id": 103,
+          "codigo": "PERG_POSSUI_VIATURA",
+          "descricao": "Possui Viatura?",
+          "label": "Possui Viatura?",
+          "indice": 3,
+          "tabulacao": 0,
+          "obrigatorio": false,
+          "tipoCampo": {
+            "tipo": "RADIO",
+            "descricao": "Seleção Única"
+          },
+          "respostas": [
+            {
+              "valor": "SIM",
+              "descricao": "Sim"
+            },
+            {
+              "valor": "NAO",
+              "descricao": "Não"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

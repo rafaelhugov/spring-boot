@@ -1,0 +1,27 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!target/fallbacks/
+*.class
+
+# Log files
+*.log
+compile.log
+debug.log
+mvn.log
+spring.log*
+
+# Environment & Secrets
+.env
+.env.local
+debug_tokens.json
+
+# IDE / Editor files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,49 @@
+# =========================================================================
+# 🚀 NCAP API (Backend) - GitLab CI/CD Pipeline
+# =========================================================================
+
+stages:
+  - test
+  - build
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .m2/repository
+
+# =========================================================================
+# 🧪 ESTÁGIO DE TESTES (TEST)
+# =========================================================================
+
+test:backend:
+  stage: test
+  image: maven:3.9.6-eclipse-temurin-21-alpine
+  script:
+    - mvn clean test
+  artifacts:
+    when: always
+    reports:
+      junit: target/surefire-reports/TEST-*.xml
+    paths:
+      - target/surefire-reports/
+    expire_in: 1 week
+
+# =========================================================================
+# 📦 ESTÁGIO DE COMPILAÇÃO (BUILD)
+# =========================================================================
+
+build:backend:
+  stage: build
+  image: maven:3.9.6-eclipse-temurin-21-alpine
+  needs:
+    - test:backend
+  script:
+    - mvn clean package -DskipTests
+  artifacts:
+    name: "ncap-api-$CI_COMMIT_REF_SLUG"
+    paths:
+      - target/*.jar
+    expire_in: 1 week

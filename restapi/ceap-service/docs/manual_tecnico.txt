@@ -1,0 +1,2210 @@
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+Manual Técnico de Utilização
+do WEBSERVICE
+Sistema de Resoluções
+NGS/STI – CNMP
+
+Versão 1.2 - Página: 1 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+Histórico das revisões
+Data
+
+Versão
+
+Descrição
+
+Autor
+
+18/11/2019
+
+0.1
+
+Versão preliminar do documento.
+
+Cassio Sasaki da Silva
+
+13/05/2020
+
+0.2
+
+Correções e adição da estrutura de dados de
+resposta.
+
+Cassio Sasaki da Silva
+
+05/06/2020
+
+0.3
+
+Adicionadas as informações de restrição de
+soma entre campos.
+
+Cassio Sasaki da Silva
+
+23/06/2020
+
+0.4
+
+Correção na descrição do id de
+detalheFormulario.
+
+Cassio Sasaki da Silva
+
+10/08/2020
+
+0.5
+
+Correção na descrição do tipo de dados
+“respostas”. Inclusão do novo serviço de
+ambiente.
+
+Cassio Sasaki da Silva
+
+12/08/2020
+
+0.6
+
+Inclusão do novo serviço de tiposEntidades.
+
+Cassio Sasaki da Silva
+
+17/08/2020
+
+0.7
+
+Alteração nos serviços de formulário, entidades
+e cadastradores para adicionar o ambiente
+como parâmetro.
+
+Cassio Sasaki da Silva
+
+31/08/2020
+
+0.8
+
+Configuração padrão dos formulários. Inclusão
+do novo serviço de instancias.
+
+Cassio Sasaki da Silva
+
+03/09/2020
+
+0.9
+
+Ajustes nos dados retornados no serviço de
+instâncias.
+
+Cassio Sasaki da Silva
+
+18/09/2020
+
+0.10
+
+Novo serviço de recebimento de dados
+
+Cassio Sasaki da Silva
+
+23/09/2020
+
+0.11
+
+Alterações para detalhar o recebimento de
+respostas de campos do tipo CAMPO_ANEXO
+
+Cassio Sasaki da Silva
+
+28/09/2020
+
+1.0
+
+Versão final
+
+Cassio Sasaki da Silva
+
+23/11/2020
+
+1.1
+
+Adição de novos serviços
+
+Cassio Sasaki da Silva
+
+03/02/2022
+
+1.2
+
+Correção do caminho do serviço de solicitar
+retificação
+
+Cassio Sasaki da Silva
+
+23/10/2024
+
+1.3
+
+Adição de informação do domínio dos campos
+de tipo SIM_NAO
+
+Ronan da Silva Moraes
+
+03/02/2025
+
+1.4
+
+Inclusão do atributo tipoLogica na entidade
+Campo
+
+Giwberto Gill Pereira Leite
+
+Versão 1.2 - Página: 2 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+1
+
+Introdução .................................................................................................................................... 6
+
+2
+
+Definições e Premissas................................................................................................................. 6
+
+3
+
+Os Webservices ............................................................................................................................ 7
+3.1
+
+Formulários .......................................................................................................................... 7
+
+3.1.1
+
+Todos ............................................................................................................................ 7
+
+3.1.2
+
+Detalha formulário ....................................................................................................... 7
+
+3.2
+
+Entidades .............................................................................................................................. 7
+
+3.2.1
+3.3
+
+Cadastradores ....................................................................................................................... 8
+
+3.3.1
+3.4
+
+Busca ............................................................................................................................ 8
+
+Instâncias .............................................................................................................................. 9
+
+3.6.1
+
+Todos ............................................................................................................................ 9
+
+3.6.2
+
+Detalha instância .......................................................................................................... 9
+
+3.6.3
+
+Salva instância.............................................................................................................. 9
+
+3.6.4
+
+Solicita retificação........................................................................................................ 9
+
+3.7
+
+Histórico ............................................................................................................................. 10
+
+3.7.1
+4
+
+Todos ............................................................................................................................ 8
+
+Tipos de Entidades ............................................................................................................... 8
+
+3.5.1
+3.6
+
+Busca ............................................................................................................................ 8
+
+Ambientes ............................................................................................................................ 8
+
+3.4.1
+3.5
+
+Todos ............................................................................................................................ 7
+
+Todos .......................................................................................................................... 10
+
+Estrutura dos dados de Formulários ........................................................................................... 10
+4.1
+
+formulario........................................................................................................................... 10
+
+4.2
+
+tipoEntidade ....................................................................................................................... 11
+
+4.3
+
+detalheFormulario .............................................................................................................. 11
+
+4.4
+
+secao ................................................................................................................................... 12
+
+4.5
+
+campo ................................................................................................................................. 12
+
+4.6
+
+unidadeMedida ................................................................................................................... 13
+
+4.7
+
+tipoCampo .......................................................................................................................... 13
+
+4.8
+
+dependencias ...................................................................................................................... 13
+
+4.9
+
+respostas ............................................................................................................................. 14
+Versão 1.2 - Página: 3 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+4.10
+
+restricaoSoma ..................................................................................................................... 14
+
+4.11
+
+operadorRestricaoSoma ..................................................................................................... 14
+
+4.12
+
+termo .................................................................................................................................. 15
+
+5
+
+Estrutura de dados de Entidades ................................................................................................ 15
+5.1
+
+6
+
+Estrutura de dados de Cadastradores ......................................................................................... 15
+6.1
+
+7
+
+cadastrador ......................................................................................................................... 15
+
+Estrutura de dados de Ambientes ............................................................................................... 16
+7.1
+
+8
+
+ambiente ............................................................................................................................. 16
+
+Estrutura de dados de Instâncias ................................................................................................ 16
+8.1
+
+resumoInstancia ................................................................................................................. 16
+
+8.2
+
+historico.............................................................................................................................. 17
+
+8.3
+
+detalheInstancia .................................................................................................................. 17
+
+8.4
+
+conteudo ............................................................................................................................. 18
+
+8.5
+
+envioInstancia .................................................................................................................... 18
+
+8.6
+
+solicitacaoRetificacao ........................................................................................................ 19
+
+9
+
+Estrutura de dados de Histórico ................................................................................................. 19
+9.1
+
+10
+
+11
+
+entidade .............................................................................................................................. 15
+
+historicoInstancia ............................................................................................................... 19
+Fluxo de utilização ................................................................................................................. 20
+
+10.1
+
+Solicitar criação de um usuário com perfil “Web Service” ................................................ 20
+
+10.2
+
+Consultar a lista de todos os formulários disponíveis ........................................................ 20
+
+10.3
+
+Buscar a entidade a qual deseja enviar as informações ..................................................... 21
+
+10.4
+
+Buscar o cadastrador responsável pelos dados do formulário ........................................... 21
+
+10.5
+
+Detalhar o formulário para identificar os dados a serem enviados .................................... 22
+
+10.6
+
+Enviar os dados do formulário ........................................................................................... 25
+
+Mensagens de erro ..................................................................................................................... 26
+11.1
+
+Formato JSON padrão da resposta de erro......................................................................... 26
+
+11.2
+
+Códigos de erros e mensagens ........................................................................................... 26
+
+11.3
+
+Códigos de erros com detalhamentos................................................................................. 27
+
+11.3.1
+
+Erro 27 – O campo não pertence ao formulário informado. ...................................... 27
+
+11.3.2
+
+Erro 28 – Pendências impediram a operação de salvar o formulário......................... 28
+
+11.3.3
+
+Erro 29 – Há campos de preenchimento obrigatório sem resposta. ........................... 28
+Versão 1.2 - Página: 4 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+11.3.4
+
+Erro 30 – Erros de restrição de soma impediram a operação de salvar o formulário.28
+
+11.3.4.1
+
+RestricaoComSomaIncorreta ............................................................................. 28
+
+11.3.4.2
+
+RestricaoSomaCampo ........................................................................................ 28
+
+11.3.5
+
+Erro 33 – Pendências impediram a operação de solicitar retificação. ....................... 29
+
+Versão 1.2 - Página: 5 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+1 Introdução
+Este documento visa descrever as características técnicas do webservice implementado para
+receber as informações necessárias para preenchimento dos formulários do Sistema de Resoluções.
+Ele descreve como essas informações deverão ser estruturadas para envio por meio de webservice.
+A solução técnica adotada para prover o serviço segue o padrão REST, utilizando o formato
+JSON para a troca de informações.
+
+2 Definições e Premissas
+São definições e premissas do projeto:
+1. Os hosts para acessar o Sistema de Resoluções são:
+Produção: https://sistemaresolucoes.cnmp.mp.br
+Homologação: https://homologacaoeapext.cnmp.mp.br/resolucoes
+2. A URL para o serviço de formulários:
+{HOST}/seam/resource/rest/formularios
+3. A URL para o serviço de entidades:
+{HOST}/seam/resource/rest/entidades
+4. A URL para o serviço de cadastradores:
+{HOST}/seam/resource/rest/cadastradores
+5. Será disponibilizado um Web Service por serviço, com as operações PUT (criar), GET (ler),
+POST (alterar) e DELETE (apagar), quando disponível, seguindo o padrão REST.
+6. A autenticação será feita utilizando o esquema Basic de autenticação HTTP. Deve ser utilizado
+um usuário que possua o perfil “Web Service”. Todos os serviços precisarão de autenticação
+para serem utilizados.
+
+Versão 1.2 - Página: 6 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+3 Os Webservices
+Foram disponibilizados os serviços abaixo no Sistema de Resoluções:
+
+3.1 Formulários
+3.1.1 Todos
+Lista um resumo de todos os formulários que o usuário tem permissão de acesso.
+GET: /formularios?ambiente={idAmbiente}[&offset={offset}][&limit={limite}]
+
+
+ambiente: identificador do ambiente que se deseja listar os formulários
+disponíveis;
+
+
+
+offset (opcional): número do início dos registros a serem retornados pelo serviço;
+
+
+
+limit (opcional): número máximo de registros a serem retornados pelo serviço.
+
+3.1.2 Detalha formulário
+Detalha o formulário, identificado pelo parâmetro, listando quais tipos de entidade, campos,
+dependências entre campos.
+GET: /formularios/{id}
+Este webservice recebe os seguintes parâmetros:
+
+
+id: identificador do formulário. Esta informação pode ser encontrada na resposta
+do serviço “Todos”.
+
+Os detalhes dos dados retornados pelos serviços de formulário, constam no item “Estrutura dos
+dados de Formulários” deste documento.
+Todos os formulários que forem acessados por este serviço, devem ter um campo com o código
+“TXT_OBSERVACOES_FINAIS_REPRESENTANTE_MINISTERIO_PUBLICO”. Este código
+identifica o campo que deve ser usado para o envio de todas as observações referentes ao
+preenchimento do formulário. Caso o formulário não possua um campo com este código, será
+retornado um erro 500 com a seguinte mensagem: “O formulário informado não está configurado
+para este serviço.”.
+
+3.2 Entidades
+3.2.1 Todos
+Lista as entidades atendidas pelo formulário.
+GET:
+/entidades?formulario={idFormulario}ambiente={idAmbiente}[&nome={nome}][&offs
+et={offset}][&limit={limite}]
+Este webservice recebe os seguintes parâmetros:
+
+
+formulario: id do formulário que se deseja listar as entidades atendidas;
+
+
+
+ambiente: id do ambiente que se deseja listar as entidades;
+
+Versão 1.2 - Página: 7 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+
+
+nome (opcional): texto utilizado para a busca no nome da entidade;
+
+
+
+offset (opcional): número do início dos registros a serem retornados pelo serviço;
+
+
+
+limit (opcional): número máximo de registros a serem retornados pelo serviço.
+
+Neste serviço os parâmetros formulario e ambiente são obrigatórios porém excludentes somente um dos dois deve ser informado - caso nenhum seja informado, o sistema retornará um erro.
+Os detalhes dos dados retornados pelo serviço de entidade, constam no item “Estrutura de dados
+de Entidades” deste documento.
+
+3.3 Cadastradores
+3.3.1 Busca
+Busca os cadastradores que possuem permissão para inserir dados de um formulário.
+GET:
+/cadastradores?formulario={idFormulario}ambiente={idAmbiente}&cpf={cpf}
+Este webservice recebe os seguintes parâmetros:
+
+
+formulario: id do formulário que se deseja listar os cadastradores disponíveis;
+
+
+
+ambiente: id do ambiente que se deseja listar as entidades;
+
+
+
+cpf: número do CPF do cadastrador a ser buscado, somente números.
+
+Neste serviço os parâmetros formulario e ambiente são obrigatórios porém excludentes somente um dos dois deve ser informado - caso nenhum seja informado, o sistema retornará um erro.
+Os detalhes dos dados retornados pelo serviço de entidade, constam no item “Estrutura de dados
+de Cadastradores” deste documento.
+
+3.4 Ambientes
+3.4.1 Todos
+Lista um resumo de todos os ambientes que o usuário tem permissão de acesso.
+GET: /ambientes
+Os detalhes dos dados retornados pelo serviço de ambiente, constam no item “Estrutura de
+dados de Ambientes” deste documento.
+
+3.5 Tipos de Entidades
+3.5.1 Busca
+Busca os tipos de entidades de um determinado ambiente.
+GET: /tiposEntidades?ambiente={idAmbiente}
+Este webservice recebe o seguinte parâmetro:
+
+
+ambiente: id do ambiente que se deseja listar os tipos de entidades aceitos.
+Versão 1.2 - Página: 8 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+Os detalhes dos dados retornados pelo serviço de tipos de entidades, constam no item “4.2” deste
+documento.
+
+3.6 Instâncias
+3.6.1 Todos
+Lista as instâncias de uma entidade em um formulário.
+GET: /instancias?formulario={idFormulario}&entidade={idEntidade}
+Este webservice recebe os seguintes parâmetros:
+
+
+formulario: id do formulário que se deseja listar as instâncias;
+
+
+
+entidade: id da entidade que se deseja listar as instâncias.
+
+3.6.2 Detalha instância
+Detalha a instância, identificada pelo parâmetro.
+GET: /instancias/{id}
+Este webservice recebe os seguintes parâmetros:
+
+
+id: identificador da instância. Esta informação pode ser encontrada na resposta do
+serviço “Todos”.
+
+Os detalhes dos dados retornados pelos serviços de instância, constam no item “Estrutura de
+dados de Instâncias” deste documento.
+3.6.3 Salva instância
+Cria e salva os dados de uma instância.
+POST: /instancias
+Este webservice não recebe nenhum parâmetro, todos os dados são recebidos via POST.
+Os detalhes dos dados que devem ser enviados ao serviço de salvar instância, constam no item
+“Estrutura de dados de Instâncias” deste documento.
+3.6.4 Solicita retificação
+Realiza a solicitação de retificação de uma instância.
+POST: /instancias/retificacao/{id}
+Este webservice recebe os seguintes parâmetros:
+
+
+id: identificador da instância. Esta informação pode ser encontrada na resposta do
+serviço “Todos”.
+
+A estrutura dos dados em JSON que devem ser enviados ao serviço POST de solicitar retificação
+de instância, constam no item “Estrutura de dados de Instâncias” deste documento.
+
+Versão 1.2 - Página: 9 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+3.7 Histórico
+3.7.1 Todos
+Lista o histórico de movimentações de uma instância de formulário.
+GET:
+/historico?formulario={idFormulario}ambiente={idAmbiente}[&idMaiorQue={idMaio
+rQue}][&dataInicio={dataInicio}][&dataFim={dataFim}][&perfilInicial={perfilInicial}]
+Este webservice recebe os seguintes parâmetros:
+
+
+formulario: id do formulário que se deseja listar os cadastradores disponíveis;
+
+
+
+ambiente: id do ambiente que se deseja listar as entidades;
+
+
+
+idMaiorQue: id do histórico a partir do qual o sistema deve buscar os maiores;
+
+
+
+dataInicio: data inicial em formato ‘dd/MM/yyyy HH:mm:ss’;
+
+
+
+dataFim: data final em formato ‘dd/MM/yyyy HH:mm:ss’;
+
+
+
+perfilInicial: perfil que executou a ação.
+
+Neste serviço os parâmetros formulario e ambiente são obrigatórios porém excludentes somente um dos dois deve ser informado - caso nenhum seja informado, o sistema retornará um erro.
+Os detalhes dos dados retornados pelo serviço de histórico, constam no item “Estrutura de dados
+de Histórico” deste documento.
+
+4 Estrutura dos dados de Formulários
+O serviço “Todos” retorna uma lista de objetos do tipo formulário, o qual possui a seguinte
+estrutura:
+
+4.1 formulario
+ATRIBUTO
+
+TIPO
+
+id
+ambiente
+
+Integer(5)
+String(300)
+
+periodicidade
+nome
+anoInicio
+
+String(30)
+String(4000)
+Integer(4)
+
+periodoInicio
+
+Integer(1)
+
+DESCRIÇÃO
+Identificador do formulário
+Nome do ambiente do
+formulário (Resolução)
+Periodicidade do formulário
+Nome do formulário
+Menor ano ao qual o
+formulário pode ser utilizado
+para preenchimento (início da
+utilização do formulário)
+Primeiro período, do
+anoInicio, ao qual o formulário
+pode ser utilizado para
+preenchimento. Este campo
+Versão 1.2 - Página: 10 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+anoTermino
+
+Integer(4)
+
+periodoTermino
+
+Integer(1)
+
+destaque
+
+Boolean
+
+tiposEntidadeAceitos[]
+
+tipoEntidade
+
+será ‘null’ para formulários
+com periodicidade anual.
+Maior ano ao qual o
+formulário pode ser utilizado
+para preenchimento (fim da
+utilização do formulário). Este
+campo será ‘null’ quando o
+formulário for a versão atual.
+Último período, do
+anoTermino, ao qual o
+formulário pode ser utilizado
+para preenchimento. Este
+campo será ‘null’ para
+formulários com periodicidade
+anual.
+Indicação se o formulário está
+em destaque na listagem do
+Sistema Resoluções
+Array de tipos de entidades
+aceitos no formulário
+
+4.2 tipoEntidade
+ATRIBUTO
+
+TIPO
+
+id
+
+Integer(5)
+
+descricao
+
+String(255)
+
+DESCRIÇÃO
+Identificador do tipo de
+entidade
+Nome do tipo de entidade
+
+O serviço “Detalha formulário” retorna um único objeto do tipo detalheFormulario, o qual
+possui a seguinte estrutura:
+
+4.3 detalheFormulario
+ATRIBUTO
+
+TIPO
+
+id
+nome
+ambiente
+
+Integer(5)
+String(4000)
+String(300)
+
+versão
+
+Integer(4)
+
+periodicidade
+anoInicio
+
+String(30)
+Integer(4)
+
+DESCRIÇÃO
+Identificador do formulário
+Nome do formulário
+Nome do ambiente do
+formulário (Resolução)
+Número da versão do
+formulário
+Periodicidade do formulário
+Menor ano ao qual o
+formulário pode ser utilizado
+Versão 1.2 - Página: 11 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+periodoInicio
+
+Integer(1)
+
+anoTermino
+
+Integer(4)
+
+periodoTermino
+
+Integer(1)
+
+tiposEntidadeAceitos[]
+
+tipoEntidade
+
+secoes[]
+
+secao
+
+restricoesSoma[]
+
+restricaoSoma
+
+para preenchimento (início da
+utilização do formulário)
+Primeiro período, do
+anoInicio, ao qual o formulário
+pode ser utilizado para
+preenchimento. Este campo
+será ‘null’ para formulários
+com periodicidade anual.
+Maior ano ao qual o
+formulário pode ser utilizado
+para preenchimento (fim da
+utilização do formulário). Este
+campo será ‘null’ quando o
+formulário for a versão atual.
+Último período, do
+anoTermino, ao qual o
+formulário pode ser utilizado
+para preenchimento. Este
+campo será ‘null’ para
+formulários com periodicidade
+anual.
+Array de tipos de entidades
+aceitos no formulário
+Array com as seções do
+formulário
+Array com as restrições de
+soma do formulário
+
+4.4 secao
+ATRIBUTO
+
+TIPO
+
+id
+indice
+
+Integer(5)
+Integer(3)
+
+nome
+campos[]
+
+String(300)
+campo
+
+DESCRIÇÃO
+Identificador da seção
+Posição da seção no
+formulário
+Nome da seção
+Array com os campos da seção
+
+4.5 campo
+ATRIBUTO
+id
+codigo (opcional)
+
+TIPO
+Integer(5)
+String(4000)
+
+descricao (opcional)
+
+String(4000)
+
+DESCRIÇÃO
+Identificador do campo
+Código de identificação do
+campo
+Descrição do campo
+Versão 1.2 - Página: 12 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+unidadeMedida (opcional)
+
+unidadeMedida
+
+label
+indice
+tabulacao
+
+String(1000)
+Integer(3)
+Integer(2)
+
+tamanhoMaximo
+
+Integer(5)
+
+obrigatorio
+
+Boolean
+
+tooltip
+
+String(4000)
+
+tipoCampo
+
+tipoCampo
+
+dependencias[] (opcional)
+
+dependencia
+
+tipoLogica
+
+tipoLogica
+
+Objeto com as informações
+sobre a unidade de medido do
+campo
+Label do campo
+Posição do campo na seção
+Quantidade de deslocamentos
+do campo
+Número máximo de caracteres
+para a resposta do campo
+Identificação se o campo é
+obrigatório
+Texto com uma detalhamento
+do campo
+Objeto com as informações do
+tipo do campo
+Array com as dependências
+para que o campo seja exibido
+no formulário.
+A dependência pode conter
+mais de um campo diferente,
+inclusive de uma sessão
+diferente.
+Identifica o tipo da lógica
+aplicada ao array de
+dependência (AND, OR),
+sendo considerado por default
+o valor AND.
+
+4.6 unidadeMedida
+sigla
+
+String(20)
+
+descricao
+
+String(50)
+
+Sigla da unidade de medida
+(exemplo: g, kg, l, N/A)
+Descrição da unidade de
+medida (exemplo: grama,
+kilograma, litro, Não Aplica)
+
+4.7 tipoCampo
+ATRIBUTO
+tipo
+descricao
+
+TIPO
+
+DESCRIÇÃO
+Identificador do tipo do campo
+Descrição do tipo do campo
+
+TIPO
+
+DESCRIÇÃO
+
+String(20)
+String(255)
+
+4.8 dependencias
+ATRIBUTO
+
+Versão 1.2 - Página: 13 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+idCampo
+
+Integer(5)
+
+valorResposta
+
+String(50)
+
+Identificador do campo agente
+ao qual é dependente
+Valor da resposta do campo
+agente, para o qual o campo
+dependente deverá ser exibido
+
+4.9 respostas
+Campos do tipo COMBO_BOX e RADIO, possuem valores de respostas pré-determinados e
+utilizam esta estrutura para listar as possíveis respostas.
+ATRIBUTO
+TIPO
+DESCRIÇÃO
+valor
+Integer(5)
+Valor da resposta
+descricao
+String(50)
+Descrição da resposta
+
+4.10 restricaoSoma
+ATRIBUTO
+
+TIPO
+
+id
+
+Integer(5)
+
+descricao
+operadorRestricaoSoma
+
+String(255)
+operadorRestricaoSoma
+
+termo1[]
+
+termo
+
+termo2[]
+
+termo
+
+DESCRIÇÃO
+Identificador da restrição de
+soma
+Descrição da restrição de soma
+Objeto com as informações do
+operador da restrição de soma.
+Este operador será utilizado na
+comparação do termo1 com o
+termo2. Cada termo deve ter
+todos os seus objetos somados,
+respeitando o sinal informado
+em cada termo.
+Array com os campos que irão
+compor o termo 1 da restrição.
+Array com os campos que irão
+compor o termo 2 da restrição
+
+4.11 operadorRestricaoSoma
+Os valores possíveis para este objeto são:
+ “>”: maior que;
+ “>=”: maior ou igual a;
+ “<”: menor que;
+ “<=”: menor ou igual a;
+ “=”: igual a;
+ “!=”: diferente de.
+ATRIBUTO
+TIPO
+operador
+String(2)
+
+DESCRIÇÃO
+Operador a ser utilizado na
+comparação do resultado das
+Versão 1.2 - Página: 14 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+descricao
+
+somas dos termo1 e termo2
+Descrição do operador de
+comparação
+
+String(20)
+
+4.12 termo
+ATRIBUTO
+idCampo
+
+TIPO
+Integer(5)
+
+sinal
+
+Caracter [+,-]
+
+DESCRIÇÃO
+Identificador do campo no
+qual deve ser utilizado o valor
+Sinal que irá compor o valor
+do campo acima na soma do
+termo. Se for ‘+’, o valor do
+campo acima deve ser
+utilizado sem alteração. Se for
+‘-’, o valor do campo acima
+deve ser utilizado com seu
+valor negativo.
+
+5 Estrutura de dados de Entidades
+O serviço “Todos” retorna uma lista de objetos do tipo entidade, o qual possui a seguinte
+estrutura:
+
+5.1 entidade
+ATRIBUTO
+
+TIPO
+
+id
+nome
+ativa
+
+Integer(5)
+String(255)
+Boolean
+
+endereco
+municipio
+estado
+dataCadastro
+
+String(400)
+String(50)
+String(2)
+String(10)
+
+DESCRIÇÃO
+Identificador da entidade
+Nome da entidade
+Identificação se a entidade está
+ativa
+Endereço da entidade
+Nome do município
+Sigla da UF
+Data de cadastro da entidade
+no formato DD/MM/YYYY
+
+6 Estrutura de dados de Cadastradores
+O serviço “Busca” retorna um registro do tipo cadastrador, o qual possui a seguinte estrutura:
+
+6.1 cadastrador
+ATRIBUTO
+
+TIPO
+
+DESCRIÇÃO
+Versão 1.2 - Página: 15 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+id
+nome
+email
+
+Integer(5)
+String(255)
+String(80)
+
+Identificador do cadastrador
+Nome do cadastrador
+E-mail do cadastrador
+
+7 Estrutura de dados de Ambientes
+O serviço “Todos” retorna uma lista de objetos do tipo ambiente, o qual possui a seguinte
+estrutura:
+
+7.1 ambiente
+ATRIBUTO
+id
+descricao
+
+TIPO
+Integer(5)
+String(300)
+
+DESCRIÇÃO
+Identificador do ambiente
+Descrição do ambiente
+
+8 Estrutura de dados de Instâncias
+O serviço “Todos” retorna uma lista de objetos do tipo resumoInstancia, o qual possui a
+seguinte estrutura:
+
+8.1 resumoInstancia
+ATRIBUTO
+
+TIPO
+
+id
+idFormulario
+nomeFormulario
+entidade
+periodo
+
+Integer(5)
+Integer(5)
+String(4000)
+entidade
+Integer(1)
+
+ano
+idCadastrador
+nomeCadastrador
+emailCadastrador
+statusAtual
+
+Integer(4)
+Integer(5)
+String(255)
+String(80)
+String(50)
+
+DESCRIÇÃO
+Identificador da instância
+Identificador do formulário
+Nome do formulário
+Entidade da instância
+Primeiro da instância. Este
+campo será ‘null’ para
+formulários com periodicidade
+anual.
+Ano da instância
+Identificador do cadastrador
+Nome do cadastrador
+E-mail do cadastrador
+Estado atual da instância. Este
+campo pode ter os seguintes
+valores: GERADO,
+EM_PREENCHIMENTO,
+ENVIADO, VALIDADO,
+DEVOLVIDO,
+SOLICITADA_RETIFICACAO,
+RETIFICACAO_ACEITA,
+Versão 1.2 - Página: 16 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+statusPerfil
+
+String(80)
+
+coautores[]
+
+cadastrador
+
+historico[]
+
+historico
+
+RETIFICACAO_NEGADA.
+Perfil de usuário atual em que a
+instância está aguardando uma
+ação
+Array com uma lista de
+cadastradores que estão
+associados à instância como
+coautores
+Array com a lista de ações
+executadas na instância
+
+8.2 historico
+ATRIBUTO
+
+TIPO
+
+acao
+data
+
+String(255)
+Long
+
+nomePerfilIni
+
+String(80)
+
+nomePerfilFim(opcional)
+
+String(80)
+
+nomeUsuario
+
+String(255)
+
+emailUsuario
+
+String(80)
+
+justificativa(opcional)
+
+String(2000)
+
+justificativaAtraso(opcional)
+
+String(2000)
+
+descricao
+dataFormatada
+
+String(5000)
+String(19)
+
+DESCRIÇÃO
+Código da ação
+Data da ação em formato Unix
+timestamp
+Perfil do usuário que executou a
+ação
+Perfil do usuário que recebe a
+ação. Este campo só irá existir
+quando a ação transfere a
+instância para outro perfil.
+Nome do usuário que executou a
+ação
+E-mail do usuário que executou
+a ação
+Motivo pelo qual a ação foi
+executada
+Motivo pelo qual a ação foi
+executada com atraso
+Descrição completa da ação
+Data da ação no formato
+dd/MM/yyyy HH:mm:ss
+
+O serviço “Detalha instância” retorna um único objeto do tipo detalheInstancia, o qual possui
+a seguinte estrutura:
+
+8.3 detalheInstancia
+ATRIBUTO
+resumoInstancia
+conteudo[]
+
+TIPO
+resumoInstancia
+conteudo
+
+DESCRIÇÃO
+Resumo da instância
+Array com a lista de respostas
+da instância
+Versão 1.2 - Página: 17 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+8.4 conteudo
+ATRIBUTO
+idCampo
+valorResposta
+
+TIPO
+Integer(5)
+String
+
+conteudoAnexo (opcional)
+
+String(Base64)
+
+DESCRIÇÃO
+Identificador do campo
+Valor da resposta do campo. Este
+atributo não possui limitação de
+tamanho. Quando o tipo do
+campo for CAMPO_ANEXO,
+este campo deve conter o nome
+do arquivo.
+Conteúdo, codificado em
+Base64, do arquivo anexo. Este
+atributo é usado somente quando
+o tipo do campo é
+CAMPO_ANEXO.
+
+O serviço “Salva instância” recebe um único objeto do tipo envioInstancia, o qual possui a
+seguinte estrutura:
+
+8.5 envioInstancia
+ATRIBUTO
+id (opcional)
+
+Integer(5)
+
+TIPO
+
+formulario
+entidade
+cadastrador
+ano
+periodo
+
+Integer(5)
+Integer(5)
+Integer(5)
+Integer(4)
+Integer(1)
+
+justificativaAtraso(opcional)
+
+String(2000)
+
+conteudo[]
+
+conteudo
+
+DESCRIÇÃO
+Identificador da instância, só
+deve ser informado quando o
+objetivo for alterar os dados da
+instância. Quando este campo
+não constar nos dados
+recebidos, o sistema tentará
+criar uma nova instância com
+os dados informados.
+Identificador do formulário
+Identificador da entidade
+Identificador do cadastrador
+Ano da instância
+Primeiro da instância. Este
+campo será ‘null’ para
+formulários com periodicidade
+anual.
+Somente deve ser informado
+se a instância a ser criada foi
+após o período de
+cadastramento
+Array com a lista de respostas
+Versão 1.2 - Página: 18 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+da instância
+ATENÇÃO Obs: Para campos do tipo SIM_NAO o domínio esperado pelo sistema é
+true ou false. Qualquer valor diferente de true, que for enviado, será interpretado como false.
+O serviço “Solicita retificação” recebe um único objeto do tipo solicitacaoRetificacao, o qual
+possui a seguinte estrutura:
+
+8.6 solicitacaoRetificacao
+ATRIBUTO
+cadastrador
+justificativa
+
+TIPO
+Integer(5)
+String(2000)
+
+DESCRIÇÃO
+Identificador do cadastrador
+Justificativa para o pedido de
+retificação
+
+9 Estrutura de dados de Histórico
+9.1 historicoInstancia
+ATRIBUTO
+
+TIPO
+
+id
+acao
+status
+
+Long
+String(255)
+String(255)
+
+data
+
+Long
+
+perfilInicial
+
+String(80)
+
+nomePerfilInicial
+
+String(80)
+
+perfilFinal(opcional)
+
+String(80)
+
+nomePerfilFinal(opcional)
+
+String(80)
+
+usuario
+
+Cadastrador
+
+idInstancia
+motivoAcao(opcional)
+
+Integer
+String(2000)
+
+DESCRIÇÃO
+Identificador do histórico
+Código da ação
+Estado da instância após a
+execução da ação
+Data da ação em formato Unix
+timestamp
+Código interno do perfil do
+usuário que executou a ação
+Perfil do usuário que executou a
+ação
+Código interno do perfil do
+usuário que recebe a ação. Este
+campo só irá existir quando a
+ação transfere a instância para
+outro perfil.
+Perfil do usuário que recebe a
+ação. Este campo só irá existir
+quando a ação transfere a
+instância para outro perfil.
+Dados do usuário que executou a
+ação, no formato Cadastrador
+Id da instância de formulário
+Motivo pelo qual a ação foi
+executada
+Versão 1.2 - Página: 19 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+justificativaAtraso(opcional)
+
+String(2000)
+
+dataFormatada
+
+String(19)
+
+Motivo pelo qual a ação foi
+executada com atraso
+Data da ação no formato
+dd/MM/yyyy HH:mm:ss
+
+10 Fluxo de utilização
+Como exemplo de utilização do web service, apresentamos o fluxo abaixo:
+
+10.1 Solicitar criação de um usuário com perfil “Web Service”
+
+
+Enviar e-mail para [sistemasresolucoes@cnmp.mp.br] solicitando a criação de um usuário
+com perfil “Web Service”. O usuário e a senha devem ser utilizados na autenticação de todas
+as operações.
+No e-mail deve conter as seguintes informações do responsável pelas operações através do
+web service:
+o Nome;
+o CPF;
+o Matrícula;
+o E-mail;
+o Ramo;
+o Lista dos formulários que deseja acesso.
+
+
+
+10.2 Consultar a lista de todos os formulários disponíveis
+
+
+
+Utilizar o serviço Todos de Formulários;
+Identificar o formulário que deseja utilizar e guardar o id.
+
+Exemplo de resposta do serviço:
+[
+{
+"id": 742,
+"ambiente": "Resolução 20",
+"periodicidade": "Semestral",
+"nome": "Formulário de Visita Técnica a Estabelecimento Militar Estadual",
+"anoInicio": 2016,
+"periodoInicio": 1,
+"anoTermino": 2016,
+"periodoTermino": 1,
+"destaque": true,
+"tiposEntidadeAceitos": [
+{
+"id": 362,
+"descricao": "Estabelecimento Militar Estadual"
+
+Versão 1.2 - Página: 20 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+]
+
+}
+
+},
+{
+
+}
+
+"id": 502,
+"ambiente": "Resolução 20",
+"periodicidade": "Semestral",
+"nome": "Formulário Visita Técnica à Delegacia Estadual",
+"anoInicio": 2015,
+"periodoInicio": 1,
+"destaque": false,
+"tiposEntidadeAceitos": [
+{
+"id": 250,
+"descricao": "Delegacias Estaduais"
+}
+]
+
+]
+
+10.3 Buscar a entidade a qual deseja enviar as informações
+
+
+Utilizar o serviço Todos de Entidades com o id do formulário encontrado no item Consultar
+a lista de todos os formulários disponíveis, utilizando o filtro por nome ou não, para
+encontrar a entidade a qual deseja utilizar;
+Identificar a entidade que deseja utilizar e guardar o id.
+
+
+
+Exemplo de resposta do serviço:
+[
+
+{
+
+}
+
+"id": 10826,
+"nome": "Entidade de Teste",
+"ativa": true,
+"endereco": "Rua Projetada, s/n ",
+"municipio": "Brasília",
+"estado": "DF",
+"dataCadastro": "Oct 8, 2014 7:07:34 PM",
+"dataCadastroFormatada": "08/10/2014"
+
+]
+
+10.4 Buscar o cadastrador responsável pelos dados do formulário
+
+
+Utilizar o serviço Busca de Cadastradores, utilizando o CPF do responsável, para encontrar
+o cadastrador;
+Versão 1.2 - Página: 21 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+
+
+Identificar o cadastrador e guardar o id.
+
+Exemplo de resposta do serviço:
+[
+{
+
+}
+
+"id": 5471,
+"nome": "Cadastrador de Teste",
+"email": "cadastrador@cnmp.mp.br"
+
+]
+
+10.5 Detalhar o formulário para identificar os dados a serem enviados
+
+
+Utilizando o id encontrado no item Consultar a lista de todos os formulários disponíveis,
+utilizar o serviço Detalha formulário de Formulários para receber os detalhes, seções e
+campos, do formulário.
+
+Exemplo de resposta do serviço:
+{
+
+"id": 944,
+"nome": "Formulário de Solicitação de Registro de AR",
+"ambiente": "Resolução 20",
+"versao": 1,
+"periodicidade": "Mensal",
+"anoInicio": 2018,
+"periodoInicio": 4,
+"anoTermino": 2019,
+"periodoTermino": 6,
+"tiposEntidadeAceitos": [
+{
+"id": 250,
+"descricao": "Delegacias Estaduais"
+}
+],
+"secoes": [
+{
+"id": 1227,
+"indice": 1,
+"nome": "I - Dados Gerais",
+"campos": [
+{
+"id": 17062,
+"codigo": "TXT_NOME_AR",
+"descricao": "Descrição de campo text area",
+"unidadeMedida": {
+"sigla": "N/A",
+"descricao": "Não Aplica"
+
+Versão 1.2 - Página: 22 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+},
+{
+
+},
+{
+
+},
+"label": "Nome da AR:",
+"indice": 1,
+"tabulacao": 0,
+"tamanhoMaximo": 200,
+"obrigatorio": true,
+"tipoCampo": {
+"tipo": "TEXTO",
+"descricao": "Campo texto"
+}
+"id": 17063,
+"codigo": "DT_DATA_SOLICITACAO",
+"descricao": "Descrição de campo data",
+"unidadeMedida": {
+"sigla": "N/A",
+"descricao": "Não Aplica"
+},
+"label": "Data da solicitação:",
+"indice": 2,
+"tabulacao": 0,
+"obrigatorio": true,
+"tipoCampo": {
+"tipo": "DATA",
+"descricao": "Campo data"
+}
+"id": 17078,
+"codigo": "QT_CAMPO_SOMENTE_NUMEROS",
+"descricao": "Descrição de campo somente números",
+"unidadeMedida": {
+"sigla": "N/A",
+"descricao": "Não Aplica"
+},
+"label": "Campo somente números:",
+"indice": 3,
+"tabulacao": 0,
+"tamanhoMaximo": 200,
+"obrigatorio": true,
+"tipoCampo": {
+"tipo": "SOMENTE_NUMERO",
+"descricao": "Campo somente números"
+}
+
+},
+{
+"id": 19078,
+"codigo": "SN_A_DROGA_ULTRAPASSA_O_LIMITE",
+"unidadeMedida": {
+"sigla": "N/A",
+
+Versão 1.2 - Página: 23 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+},
+{
+
+"descricao": "Não Aplica"
+},
+"label": "A droga apreendida ultrapassa o limite legal?",
+"indice": 4,
+"tabulacao": 0,
+"obrigatorio": true,
+"tipoCampo": {
+"tipo": "SIM_NAO",
+"descricao": "Campo sim/não"
+}
+"id": 17077,
+"codigo": "SN_TEVE_APREENSAO_DROGAS",
+"unidadeMedida": {
+"sigla": "N/A",
+"descricao": "Não Aplica"
+},
+"label": "Teve apreensão de drogas?",
+"indice": 6,
+"tabulacao": 0,
+"obrigatorio": true,
+"tipoCampo": {
+"tipo": "SIM_NAO",
+"descricao": "Campo sim/não"
+}
+
+},
+{
+"id": 17076,
+"codigo": "QT_TEVE_APREENSAO_DROGAS_CAMPO_SOMENTE_NUMEROS",
+"unidadeMedida": {
+"sigla": "g",
+"descricao": "Grama"
+},
+"label": "Campo somente números (condicional):",
+"indice": 7,
+"tabulacao": 1,
+"tamanhoMaximo": 200,
+"obrigatorio": true,
+"tipoLogica": "OR",
+"tipoCampo": {
+"tipo": "SOMENTE_NUMERO",
+"descricao": "Campo somente números"
+},
+"dependencias": [
+{
+"idCampo": 19078,
+"valorResposta": "Sim"
+},
+{
+"idCampo": 17077,
+
+Versão 1.2 - Página: 24 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+}
+
+"valorResposta": "Sim"
+
+]
+}
+},
+{
+
+}
+
+]
+"id": 1247,
+"indice": 2,
+"nome": "II - Teste",
+"campos": [
+{
+"id": 17079,
+"codigo": "TXT_CAMPO_TEXTO",
+"descricao": "Descrição de campo texto",
+"unidadeMedida": {
+"sigla": "N/A",
+"descricao": "Não Aplica"
+},
+"label": "Campo texto:",
+"indice": 1,
+"tabulacao": 0,
+"tamanhoMaximo": 200,
+"obrigatorio": true,
+"tipoCampo": {
+"tipo": "TEXTO",
+"descricao": "Campo texto"
+}
+}
+]
+
+]
+}
+
+10.6 Enviar os dados do formulário
+
+
+Utilizando os ids buscados nos serviços anteriores e as informações da instância, enviar os
+dados via POST para o serviço “Salva instância”.
+
+Exemplo de JSON para criar uma nova instância:
+{
+"formulario": 1108,
+"entidade": 21804,
+"cadastrador": 24190,
+"ano": 2020,
+"periodo": 1,
+"conteudo": [
+{
+"idCampo": 18841,
+
+Versão 1.2 - Página: 25 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+}
+}
+
+"valorResposta": "Nome de Teste"
+
+]
+
+Exemplo de JSON para alterar uma instância existente:
+{
+"id": 74274,
+"formulario": 1108,
+"entidade": 21804,
+"cadastrador": 24190,
+"ano": 2020,
+"periodo": 1,
+"conteudo": [
+{
+"idCampo": 18841,
+"valorResposta": "Nome de Teste 2"
+}
+]
+}
+
+11 Mensagens de erro
+Quando uma operação do webservice gerar uma exceção, será retornado um código HTTP 400,
+(Bad Request) e será apresentado um erro, no formato JSON padrão especificado abaixo. Caso
+algum erro necessite de mais detalhes, mais dados serão apresentados complementando o formato
+JSON padrão.
+
+11.1 Formato JSON padrão da resposta de erro
+ATRIBUTO
+codigoErro
+mensagem
+
+TIPO
+Integer
+String
+
+DESCRIÇÃO
+Código do erro
+Mensagem descritiva do erro
+
+11.2 Códigos de erros e mensagens
+Código
+1
+2
+3
+4
+5
+
+Mensagem
+Já existe um formulário gerado neste período.
+A entidade foi cadastrada após o período selecionado.
+A entidade está inativa no período selecionado - Funcionalidade Cadastrar Período
+Inativo.
+A entidade está inativa no período selecionado - Funcionalidade Gerenciar
+Entidades.
+Não é possível gerar formulário para um período futuro.
+Versão 1.2 - Página: 26 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+
+Código reservado. Ainda sem uso.
+Código reservado. Ainda sem uso.
+Código reservado. Ainda sem uso.
+Código reservado. Ainda sem uso.
+Desconhecido. Algum erro ocorreu que não foi mapeado nesta tabela. O texto dessa
+mensagem será do erro não esperado, então não há uma mensagem fixa.
+O 'cpf' informado é inválido
+O 'cadastrador' não foi encontrado com os parâmetros passados
+O 'cadastrador' informado não possui acesso ao formulário
+Parâmetro 'cadastrador' é obrigatório
+O valor do parâmetro 'cadastrador' é inválido ou não tem permissão de acesso ao
+formulário
+Parâmetro 'ambiente' é obrigatório
+O valor do parâmetro 'ambiente' é inválido ou o usuário não tem permissão de
+acesso ao ambiente
+Parâmetro 'entidade' é obrigatório
+O valor do parâmetro 'entidade' é inválido ou o usuário não tem permissão de acesso
+Parâmetro 'formulario' é obrigatório
+O valor do parâmetro 'formulario' é inválido ou o usuário não tem permissão de
+acesso
+Parâmetro 'id' é obrigatório
+O valor do parâmetro 'instancia' é inválido ou o usuário não tem permissão de
+acesso
+O envio do formulário está em atraso e não foi informada uma justificativa
+É necessário informar ou o parâmetro 'formulario' ou 'ambiente'
+O formulário informado não está configurado para este serviço. Entre em contato
+com 'sistemasresolucoes@cnmp.mp.br' para mais informações
+O campo não pertence ao formulário informado.
+Pendências impediram a operação de salvar o formulário.
+Há campos de preenchimento obrigatório sem resposta.
+Erros de restrição de soma impediram a operação de salvar o formulário.
+O usuário do webservice possui mais de um perfil de acesso ao formulário
+Formato inválido para o campo data/hora. Use o formato 'dd/MM/yyyy HH:mm:ss'.
+Pendências impediram a operação de solicitar retificação.
+
+11.3 Códigos de erros com detalhamentos
+11.3.1 Erro 27 – O campo não pertence ao formulário informado.
+ATRIBUTO
+TIPO
+DESCRIÇÃO
+codigoErro
+Integer
+Código do erro
+mensagem
+String
+Mensagem descritiva do erro
+idCampo
+Integer(5)
+Id do campo, informado no
+serviço “Salva instância”, que
+Versão 1.2 - Página: 27 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+não pertence ao formulário
+11.3.2 Erro 28 – Pendências impediram a operação de salvar o formulário.
+ATRIBUTO
+TIPO
+DESCRIÇÃO
+codigoErro
+Integer
+Código do erro
+mensagem
+String
+Mensagem descritiva do erro
+pendencias[]
+String[]
+Lista contendo cada pendência
+que foi encontrada no processo
+de validação dos dados do
+formulário
+11.3.3 Erro 29 – Há campos de preenchimento obrigatório sem resposta.
+ATRIBUTO
+TIPO
+DESCRIÇÃO
+codigoErro
+Integer
+Código do erro
+mensagem
+String
+Mensagem descritiva do
+erro
+idsCamposNaoPreenchidos[]
+Long[]
+Lista contendo o id de cada
+campo obrigatório mas não
+preenchido
+11.3.4 Erro 30 – Erros de restrição de soma impediram a operação de salvar o formulário.
+ATRIBUTO
+TIPO
+DESCRIÇÃO
+codigoErro
+Integer
+Código do erro
+mensagem
+String
+Mensagem descritiva do erro
+restricoesComSomaIncorreta[] RestricaoComSomaIncorreta[] Lista contendo cada restrição
+soma que não passou na
+verificação
+11.3.4.1 RestricaoComSomaIncorreta
+ATRIBUTO
+TIPO
+DESCRIÇÃO
+termo1
+RestricaoSomaCampo[]
+Informações referentes ao
+termo 1 da restrição
+expressaoTermo1
+String
+Resultado da expressão do
+termo 1
+termo2
+RestricaoSomaCampo[]
+Informações referentes ao
+termo 2 da restrição
+expressaoTermo2
+String
+Resultado da expressão do
+termo 2
+criterioValidacao
+String
+Operação de comparação do
+termo 1 e termo 2
+11.3.4.2 RestricaoSomaCampo
+ATRIBUTO
+TIPO
+DESCRIÇÃO
+Versão 1.2 - Página: 28 de 29
+
+Sistema de Resoluções
+Manual Técnico de Utilização do
+WEBSERVICE
+
+idCampo
+labelCampo
+valor
+
+Long
+String
+String
+
+Id do campo relacionado
+Label do campo relacionado
+Valor da resposta do campo
+relacionado
+
+11.3.5 Erro 33 – Pendências impediram a operação de solicitar retificação.
+ATRIBUTO
+TIPO
+DESCRIÇÃO
+codigoErro
+Integer
+Código do erro
+mensagem
+String
+Mensagem descritiva do erro
+pendencias[]
+String[]
+Lista contendo cada pendência
+que foi encontrada na
+solicitação de retificação do
+formulário
+
+Versão 1.2 - Página: 29 de 29
+
+

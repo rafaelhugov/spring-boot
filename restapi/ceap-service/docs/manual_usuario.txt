@@ -1,0 +1,1861 @@
+Manual do Usuário
+Sistema de Resoluções
+Resolução CNMP nº 277/2023 e
+Resolução CNMP nº 279/2023
+
+1
+
+SUMÁRIO
+1.
+
+CALENDARIZAÇÃO DO CUMPRIMENTO DA RESOLUÇÃO Nº 279/2023 __________________ 3
+
+2.
+
+CALENDARIZAÇÃO DO CUMPRIMENTO DA RESOLUÇÃO Nº 277/2023 __________________ 5
+
+3.
+
+CONCESSÃO DE ACESSO AO SISTEMA DE RESOLUÇÕES _____________________________ 8
+
+4.
+
+SENHAS DE ACESSO AO SISTEMA ________________________________________________ 11
+
+5.
+
+DAS UNIDADES POLICIAIS OU DOS ESTABELECIMENTOS PRISIONAIS NO SISTEMA DE
+RESOLUÇÕES _________________________________________________________________ 13
+
+6.
+
+ATUALIZAÇÃO DO CADASTRO DAS UNIDADES NO SISTEMA DE RESOLUÇÕES _________ 17
+
+7.
+
+REESTRUTURAÇÃO DAS UNIDADES ______________________________________________ 18
+
+8.
+
+UNIDADES EM DUPLICIDADE DE CADASTRO NO SISTEMA DE RESOLUÇÕES __________ 19
+
+9.
+
+REGRAS DE INATIVAÇÃO OU EXCLUSÃO DAS UNIDADES NO SISTEMA DE RESOLUÇÕES 19
+
+10. CADASTRO DO PERÍODO DE INATIVIDADE DOS FORMULÁRIOS _____________________ 21
+11. FORMULÁRIOS DE VISITA TÉCNICA ______________________________________________ 23
+12. GERAÇÃO DO FORMULÁRIO DE VISITA TÉCNICA NO SISTEMA DE RESOLUÇÕES ______ 25
+13. ERRO NA GERAÇÃO DO FORMULÁRIO ___________________________________________ 27
+14. INDICAÇÃO DOS PERÍODOS DE REFERÊNCIA NA GERAÇÃO DOS FORMULÁRIOS ______ 27
+15. DO PREENCHIMENTO AO ENVIO DO FORMULÁRIO ________________________________ 28
+16. FUNÇÃO VOLTAR DO FORMULÁRIO _____________________________________________ 31
+17. NAVEGAÇÃO PELOS FORMULÁRIOS _____________________________________________ 32
+18. PREENCHIMENTO DO FORMULÁRIO FACE À AUSÊNCIA DE INFORMAÇÕES __________ 34
+19. ORIENTAÇÕES QUANTO AO PREENCHIMENTO ____________________________________ 35
+20. DOS AUTORES E COAUTORES ___________________________________________________ 36
+21. PROCESSO DE VALIDAÇÃO DOS FORMULÁRIOS ___________________________________ 38
+22. FLUXO DE DEVOLUÇÃO E DE RETIFICAÇÃO DOS FORMULÁRIOS ___________________ 47
+23. MONITORAR ENVIO DOS FORMULÁRIOS _________________________________________ 50
+24. SOLICITAÇÃO DE ACESSO À BASE DE DADOS DO SISTEMA DE RESOLUÇÕES __________ 52
+
+2
+
+1. CALENDARIZAÇÃO DO CUMPRIMENTO DA RESOLUÇÃO Nº 279/2023
+
+1.1. As visitas ordinárias às unidades policiais, com a finalidade de preencher os formulários
+de cumprimento à Resolução CNMP nº 279/2023, serão realizadas em dois períodos,
+semestrais.
+1.1.1. A visita referente ao primeiro semestre será realizada entre os meses de janeiro e
+abril, de forma presencial, em referência aos meses de julho a dezembro do ano
+anterior;
+1.1.2. A visita referente ao segundo semestre será realizada entre os meses de julho e
+outubro, de forma presencial ou remota, em referência aos meses de janeiro a junho
+do ano corrente.
+1.1.2.1.A opção pela forma remota será justificada pelo órgão do Ministério Público
+no preenchimento do formulário apropriado, nas hipóteses em que:
+I - A presença física do órgão do Ministério Público na unidade
+esteja impossibilitada; ou
+II - A unidade já esteja sendo fiscalizada pelo órgão do Ministério
+Público em procedimento instaurado especificamente para esse fim.
+1.2. Até o quinto dia útil do mês subsequente à visita, o formulário de visita preenchido
+deverá ser enviado, para fins de controle, à Corregedoria-Geral do Ministério Público ou
+ao órgão que detenha atribuições para tanto, por meio do Sistema de Resoluções do
+CNMP.
+1.3. A visita de inspeção em unidades policiais que não realizam atividades finalísticas
+policiais e que cumprem, unicamente, funções administrativas, NÃO SÃO
+OBRIGATÓRIAS.
+1.4. Remessa do formulário fora do prazo previsto na calendarização. Destaca-se que é
+plenamente possível que o membro encaminhe o formulário após o término do prazo
+estipulado, porém, será necessário apresentar justificativa à Corregedoria-Geral
+respectiva, ficando a cargo desta a deliberação quanto ao envio extemporâneo dos dados.
+1.4.1. Ressalta-se que a Comissão do Sistema Prisional, Controle Externo da Atividade
+Policial e Segurança Pública – CSP não tem atribuição para deliberar ou se
+manifestar quanto ao deferimento ou não da remessa do formulário fora do prazo
+definido para o cumprimento da normativa.
+1.4.2. Caso a Corregedoria-Geral autorize o preenchimento excepcional e fora dos marcos
+temporais do calendário de cumprimento, a CSP deverá ser comunicada, no prazo
+de 5 (cinco) dias, quanto à dilação e aos termos acordado via e-mail.
+1.5. Períodos de referência dos dados: os dados obtidos nas unidades policiais e preenchidos
+nos formulários eletrônicos devem corresponder à integralidade do período:
+1.5.1. Na primeira visita do ano vigente (que ocorrerá entre janeiro e abril), os dados
+devem corresponder ao período de 1º de julho a 31 de dezembro do ano anterior;
+
+3
+
+1.5.2. Na segunda visita do ano vigente (que ocorrerá entre julho e outubro), os dados
+devem corresponder ao período de 1º de janeiro a 30 de junho do ano corrente;
+1.6. Esclarece-se que, para fins de cumprimento da Resolução CNMP º 279/2023, a única
+forma aceita para remessa dos dados será por meio do formulário eletrônico disponível
+no Sistema de Resoluções.
+1.6.1. Não será admitido, sob nenhuma hipótese, quaisquer outras formas de remessa dos
+formulários, para fins de cômputo do cumprimento da Resolução CNMP nº
+279/2023.
+1.7. Finalização dos procedimentos de verificação dos dados e de validação dos formulários
+pelas Corregedorias. À medida em que for recebendo os formulários, a Corregedoria
+poderá iniciar o procedimento de verificação e validação. Não se faz necessário aguardar
+o encerramento do prazo concedido aos membros. Ressalta-se que todo o processo
+deverá ser finalizado até o último dia útil do segundo mês subsequente ao da visita.
+1.8. Dilação dos prazos previstos para as Corregedorias. Salienta-se que é possível a
+concessão de dilação do prazo às Corregedorias para que finalizem todo o processo de
+verificação dos dados e validação dos formulários, porém, tal pedido deverá ser
+justificado e apresentado à CSP antes do término do prazo previsto inicialmente.
+1.8.1. O pedido deverá ser acrescido do prazo adicional necessário para a conclusão da
+atividade. Além disso, é de suma importância que seja formalizado, assinado pelo
+Corregedor-Geral e encaminhado, via e-mail, à CSP.
+1.8.2. Caso o pedido seja deferido pelo Presidente da CSP, cabe o esclarecimento de que
+nenhum procedimento adicional será realizado no Sistema de Resoluções. Deste
+modo, as justificativas de atraso relacionadas as movimentações dos formulários
+que o sistema vier a apresentar deverão ser preenchidas com a referência do ato que
+concedeu a dilação do prazo.
+1.9. Elaboração do relatório de descumprimento da Resolução nº 279/2023 pela CSP. À
+medida que as Corregedorias finalizarem o processo de validação, os formulários e os
+dados tornam-se disponíveis à CSP, que tem como tarefa inicial a elaboração do relatório
+de descumprimento, que será encaminhado à Corregedoria Nacional do Ministério
+Público, nos termos da própria normativa.
+1.9.1. No relatório serão listadas as unidades na qual a CSP não obteve acesso ao seu
+formulário, por não ter sido preenchido pelo membro ou por ainda não ter sido
+validado pela Corregedoria.
+1.10.O infográfico a seguir apresenta o fluxo completo, com os respectivos prazos, de
+cumprimento da Resolução CNMP nº 279/2023.
+
+4
+
+2. CALENDARIZAÇÃO DO CUMPRIMENTO DA RESOLUÇÃO Nº 277/2023
+
+2.1 As visitas ordinárias aos estabelecimentos prisionais, com a finalidade de preencher os
+formulários de cumprimento à Resolução CNMP nº 277/2023, deverão ser realizadas
+em dois períodos, semestrais.
+2.1.1 A visita referente ao primeiro semestre deverá ser realizada entre os meses
+de janeiro e abril, de forma presencial, em referência aos meses de julho a
+dezembro do ano anterior;
+2.1.2 A visita referente ao segundo semestre deverá ser realizada entre os meses de
+julho e outubro, de forma presencial ou remota, em referência aos meses de
+janeiro a junho do ano corrente.
+2.1.2.1
+
+A opção pela forma remota será justificada pelo órgão do Ministério
+Público no preenchimento do formulário apropriado, nas hipóteses
+em que:
+I - A presença física do órgão do Ministério Público na unidade
+esteja impossibilitada; ou
+II - A unidade já esteja sendo fiscalizada pelo órgão do Ministério
+Público, em procedimento instaurado especificamente para esse fim.
+
+2.2 Até o quinto dia útil do mês subsequente à visita, o formulário de visita preenchido
+deverá ser enviado, para fins de controle, à Corregedoria-Geral do Ministério Público
+ou ao órgão que detenha atribuições para tanto, por meio do Sistema de Resoluções do
+CNMP.
+5
+
+2.2.1 Esclarece-se que o quantitativo de mortes, lesões, faltas graves, e apreensões
+deve corresponder ao somatório das ocorrências registradas no período de
+referência, ao passo que o total de pessoas privadas de liberdade, total de
+estudantes e de trabalhadores deve se correlacionar aos números obtidos no
+dia da visita técnica.
+2.3 Remessa do formulário fora do prazo previsto na calendarização. Destaca-se que é
+plenamente possível que o membro encaminhe o formulário após o término do prazo
+estipulado para a visita, porém, será necessário apresentar justificativa à CorregedoriaGeral respectiva, ficando ao cargo desta a deliberação quanto ao envio extemporâneo
+dos dados.
+2.3.1 Ressalta-se que a Comissão do Sistema Prisional, Controle Externo da
+Atividade Policial e Segurança Pública – CSP não tem atribuição para
+deliberar ou se manifestar quanto ao deferimento ou não da remessa do
+formulário fora do prazo definido para o cumprimento da normativa.
+2.3.2 Caso a Corregedoria-Geral autorize o preenchimento excepcional e fora dos
+marcos temporais do calendário de cumprimento, a CSP deverá ser
+comunicada, no prazo de 5 (cinco) dias, quanto à dilação e aos termos
+acordados, via e-mail.
+2.4 Períodos de referência dos dados: os dados obtidos nos estabelecimentos prisionais e
+preenchidos nos formulários eletrônicos devem corresponder à integralidade do
+período:
+2.4.1 Na primeira visita do ano vigente (que ocorrerá entre janeiro e abril), os dados
+devem corresponder ao período de 1º de julho a 31 de dezembro do ano
+anterior;
+2.4.2 Na segunda visita do ano vigente (que ocorrerá entre julho e outubro), os
+dados devem corresponder ao período de 1º de janeiro a 30 de junho do ano
+corrente;
+2.5 Esclarece-se que, para fins de cumprimento da Resolução CNMP nº 277/2023, a única
+forma aceita para remessa dos dados será por meio do formulário eletrônico disponível
+no Sistema de Resoluções.
+2.5.1 Não será admitido, sob nenhuma hipótese, quaisquer outras formas de
+remessa dos formulários, para fins de cômputo do cumprimento da Resolução
+CNMP nº 277/2023.
+2.6 Finalização dos procedimentos de verificação dos dados e de validação dos formulários
+pelas Corregedorias. À medida em que for recebendo os formulários, a Corregedoria
+poderá iniciar o procedimento de verificação e validação. Não se faz necessário
+aguardar o encerramento do prazo concedido aos membros. Ressalta-se que todo o
+processo deverá ser finalizado até o último dia útil do segundo mês subsequente ao da
+visita.
+2.7 Dilação dos prazos previstos para as Corregedorias. Salienta-se que é possível a
+concessão de dilação do prazo às Corregedorias para que finalizem todo o processo de
+
+6
+
+verificação dos dados e validação dos formulários, porém, tal pedido deverá ser
+justificado e apresentado à CSP antes do término do prazo previsto inicialmente.
+2.7.1 O pedido deverá ser acrescido do prazo adicional necessário para a conclusão
+da atividade. Além disso, é de suma importância que seja formalizado,
+assinado pelo Corregedor-Geral e encaminhado, via e-mail, à CSP.
+2.7.2 Caso o pedido seja deferido pelo Presidente da CSP, cabe o esclarecimento
+de que nenhum procedimento adicional será realizado no Sistema de
+Resoluções. Deste modo, as justificativas de atraso relacionadas as
+movimentações dos formulários que o sistema vier a apresentar deverão ser
+preenchidas com a referência do ato que concedeu a dilação do prazo.
+2.8 Elaboração do relatório de descumprimento da Resolução nº 277/2023 pela CSP. À
+medida que as Corregedorias finalizarem o processo de validação, os formulários e os
+dados tornam-se disponíveis à CSP, que tem como tarefa inicial a elaboração do
+relatório de descumprimento, que será encaminhado à Corregedoria Nacional do
+Ministério Público, nos termos da própria normativa.
+2.8.1 No relatório serão listadas as unidades na qual a CSP não obteve acesso ao
+seu formulário, por não ter sido preenchido pelo membro ou por ainda não
+ter sido validado pela Corregedoria.
+2.9 O infográfico a seguir apresenta o fluxo completo, com os respectivos prazos, de
+cumprimento da Resolução CNMP nº 277/2023.
+
+7
+
+3. CONCESSÃO DE ACESSO AO SISTEMA DE RESOLUÇÕES
+3.1. O CNMP disponibiliza o Sistema de Resoluções para o preenchimento dos formulários
+de visita técnica às unidades policiais e aos estabelecimentos prisionais.
+3.1.1. O link de acesso ao Sistema de Resoluções está disponível no sítio
+www.cnmp.mp.br, no “Menu – Serviços”, conforme destacado:
+
+3.2. Após clicar no link do “Sistema de Resoluções”, o navegador será direcionado à página
+de login, para inclusão do e-mail funcional completo e da senha de acesso, cadastrados
+ou disponibilizados previamente.
+
+8
+
+v
+
+3.3. Os acessos aos membros, aos integrantes das Corregedorias e aos servidores e assessores
+cadastradores serão concedidos seguindo dois fluxos distintos: um voltado aos membros
+e outro voltado aos integrantes das Corregedorias e aos cadastradores.
+3.4. Concessão de acesso aos membros do Ministério Público: ocorre de forma automática
+após o cadastro no Sistema de Cadastro de Membros do Ministério Público (SCMMP),
+cujos dados são geridos conjuntamente pela Corregedoria Nacional do Ministério
+Público e pelas Corregedorias-Gerais de cada ramo ou unidade do Ministério Público.
+3.4.1. O acesso ao Sistema de Resoluções ocorrerá assim que a respectiva CorregedoriaGeral cadastrar o novo membro no SCMMP ou certificar que o membro
+anteriormente cadastrado está com seus dados atualizados no SCMMP.
+3.4.1.1. É importante frisar que manter o cadastro dos membros atualizados
+assegurará que este tenha sua situação funcional ativa no SCMMP, o que
+conferirá ao usuário o acesso automático ao Sistema de Resoluções.
+3.4.1.2. Pondera-se que se o cadastro do membro não estiver atualizado no SCMMP
+e a CSP tentar realizar a concessão do acesso de forma manual, esse será
+excluído automaticamente, inviabilizando o acesso regular ao Sistema de
+Resoluções.
+3.4.2. Caso o membro não tenha ou não se recorde de sua senha, deverá clicar no link
+“Esqueci minha senha”, na página de login do Sistema de Resoluções, inserir seu
+e-mail funcional e CPF para que uma nova senha provisória seja gerada e
+encaminhada ao e-mail cadastrado.
+3.4.2.1.Dúvidas sobre senhas de acesso poderão ser sanadas no Capítulo 4.
+3.4.3. Com essa rotina de concessão de acesso aos membros, atuando ou não na temática
+do controle externo da atividade policial ou do sistema prisional, todos com a
+situação funcional ativa terão acesso ao Sistema de Resoluções.
+3.4.3.1.Da mesma forma, caso o membro tenha sua situação funcional alterada para
+inativa, o acesso será automaticamente removido.
+3.4.4.
+
+A CSP prestará todo o suporte relacionado ao cumprimento das resoluções de sua
+temática e seguirá à disposição para sanar eventuais dúvidas supervenientes.
+
+3.5. A concessão de acesso aos integrantes das Corregedorias e aos servidores e assessores
+indicados ao perfil Cadastrador deverá ser solicitada por meio dos e-mails temáticos
+
+9
+
+disponibilizados pela CSP: (I) res279@cnmp.mp.br para a temática do controle externo
+da atividade policial; e (II) res277@cnmp.mp.br para a temática do sistema prisional.
+3.5.1.1.O pedido de acesso aos integrantes das Corregedorias deverá ser realizado do
+e-mail funcional da unidade. Não serão aceitos pedidos de e-mails pessoais
+de integrantes.
+3.5.1.2.O pedido de acesso ao perfil cadastrador poderá ser realizado pelo próprio
+membro do Ministério Público, com ciência da Corregedoria, ou diretamente
+pela própria Corregedoria.
+3.5.1.3.Os pedidos de acesso aos dois perfis deverão conter os seguintes dados
+pessoais:
+3.5.1.3.1. Nome completo;
+3.5.1.3.2. E-mail e matrícula funcional;
+3.5.1.3.3. Número do CPF;
+3.5.1.3.4. Telefone para contato;
+3.5.1.3.5. Indicação do perfil que deverá ser concedido, se perfil corregedoria
+ou perfil cadastrador, e para qual resolução.
+3.6. O quadro abaixo apresenta os perfis de acessos disponíveis no Sistema de Resoluções e
+sob responsabilidade da CSP:
+RESOLUÇÃO Nº 279/2023
+CONTROLE EXTERNO DA ATIVIDADE POLICIAL
+MP Estaduais + MPDFT
+
+MPF
+
+Corregedoria Resolução 279 Estadual
+
+Corregedoria Resolução 279 Federal
+
+Membro Resolução 279 Estadual
+
+Membro Resolução 279 Federal
+
+Cadastrador Resolução 279 Estadual
+
+Cadastrador Resolução 279 Federal
+
+RESOLUÇÃO Nº 277/2023
+SISTEMA PRISIONAL
+UNIDADES PRISIONAIS COMUNS
+
+UNIDADES PRISIONAIS MILITARES
+
+MP Estaduais + MPDFT
+
+MPF
+
+MP Estaduais + MPDFT
+
+MPM
+
+Corregedoria Resolução
+277
+
+Corregedoria
+Resolução 277
+
+Corregedoria Militar
+Estadual Resolução 277
+
+Corregedoria MPM
+Resolução 277
+
+Membro Resolução Membro Militar Estadual
+277
+Resolução 277
+Cadastrador Resolução
+Cadastrador Militar
+Cadastrador Resolução 277
+277
+Estadual Resolução 277
+
+Membro MPM
+Resolução 277
+Cadastrador MPM
+Resolução 277
+
+Membro Resolução 277
+
+3.7. O que diferencia um perfil do outro são as ações habilitadas pelo sistema.
+10
+
+3.7.1. Perfil Membro: são atribuídas ações relacionadas à geração, ao preenchimento e à
+correção do formulário, além de inclusão de anexos e envio à Corregedoria para o
+processo de validação.
+3.7.1.1. O membro também deverá dar anuência quanto ao preenchimento
+dos formulários, quando tal tarefa for realizada por servidor ou
+assessor que o auxilie, antes do envio à Corregedoria.
+3.7.2. Perfil Cadastrador: são atribuídas as ações relacionadas ao preenchimento e
+correção do formulário nas fases de devolução ou de retificação. Cabe salientar que
+o perfil cadastrador não possui atribuição para movimentar o formulário, pois
+compete ao membro responsável ratificar as informações ali informadas antes do
+envio à Corregedoria.
+3.7.3. Perfil Corregedoria: são atribuídas as ações relacionadas à validação dos dados.
+Assim, tal perfil consegue devolver o formulário diante de divergências de
+preenchimento, validar o formulário, quando o preenchimento estiver correto, além
+de autorizar ou não os pedidos de retificação quando solicitados pelos membros.
+3.8. Todas as ações citadas serão vistas com maior detalhamento nos próximos capítulos do
+presente manual.
+PERFIL MEMBRO
+
+PERFIL CADASTRADOR
+
+PERFIL CORREGEDORIA
+
+PREENCHER
+
+PREENCHER
+
+VALIDAR
+
+ENVIAR
+
+VISUALIZAR
+
+DEVOLVER
+
+SOLICITAR RETIFICAÇÃO
+
+CARREGAR ARQUIVO
+
+ACEITAR RETIFICAÇÃO
+
+VISUALIZAR
+
+HISTÓRICO
+
+NEGAR RETIFICAÇÃO
+
+CARREGAR ARQUIVO
+
+VISUALIZAR
+
+HISTÓRICO
+
+CARREGAR ARQUIVO
+HISTÓRICO
+
+4. SENHAS DE ACESSO AO SISTEMA
+4.1. Todos os sistemas do CNMP utilizam o mesmo login e senha de acesso que são geridos
+pelo Sistema de Controle de Acesso.
+4.1.1. Ao receber uma senha provisória, que será enviada automaticamente via sistema ao
+e-mail funcional previamente cadastrado, o usuário deve alterá-la imediatamente.
+4.1.1.1. A nova senha deve ser formada por caracteres aleatórios entre letras
+maiúsculas e/ou minúsculas, além de numerais e caracteres especiais. É
+importante relembrar que será válida para o ingresso em todos os sistemas do
+CNMP.
+
+11
+
+4.2. Primeiro acesso ao Sistema de Resoluções: assim que receber a senha provisória, no email funcional cadastrado, será necessário seguir os passos apresentados no Capítulo 3
+para acessar o Sistema de Resoluções, em seguida:
+4.2.1. Inclua o e-mail funcional completo; e
+4.2.2. Inclua a senha provisória recebida.
+4.2.3. Após acessar o sistema, sugere-se consultar o Capítulo 12 do presente manual.
+4.3. Trocar a senha provisória por uma definitiva: nesse ponto será necessário clicar na opção
+“Alterar senha”, disponível na tela de login do Sistema de Resoluções.
+4.3.1.1.1.Em seguida, o usuário será remetido ao “Sistema de Controle de
+Acessos” para alteração da senha.
+
+E-mail funcional
+cadastrado
+Senha provisória recebida
+
+Nova senha
+
+4.3.2. . Ao finalizar o processo de atualização de senha, será preciso retornar ao Sistema
+de Resoluções e realizar novamente o login de acesso.
+
+12
+
+5. DAS UNIDADES POLICIAIS OU DOS ESTABELECIMENTOS PRISIONAIS
+NO SISTEMA DE RESOLUÇÕES
+5.1 A CSP é a unidade responsável pelo cadastro das unidades policiais e dos
+estabelecimentos prisionais no Sistema de Resoluções para fins de preenchimento
+dos formulários de visita técnica em cumprimento a Resolução nº 277/2023 e a
+Resolução 279/2023, respectivamente;
+5.2 Para efetuar a inclusão de nova unidade, a Corregedoria ou o membro (com ciência
+da Corregedoria) encaminharão, via e-mail, os seguintes dados cadastrais da
+respectiva unidade, conforme indicado nos próximos tópicos:
+5.2.1 Tipo de Entidade – dado obrigatório: essa informação é responsável por
+vincular a nova unidade ao formulário correspondente para o correto
+preenchimento das informações.
+5.2.1.1
+
+As opções disponíveis, para
+demonstradas nas tabelas a seguir:
+
+cada
+
+resolução,
+
+estão
+
+RESOLUÇÃO Nº 279/2023
+CONTROLE EXTERNO DA ATIVIDADE POLICIAL
+MP Estaduais + MPDFT
+Tipo de Entidade
+
+Formulário habilitado
+
+MPF
+Tipo de Entidade
+
+Formulário habilitado
+
+Formulário de Visita de
+Inspeção Semestral |
+Formulário de Visita de Inspeção Delegacias PF/ Perícias
+Superintendência/Delegacia
+Delegacia Estadual Semestral | Delegacia de Polícia Federais/ Superintendências
+de Polícia Federal - 2º
+Civil - 2º Sem./2024 a atualmente.
+da PF
+Sem./2024 a atualmente.
+
+Estabelecimento
+Militar Estadual
+
+Formulário de Visita de
+Formulário de Visita de Inspeção
+Inspeção Semestral |
+Semestral | Estabelecimento
+Delegacias PRF
+Superintendência/Delegacia
+Militar Estadual - 2º Sem./2024 a /Superintendências PRF
+de Polícia Rodoviária Federal
+atualmente.
+- 2º Sem./2024 a atualmente.
+
+Medicina Legal
+Estadual
+
+Formulário de Visita de Inspeção
+Semestral | Unidade de Medicina
+Legal - 2º Sem./2024 a
+atualmente.
+
+Perícias Estaduais
+
+Formulário de Visita de Inspeção
+Semestral | Polícia Científica
+Estadual - 2º Sem./2024 a
+atualmente.
+
+13
+
+RESOLUÇÃO Nº 277/2023
+SISTEMA PRISIONAL
+UNIDADES PRISIONAIS COMUNS
+MP Estaduais + MPDFT + MPF
+Tipo de Entidade
+
+Formulário habilitado
+
+UNIDADES PRISIONAIS MILITARES
+MP Estaduais + MPDFT + MPM
+Tipo de Entidade
+
+Formulário habilitado
+
+Estabelecimentos Prisionais
+Militares Estaduais
+
+Formulário de Visita de
+Inspeção Semestral |
+Unidades Prisionais
+Militares Estaduais
+- 2º Sem./2024 a
+atualmente
+
+Estabelecimentos Prisionais
+Militares Federais
+
+Formulário de Visita de
+Inspeção Semestral |
+Unidades Prisionais
+Militares Federais
+- 2º Sem./2024 a
+atualmente
+
+Cadeia Pública
+Casa do Albergado
+Centro de Observação
+Criminológica/
+Remanejamento
+Colônia Agrícola,
+Industrial ou Similar
+
+Formulário de Visita de
+Inspeção Semestral |
+Estabelecimentos Prisionais
+- 2º Sem./2024 a atualmente
+
+Hospital de Custódia e
+Tratamento Psiquiátrico
+Penitenciárias
+
+5.2.2 Tipo de identificação (número do CNPJ) – dado não obrigatório: por
+não ser uma informação obrigatória sua ausência não inviabiliza o
+cadastro da unidade;
+5.2.3 Nome completo da unidade – dado obrigatório: conforme consta no
+registro da Secretaria de Estado da temática respectiva ou unidade
+similar responsável.
+5.2.3.1
+
+Destaque-se que é por meio desse registro que a unidade será
+localizada no Sistema de Resoluções. Assim, é de fundamental
+importância indicá-lo da maneira mais completa e precisa
+possível.
+
+5.2.4 Endereço completo e Telefone: sugere-se informar a maior quantidade
+possível de informações.
+5.2.5 Data que a unidade deverá ser criada no Sistema de Resoluções: essa
+informação não necessariamente coincidirá com a data real de criação
+da unidade, haja vista que haverá situações em que a unidade apesar de
+ter sido criada, por ato formal, poderá não estar desempenhando, ainda,
+suas atividades; outra situação comum é a unidade estar em
+funcionamento, contudo, não era objeto de visitas técnicas e passou a
+ser, dentre outras hipóteses.
+14
+
+5.2.5.1
+
+Diante dos inúmeros cenários possíveis, a CSP padronizou que
+a data de criação deverá considerar e observar dois pontos
+cruciais:
+5.2.5.1.1 Qual será o primeiro formulário a ser preenchido;
+5.2.5.1.2 Se a unidade possui dados suficientes para o
+preenchimento do formulário indicado, ou seja, se a
+unidade estava em funcionamento durante todo o
+período de abrangência dos dados. Em caso de
+dúvidas sugere-se consultar o Capítulo 12.
+
+5.2.5.2
+
+Por motivo de padronização, a CSP sugere algumas datas
+padrões para a criação das unidades no Sistema de Resoluções.
+Esclarece que tal padronização se mostrou como a forma mais
+adequada de evitar a geração indevida de pendências, quanto ao
+cumprimento dos normativas, ocasionadas pelo cadastro de
+unidades em datas passadas.
+5.2.5.2.1 A tabela a seguir demonstra as sugestões quanto as
+dadas de criação das unidades conforme o normativa:
+
+RESOLUÇÕES Nº 277/2023 E 279/2023
+PERÍODO DE CUMPRIMENTO
+Formulário a ser gerado
+no Sistema de Resoluções
+Visitas das unidades e
+preenchimentos dos
+formulários
+Período de referência dos
+dados para
+preenchimento do
+formulário
+Ativação da
+Unidade/Entidade
+
+1º SEMESTRE do ano corrente*
+
+2º SEMESTRE do ano corrente*
+
+de janeiro a abril
+
+de julho a outubro
+
+de julho a dezembro do ano anterior
+
+de janeiro a junho do ano corrente
+
+Se o primeiro formulário a ser
+preenchido for o do 1º semestre, sugerese que, por padrão, a unidade seja ativada
+na data de 01 de janeiro do respectivo
+ano.
+
+Se o primeiro formulário a ser preenchido
+for o do 2º semestre, sugere-se que, por
+padrão, a unidade seja ativada na data de
+01 de julho do respectivo ano.
+
+*O formulário deverá ser gerado seguindo o semestre que a visita ocorreu e não o semestre de referência dos dados.
+
+5.3 Regras específicas: há algumas situações recorrentes que merecem destaque quanto
+ao cadastramento ou não da unidade para fins de inspeção, pois geram muitas
+dúvidas:
+5.3.1 Unidades Policiais – Estabelecimentos Militares: no caso concreto, o
+membro do Ministério Público deverá visitar a unidade e avaliar se há o
+
+15
+
+desempenho de atividades finalísticas ou se há o desempenho de
+atividades meramente administrativa.
+5.3.1.1
+
+Caso haja o desempenho de atividades finalísticas, ou seja, se a
+unidade possui efetivo de militares, sistema de registro de
+ocorrências, armas, viaturas e demais caracterizadores, então,
+ela deverá ser cadastrada para fins de visita de inspeção e
+preenchimento do formulário respectivo.
+
+5.3.2 Unidades Policiais – Delegacias de Polícia Civil situadas na mesma
+edificação ou áreas muito próximas: o padrão adotado pela CSP é que
+todas as unidades sejam cadastradas para fins de inspeção e
+preenchimento do formulário, haja vista que cada unidade, em regra,
+possui suas peculiaridades finalísticas. Cabendo aqui duas
+considerações:
+5.3.2.1
+
+Caso uma das unidades exerça apenas atividades
+administrativas ela não precisa ser cadastrada para fins de
+inspeção, referente ao cumprimento da Resolução CNMP nº
+279/2023, pois o preenchimento do formulário relacionado
+exige o exercício de atividades finalísticas;
+
+5.3.2.2
+
+Caso as atribuições da unidade se confundam com aquela
+exercida por outra unidade, ou seja, a unidade não possui
+efetivo próprio e não gera informações de forma independente,
+aconselha-se que o membro visite a unidade e avalie o caso
+concreto, no sentido de apurar se é possível inspecioná-la de
+forma independente ou se poderá fazer em conjunto com a
+unidade que centraliza as informações;
+
+5.3.2.3
+
+Quando as unidades compartilham do mesmo protocolo de
+entrada dos registros policiais: (i) Caso seja possível identificar
+o que compete a cada unidade, os formulários deverão ser
+preenchidos separadamente; ou (ii) Caso seja inviável ou
+mesmo impossível separar o que foi distribuído a cada unidade,
+a orientação é que o membro centralize tais dados em uma das
+unidades (nesse formulário deverá constar o nome de todas as
+demais unidades que tiveram os seus dados ali apresentados, no
+campo de observações do respectivo formulário), e nos demais
+formulários os respectivos campos deverão ser “zerados”, além
+de constar no campo de observações o nome da unidade que
+apresenta a consolidação dos dados.
+5.3.2.3.1 Informações quanto ao preenchimento do formulário
+poderão ser consultados no Capítulo 19.
+
+5.3.3 Unidades Policiais – Delegacias de Polícia Civil com celas para uso de
+custódia ou carceragem: é comum casos em que a estrutura da cadeia
+pública e da delegacia de polícia civil funcionam na mesma edificação,
+16
+
+porém, haverá situações em que as unidades atuam de forma totalmente
+independentes, pois efetivamente são unidades distintas e, haverá
+situações em que a relação será de dependência e a cadeia pública
+pertencerá a delegacia de polícia civil. Assim sendo, as orientações são:
+5.3.3.1
+
+Será necessário que o membro visite a unidade e avalie o caso
+concreto, ou seja, verifique se a cadeia pública possui
+funcionamento independente e, portanto, é um estabelecimento
+prisional, conforme definido na Lei de Execução Penal.
+5.3.3.1.1 Se assim for, a cadeia pública deverá ser visitada para
+fins de cumprimento da Resolução CNMP nº
+277/2023, devendo ser cadastrada no Sistema de
+Resoluções.
+
+5.3.3.2
+
+Caso o membro constate que a cadeia pública nada mais é do
+que a carceragem da delegacia de polícia civil e, portanto,
+pertença a sua estrutura em uma relação de dependência, as
+informações referentes a carceragem deverão ser informadas no
+próprio formulário da delegacia de polícia civil e o
+acompanhamento ocorrerá nos termos da Resolução CNMP nº
+279/2023
+5.3.3.2.1 Se nessa situação a cadeia pública esteja com o
+cadastro ativo no Sistema de Resoluções, o membro
+precisará solicitar a inativação da unidade nos termos
+do Capítulo 9 do presente manual.
+
+6. ATUALIZAÇÃO DO CADASTRO DAS UNIDADES NO SISTEMA DE
+RESOLUÇÕES
+6.1 A CSP é responsável pela atualização e manutenção dos dados cadastrais das
+unidades policiais e estabelecimentos prisionais.
+6.1.1 O pedido de atualização dos dados cadastrais deve ser encaminhado, via
+e-mail temático, à CSP pela Corregedoria ou pelo membro, com ciência
+da Corregedoria.
+6.2 Ressalta-se que à exceção da informação referente ao “Tipo de entidade”, todas as
+demais são passíveis de atualização, inclusive a data de criação no Sistema de
+Resoluções. Dúvidas quanto aos dados cadastrais das unidades podem ser sanadas
+no Capítulo 5.
+6.2.1 Quando se tratar de atualização do nome da entidade é importante que o
+pedido ocorra no formato “DE... | PARA...”, ou seja, indicar qual o nome
+atualmente cadastrado no Sistema de Resoluções para o nome que
+deverá constar.
+
+17
+
+7. REESTRUTURAÇÃO DAS UNIDADES
+7.1 A restruturação das unidades é uma situação comum entre as unidades policiais, no
+entanto, não há qualquer óbice que também ocorra nos estabelecimentos prisionais.
+7.2 As orientações de reestruturação são aplicadas aos casos em que a partir de uma
+unidade existente criam-se outras e, a partir desta criação, pode-se ou não inativar
+a unidade originária. A situação pode variar muito conforme o caso concreto.
+7.2.1 Manter a unidade originária ativa: casos assim são característicos do
+desmembramento de atribuições, e, consequentemente, de unidades. No
+caso concreto, a partir de uma unidade agora existem duas ou mais.
+7.2.1.1
+
+Em casos como esse, basta manter a unidade originária e criar
+as demais.
+
+7.2.1.2
+
+Sugere-se confirmar com o membro responsável se os dados
+cadastrais da unidade originária permanecem os mesmos ou se
+será necessário atualizar, nos termos do Capítulo 6.
+
+7.2.2 Inativar a unidade originária: nesse cenário há dois possíveis caminhos:
+7.2.2.1
+
+Verificar junto ao membro responsável se é viável que alguma
+das unidades novas possa assumir o histórico da unidade
+originária, com o intuito de preservar os dados já cadastrados
+no Sistema de Resoluções.
+7.2.2.1.1 Nessa análise apenas deve ser considerado se as
+unidades (pré-existente e nova) possuem simetria em
+suas atribuições. Se “sim”, apenas será necessário
+atualizar os dados cadastrais da unidade originária,
+que deixará de existir passando a ser a nova unidade.
+
+7.2.2.2
+
+Caso o membro verifique que não há relação entre as
+atribuições da unidade originária com as novas unidades, pois
+a natureza de suas atividades é completamente divergente, não
+será recomendado a preservação do histórico. Nesse caso, devese inativar a unidade originária e criar outra unidade.
+
+18
+
+8. UNIDADES EM DUPLICIDADE DE CADASTRO NO SISTEMA DE
+RESOLUÇÕES
+
+8.1 Tal situação ocorre quando a mesma unidade foi cadastrada duas vezes no Sistema
+de Resoluções, sendo diferenciadas apenas pelo nome utilizado, por exemplo, 1ª
+Delegacia de Polícia de Brasília e 1ª DP de Brasília. Em situações como a citada,
+sugere-se duas soluções:
+8.1.1 Há registro em apenas uma das unidades: para esse cenário a solução
+seria a exclusão do cadastro da unidade sem histórico do Sistema de
+Resoluções. Como não há registros não há o que ser preservado,
+portanto, cabe a exclusão da unidade.
+8.1.1.1
+
+O passo a passo para o processo de exclusão poderá ser
+consultado no Capítulo 9.
+
+8.1.2 Há registro em ambas as unidades: esse cenário exige mais cautela, pois
+será necessário observar qual das unidades possui o maior quantitativo
+de formulários cadastrados e validados.
+8.1.2.1
+
+Utilizando o exemplo, se a 1ª Delegacia de Polícia de Brasília
+possui 5 (cinco) formulários e a 1ª DP de Brasília possui 2
+(dois) formulários, pode ser que seja mais viável preservar a 1ª
+Delegacia de Polícia de Brasília e inativar a 1ª DP de Brasília e
+preservar a unidade com maior histórico;
+
+8.1.2.2
+
+Pode-se avaliar também qual das unidades possui o histórico de
+formulários mais recente, e nesse caso, pode ser necessário que
+o membro realize o cadastro do último formulário para
+viabilizar a inativação;
+
+8.1.2.3
+
+O passo a passo para o processo de inativação poderá ser
+consultado no Capítulo 9.
+
+9. REGRAS DE INATIVAÇÃO OU EXCLUSÃO DAS UNIDADES NO SISTEMA
+DE RESOLUÇÕES
+
+9.1 A CSP é responsável por inativar ou excluir unidades do Sistema de Resoluções.
+Para efetivar qualquer uma das ações será necessário encaminhar comunicação, via
+e-mail temático, à CSP especificando qual medida deverá ser adotada.
+9.1.1 A comunicação poderá ser remetida tanto pela Corregedoria quanto pelo
+membro responsável, com ciência da Corregedoria;
+9.1.2 Na comunicação, será necessário informar ou encaminhar cópia do ato
+oficial que motivou a inativação ou exclusão da unidade.
+
+19
+
+9.1.2.1
+
+Caso apenas se trate de unidades em duplicidade, nos termos
+do Capítulo 8, precisará que a situação seja descrita na
+comunicação.
+
+9.2 A inativação da Unidade será utilizada para os seguintes casos: (i) a entidade tenha
+sido extinta, por ato da Secretaria de Estado da respectiva temática ou unidade com
+competência similar; (ii) a entidade tenha sido aglutinada a outra; e (iii) a unidade
+que, por algum outro motivo específico, não produza mais informações a serem
+colhidas pelos membros, de modo que, não seja mais viável realizar a visita de
+inspeção.
+9.2.1 O procedimento de inativação preserva todos os formulários já
+cadastrados e validados no Sistema de Resoluções, assim, as
+informações permanecem disponíveis para pesquisas futuras, sendo até
+possível reativar a unidade, se preciso for.
+9.2.2 Sobre o procedimento de inativação as orientações a serem observadas
+são:
+9.2.2.1
+
+Consultar o Sistema de Resoluções antes de realizar o pedido
+de inativação: é importante apurar se a unidade não possui
+pendências quanto aos formulários cadastrados. O intuito é
+evitar que uma unidade seja inativada com algum formulário
+em aberto, o que causaria a contabilização de pendências de
+cumprimento da respectiva resolução, pois, a partir da
+inativação da unidade não será mais possível realizar edições
+nos registros;
+
+9.2.2.2
+
+Na hipótese de ser constatado algum formulário em aberto, o
+membro responsável precisará sanar a pendência junto a
+respectiva Corregedoria.
+9.2.2.2.1 Entende-se como “formulário em aberto” aquele que
+possui qualquer status diferente de “Validado pela
+Corregedoria”;
+9.2.2.2.2 Nessa situação, recomenda-se entrar em contato com
+a CSP, via e-mail temático, para alinhar as
+possibilidades aplicáveis ao caso concreto.
+
+9.3 Reativação de uma unidade inativada: uma unidade inativada poder ser reativada a
+qualquer momento a pedido do membro. O procedimento segue os mesmos passos
+previstos para a ativação de uma unidade, conforme disposto no Capítulo 5,
+devendo ter cautela com o momento que a unidade deverá ser ativada e se os dados
+cadastrais da unidade permanecem inalterados.
+9.4 Data de inativação da unidade no sistema de resoluções: com a mesma importância
+que se deve tratar a data de ativação, igualmente se deve ter cuidado com a data de
+inativação de uma unidade.
+9.4.1 Tal data não necessariamente coincidirá com a data real de inativação
+da unidade. Diante dos inúmeros cenários possíveis no caso concreto, a
+20
+
+CSP padronizou que a data de inativação deverá considerar qual foi o
+último formulário preenchido;
+9.4.2 Por motivo de padronização, a CSP sugere algumas datas padrões para
+inativação das unidades no Sistema de Resoluções. Esclarece que tal
+padronização se mostrou como a forma mais adequada de evitar a
+geração indevida de pendências, quanto ao cumprimento das
+normativas, ocasionadas pela inativação em datas futuras.
+9.4.3
+
+As tabelas a seguir demonstram as sugestões quanto as datas de
+inativação das unidades conforme a normativa aplicável:
+RESOLUÇÕES Nº 277/2023 E 279/2023
+PERÍODO DE CUMPRIMENTO
+
+1º SEMESTRE
+
+2º SEMESTRE
+
+Considere sempre o ÚLTIMO formulário que foi
+preenchido
+
+Considere sempre o ÚLTIMO formulário que foi
+preenchido
+
+Se o ÚLTIMO formulário preenchido foi do 1º semestre,
+sugere-se que, por padrão, a unidade seja inativada na data
+de 30 de junho do respectivo ano
+
+Se o ÚLTIMO formulário preenchido foi do 2º semestre,
+sugere-se que, por padrão, a unidade seja inativada na
+data de 31 de dezembro do respectivo ano
+
+9.5 Exclusão da Unidade. A exclusão somente será possível caso a unidade não possua
+registro de formulário, ou seja, não tenha histórico a ser preservado. O pedido
+poderá ser feito pela Corregedoria ou pelo membro, com ciência da Corregedoria,
+via e-mail temático, indicando o nome da unidade conforme cadastro no Sistema
+de Resoluções.
+
+10. CADASTRO DO PERÍODO DE INATIVIDADE DOS FORMULÁRIOS
+
+10.1 O cadastro do período de inatividade é recomendado para os casos de
+impossibilidade temporária de realização das visitas, se dispensando, apenas, o
+preenchimento do formulário indicado sem a consequente geração de pendência de
+cumprimento.
+10.1.1 Ressalta-se que a inatividade é aplicada aos formulários, ou seja, a
+unidade permanecerá ativa no sistema de resoluções.
+10.2 Ao final do período cadastrado a obrigatoriedade do preenchimento do formulário
+seguinte será retomada automaticamente.
+10.2.1 Assim, caso seja necessário estender o prazo do cadastro de inativação
+uma nova comunicação deverá ser realizada e deverá seguir os mesmos
+moldes da comunicação inicial.
+
+21
+
+10.3 O pedido deverá ser motivado pelo membro, indicando os fatos que justifiquem o
+cadastro da inatividade do formulário. A comunicação seguirá os seguintes
+trâmites:
+10.3.1 O membro encaminhará à Corregedoria, via e-mail, os motivos que
+ensejaram ou ensejarão a impossibilidade da visita, juntamente com o
+período exato de inativação do formulário.
+10.3.2 A Corregedoria, concordando com os motivos apresentados,
+encaminhará a solicitação, juntamente com o seu deferimento, à CSP,
+via e-mail temático. De posse do pedido, o cadastro do período será
+realizado, com posterior comunicação à Corregedoria.
+10.4 O cadastro do período de inatividade é de extrema importância, pois os dados
+utilizados pela CSP, para fins de verificação do índice de cumprimento da
+resolução e de divulgação das informações, são baseados no quantitativo de
+unidades ativas e de formulários validados pelas Corregedorias. Assim, caso a
+unidade esteja ativa e sem o seu respectivo formulário validado, gera-se uma
+pendência de descumprimento que fará que a unidade conste no relatório de
+descumprimento que é remetido à Corregedoria Nacional.
+10.5 Por fim, é importante frisar que o cadastro do período de inatividade dos
+formulários poderá ser desfeito a qualquer momento, a pedido do membro caso os
+motivos que ensejaram a impossibilidade não se concretizem e a visita possa ser
+realizada, mesmo que de forma extemporânea.
+
+22
+
+11. FORMULÁRIOS DE VISITA TÉCNICA
+
+11.1 Todos os formulários de visita técnica às unidades policiais e aos estabelecimentos
+prisionais estão disponíveis em formato para impressão (em pdf) no sítio eletrônico
+da CSP.
+11.1.1 Acesse a página do CNMP (www.cnmp.mp.br), clique em
+“Institucional” – “Comissões” – “Comissão do Sistema Prisional,
+Controle Externo da Atividade Policial e Segurança Pública”:
+
+11.1.2 Assim que a página da CSP for carregada, será possível navegar pelo
+menu lateral esquerdo, que disponibiliza as informações por áreas
+temáticas dentro da atuação da CSP;
+11.1.3 Ao clicar na temática que se deseja, a página carregará diversos
+submenus, dentre eles o “Formulários”, “Sistemas” e “Cronograma”;
+11.1.4 Nas páginas temáticas também são disponibilizados diversos outros
+conteúdos, como o acesso aos sistemas, aos projetos de painéis
+
+23
+
+infográficos, notícias sobre os eventos realizados pela Comissão, dentre
+outros tópicos relacionados.
+
+24
+
+12.GERAÇÃO DO FORMULÁRIO DE VISITA TÉCNICA NO SISTEMA DE
+RESOLUÇÕES
+
+12.1 Primeiro ponto de destaque é que não é possível vincular unidades policiais ou
+estabelecimentos prisionais a membros específicos. Todos aqueles que possuem
+perfil de acesso estão habilitados a consultar todas as unidades cadastradas, ativas e
+inativas.
+12.2 Após realizar o login, o sistema apresentará a tela de “Selecionar o Perfil”, assim
+que localizar o perfil desejado, clique em “Selecionar”.
+12.2.1 Ressalta-se que os formulários são disponibilizados a todos os perfis de
+acesso: membro, Corregedoria e cadastrador.
+12.3 Assim que selecionar o tipo formulário desejado, o Sistema de Resoluções
+carregará a tela para pesquisa das entidades”. Para ilustrar o procedimento,
+utilizaremos como exemplo o “Formulário Visita Técnica à Unidade de Perícia
+Criminal Estadual”.
+12.3.1 Ressalta-se que para todos os tipos de formulários a tela e os
+procedimentos a seguir serão exatamente os mesmos.
+12.3.2 No campo “Pesquisar Entidade” digite o nome da unidade policial ou
+estabelecimento prisional. Caso não saiba os exatos termos, recomendase o emprego de “palavra-chave”, como, por exemplo, o nome do
+município.
+12.3.2.1 Não se recomenda o uso de palavras genéricas como
+“delegacia” ou “cadeia pública”, termos assim podem deixar a
+pesquisa mais morosa.
+12.3.2.2 O Sistema de Resoluções consegue realizar pesquisa a partir da
+inserção de pelo menos 4 (quatro) caracteres.
+12.4 Em seguida clique em “Pesquisar”, para carregar a listagem das possíveis
+entidades no campo “Selecione a Entidade”, após localizar a correta, clique no
+nome para que as informações correspondentes sejam carregadas.
+
+25
+
+12.5 Ao rolar a tela para baixo, será possível visualizar o botão “Gerar Formulário”,
+após, o usuário será direcionado a página de “Criação de novos formulários”, onde
+será necessário indicar o “Ano de Referência”, “Período de Referência” e clicar em
+“Gerar”.
+
+12.5.1 O sistema retornará automaticamente a página inicial da unidade e o
+formulário recém gerado será listado junto com os demais com o status
+de “Gerado”.
+12.5.2 Nesse momento, sugere-se incluir os “Coautores”, tal assunto será
+detalhado no Capítulo 20.
+12.5.3 Após gerar o formulário, clique em “Preencher” na coluna “Ações” e
+adicione as informações correspondentes.
+
+12.6 Recomenda-se que o membro, antes de iniciar o preenchimento, consulte o
+formulário anterior, atentando-se, preferencialmente, aos campos com informações
+numéricas.
+12.6.1 Essa rápida análise viabiliza a identificação de possíveis inconsistências
+capazes de apontar falhas procedimentais que requeiram, ou não,
+medidas ou providências mais concretas para saná-las junto à unidade
+inspecionada.
+
+26
+
+13.ERRO NA GERAÇÃO DO FORMULÁRIO
+
+13.1 É importante frisar que a geração do formulário é o único procedimento
+relacionado a criação do formulário que o membro não poderá corrigir em caso de
+erro. Desse modo, caso o formulário seja gerado em período equivocado será
+necessário comunicar a CSP para que realize a correção. O procedimento para
+comunicação é:
+13.1.1 Após a identificação que o formulário foi gerado em período
+equivocado, tanto a Corregedoria quanto o membro poderão solicitar a
+retificação, via e-mail, à CSP. O pedido deverá ser acrescido das
+seguintes informações:
+13.1.1.1
+
+Nome exato da unidade policial ou do estabelecimento
+prisional, conforme cadastro no Sistema de Resoluções; e
+
+13.1.1.2
+
+Indicação do “DE” | “PARA”, ou seja, indicar qual período o
+formulário foi gerado de forma equivocada e para qual período
+o formulário deverá ser corrigido.
+
+13.2 Destaca-se que apenas será possível corrigir o período de geração do formulário se
+este estiver com o status de “validado pela Corregedoria”, assim, sugere-se que o
+pedido seja realizado após findado o fluxo de validação e seja essa correção a única
+pendência restante para concluir o formulário.
+13.3 Assim que a CSP finalizar a correção o membro e a Corregedoria serão
+cientificados.
+
+14. INDICAÇÃO DOS PERÍODOS DE REFERÊNCIA NA GERAÇÃO DOS
+FORMULÁRIOS
+
+14.1 Devido a algumas particularidades técnicas do próprio sistema, para gerar o
+formulário de visita técnica a informação de referência será o semestre em que a
+visita ocorreu. O formulário jamais deverá ser gerado referenciando o semestre de
+referência dos dados.
+14.1.1 Geração do formulário correspondente à primeira visita do ano,
+programada para ocorrer entre os meses de janeiro e abril (1º semestre),
+indique na tela de “Gerar Formulário”:
+14.1.1.1 Ano de Referência: 2024 (por exemplo);
+14.1.1.2 Período de Referência: 1º semestre; e
+14.1.1.3 Dados que serão preenchidos correspondem ao semestre
+anterior, ou seja, de 01 de julho a 31 de dezembro do ano
+anterior;
+
+27
+
+14.1.2 Geração do formulário correspondente à segunda visita do ano,
+programada para ocorrer entre os meses de julho e outubro (2º semestre),
+indique na tela de “Gerar Formulário”:
+14.1.2.1 Ano de Referência: 2024 (por exemplo);
+14.1.2.2 Período de Referência: 2º semestre; e
+14.1.2.3 Dados que serão preenchidos correspondem ao semestre
+anterior, ou seja, de 01 de janeiro a 30 de junho do ano corrente;
+
+15. DO PREENCHIMENTO AO ENVIO DO FORMULÁRIO
+15.1 A seguir, serão detalhadas as funcionalidades de cada uma das colunas da tabela
+constante na tela inicial das unidades cadastradas no Sistema de Resolução, com o
+enfoque na coluna “Ações” disponível ao “Perfil Membro”.
+15.2 A tabela é composta por 8 colunas:
+
+15.2.1 Coluna “Entidade”: corresponde ao nome da unidade policial ou do
+estabelecimento prisional que terá o seu formulário preenchido. Esse
+nome será apresentado pelo sistema, conforme informado nos termos do
+Capítulo 5;
+15.2.2 Coluna “Período”: corresponde à referência do formulário que foi ou
+que será preenchido, nos termos do Capítulo 14;
+15.2.3 Coluna “Gerado por”: corresponde ao nome do membro que gerou o
+formulário e, consequentemente, responsável pela visita.
+15.2.3.1 Poderá ser referenciado como “autor”, haja visto que poderá ser
+indicado membro que será incumbido da atribuição de ser
+coautor do formulário;
+15.2.4 Coluna “Coautores”: o autor pode incluir outros membros para
+compartilhar a responsabilidade pelo preenchimento do formulário. Tal
+funcionalidade será amplamente detalhada no Capítulo 20;
+15.2.5 Coluna “Perfil Atual”: indica em qual perfil o formulário encontra-se
+naquele exato momento, podendo variar entre o “Perfil Membro” e o
+“Perfil Corregedoria”.
+28
+
+15.2.5.1 Essa coluna alterna em conjunto com a “Coluna Status”, assim
+a informação apresentada nesta coluna determina com quem
+está o formulário e, consequentemente, quais tarefas podem ser
+realizadas.
+15.2.5.2 Cabe o esclarecimento que o cadastrador conseguirá editar o
+formulário sempre que este estiver localizado no “Perfil
+Membro”.
+15.2.6 Coluna “Status”: indica qual é a fase atual que o formulário se encontra.
+São nove tipos de status diferentes, que serão descritas no tópico 15.3 e
+seguintes junto com os tipos de Ações;
+15.2.7 Coluna “Ações”: lista todas as ações que podem ser realizadas
+relacionadas ao formulário. Tais ações serão vistas em conjunto com a
+definição de cada possível “status do formulário”;
+15.2.8 Coluna “PDF”: após finalizar o preenchimento do formulário é possível
+gerar um arquivo, em formato .pdf, com o inteiro teor dos dados
+informados.
+15.2.8.1 Para isso, somente será preciso clicar no ícone ao final da linha
+correspondente ao formulário.
+15.3 Coluna “Status” indica a fase em que se encontra o formulário, em razão das ações
+executadas pelo membro ou pela Corregedoria. A seguir, serão listados todos os
+status com as suas respectivas ações:
+15.3.1 Status “Gerado”: indicará o formulário recém-criado pelo Membro,
+consequentemente, o formulário estará no “Perfil Membro”. O próximo
+passo será preencher o formulário, por meio da “Ação - Preencher”.
+15.3.1.1 Status “Em preenchimento”: tal status indica que o
+preenchimento do formulário foi iniciado pelo membro, que
+poderá permanecer nessa fase pelo tempo que julgar necessário,
+pois o sistema permite o preenchimento gradual do formulário.
+15.3.1.1.1 É importante destacar que o formulário apenas
+poderá ser enviado à Corregedoria após o
+preenchimento de todos os campos indicados como
+obrigatórios.
+15.3.1.2 Ao finalizar o preenchimento, o próximo passo será “Ação –
+Enviar”, então o sistema será direcionado para a tela “Enviar
+Formulário”:
+
+29
+
+15.3.1.3 No campo indicado “Enviar Para”, o Sistema de Resoluções
+carregará o perfil Corregedoria correspondente, e, em seguida,
+clique em “Enviar”. A partir daí o status do formulário passará
+a ser “Enviado para Corregedoria”.
+15.3.1.3.1 Desse ponto em diante, a tramitação do formulário
+ocorrerá no perfil Corregedoria.
+15.3.2 Status “Enviado para Corregedoria”: o fluxo da Corregedoria será
+detalhado no Capítulo 21 e no Capítulo 22.
+15.3.3 Status “Validado por Corregedoria”: quando o formulário adquire esse
+status significa que o fluxo foi finalizado e as informações foram
+disponibilizadas à CSP. Esse status será registrado quando a
+Corregedoria clicar na “Ação – Validar”.
+15.3.3.1 O status de “Validado pela Corregedoria” é o que será contado
+para fins de cumprimento das Resoluções CNMP nº 277/2023
+e nº 279/2023.
+15.3.4 Status “Devolvido para Membro”: caso a Corregedoria identifique
+algum tipo de inconsistência nas informações preenchidas no
+formulário, ela deverá devolvê-lo ao membro para fins de correção.
+Nesse caso, caberá ao autor, ao coautor ou ao cadastrador proceder com
+os ajustes solicitados.
+15.3.4.1 Sempre que a Corregedoria realizar uma devolução do
+formulário, ela deverá indicar os motivos da devolução. Tais
+motivos poderão ser consultados no “Histórico” do formulário,
+também disponível na coluna de “Ação”
+15.3.4.2 O fluxo de devolução será detalhado no Capítulo 22.
+15.3.5 Status “Solicitada retificação para Corregedoria”: quando o formulário
+já foi validado pela Corregedoria, porém, o membro deseja proceder
+com algum ajuste que julgar conveniente, ele realizará o pedido de
+retificação do formulário por meio da “Ação - Solicitar retificação”.
+15.3.5.1 O fluxo de retificação será detalhado no Capítulo 22.
+15.3.6 Status “Solicitação de retificação aceita”: caso a Corregedoria aceite o
+pedido de retificação, o formulário voltará ao “Perfil Membro”, para
+proceder com os ajustes solicitados.
+15.3.6.1 Para editar o formulário será necessário clicar na “Ação –
+Preencher”, e ao final da retificação, clicar na “Ação – Enviar”
+para submeter o formulário a uma nova validação, retornando
+o formulário ao perfil Corregedoria;
+15.3.6.2 Ressalta-se que o membro somente conseguirá enviar o
+formulário se alterar qualquer um dos campos do formulário. A
+correção é vinculativa, se não ocorrer o sistema não permitirá o
+envio do formulário à Corregedoria.
+30
+
+15.3.7 Status “Solicitação de retificação rejeitada”: caso a Corregedoria rejeite
+o pedido de retificação, o membro será cientificado dessa negativa, para
+isso, precisará acessar a “Ação – Histórico”, lá estará disponibilizado os
+motivos da Corregedoria.
+15.3.7.1 Será necessário que o membro devolva o formulário à
+Corregedoria, por meio da “Ação – Enviar”. Enquanto não o
+fizer o formulário constará como “aberto” e, portanto, listado
+como pendente.
+
+15.4 Ação “Visualizar”: permite navegar pelo formulário, sem precisar carregar o
+arquivo em PDF. Essa ação auxilia o membro a verificar se o preenchimento foi
+realizado corretamente.
+15.4.1 Tal ação também é disponibilizada ao perfil Corregedoria.
+15.5 Ação “Histórico”: permite visualizar todo o fluxo do formulário, com indicação
+das ações executadas e dos motivos que determinaram cada procedimento de
+movimentação do formulário;
+15.5.1 Também é possível consultar o nome, o dia e a hora que todas as ações
+foram executadas.
+
+16.FUNÇÃO VOLTAR DO FORMULÁRIO
+16.1 Tal funcionalidade estará disponível para o perfil Membro e para o perfil
+Corregedoria e poderá ser utilizada em qualquer situação em que se deseje desfazer
+uma ação relacionada à movimentação do formulário, ou seja, sempre que o
+formulário mudar de perfil:
+16.1.1 O acesso a tal funcionalidade se dará por meio da ação “Histórico”,
+disponível em ambos os perfis. Na última coluna, designada como
+“Opções”, o símbolo de “Voltar” aparecerá em vermelho;
+
+31
+
+16.2 Quando a funcionalidade for utilizada, pelo membro ou pela Corregedoria, a ação
+que foi retornada ficará com a ocorrência taxada, e o formulário retornará ao status
+anterior:
+
+16.2.1 No exemplo, a Corregedoria desistiu da devolução do formulário, desse
+modo ele retornou ao status de validado
+16.3 Lembrando que, apenas será possível “Voltar” o formulário enquanto o perfil que
+o recebeu não iniciar a sua tarefa, por exemplo: após o preenchimento do
+formulário de visita pelo membro, ele o encaminha à Corregedoria, assim que o
+fizer, será possível “voltar” o formulário para o seu perfil. No entanto, assim que a
+Corregedoria acessar o formulário para validá-lo a opção “voltar” ficará inabilitada
+e nesse caso será necessário contatar a Corregedoria para que devolva o formulário
+se preciso for.
+
+17. NAVEGAÇÃO PELOS FORMULÁRIOS
+17.1 Após clicar na “Ação – Preencher”, o sistema carregará o formulário digital. Com
+o intuito de facilitar a navegação, o sistema apresenta um “Menu lateral de
+navegação” que replicará a estrutura do formulário no formato .pdf.
+17.1.1 O menu de navegação mudará conforme o formulário que está sendo
+acessado, contudo, em linhas gerais, a estrutura de navegação e de
+visualização se aplica a todos os formulários.
+17.1.1.1 Para ilustrar, será apresentado a tela de identificação do
+formulário de Delegacia Estadual:
+
+32
+
+Demais dados informados no ato do cadastro da unidade
+
+Lembre-se que essa indicação corresponde ao semestre em que ocorreu a visita.
+Menus de Navegação do Formulário
+1. É possível navegar entre as seções durante o preenchimento, ou seja, não, necessariamente, será preciso iniciar
+pelo Capítulo I;
+2. A navegação também permite que o preenchimento ocorra de forma fracionada;
+
+17.2 Menu – Validar Preenchimento: deverá ser consultada após a conclusão do
+preenchimento do formulário, nesse menu o sistema acusará duas possíveis falhas
+de preenchimento, ambas passíveis de revisão:
+17.2.1 Validações de Obrigatoriedade: caso algum campo de preenchimento
+obrigatório não tenha sido respondido, o sistema indicará, com exatidão,
+qual se refere.
+17.2.1.1 Após o saneamento das omissões, orienta-se salvar as
+informações consignadas, quando aparecerá a mensagem “Não
+há pendências de obrigatoriedade”.
+17.3 Validações de soma: alguns campos numéricos possuem critérios de soma, ou seja,
+o valor total indicado num campo “x” deverá corresponder à soma de outros
+campos vinculados no capítulo correspondente.
+17.3.1 Após corrigir todas as pendências, o sistema acusará a mensagem “Não
+há pendências de soma”, e, então, o formulário poderá ser enviado.
+17.3.2 O envio poderá ser feito no próprio “Menu - Validar Preenchimento” –
+Botão: Enviar; ou se preferir, poderá retornar a tela inicial da unidade e
+clicar na “Ação – Enviar”.
+17.4 Navegação entre as seções será realizada por meio de três botões:
+
+33
+
+17.4.1 Salvar/Seção anterior: essa opção permitirá salvar os dados inseridos na
+seção ativa e, em seguida, retornará à seção imediatamente anterior;
+17.4.2 Salvar: essa opção permitirá salvar as informações prestadas na seção
+ativa e não mudará para outra seção;
+17.4.3 Salvar/Próxima seção: essa opção permitirá salvar os dados inseridos na
+seção ativa e, em seguida, seguirá para seção subsequente.
+
+18. PREENCHIMENTO
+INFORMAÇÕES
+
+DO
+
+FORMULÁRIO
+
+FACE
+
+À
+
+AUSÊNCIA
+
+DE
+
+18.1 Os campos numéricos são, majoritariamente, de preenchimento obrigatório. Desse
+modo, se torna inviável iniciar o preenchimento do formulário se não dispor de
+todas as informações. Contudo, ciente de que nem sempre tal cenário será possível,
+o presente capítulo destina-se a apresentar a situação que poderá ocorrer no
+momento da visita técnica à unidade policial ou ao estabelecimento prisional e qual
+o procedimento que poderá ser adotado:
+18.2 Quando a unidade não dispõe da integralidade dos dados necessários. Para tal
+situação a orientação será:
+18.2.1 No(s) campo(s) que não houver informação a ser consignada, acrescente
+uma única vez o numeral “0” (zero). Não utilize qualquer outro tipo de
+carácter ou repetições numéricas aleatórias;
+18.2.2 Após zerar todos os campos, por motivo de ausência de dados, o
+membro deverá listar, ao final do formulário, no “Campo – Observações
+Gerais”, quais os campos foram necessários “zerar”, assim como os
+motivos que ensejaram a ausência dos dados;
+18.2.3 Caso o membro obtenha a informação em momento posterior, orientase que ela retifique o formulário e inclua as informações mesmo que
+extemporaneamente.
+18.3 Quando uma única porta de entrada de informações é compartilhada por diversas
+unidades. Em alguns casos, é impossível a individualização dos dados por unidade.
+Para esse caso, a orientação é:
+18.3.1 Escolha o formulário de uma das unidades que compartilham a mesma
+porta de entrada de informações, no qual será preenchido o quantitativo
+de demandas recebidas no período. Desse modo, a unidade escolhida
+passa a desempenhar a função de protocolo.
+18.3.1.1 Informe no “Campo – Observações Gerais” quais são as
+unidades que compartilham dos dados informados no relatório
+da “unidade protocolo”;
+18.3.1.2 Para as demais unidades, aplica-se o disposto no tópico 18.2 e
+seguintes o procedimento para “zerar” os campos numéricos.
+Também será necessário informar no “Campo – Observações
+34
+
+Gerais”, de cada unidade, qual é a “unidade protocolo”
+correspondente.
+
+19. ORIENTAÇÕES QUANTO AO PREENCHIMENTO
+19.1 “Campo de Observações Finais”: tal campo está presente em todos os formulários,
+podendo apenas ter designação distinta, mas sua localização sempre será ao final.
+Os membros podem se valer desse campo para relatar: (I) qualquer evento
+incomum não contemplado pelo formulário; (II) qualquer informação que destoe
+da realidade da unidade; (III) eventos que podem alterar a estrutura da unidade;
+(IV) relatar providências que estão sendo adotadas diante das mais diversas
+situações, dentre outras ocorrências.
+19.1.1 O campo de observações deve ser usado como um verdadeiro aliado no
+preenchimento dos formulários, eles auxiliam a explicar o que muitas
+vezes os itens listados não conseguem.
+19.2 Inconsistência referente ao Cadastro da unidade: Na eventualidade de, no momento
+do preenchimento do formulário, ser verificada alguma inconsistência referente ao
+cadastro da unidade (como nomenclatura ou endereço), o membro poderá contatar
+a CSP, diretamente ou por meio da Corregedoria, pelos meios indicados no rodapé
+do presente manual e solicitar a atualização devida.
+19.3 Uso de pontuações nos campos numéricos para separação de casas decimais: é
+fundamental que se atente se o tipo de informação a ser consignada no campo
+numérico carece do uso de pontuações (pontos e/ou vírgula). Por esse motivo, o
+uso de pontuações deverá ser feito com cautela para evitar o fornecimento de dados
+distorcidos, como por exemplo: informar no item que versa sobre o total de boletins
+de ocorrência no semestre de referência o número 3,52 (três vírgula cinquenta e
+dois) ao invés de 352 (trezentos e cinquenta e dois);
+19.4 Campo relacionado ao total de drogas apreendidas: por padrão, o total de drogas
+apreendidas deve ser convertido em gramas, para que se padronize os dados que
+serão apresentados. A conversão do total de drogas poderá ser realizada nos
+seguintes termos exemplificativos:
+19.4.1 Se a apreensão foi em quilos, multiplique-se o valor por 1.000 (p. ex: 1
+quilo equivale a 1.000 gramas); se a apreensão foi em toneladas,
+multiplique-se o valor por 1.000.000 (p. ex. 1 tonelada = 1.000.000
+gramas); e se a apreensão foi em miligramas, divide-se o valor por 1.000
+(p. ex: 500 miligramas = 05 gramas.); e
+19.4.2 Em caso de valores abaixo de 1 (um), deve-se inserir o 0 (zero) à frente
+do número, (p. ex.: meio grama, equivale a 05).
+19.5 Campos numéricos condicionados a resposta “Sim” ou “Não”: haverá casos em
+que se perguntará “Houve fugas no período?”, se a resposta for “Sim”, abrirá um
+campo numérico para que seja informado quantas fugas ocorreram, nesse sentido,
+espera-se que seja adicionado números diferentes de zero.
+35
+
+20. DOS AUTORES E COAUTORES
+20.1 No momento da “Geração do Formulário”, o membro poderá incluir outros
+membros como coautores do formulário, com o intuito de compartilhar a
+responsabilidade tanto pelo preenchimento quanto pelas visitas às unidades
+policiais ou estabelecimentos prisionais.
+20.1.1 A inclusão de coautores não tem caráter obrigatório. A decisão é de livre
+escolha do membro autor e responsável principal pela visita.
+20.1.2 Cada formulário poderá ter apenas um membro autor, porém não há
+limites para a inclusão de membros coautores, que apenas precisam
+possuir cadastro de acesso ao Sistema de Resoluções;
+20.1.3 Salienta-se que apenas o autor possui autorização para incluir e excluir
+coautores. Ambas as ações precisarão ser feitas individualmente para
+cada relatório.
+20.2 Com exceção da ação de “Gerar o formulário” e de incluir e/ou excluir outros
+coautores, o coator terá acesso a todas as demais ações relacionadas ao formulário
+o qual ele foi adicionado. As atribuições básicas do coautor são:
+20.2.1 Dividir com o membro autor a atribuição de visitar a unidade e de
+preencher o relatório; e
+20.2.2 Compartilhar a responsabilidade pelas informações ali prestadas.
+20.3 Procedimento de inclusão de Coautores ao formulário: após localizar a unidade,
+conforme apresentado no Capítulo 12, localize a linha correspondente ao
+formulário que se deseja acrescentar o coautor.
+20.3.1 Na coluna denominada “Coautores”, clique em “Gerenciar Coautores”,
+conforme indicado na imagem a seguir.
+
+Nome da Unidade
+Nome do membro autor
+
+20.3.2 Em seguida, o sistema abrirá a tela de “Gerenciar coautores”. No campo
+“Possíveis Coautores” há uma lista com o nome de todos os membros
+que podem ser incluídos como coautores;
+20.3.3 Após selecionar nominalmente o futuro coautor, clique em
+“Adicionar”.
+
+36
+
+20.3.3.1 Caso se deseje adicionar mais de um coautor, será necessário
+incluir um por vez, observando a mensagem de confirmação no
+canto superior esquerdo da tela;
+20.3.3.2 Ao final, todos os coautores adicionados ficarão listados
+conforme a imagem a seguir:
+Mensagem de confirmação da inclusão de coautor
+
+Lista de possíveis Coautores
+
+Nesse canto será
+listado nominalmente
+todos os Coautores
+adicionados.
+
+Caso seja
+necessário, excluir
+algum coator,
+clique no “X”
+
+20.3.4
+
+Na frente de cada nome aparecerá um “X”, utilizado para excluir
+qualquer Coautor da listagem. É só clicar nessa opção e confirmar a
+exclusão na caixa de diálogo que será aberta.
+
+20.3.5 Após finalizar o procedimento, clique no botão “Voltar”, localizado
+logo abaixo da listagem de “Possíveis coautores”, em seguida retornar a
+tela inicial da unidade.
+20.4 A listagem de todos os coautores adicionados aparecerá na tela inicial da unidade,
+na coluna “Coautores”.
+20.5 O “Gerenciamento de coautores” ficará habilitado enquanto o formulário estiver
+no “Perfil Membro”, assim é importante realizar as inclusões ou exclusões antes
+de envio à Corregedoria.
+20.6 Não há óbice em incluir ou excluir coatores em momento posterior, será
+plenamente possível, apenas será mais trabalhoso. O procedimento a ser adotado
+deverá ser:
+20.6.1 O autor precisará solicitar a devolução do formulário à Corregedoria,
+indicando no campo de justificativa o motivo do pedido. Assim que o
+formulário retornar ao “Perfil Membro”, será possível realizar todas as
+ações de inclusão ou exclusão;
+20.6.2 Ressalta-se que o Sistema de Resoluções não entenderá a inclusão ou
+exclusão de coautor como justificativa válida para a devolução do
+37
+
+formulário, então será necessário realizar alguma alteração no corpo do
+formulário para que seja possível enviá-lo à Corregedoria.
+20.7 Em última hipótese, na ausência do autor e perante a necessidade de inclusão de
+coautor para realizar alguma retificação dos dados, por exemplo, a CSP mediante
+solicitação da Corregedoria e anuência do membro que será incluído como coautor,
+poderá adicioná-lo ao formulário indicado.
+20.7.1 A Corregedoria encaminhará o pedido, via e-mail temático, à CSP,
+indicando as seguintes informações:
+20.7.1.1 Nome do membro a ser adicionado como coautor;
+20.7.1.2 Nome da unidade policial ou estabelecimento prisional,
+conforme cadastro no Sistema de Resoluções;
+20.7.1.3 Formulário que o coautor deverá ser adicionado.
+
+21.PROCESSO DE VALIDAÇÃO DOS FORMULÁRIOS
+21.1 O “Perfil Corregedoria” não possui atribuição para alterar as informações do
+formulário ou de realizar juízo de valor sobre a veracidade dos dados. A atribuição
+principal é de verificar a consistência e a coerência dos dados, além de acompanhar
+o cumprimento dos atos normativos.
+21.2 Assim que o membro envia o formulário à Corregedoria, as duas ações que dispõe
+são: (i)Devolver o formulário; ou (ii)Validá-lo.
+21.2.1 Ação “Devolver” será utilizada caso seja identificada alguma
+inconsistência quanto ao preenchimento do formulário que precise de
+uma revisão por parte do membro. O fluxo de devolução será detalhado
+no Capítulo 22.
+21.2.2 Ação “Validar” será utilizada caso não haja qualquer inconsistência a
+ser sanada quanto ao preenchimento, podendo assim remeter o
+formulário à CSP e então encerrar o fluxo de tramitação.
+21.2.2.1 O presente capítulo será dedicado ao fluxo de validação.
+21.3 O processo de validação dos formulários não pode ser resumido ao simples clicar
+na “Ação – Validar”. É preciso que o servidor ou o membro responsável pelo
+processo observe cuidadosamente os dados apresentados no formulário.
+21.3.1 O processo de validação envolve algumas análises mais acuradas,
+principalmente no que tange aos dados numéricos, considerando que tais
+dados possuem um nível de variação muito maior quando comparado
+aos dados estruturais da unidade policial ou do estabelecimento
+prisional.
+21.3.2 Assim, é fundamental que o integrante da Corregedoria conheça a
+estrutura do formulário que irá validar, pois facilitará e tornará mais
+célere todo o processo.
+38
+
+21.4 Com o intuito de facilitar o reconhecimento de possíveis inconsistências no
+preenchimento dos campos numéricos, seguem algumas orientações:
+21.4.1 Números fracionados (separados por vírgula): esse tipo de dado apenas
+será válido no campo relacionado ao quantitativo de apreensões de
+drogas. Todos os demais campos numéricos presentes nos formulários
+exigem números inteiros, como o total de boletins de ocorrência, total
+de presos em regime fechado, total de perícias realizadas, total de armas
+apreendidas dentre outros.
+21.4.1.1 Desse modo, orienta-se até mesmo a evitar o uso do ponto caso
+seja preciso a separar números compostos por unidade de
+milhar;
+21.4.2 “Dados que destoam da série histórica da unidade”: valores acima de 4
+(quatro) casas tendem a chamar a atenção, haja vista que provavelmente
+só vão aparecer nos campos de apreensão de drogas, pois o dado deve
+ser apresentado em gramas.
+21.4.2.1 Caso algum dado do formulário seja superior a 4 (quatro) casas,
+recomenda-se: (i) consultar os relatórios anteriores para
+conhecer o histórico da unidade, com o intuito de confirmar se
+tais registros são usuais considerando as peculiaridades da
+unidade policial ou do estabelecimento penal em análise; (ii)
+consultar “Campo – Observações Finais” em busca de alguma
+justificativa que valide tais dados que podem decorrer de
+alguma situação fora da normalidade.
+21.4.2.1.1Para ilustrar, segue alguns exemplos de dados que
+destoa do que parece ser “normal” da unidade.
+
+39
+
+Delegacia de Polícia Civil
+
+Unidades de Medicina Legal
+
+40
+
+Unidades de Perícia Criminal
+
+Estabelecimentos Prisionais
+
+21.4.3 Campos zerados: caso seja identificado algum campo com o registro 0
+(zero), o responsável pela validação deverá seguir para o “Campo –
+Observações Finais” e identificar se existe justificativa para o campo
+zerado.
+21.4.3.1 Lembrando que zerar o campo é permitido, conforme orientado
+no Capítulo 18, ou a depender do contexto da unidade, a
+resposta poderá realmente ser zero para alguns campos
+específicos;
+21.4.3.2 Para ilustrar, segue alguns exemplos de campos zerados que
+chamam a atenção:
+
+41
+
+Delegacia de Polícia Civil
+
+Estabelecimentos Prisionais
+
+21.4.4 Sequência de números repetidos: em que pese ser possível esse tipo de
+resposta, ela pode também indicar algum tipo de falha no
+preenchimento. Assim, respostas numéricas do tipo “1111111” ou
+“88888888888”, provavelmente signifiquem equívocos de digitação;
+21.4.4.1 Nesse caso, analise-se da seguinte forma: uma sequência de 7
+vezes o numeral 1 (um) corresponde a 1 milhão, cento e onze
+mil e cento e onze; ou seja, é um número válido. Porém, no
+contexto das unidades visitadas pode não corresponder a
+realidade. O membro muitas vezes opta por esse tipo de
+preenchimento por desconhecer as orientações do Capítulo 18.
+21.4.4.2 Para ilustrar, segue exemplo de campos com números repetidos
+
+21.4.5 Campo “Observações Finais” antes mesmo de iniciar o processo de
+validação do formulário, orienta-se que o primeiro campo a ser
+consultado seja o de “Observações finais”. A partir das informações ali
+prestadas pode haver subsídios para melhor orientar na interpretação do
+formulário sob análise;
+21.4.5.1 Cabe lembrar que é nesse campo que o membro registrará todas
+as informações que não puderam ser acrescidas nos demais
+itens do formulário.
+21.4.6 Valores duplicados em formulários de períodos distintos o Sistema de
+Resoluções disponibiliza a ferramenta de importação de dados, que visa
+42
+
+auxiliar o preenchimento do formulário no que tange as informações
+que, em tese, se repetem, como por exemplo os itens estruturais.
+Contudo, tal ferramenta não pode ser usada para apenas duplicar
+informações entre os períodos e eximir o membro da obrigatoriedade
+das visitações e o preenchimento quando dos formulários.
+21.4.6.1 Diante de tal cenário e com o apoio dos formulários passadas,
+é importante observar os dados que se repetem, não que tal
+possibilidade inexista, contudo, a repetição de informações em
+campos sequenciados precisa ser analisada com uma cautela
+maior.
+21.4.6.2 Para ilustrar, segue exemplo de campos duplicados em
+formulários diversos:
+
+43
+
+21.5 Sempre que possível, sugere-se à Corregedoria comparar as informações
+constantes de formulários da mesma unidade, mas de períodos diversos, com o
+intuito de verificar a qualidade do preenchimento. Para tanto, ela poderá se valer
+tanto do critério por amostragem ou utilizar do acesso à base de dados para facilitar
+tal procedimento.
+21.5.1 Solicitar à CSP acesso à base de dados do Sistema de Resoluções
+referente ao Ministério Público local. Essa é a opção mais eficaz, pois o
+acesso é amplo e irrestrito a todas as informações. O procedimento para
+pedir o acesso está descrito no Capítulo 24.
+21.6 Fluxo da validação - “Ação – Validar”: após a verificação das informações
+constantes no formulário sob análise, a Corregedoria poderá validar o formulário.
+44
+
+Desse modo, o processo será finalizado e as informações ficarão disponíveis ao
+CNMP;
+21.6.1 Para localizar o formulário, siga as orientações do Capítulo 12. A tela
+que será aberta é similar àquela do “Perfil Membro”, diferindo-se apenas
+a “Coluna – Ações”.
+
+21.7 Ao selecionar a unidade, clique na “Ação - Visualizar” para que a versão digital do
+formulário seja aberta pelo sistema. Em seguida, utilize o menu de navegação
+lateral, para facilitar a visualização de todo o formulário;
+21.7.1 Se o preenchimento estiver satisfatório, há dois caminhos para validação
+do formulário. O primeiro é clicando no “Menu Navegação” - “Validar
+Preenchimento”:
+
+21.7.2 O segundo caminho será retornar à página inicial da unidade e clicar na
+“Ação – Validar”.
+
+45
+
+21.8 A escolha de qualquer um dos caminhos abrirá a tela “Validação do Formulário”,
+em seguida será apenas necessário clicar em “Validar”;
+
+21.9 A confirmação dessa ação poderá ser visualizada na página inicial da unidade, na
+“Coluna – Status”, com a mensagem de “Validado por Corregedoria “.
+21.10
+Se a validação do formulário ocorrer fora do prazo estipulado no cronograma,
+na tela de “Validar formulário” será aberto o campo de “Justificativa do Atraso”.
+21.10.1 Nessa situação, apenas será necessário que a Corregedoria indique o
+motivo do atraso e, em seguida, valide o formulário normalmente.
+
+46
+
+22.FLUXO DE DEVOLUÇÃO E DE RETIFICAÇÃO DOS FORMULÁRIOS
+22.1 A devolução dos Formulários poderá ser utilizada tanto antes da validação do
+formulário, caso a Corregedoria identifique alguma inconsistência no
+preenchimento; quanto após a validação, caso seja necessário verificar algum dado
+a pedido da CSP.
+22.1.1 A Corregedoria ao clicar na “Ação – Devolver”, terá que informar o
+motivo que ensejou a devolução, na tela de “Devolver Formulário”.
+22.1.1.1 No campo de “Justificativa da Devolução” é importante que a
+Corregedoria indique também os itens que precisarão ser
+corrigidos pelo membro, para que seja consultado na “Ação –
+Histórico”. É importante informar os campos, pois facilita no
+momento da correção.
+
+22.1.2 Em seguida, o formulário retornará ao “Perfil Membro”, com o status de
+“Devolvido para Membro”.
+22.1.2.1 Ressalta-se que a Corregedoria poderá desfazer tal
+movimentação do formulário, por meio da função “Voltar”,
+disponível na “Ação – Histórico”.
+22.1.3 O membro que teve o seu formulário devolvido ficará condicionado a
+proceder com as alterações requeridas.
+22.1.3.1 A correção é vinculativa, ou seja, o membro só conseguirá
+reenviar o formulário após realizar as correções.
+22.1.4 Finalizada as correções, o membro precisará “Enviar” o formulário à
+Corregedoria, contudo, considerando que o prazo estipulado pelo
+cronograma poderá ter findado, o campo de “justificativa de atraso”
+poderá ser aberto pelo sistema. Nesse caso, basta indicar que houve
+necessidade de correção.
+
+47
+
+22.1.5 Assim que o formulário retornar à Corregedoria, será necessário
+verificar se o item (ou os itens) foi corrigido e, então, proceder com a
+validação.
+
+22.2 Fluxo de Retificação dos Formulários: será iniciado a partir do pedido de
+retificação solicitado pelo membro, que poderá fazê-lo a qualquer momento.
+22.2.1 O Sistema de Resoluções não possui qualquer limitador temporal quanto
+a essa ação, contudo a avaliação quanto ao “aceite” ou “recusa” do
+pedido ficará na discricionariedade da Corregedoria.
+22.2.2 Para efetivar esse pedido, o membro clicará em “Solicitar Retificação”,
+quando se abrirá a tela de justificativa, denominada de “Solicitar
+retificação do Formulário”. Após indicar os motivos do pedido de
+retificar deve-se clicar em “Solicitar”:
+
+48
+
+22.2.3 O pedido será recebido pela Corregedoria e o status do formulário
+mudará para “Solicitada a retificação para Corregedoria”. A partir desse
+momento, a Corregedoria possui duas ações possíveis: (I) “Ação –
+Aceitar Retificação” ou (II) “Ação – Negar retificação”;
+22.2.3.1 Em qualquer um dos casos, a tela de “Analisar Solicitação de
+Retificação do Formulário” será aberta para que a Corregedoria
+justifique sua decisão ao membro solicitante.
+22.2.3.2 Ressalta-se que nessa tela será possível visualizar a justificativa
+do pedido de retificação formalizada pelo membro, conforme
+tela seguinte:
+
+Nesse campo é de preenchimento obrigatório pelo membro. É onde ele
+deverá justificar as necessidades de correção do formulário, sendo
+esse pedido que será analisado pela Corregedoria para deferir ou não
+a solicitação.
+
+Já nesse campo, a Corregedoria deverá motivar o seu aceite ou o
+motivo da rejeição do pedido. Em seguida, clicar na opção
+correspondente.
+
+22.3 Ação “Aceitar Retificação”: nesse caso, o formulário voltará para o membro que
+poderá proceder com as correções, e, ao final, deverá reenviar o formulário para
+um novo processo de validação.
+22.3.1 Geralmente, como as retificações ocorrem fora do prazo normal de
+preenchimento, a tela de justificativa do atraso será aberta pelo sistema.
+Nesse caso, o membro indicará que houve o pedido de retificação e, em
+seguida, reenviará o formulário normalmente;
+22.3.2 Ressalta-se que, uma vez autorizada a retificação, o membro ficará
+vinculado a proceder com a alteração. Não há como desistir do pedido.
+Caso não realize a correção, o sistema não autorizará o reenvio do
+formulário à Corregedoria.
+22.4 Ação “Negar Retificação”: quando a Corregedoria recusar a retificação, o
+formulário também retornará ao “Perfil Membro”, com a mensagem de que o
+pedido de retificação foi negado.
+
+49
+
+22.4.1 O Membro precisará dar ciência da recusa no “Histórico” do formulário
+e, em seguida, reenviar o formulário à Corregedoria para validação e
+posterior finalização do fluxo;
+22.4.1.1 Caso o membro não realize o reenvio do formulário, o Sistema
+de Resoluções entenderá que o formulário está em “aberto” e
+será computado como em descumprimento da normativa.
+22.5 Enfatiza-se que a Corregedoria deverá ter um controle tanto sobre o fluxo de
+devolução quanto sobre o fluxo de retificação. É fundamental que retorne à unidade
+em questão e finalize o processo de verificação e validação devolvendo então o
+formulário ao CNMP.
+
+23.MONITORAR ENVIO DOS FORMULÁRIOS
+23.1 A ferramenta de “Monitorar Envio de Formulários”, disponível no menu superior
+a esquerda, permite que as Corregedorias acompanhem o andamento do
+cumprimento de todos os tipos de formulários vinculados às Resoluções CNMP nº
+277/2023 e nº 279/2023.
+23.1.1 Tal acompanhamento do cumprimento ocorre em tempo real e permite
+verificar cada um dos formulários em suas diversas fases possíveis, de
+acordo com o momento do fluxo que se encontre.
+
+23.2 Os filtros funcionam da seguinte maneira:
+23.2.1 Filtro: Formulário: selecione qual formulário deseja saber o andamento
+do cumprimento. A lista completa de todos os formulários está
+disponível no Capítulo 5;
+23.2.2 Filtros: Ano e Período: a combinação dos dois campos irá depender de
+qual período se deseja obter as informações.
+23.3 Após aplicar os filtros, clique em “Imprimir” para que novas opções de filtros
+sejam disponibilizadas pelo Sistema de Resoluções. Em seguida, escolha uma das
+50
+
+opções para que o sistema apresente listas específicas das unidades segunda a fase
+que o formulário esteja no momento da pesquisa.
+
+23.4 A seguir, será apresentado o que o sistema apresentará em cada um dos filtros
+destacados na imagem anterior:
+23.4.1 Entidades Inativadas: ao clicar nessa opção, o Sistema de Resoluções
+listará todas as unidades que foram inativadas, nos termos do Capítulo
+9; além de listar todas os formulários que foram inativados, nos termos
+do Capítulo 10:
+23.4.1.1 O que irá diferenciar um tipo de inativação da outra será a
+mensagem que o sistema apresentará na coluna “Local de
+Cadastro da Inatividade:
+23.4.1.1.1Unidades inativadas - “Gerenciar Entidades”
+23.4.1.1.2Formulários inativos - “Cadastrar Período Inativo”
+
+23.4.2 Formulários não Enviados: lista todos os formulários ainda pendentes
+de envio pelo membro;
+23.4.3 Formulários Enviados: total de formulários já preenchidos e enviados
+pelos membros. Tal opção subdivide-se em:
+23.4.3.1 Validados: lista todos os formulários que a Corregedoria
+finalizou o processo de validação;
+23.4.3.2 Não Validados: lista todos os formulários que o membro tenha
+finalizado o preenchimento e enviado à Corregedoria, contudo
+o processo de validação está pendente.
+23.4.3.2.1Ao clicar nessa opção o Sistema de Resoluções,
+disponibilizará um atalho direto ao formulário para
+facilitar o processo de validação, sendo necessário,
+apenas, clicar em “Visualizar”:
+
+51
+
+Clique aqui para extrair a planilha com o relatório
+
+23.5 Lembrando que selecionando qualquer um dos filtros indicados no tópico 23.4 em
+diante, o sistema disponibilizará a opção de “Extrair formulário”. O ícone ficará ao
+final da página, conforme destacado na imagem anterior.
+
+24.SOLICITAÇÃO DE ACESSO À BASE DE DADOS DO SISTEMA DE
+RESOLUÇÕES
+24.1 Caso a Corregedoria ou os Centros de Apoio das áreas temáticas tenham interesse
+em ter acesso à base de dados correspondente ao seu Ministério Público, o
+procedimento é bem simples. Basta encaminhar um ofício à CSP nos seguintes
+termos:Formalizar o pedido de acesso por meio de Ofício subscrito pelo
+Corregedor-Geral ou pelo Coordenador do Centro de Apoio; Indicar o nome de um
+responsável da área de tecnologia da informação, para fins de comunicação com o
+setor de informática do CNMP, com o propósito de alinhar os procedimentos
+necessários à efetivação do pleito;Indicar os meios de contato com o representante
+da área de tecnologia da informação (telefone e o e-mail);O acesso à base de dados
+não será concedido de forma individualizada, ou seja, à CSP não irá deferir pedidos
+que não seja realizado por essas duas unidades ou unidades análogas;
+24.1.4 Sob nenhuma hipótese tal acesso será concedido a unidades que não
+componha ramo ou unidade do Ministério Público.
+24.2 Após o deferimento do pedido pelo Presidente da CSP, a demanda será
+encaminhada para a Secretaria de Tecnologia da Informação do CNMP, que
+adotará as medidas necessárias para possibilitar o fluxo de dados com o setor de
+informática local;
+24.3 O processo de recebimento de dados é totalmente automatizado, de modo que a
+Secretaria de Tecnologia da Informação do CNMP encaminhará todos as
+informações solicitadas, após a finalização do prazo de validação dos formulários
+pela Corregedoria local.
+
+52
+
+

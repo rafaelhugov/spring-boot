@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:${PG_URL:postgresql://localhost:5432/ncap}
+    username: ${PG_USERNAME:postgres}
+    password: ${PG_PASSWORD:senha}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${POOL_MAX:10}
+      minimum-idle: ${POOL_MIN:2}
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: none
+    show-sql: ${JPA_SHOW_SQL:false}
+    properties:
+      hibernate:
+        format_sql: ${JPA_FORMAT_SQL:false}
+  # IMPORTANTE: O schema DDL e dados iniciais NUNCA são executados automaticamente.
+  # Os scripts devem ser executados manualmente pelo DBA antes de iniciar a aplicação em produção.
+  # Script DDL: src/main/resources/schema-postgresql.sql
+  sql:
+    init:
+      mode: never

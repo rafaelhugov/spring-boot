@@ -1,0 +1,20 @@
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  datasource:
+    url: "jdbc:h2:mem:boilerdb;DB_CLOSE_DELAY=-1;INIT=CREATE SCHEMA IF NOT EXISTS administrador\\;CREATE SCHEMA IF NOT EXISTS autorizacao\\;CREATE SCHEMA IF NOT EXISTS ncap\\;SET SCHEMA_SEARCH_PATH ncap, public"
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: false
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always

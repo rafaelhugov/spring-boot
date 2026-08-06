@@ -1,0 +1,142 @@
+{
+  "formId": 1567,
+  "secoes": {
+    "SEÇÃO VII - ANÁLISE DETALHADA DA UNIDADE POLICIAL": {
+      "roles": {
+        "DELEGACIA": {
+          "visible": false,
+          "editable": false
+        },
+        "MEMBRO": {
+          "visible": true,
+          "editable": true
+        },
+        "CORREGEDORIA": {
+          "visible": true,
+          "editable": false
+        }
+      }
+    },
+    "SEÇÃO VIII - CONSIDERAÇÔES FINAIS": {
+      "roles": {
+        "DELEGACIA": {
+          "visible": false,
+          "editable": false
+        },
+        "MEMBRO": {
+          "visible": true,
+          "editable": true
+        },
+        "CORREGEDORIA": {
+          "visible": true,
+          "editable": true
+        }
+      }
+    }
+  },
+  "perguntas": {
+    "1.1 Nome do órgão do Ministério Público": {
+      "preFill": "inspecao.promotoria",
+      "roles": {
+        "DELEGACIA": {
+          "visible": true,
+          "editable": false
+        },
+        "MEMBRO": {
+          "visible": true,
+          "editable": true
+        },
+        "CORREGEDORIA": {
+          "visible": true,
+          "editable": false
+        }
+      }
+    },
+    "1.2 Data da visita": {
+      "preFill": "inspecao.datavisita",
+      "roles": {
+        "DELEGACIA": {
+          "visible": true,
+          "editable": false
+        },
+        "MEMBRO": {
+          "visible": true,
+          "editable": true
+        },
+        "CORREGEDORIA": {
+          "visible": true,
+          "editable": false
+        }
+      }
+    },
+    "1.3 Forma de inspeção": {
+      "preFill": "inspecao.tipoVisita",
+      "roles": {
+        "DELEGACIA": {
+          "visible": true,
+          "editable": false
+        },
+        "MEMBRO": {
+          "visible": true,
+          "editable": true
+        },
+        "CORREGEDORIA": {
+          "visible": true,
+          "editable": false
+        }
+      }
+    },
+    "1.4 Classificação da unidade policial visitada ": {
+      "preFill": "unidade.tipoentidade",
+      "roles": {
+        "DELEGACIA": {
+          "visible": true,
+          "editable": false
+        },
+        "MEMBRO": {
+          "visible": true,
+          "editable": true
+        },
+        "CORREGEDORIA": {
+          "visible": true,
+          "editable": false
+        }
+      }
+    },
+    "1.5 Município(s) e/ou distrito(s) atendido(s) pela unidade policial": {
+      "campoCustomizado": "municipios_atendidos",
+      "preFill": "unidade.municipios",
+      "roles": {
+        "DELEGACIA": {
+          "visible": true,
+          "editable": false
+        },
+        "MEMBRO": {
+          "visible": true,
+          "editable": true
+        },
+        "CORREGEDORIA": {
+          "visible": true,
+          "editable": false
+        }
+      }
+    },
+    "2.2 Total de servidores em exercício na unidade policial": {
+      "campoCustomizado": "total_servidores_calculado",
+      "roles": {
+        "DELEGACIA": {
+          "visible": true,
+          "editable": false
+        },
+        "MEMBRO": {
+          "visible": true,
+          "editable": false
+        },
+        "CORREGEDORIA": {
+          "visible": true,
+          "editable": false
+        }
+      }
+    }
+  }
+}
