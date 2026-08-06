@@ -21,6 +21,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
+<<<<<<< Updated upstream
+=======
+import org.springframework.data.mapping.PropertyReferenceException;
+>>>>>>> Stashed changes
 import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -98,12 +102,23 @@ public class ApiExceptionHandler {
         return createProblemDetail(HttpStatus.BAD_REQUEST, "Erro no mapeamento dos dados", exception, null );
     }
 
+    @ExceptionHandler(value = PropertyReferenceException.class)
+    public ResponseEntity<ProblemDetail> handlePropertyReferenceException(PropertyReferenceException exception) {
+        return createProblemDetail(
+                HttpStatus.BAD_REQUEST,
+                "Parâmetro de ordenação inválido",
+                exception,
+                String.format("A propriedade '%s' não existe no tipo '%s'.", exception.getPropertyName(), exception.getType().getType().getSimpleName())
+        );
+    }
+
     @ExceptionHandler(value = AppException.class)
     public ResponseEntity<ProblemDetail> handleAppException(AppException exception) {
         return createProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Erro genérico da aplicação", exception,
                 "Ocorreu um erro inesperado no sistema. Por favor, tente novamente mais tarde.");
     }
 
+<<<<<<< Updated upstream
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity<ProblemDetail> handleGenericException(Exception exception, HttpServletResponse response) {
         // Se o Content-Type já foi definido como PDF, não podemos retornar ProblemDetail via ResponseEntity.
@@ -122,6 +137,15 @@ public class ApiExceptionHandler {
             }
             return null;
         }
+=======
+    @ExceptionHandler(value = ResponseStatusException.class)
+    public ResponseEntity<ProblemDetail> handleResponseStatusException(ResponseStatusException exception) {
+        return createProblemDetail(HttpStatus.valueOf(exception.getStatusCode().value()), exception.getReason(), exception, null);
+    }
+
+    @ExceptionHandler(value = Exception.class, produces = "application/json")
+    public ResponseEntity<ProblemDetail> handleGenericException(Exception exception) {
+>>>>>>> Stashed changes
         return createProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno no servidor", exception, "Ocorreu um erro inesperado no sistema. Por favor, tente novamente mais tarde.");
     }
 

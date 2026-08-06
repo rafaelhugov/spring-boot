@@ -25,6 +25,7 @@ public class SecurityConfig {
     private final String PUBLIC_URLS[] = {
             "/favicon.ico",
             "/" + Constants.API_PREFIX + "/public/**", // Ex: "/api/public/**"
+<<<<<<< Updated upstream
             "/" + Constants.API_PREFIX + "/carteiras-funcionais/**",
             "/carteiras-funcionais/**",
             "/contracheques/**",
@@ -38,8 +39,14 @@ public class SecurityConfig {
             "/" + Constants.API_PREFIX + "/pagamentos/**",
             "/" + Constants.API_PREFIX + "/manuais/pdf/solicitante",
             "/" + Constants.API_PREFIX + "/manuais/pdf/manual_solicitante.pdf",
+=======
+            "/public/**", // Permitir sem prefixo de API
+            "/" + Constants.API_PREFIX + "/manuais/pdf/**", // Permitir download nativo via browser (validação manual)
+            "/manuais/pdf/**",
+>>>>>>> Stashed changes
             "/swagger-ui/index.html", "/swagger-ui.html", "/swagger-ui/**",
             "/v3/api-docs",
+            "/v3/api-docs/**"
     };
 
 
@@ -53,8 +60,10 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         if(!runtimeEnv.shouldRequireAuthToken()){
-            return http.httpBasic(Customizer.withDefaults()).csrf(csrf -> csrf.disable())
+            return http.cors(Customizer.withDefaults())
+                    .csrf(csrf -> csrf.disable())
                     .headers(headers -> headers.cacheControl(cache -> cache.disable()))
+                    .authorizeHttpRequests(req -> req.anyRequest().permitAll())
                     .build();
         }
 
