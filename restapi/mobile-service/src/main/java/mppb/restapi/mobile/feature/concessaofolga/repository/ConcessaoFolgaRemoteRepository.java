@@ -51,9 +51,17 @@ public class ConcessaoFolgaRemoteRepository {
         }
     }
 
-    public List<AusenciaCalendarioDto> findAusencias(String matricula, int mes, int ano) {
-        LocalDate primeiroDia = LocalDate.of(ano, mes, 1);
-        LocalDate ultimoDia = primeiroDia.withDayOfMonth(primeiroDia.lengthOfMonth());
+    public List<AusenciaCalendarioDto> findAusencias(String matricula, Integer mes, Integer ano) {
+        LocalDate primeiroDia;
+        LocalDate ultimoDia;
+        
+        if (mes != null && ano != null) {
+            primeiroDia = LocalDate.of(ano, mes, 1);
+            ultimoDia = primeiroDia.withDayOfMonth(primeiroDia.lengthOfMonth());
+        } else {
+            primeiroDia = LocalDate.now().withDayOfMonth(1);
+            ultimoDia = LocalDate.of(2099, 12, 31);
+        }
         String sql = ""
                 + "SELECT DISTINCT * "
                 + "FROM relatorios.ausenciasdemembroseservidores_vw vw "
@@ -213,7 +221,15 @@ public class ConcessaoFolgaRemoteRepository {
         if (value == null || value.toString().isBlank()) {
             return null;
         }
-        return LocalDate.parse(value.toString().substring(0, 10));
+        try {
+            String str = value.toString().trim();
+            if (str.length() >= 10) {
+                return LocalDate.parse(str.substring(0, 10));
+            }
+        } catch (Exception e) {
+            // ignore exception and return null
+        }
+        return null;
     }
 
     private static String stableId(AusenciaCalendarioDto dto) {

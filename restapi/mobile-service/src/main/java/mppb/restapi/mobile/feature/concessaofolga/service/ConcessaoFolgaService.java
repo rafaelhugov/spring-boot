@@ -25,11 +25,11 @@ public class ConcessaoFolgaService {
         return remoteRepository.findConcessoesVigentes(matricula);
     }
 
-    public List<AusenciaCalendarioDto> listarAusencias(String matricula, int mes, int ano) {
-        if (mes < 1 || mes > 12) {
+    public List<AusenciaCalendarioDto> listarAusencias(String matricula, Integer mes, Integer ano) {
+        if (mes != null && (mes < 1 || mes > 12)) {
             throw new IllegalArgumentException("Mes invalido");
         }
-        if (ano < 1900 || ano > 2200) {
+        if (ano != null && (ano < 1900 || ano > 2200)) {
             throw new IllegalArgumentException("Ano invalido");
         }
         return remoteRepository.findAusencias(matricula, mes, ano);
