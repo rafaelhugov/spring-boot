@@ -56,8 +56,8 @@ public class ConcessaoFolgaController {
     @GetMapping("/minhas-ausencias")
     public ResponseEntity<List<AusenciaCalendarioDto>> minhasAusencias(
             @RequestParam("token") @NotNull String token,
-            @RequestParam("mes") Integer mes,
-            @RequestParam("ano") Integer ano) {
+            @RequestParam(value = "mes", required = false) Integer mes,
+            @RequestParam(value = "ano", required = false) Integer ano) {
         String matricula = matriculaAutenticada(token);
         if (matricula == null) {
             log.warn("Ausencias negadas: usuario nao autenticado ou sem matricula");
