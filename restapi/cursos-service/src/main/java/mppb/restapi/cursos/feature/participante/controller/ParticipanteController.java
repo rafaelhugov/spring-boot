@@ -36,15 +36,15 @@ public class ParticipanteController {
     @GetMapping("/search")
     @JsonView(ParticipanteView.Listagem.class)
     public ResponseEntity<List<ParticipanteSearchResultDto>> search(
-            @RequestParam(name = "nome") String searchTerm) {
+            @RequestParam(name = "nome") String searchTerm,
+            @RequestParam(name = "cursoId", required = false) Long cursoId) {
 
         // Adiciona a mesma validação do MinistranteController
         if (searchTerm == null || searchTerm.trim().length() < 3) {
             return ResponseEntity.ok(Collections.emptyList());
         }
 
-        List<ParticipanteSearchResultDto> results = participanteService.searchParticipantes(searchTerm);
+        List<ParticipanteSearchResultDto> results = participanteService.searchParticipantes(searchTerm, cursoId);
         return ResponseEntity.ok(results);
     }
 }
-

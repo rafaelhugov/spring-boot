@@ -42,6 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.text.Normalizer;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.List;
@@ -148,10 +149,14 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
     }
 
     /**
-     * Realiza uma inscrição para o fluxo administrativo (Admin) ou interno (via confirmação).
+     * Realiza uma inscrição para o fluxo administrativo (Admin).
      * Define o status como INSCRITO imediatamente.
      */
     public InscricaoDto inscrever(Long cursoId, CriarInscricaoDto dto) {
+        return inscrever(cursoId, dto, true);
+    }
+
+    private InscricaoDto inscrever(Long cursoId, CriarInscricaoDto dto, boolean permitirInativoEmCursoAntigo) {
         Curso curso = cursoRepository.findById(cursoId)
                 .orElseThrow(() -> new NotFoundException("Curso não encontrado: " + cursoId));
 
@@ -159,7 +164,7 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
             throw new BusinessRuleException("Não é possível inscrever neste curso pois a carga horária de aulas está divergente ou o curso está em construção.");
         }
 
-        validarPublicoAlvo(curso, dto);
+        validarPublicoAlvo(curso, dto, permitirInativoEmCursoAntigo);
 
         Participante participante = participanteService.findOrCreateParticipante(dto);
 
@@ -214,7 +219,7 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         }
 
         // 6. Reutiliza o método 'inscrever' que já trata a duplicidade
-        return inscrever(curso.getId(), inscricaoPayload);
+        return inscrever(curso.getId(), inscricaoPayload, false);
     }
 
     /**
@@ -454,7 +459,7 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
     /**
      * Garante que o participante pertence a um dos públicos-alvo definidos para o curso.
      */
-    private void validarPublicoAlvo(Curso curso, CriarInscricaoDto dto) {
+    private void validarPublicoAlvo(Curso curso, CriarInscricaoDto dto, boolean permitirInativoEmCursoAntigo) {
         if (TipoParticipanteEnum.EXTERNO.name().equals(dto.getTipo())) {
             validarPublicoAlvoExterno(curso);
             return;
@@ -471,7 +476,8 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         ServidorProjection servidor = servidorService.buscarServidorPorId(dto.getIdServidor())
                 .orElseThrow(() -> new BusinessRuleException("Não foi possível localizar o cadastro do servidor no RH."));
 
-        if (!"ATIVO".equalsIgnoreCase(servidor.getSituacao())) {
+        if (!"ATIVO".equalsIgnoreCase(servidor.getSituacao())
+                && (!permitirInativoEmCursoAntigo || !servidorElegivelParaCursoAntigo(curso, servidor))) {
             throw new BusinessRuleException("Este participante não pode ser inscrito porque sua matrícula não está ativa.");
         }
 
@@ -487,6 +493,16 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         if (!permiteExterno) {
             throw new BusinessRuleException("Este participante não pode ser inscrito porque o curso não permite público externo.");
         }
+    }
+
+    private boolean servidorElegivelParaCursoAntigo(Curso curso, ServidorProjection servidor) {
+        if (curso.getRealizacaoDataFinal() == null || !curso.getRealizacaoDataFinal().isBefore(LocalDateTime.now())) {
+            return false;
+        }
+
+        LocalDate dataSaida = servidor.getDataSaida();
+        LocalDate dataFinalCurso = curso.getRealizacaoDataFinal().toLocalDate();
+        return dataSaida == null || !dataSaida.isBefore(dataFinalCurso);
     }
 
     private boolean servidorAtendePublicoAlvoInterno(Curso curso, ServidorProjection servidor) {

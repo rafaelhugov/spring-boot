@@ -9,6 +9,7 @@ import mppb.restapi.cursos.feature.common.projection.ServidorProjection;
 import mppb.restapi.cursos.feature.common.repository.ServidorRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,6 +27,11 @@ public class ServidorService extends AbstractService<Servidor, Long> {
     @Transactional(readOnly = true)
     public List<ServidorProjection> buscarServidoresPorNome(String nome) {
         return servidorRepository.buscarServidoresPorNome(nome);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ServidorProjection> buscarServidoresPorNomeElegiveisNoPeriodo(String nome, LocalDate dataFinalCurso) {
+        return servidorRepository.buscarServidoresPorNomeElegiveisNoPeriodo(nome, dataFinalCurso);
     }
 
     @Transactional(readOnly = true)

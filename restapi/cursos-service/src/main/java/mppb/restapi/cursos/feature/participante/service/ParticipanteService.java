@@ -6,6 +6,8 @@ import mppb.restapi.common.core.error.NotFoundException;
 import mppb.restapi.common.core.service.AbstractService;
 import mppb.restapi.cursos.feature.common.projection.ServidorProjection;
 import mppb.restapi.cursos.feature.common.service.ServidorService;
+import mppb.restapi.cursos.feature.curso.entity.Curso;
+import mppb.restapi.cursos.feature.curso.repository.CursoRepository;
 import mppb.restapi.cursos.feature.participante.converter.ParticipanteConverter;
 import mppb.restapi.cursos.feature.participante.dto.CriarInscricaoDto;
 import mppb.restapi.cursos.feature.participante.dto.InscricaoPublicaDto;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -31,15 +34,18 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
     private final ParticipanteRepository participanteRepository;
     private final ServidorService servidorService;
     private final ParticipanteConverter participanteConverter;
+    private final CursoRepository cursoRepository;
 
     public ParticipanteService(EntityManager entityManager,
                                ParticipanteRepository participanteRepository,
                                ServidorService servidorService,
-                               ParticipanteConverter participanteConverter) {
+                               ParticipanteConverter participanteConverter,
+                               CursoRepository cursoRepository) {
         super(entityManager, participanteRepository);
         this.participanteRepository = participanteRepository;
         this.servidorService = servidorService;
         this.participanteConverter = participanteConverter;
+        this.cursoRepository = cursoRepository;
     }
 
 
@@ -49,7 +55,12 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
      */
     @Transactional(readOnly = true)
     public List<ParticipanteSearchResultDto> searchParticipantes(String searchTerm) {
-        List<ServidorProjection> servidores = servidorService.buscarServidoresPorNome(searchTerm);
+        return searchParticipantes(searchTerm, null);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ParticipanteSearchResultDto> searchParticipantes(String searchTerm, Long cursoId) {
+        List<ServidorProjection> servidores = buscarServidoresParaParticipante(searchTerm, cursoId);
         List<Participante> participantesExternos = participanteRepository
                 .findAllByTipoAndNomeContainingIgnoreCase(TipoParticipanteEnum.EXTERNO, searchTerm);
 
@@ -68,6 +79,24 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
                 .collect(Collectors.toList());
 
         return Stream.concat(internos.stream(), externos.stream()).collect(Collectors.toList());
+    }
+
+    private List<ServidorProjection> buscarServidoresParaParticipante(String searchTerm, Long cursoId) {
+        if (cursoId == null) {
+            return servidorService.buscarServidoresPorNome(searchTerm);
+        }
+
+        return cursoRepository.findById(cursoId)
+                .filter(this::isCursoAntigo)
+                .map(curso -> servidorService.buscarServidoresPorNomeElegiveisNoPeriodo(
+                        searchTerm,
+                        curso.getRealizacaoDataFinal().toLocalDate()))
+                .orElseGet(() -> servidorService.buscarServidoresPorNome(searchTerm));
+    }
+
+    private boolean isCursoAntigo(Curso curso) {
+        return curso.getRealizacaoDataFinal() != null
+                && curso.getRealizacaoDataFinal().isBefore(LocalDateTime.now());
     }
 
     /**

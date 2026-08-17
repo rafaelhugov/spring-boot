@@ -1,5 +1,7 @@
 package mppb.restapi.cursos.feature.common.projection;
 
+import java.time.LocalDate;
+
 public interface ServidorProjection {
 
     Integer getId();
@@ -21,5 +23,7 @@ public interface ServidorProjection {
     String getTelefone();
 
     String getCpf();
+
+    LocalDate getDataSaida();
 
 }
