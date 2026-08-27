@@ -2,8 +2,28 @@ package br.gov.mppb.athena.persistencia;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import br.gov.mppb.athena.dominio.FormatoDocumento;
+import br.gov.mppb.athena.dominio.IdentificadorProjeto;
+import br.gov.mppb.athena.dominio.IdentificadorUsuario;
+import br.gov.mppb.athena.dominio.ItemDocumental;
+import br.gov.mppb.athena.dominio.MetadadosDocumento;
+import br.gov.mppb.athena.dominio.PapelProjeto;
+import br.gov.mppb.athena.dominio.ParticipanteProjeto;
+import br.gov.mppb.athena.dominio.PermissaoDocumento;
+import br.gov.mppb.athena.dominio.ProjetoInstitucional;
+import br.gov.mppb.athena.dominio.RastreabilidadeDocumento;
+import br.gov.mppb.athena.dominio.RelacaoDocumental;
+import br.gov.mppb.athena.dominio.SituacaoProjeto;
+import br.gov.mppb.athena.dominio.UsuarioInstitucional;
+import br.gov.mppb.athena.integracao.ContratoIntegracaoDocumentalExterna;
+import br.gov.mppb.athena.integracao.PedidoIngestaoDocumentoExterno;
+import br.gov.mppb.athena.integracao.ResultadoIngestaoPersistente;
+import br.gov.mppb.athena.integracao.ServicoIngestaoDocumentalPersistente;
+import br.gov.mppb.athena.seguranca.ContextoAutorizacaoInstitucional;
+import br.gov.mppb.athena.seguranca.PoliticaSegurancaAthena;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -112,6 +132,49 @@ class PersistenciaTransacionalAthenaTest {
                  ORDER BY table_name
                 """, String.class))
                 .contains("documento", "versaodocumento", "itemdocumental", "eventoauditoria");
+    }
+
+    @Test
+    void deveConectarIngestaoExternaAPersistenciaTransacionalPreservandoHistorico() {
+        UsuarioInstitucional administrador = usuario("usuario-admin", "admin.ditec", "DITEC");
+        ProjetoInstitucional projeto = projeto(administrador);
+        ContextoAutorizacaoInstitucional contexto = new ContextoAutorizacaoInstitucional(
+                administrador,
+                Set.of(PoliticaSegurancaAthena.AUTORIZACAO_ADMINISTRATIVA)
+        );
+        ServicoIngestaoDocumentalPersistente servico = new ServicoIngestaoDocumentalPersistente(persistencia);
+
+        ResultadoIngestaoPersistente primeira = servico.registrarPrimeiraVersao(
+                projeto,
+                contexto,
+                pedido(FormatoDocumento.MARKDOWN, "entrada.yaml", "conteudo original em MARKDOWN")
+        );
+        ResultadoIngestaoPersistente segunda = servico.registrarNovaVersao(
+                projeto,
+                contexto,
+                primeira.documento(),
+                pedido(FormatoDocumento.JSON, "entrada.md", "conteudo original em JSON")
+        );
+
+        HistoricoDocumentoPersistente historico = persistencia.consultarHistoricoDocumento(segunda.documentoIdPersistente());
+        ContratoIntegracaoDocumentalExterna contrato = servico.contratoDependenciaExternaGovernada();
+
+        assertThat(primeira.documento().versoes()).singleElement()
+                .satisfies(versao -> assertThat(versao.conteudoOriginal()).isEqualTo("conteudo original em MARKDOWN"));
+        assertThat(segunda.documento().versoes()).hasSize(2);
+        assertThat(historico.versoes())
+                .extracting(DadosVersaoDocumentoPersistente::numero, DadosVersaoDocumentoPersistente::formato,
+                        DadosVersaoDocumentoPersistente::conteudoOriginal)
+                .containsExactly(
+                        org.assertj.core.groups.Tuple.tuple(1, "MARKDOWN", "conteudo original em MARKDOWN"),
+                        org.assertj.core.groups.Tuple.tuple(2, "JSON", "conteudo original em JSON")
+                );
+        assertThat(historico.itens())
+                .extracting(DadosItemDocumentalPersistente::identificador)
+                .containsExactly("SOL.INTEGRACAO.001", "SOL.INTEGRACAO.001");
+        assertThat(contrato.dependenciaExternaDisponivel()).isFalse();
+        assertThat(contrato.tratamentoIndisponibilidade()).contains("contrato de integracao pendente");
+        assertThat(contar("athena.eventoauditoria")).isEqualTo(2);
     }
 
     private RegistroHistoricoDocumental registro(
@@ -321,5 +384,59 @@ class PersistenciaTransacionalAthenaTest {
                     registradoporid UUID NOT NULL
                 )
                 """);
+    }
+
+    private static PedidoIngestaoDocumentoExterno pedido(
+            FormatoDocumento formato,
+            String nomeFisicoArquivo,
+            String conteudoOriginal
+    ) {
+        return new PedidoIngestaoDocumentoExterno(
+                "DOC-ESPEC-001",
+                new IdentificadorProjeto("ATHENA"),
+                "Linha de base de especificacao",
+                new MetadadosDocumento(
+                        "Especificacao",
+                        "Linha de base",
+                        "Consulta institucional",
+                        "Arvore documental",
+                        Set.of(PermissaoDocumento.CONSULTAR, PermissaoDocumento.AVALIAR),
+                        Set.of(new RelacaoDocumental("rastreia", "BL.AC.004")),
+                        new RastreabilidadeDocumento(Set.of("BL.AC.004", "SOL.INTEGRACAO.001"))
+                ),
+                formato,
+                conteudoOriginal,
+                List.of(new ItemDocumental(
+                        "SOL.INTEGRACAO.001",
+                        "Ingestao de documentos externos",
+                        "Representacao interna para exibicao.",
+                        Set.of(new RelacaoDocumental("rastreia", "BL.AC.004")),
+                        new RastreabilidadeDocumento(Set.of("SOL.INTEGRACAO.001"))
+                )),
+                OffsetDateTime.parse("2026-08-25T10:20:30-03:00"),
+                nomeFisicoArquivo
+        );
+    }
+
+    private static ProjetoInstitucional projeto(UsuarioInstitucional usuario) {
+        return new ProjetoInstitucional(
+                new IdentificadorProjeto("ATHENA"),
+                "Athena",
+                "Plataforma institucional multiprojeto documental",
+                Set.of("DITEC"),
+                Set.of(new ParticipanteProjeto(usuario, PapelProjeto.RESPONSAVEL_TECNICO)),
+                SituacaoProjeto.ATIVO,
+                OffsetDateTime.parse("2026-08-25T10:15:30-03:00"),
+                usuario
+        );
+    }
+
+    private static UsuarioInstitucional usuario(String id, String login, String unidade) {
+        return new UsuarioInstitucional(
+                new IdentificadorUsuario(id),
+                "Usuario Institucional",
+                login,
+                unidade
+        );
     }
 }
