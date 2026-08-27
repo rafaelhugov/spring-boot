@@ -20,6 +20,9 @@ import br.gov.mppb.athena.dominio.RelacaoDocumental;
 import br.gov.mppb.athena.dominio.SituacaoProjeto;
 import br.gov.mppb.athena.dominio.UsuarioInstitucional;
 import br.gov.mppb.athena.dominio.VersaoDocumento;
+import br.gov.mppb.athena.integracao.ConsultaParticipantesCorporativos;
+import br.gov.mppb.athena.integracao.FonteCorporativaParticipantesInstitucional;
+import br.gov.mppb.athena.integracao.ServicoConsultaParticipantesCorporativos;
 import br.gov.mppb.athena.seguranca.ContextoAutorizacaoInstitucional;
 import br.gov.mppb.athena.seguranca.OperacaoProjeto;
 import br.gov.mppb.athena.seguranca.PoliticaSegurancaAthena;
@@ -45,9 +48,21 @@ import org.springframework.web.bind.annotation.RestController;
 public class AthenaHttpController {
 
     private final ServicoAvaliacaoConfirmacao avaliacoes = new ServicoAvaliacaoConfirmacao();
+    private final ServicoConsultaParticipantesCorporativos consultaParticipantes;
     private final UsuarioInstitucional responsavel = usuario("usuario-avaliador", "avaliador", "DITEC");
     private final ProjetoInstitucional projeto = projeto();
     private final Documento documento = documento();
+
+    public AthenaHttpController() {
+        this(new ServicoConsultaParticipantesCorporativos(FonteCorporativaParticipantesInstitucional.cadastroGovernadoPadrao()));
+    }
+
+    AthenaHttpController(ServicoConsultaParticipantesCorporativos consultaParticipantes) {
+        if (consultaParticipantes == null) {
+            throw new IllegalArgumentException("servico de consulta corporativa deve ser informado.");
+        }
+        this.consultaParticipantes = consultaParticipantes;
+    }
 
     @GetMapping("/{projetoId}")
     public Map<String, Object> consultarProjeto(
@@ -129,22 +144,16 @@ public class AthenaHttpController {
     @GetMapping("/{projetoId}/participantes/pesquisa")
     public Map<String, Object> pesquisarParticipantes(
             @PathVariable String projetoId,
-            @RequestParam String termo,
+            @RequestParam(required = false) String termo,
+            @RequestParam(required = false) String matricula,
+            @RequestParam(required = false) String unidadeOuLotacao,
             @RequestHeader Map<String, String> headers
     ) {
-        autorizar(projetoId, headers, OperacaoProjeto.ADMINISTRAR);
-        if (termo == null || termo.trim().length() < 3) {
-            throw new RespostaApiException(HttpStatus.BAD_REQUEST, "REQUISICAO_INVALIDA", "termo minimo deve ter 3 caracteres.");
-        }
-        return Map.of("participantes", List.of(Map.of(
-                "nome", responsavel.nome(),
-                "matricula", responsavel.identificador().valor(),
-                "vinculo", "Servidor",
-                "cargoOuFuncao", "Analista ministerial",
-                "email", responsavel.login() + "@mppb.mp.br",
-                "login", responsavel.login(),
-                "unidadeOuLotacao", responsavel.unidade()
-        )));
+        return Map.of("participantes", consultaParticipantes.pesquisarParaVinculacao(
+                projetoValidado(projetoId),
+                contexto(headers),
+                new ConsultaParticipantesCorporativos(termo, matricula, unidadeOuLotacao)
+        ));
     }
 
     @ExceptionHandler(RespostaApiException.class)

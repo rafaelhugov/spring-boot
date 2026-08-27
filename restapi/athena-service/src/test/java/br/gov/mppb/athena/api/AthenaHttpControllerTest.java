@@ -89,4 +89,29 @@ class AthenaHttpControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.codigo").value("REQUISICAO_INVALIDA"));
     }
+
+    @Test
+    void devePesquisarParticipantesCorporativosPorHttpSemExporCpf() throws Exception {
+        mvc.perform(get("/api/projetos/ATHENA/participantes/pesquisa")
+                        .header("X-Athena-Usuario", "avaliador")
+                        .header("X-Athena-Unidade", "DITEC")
+                        .header("X-Athena-Autorizacoes", "ATHENA_ADMINISTRAR")
+                        .param("termo", "ana"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.participantes[0].nome").value("Ana Institucional"))
+                .andExpect(jsonPath("$.participantes[0].matricula").value("123456"))
+                .andExpect(jsonPath("$.participantes[0].login").value("ana.institucional"))
+                .andExpect(content().string(not(containsString("cpf"))))
+                .andExpect(content().string(not(containsString("000.000.000-00"))));
+    }
+
+    @Test
+    void deveNegarPesquisaCorporativaSemAutorizacaoAdministrativa() throws Exception {
+        mvc.perform(get("/api/projetos/ATHENA/participantes/pesquisa")
+                        .header("X-Athena-Usuario", "avaliador")
+                        .header("X-Athena-Unidade", "DITEC")
+                        .param("termo", "ana"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.codigo").value("OPERACAO_NAO_AUTORIZADA"));
+    }
 }

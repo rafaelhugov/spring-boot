@@ -51,7 +51,9 @@ class ServicoConsultaParticipantesCorporativosTest {
 
     @Test
     void deveLimitarRetornoAosDadosInstitucionaisPermitidosSemCpf() {
-        var servico = new ServicoConsultaParticipantesCorporativos(new FonteMemoria(List.of(participanteCorporativo())));
+        var servico = new ServicoConsultaParticipantesCorporativos(
+                new FonteCorporativaParticipantesInstitucional(List.of(participanteCorporativo()))
+        );
 
         List<ParticipanteVisivel> participantes = servico.pesquisarParaVinculacao(
                 projeto(),
@@ -66,6 +68,33 @@ class ServicoConsultaParticipantesCorporativosTest {
         assertThat(participantes).singleElement()
                 .extracting(ParticipanteVisivel::nome, ParticipanteVisivel::matricula, ParticipanteVisivel::login)
                 .containsExactly("Ana Institucional", "123456", "ana.institucional");
+    }
+
+    @Test
+    void devePesquisarNaFonteCorporativaInstitucionalComFiltrosControlados() {
+        var fonte = new FonteCorporativaParticipantesInstitucional(List.of(
+                participanteCorporativo(),
+                new DadosParticipanteCorporativo(
+                        "Bruno Institucional",
+                        "654321",
+                        "Servidor",
+                        "Tecnico ministerial",
+                        "bruno.institucional@mppb.mp.br",
+                        "bruno.institucional",
+                        "CGTI",
+                        "111.111.111-11"
+                )
+        ));
+
+        List<DadosParticipanteCorporativo> participantes = fonte.pesquisar(
+                new ConsultaParticipantesCorporativos(null, null, "DITEC")
+        );
+
+        assertThat(participantes).singleElement().satisfies(participante -> {
+            assertThat(participante.nome()).isEqualTo("Ana Institucional");
+            assertThat(participante.unidadeOuLotacao()).isEqualTo("DITEC");
+            assertThat(participante.cpf()).isNull();
+        });
     }
 
     @Test
@@ -86,6 +115,13 @@ class ServicoConsultaParticipantesCorporativosTest {
         assertThatThrownBy(() -> new ConsultaParticipantesCorporativos(" ", null, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("ao menos um filtro corporativo deve ser informado.");
+    }
+
+    @Test
+    void deveExigirTamanhoMinimoParaFiltroCorporativo() {
+        assertThatThrownBy(() -> new ConsultaParticipantesCorporativos("ab", null, null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("termo de pesquisa deve ter ao menos 3 caracteres.");
     }
 
     private static DadosParticipanteCorporativo participanteCorporativo() {
