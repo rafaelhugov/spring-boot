@@ -5,15 +5,28 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import br.gov.mppb.athena.dominio.IdentificadorProjeto;
 import br.gov.mppb.athena.dominio.IdentificadorUsuario;
+import br.gov.mppb.athena.dominio.PapelProjeto;
+import br.gov.mppb.athena.dominio.ParticipanteProjeto;
+import br.gov.mppb.athena.dominio.ProjetoInstitucional;
+import br.gov.mppb.athena.dominio.SituacaoProjeto;
+import br.gov.mppb.athena.dominio.UsuarioInstitucional;
+import br.gov.mppb.athena.seguranca.ContextoAutorizacaoInstitucional;
 
 import java.time.OffsetDateTime;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
 class ServicoAvaliacaoConfirmacaoTest {
 
     private final ServicoAvaliacaoConfirmacao servico = new ServicoAvaliacaoConfirmacao();
-    private final IdentificadorUsuario responsavel = new IdentificadorUsuario("usuario-avaliador");
+    private final UsuarioInstitucional usuarioResponsavel = usuario("usuario-avaliador", "avaliador", "DITEC");
+    private final IdentificadorUsuario responsavel = usuarioResponsavel.identificador();
+    private final ProjetoInstitucional projeto = projetoComParticipante(usuarioResponsavel, PapelProjeto.RESPONSAVEL_TECNICO);
+    private final ContextoAutorizacaoInstitucional contexto = new ContextoAutorizacaoInstitucional(
+            usuarioResponsavel,
+            Set.of()
+    );
     private final ReferenciaAvaliacaoDocumental referencia = new ReferenciaAvaliacaoDocumental(
             new IdentificadorProjeto("ATHENA"),
             "DOC-ENTENDIMENTO",
@@ -23,7 +36,7 @@ class ServicoAvaliacaoConfirmacaoTest {
 
     @Test
     void deveRegistrarFluxosComEntradasSaidasTransicoesEHistoricoObrigatorio() {
-        AvaliacaoRegistrada avaliacao = servico.registrarAvaliacao(new ComandoRegistrarAvaliacao(
+        AvaliacaoRegistrada avaliacao = servico.registrarAvaliacao(projeto, contexto, new ComandoRegistrarAvaliacao(
                 referencia,
                 responsavel,
                 OffsetDateTime.parse("2026-08-27T09:00:00-03:00"),
@@ -31,21 +44,22 @@ class ServicoAvaliacaoConfirmacaoTest {
                 "Item consistente com a linha de base.",
                 true
         ));
-        ComentarioRegistrado comentario = servico.registrarComentario(new ComandoRegistrarComentario(
+        ComentarioRegistrado comentario = servico.registrarComentario(projeto, contexto, new ComandoRegistrarComentario(
                 referencia,
                 responsavel,
                 OffsetDateTime.parse("2026-08-27T09:05:00-03:00"),
                 "Comentario associado ao item avaliado.",
                 DecisaoAvaliacao.APROVADO
         ));
-        PedidoAjusteRegistrado pedido = servico.registrarPedidoAjuste(new ComandoRegistrarPedidoAjuste(
+        PedidoAjusteRegistrado pedido = servico.registrarPedidoAjuste(projeto, contexto, new ComandoRegistrarPedidoAjuste(
                 referencia,
                 responsavel,
                 OffsetDateTime.parse("2026-08-27T09:10:00-03:00"),
                 "Inconsistencia localizada em campo recebido.",
                 "processo-documental-externo"
         ));
-        ConfirmacaoEntendimentoRegistrada confirmacao = servico.confirmarEntendimento(new ComandoConfirmarEntendimento(
+        ConfirmacaoEntendimentoRegistrada confirmacao = servico.confirmarEntendimento(projeto, contexto,
+                new ComandoConfirmarEntendimento(
                 referencia.projeto(),
                 referencia.documento(),
                 referencia.versao(),
@@ -75,7 +89,8 @@ class ServicoAvaliacaoConfirmacaoTest {
 
     @Test
     void deveManterDecisoesIndividuaisConsultaveisAposConfirmacaoFormal() {
-        AvaliacaoRegistrada primeiraAvaliacao = servico.registrarAvaliacao(new ComandoRegistrarAvaliacao(
+        AvaliacaoRegistrada primeiraAvaliacao = servico.registrarAvaliacao(projeto, contexto,
+                new ComandoRegistrarAvaliacao(
                 referencia,
                 responsavel,
                 OffsetDateTime.parse("2026-08-27T10:00:00-03:00"),
@@ -83,7 +98,8 @@ class ServicoAvaliacaoConfirmacaoTest {
                 "Primeira decisao individual.",
                 true
         ));
-        AvaliacaoRegistrada segundaAvaliacao = servico.registrarAvaliacao(new ComandoRegistrarAvaliacao(
+        AvaliacaoRegistrada segundaAvaliacao = servico.registrarAvaliacao(projeto, contexto,
+                new ComandoRegistrarAvaliacao(
                 new ReferenciaAvaliacaoDocumental(referencia.projeto(), referencia.documento(), 2, "ESP.REQ.007"),
                 responsavel,
                 OffsetDateTime.parse("2026-08-27T10:10:00-03:00"),
@@ -92,7 +108,7 @@ class ServicoAvaliacaoConfirmacaoTest {
                 true
         ));
 
-        servico.confirmarEntendimento(new ComandoConfirmarEntendimento(
+        servico.confirmarEntendimento(projeto, contexto, new ComandoConfirmarEntendimento(
                 referencia.projeto(),
                 referencia.documento(),
                 2,
@@ -109,7 +125,8 @@ class ServicoAvaliacaoConfirmacaoTest {
 
     @Test
     void devePreservarDocumentoOriginalAoRegistrarPedidoDeAjuste() {
-        PedidoAjusteRegistrado pedido = servico.registrarPedidoAjuste(new ComandoRegistrarPedidoAjuste(
+        PedidoAjusteRegistrado pedido = servico.registrarPedidoAjuste(projeto, contexto,
+                new ComandoRegistrarPedidoAjuste(
                 referencia,
                 responsavel,
                 OffsetDateTime.parse("2026-08-27T11:00:00-03:00"),
@@ -126,7 +143,7 @@ class ServicoAvaliacaoConfirmacaoTest {
 
     @Test
     void deveRegistrarConfirmacaoSemSubstituirAvaliacoesIndividuais() {
-        AvaliacaoRegistrada avaliacao = servico.registrarAvaliacao(new ComandoRegistrarAvaliacao(
+        AvaliacaoRegistrada avaliacao = servico.registrarAvaliacao(projeto, contexto, new ComandoRegistrarAvaliacao(
                 referencia,
                 responsavel,
                 OffsetDateTime.parse("2026-08-27T12:00:00-03:00"),
@@ -135,7 +152,8 @@ class ServicoAvaliacaoConfirmacaoTest {
                 true
         ));
 
-        ConfirmacaoEntendimentoRegistrada confirmacao = servico.confirmarEntendimento(new ComandoConfirmarEntendimento(
+        ConfirmacaoEntendimentoRegistrada confirmacao = servico.confirmarEntendimento(projeto, contexto,
+                new ComandoConfirmarEntendimento(
                 referencia.projeto(),
                 referencia.documento(),
                 2,
@@ -166,9 +184,53 @@ class ServicoAvaliacaoConfirmacaoTest {
                 false
         );
 
-        assertThatThrownBy(() -> servico.registrarAvaliacao(comando))
+        assertThatThrownBy(() -> servico.registrarAvaliacao(projeto, contexto, comando))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("avaliacao nao habilitada por politica institucional aplicavel.");
         assertThat(servico.historico().avaliacoes()).isEmpty();
+    }
+
+    @Test
+    void deveNegarOperacaoProtegidaQuandoUsuarioNaoTemVinculoOuAutorizacao() {
+        UsuarioInstitucional usuarioSemVinculo = usuario("usuario-sem-vinculo", "sem.vinculo", "GABINETE");
+        ContextoAutorizacaoInstitucional contextoSemPermissao = new ContextoAutorizacaoInstitucional(
+                usuarioSemVinculo,
+                Set.of()
+        );
+        ComandoRegistrarAvaliacao comando = new ComandoRegistrarAvaliacao(
+                referencia,
+                usuarioSemVinculo.identificador(),
+                OffsetDateTime.parse("2026-08-27T13:30:00-03:00"),
+                DecisaoAvaliacao.APROVADO,
+                "Tentativa sem autorizacao.",
+                true
+        );
+
+        assertThatThrownBy(() -> servico.registrarAvaliacao(projeto, contextoSemPermissao, comando))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("operacao protegida nao autorizada");
+        assertThat(servico.historico().avaliacoes()).isEmpty();
+    }
+
+    private static ProjetoInstitucional projetoComParticipante(UsuarioInstitucional usuario, PapelProjeto papel) {
+        return new ProjetoInstitucional(
+                new IdentificadorProjeto("ATHENA"),
+                "Athena",
+                "Plataforma institucional multiprojeto documental",
+                Set.of("DITEC"),
+                Set.of(new ParticipanteProjeto(usuario, papel)),
+                SituacaoProjeto.ATIVO,
+                OffsetDateTime.parse("2026-08-25T10:15:30-03:00"),
+                usuario
+        );
+    }
+
+    private static UsuarioInstitucional usuario(String id, String login, String unidade) {
+        return new UsuarioInstitucional(
+                new IdentificadorUsuario(id),
+                "Usuario Institucional",
+                login,
+                unidade
+        );
     }
 }
