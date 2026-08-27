@@ -5,6 +5,7 @@ public record ConsultaParticipantesCorporativos(
         String matricula,
         String unidadeOuLotacao
 ) {
+    private static final int TAMANHO_MINIMO_FILTRO = 3;
 
     public ConsultaParticipantesCorporativos {
         termo = normalizar(termo);
@@ -13,6 +14,9 @@ public record ConsultaParticipantesCorporativos(
         if (termo == null && matricula == null && unidadeOuLotacao == null) {
             throw new IllegalArgumentException("ao menos um filtro corporativo deve ser informado.");
         }
+        validarTamanhoMinimo(termo, "termo de pesquisa");
+        validarTamanhoMinimo(matricula, "matricula");
+        validarTamanhoMinimo(unidadeOuLotacao, "unidade ou lotacao");
     }
 
     public static ConsultaParticipantesCorporativos porTermo(String termo) {
@@ -35,5 +39,11 @@ public record ConsultaParticipantesCorporativos(
             throw new IllegalArgumentException(campo + " deve ser informado.");
         }
         return valor.trim();
+    }
+
+    private static void validarTamanhoMinimo(String valor, String campo) {
+        if (valor != null && valor.length() < TAMANHO_MINIMO_FILTRO) {
+            throw new IllegalArgumentException(campo + " deve ter ao menos 3 caracteres.");
+        }
     }
 }
