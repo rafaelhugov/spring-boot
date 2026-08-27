@@ -8,10 +8,18 @@ import br.gov.mppb.athena.dominio.FormatoDocumento;
 import br.gov.mppb.athena.dominio.IdentificadorProjeto;
 import br.gov.mppb.athena.dominio.ItemDocumental;
 import br.gov.mppb.athena.dominio.MetadadosDocumento;
+import br.gov.mppb.athena.dominio.PapelProjeto;
+import br.gov.mppb.athena.dominio.ParticipanteProjeto;
 import br.gov.mppb.athena.dominio.PermissaoDocumento;
+import br.gov.mppb.athena.dominio.ProjetoInstitucional;
 import br.gov.mppb.athena.dominio.RastreabilidadeDocumento;
 import br.gov.mppb.athena.dominio.RelacaoDocumental;
+import br.gov.mppb.athena.dominio.SituacaoProjeto;
+import br.gov.mppb.athena.dominio.UsuarioInstitucional;
 import br.gov.mppb.athena.dominio.VersaoDocumento;
+import br.gov.mppb.athena.dominio.IdentificadorUsuario;
+import br.gov.mppb.athena.seguranca.ContextoAutorizacaoInstitucional;
+import br.gov.mppb.athena.seguranca.PoliticaSegurancaAthena;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Set;
@@ -20,12 +28,18 @@ import org.junit.jupiter.api.Test;
 class ServicoIngestaoDocumentalExternaTest {
 
     private final ServicoIngestaoDocumentalExterna servico = new ServicoIngestaoDocumentalExterna();
+    private final UsuarioInstitucional administrador = usuario("usuario-admin", "admin.ditec", "DITEC");
+    private final ProjetoInstitucional projeto = projetoComParticipante(administrador, PapelProjeto.RESPONSAVEL_TECNICO);
+    private final ContextoAutorizacaoInstitucional contextoAdmin = new ContextoAutorizacaoInstitucional(
+            administrador,
+            Set.of(PoliticaSegurancaAthena.AUTORIZACAO_ADMINISTRATIVA)
+    );
 
     @Test
     void deveReceberContratoComConteudoOriginalRepresentacaoInternaMetadadosRelacoesPermissoesERastreabilidade() {
         PedidoIngestaoDocumentoExterno pedido = pedido(FormatoDocumento.YAML, "linha-base.md");
 
-        Documento documento = servico.registrarPrimeiraVersao(pedido);
+        Documento documento = servico.registrarPrimeiraVersao(projeto, contextoAdmin, pedido);
 
         assertThat(documento.identificador()).isEqualTo("DOC-ESPEC-001");
         assertThat(documento.projeto()).isEqualTo(new IdentificadorProjeto("ATHENA"));
@@ -50,9 +64,15 @@ class ServicoIngestaoDocumentalExternaTest {
 
     @Test
     void deveRegistrarNovaVersaoSemSobrescreverHistoricoAnterior() {
-        Documento primeiraVersao = servico.registrarPrimeiraVersao(pedido(FormatoDocumento.MARKDOWN, "documento.md"));
+        Documento primeiraVersao = servico.registrarPrimeiraVersao(
+                projeto,
+                contextoAdmin,
+                pedido(FormatoDocumento.MARKDOWN, "documento.md")
+        );
 
         Documento documentoVersionado = servico.registrarNovaVersao(
+                projeto,
+                contextoAdmin,
                 primeiraVersao,
                 pedido(FormatoDocumento.JSON, "documento.json", "conteudo original em JSON")
         );
@@ -71,11 +91,11 @@ class ServicoIngestaoDocumentalExternaTest {
 
     @Test
     void deveSuportarMarkdownJsonEYamlPorFormatoExplicitoSemInferirPeloNomeFisicoDoArquivo() {
-        assertThat(servico.registrarPrimeiraVersao(pedido(FormatoDocumento.MARKDOWN, "entrada.yaml"))
+        assertThat(servico.registrarPrimeiraVersao(projeto, contextoAdmin, pedido(FormatoDocumento.MARKDOWN, "entrada.yaml"))
                 .versoes().get(0).formato()).isEqualTo(FormatoDocumento.MARKDOWN);
-        assertThat(servico.registrarPrimeiraVersao(pedido(FormatoDocumento.JSON, "entrada.md"))
+        assertThat(servico.registrarPrimeiraVersao(projeto, contextoAdmin, pedido(FormatoDocumento.JSON, "entrada.md"))
                 .versoes().get(0).formato()).isEqualTo(FormatoDocumento.JSON);
-        assertThat(servico.registrarPrimeiraVersao(pedido(FormatoDocumento.YAML, "entrada.json"))
+        assertThat(servico.registrarPrimeiraVersao(projeto, contextoAdmin, pedido(FormatoDocumento.YAML, "entrada.json"))
                 .versoes().get(0).formato()).isEqualTo(FormatoDocumento.YAML);
     }
 
@@ -108,6 +128,23 @@ class ServicoIngestaoDocumentalExternaTest {
         ))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("representacao interna do documento deve ser informada.");
+    }
+
+    @Test
+    void deveNegarIngestaoAdministrativaSemLotacaoDitecEAutorizacaoEspecifica() {
+        UsuarioInstitucional usuarioExterno = usuario("usuario-externo", "externo", "GABINETE");
+        ContextoAutorizacaoInstitucional contextoSemAdministracao = new ContextoAutorizacaoInstitucional(
+                usuarioExterno,
+                Set.of(PoliticaSegurancaAthena.AUTORIZACAO_ADMINISTRATIVA)
+        );
+
+        assertThatThrownBy(() -> servico.registrarPrimeiraVersao(
+                projeto,
+                contextoSemAdministracao,
+                pedido(FormatoDocumento.YAML, "linha-base.yaml")
+        ))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("ingestao documental externa nao autorizada");
     }
 
     private static PedidoIngestaoDocumentoExterno pedido(FormatoDocumento formato, String nomeFisicoArquivo) {
@@ -151,6 +188,28 @@ class ServicoIngestaoDocumentalExternaTest {
                 "Representacao interna para exibicao.",
                 Set.of(new RelacaoDocumental("rastreia", "BL.AC.004")),
                 new RastreabilidadeDocumento(Set.of("SOL.INTEGRACAO.001"))
+        );
+    }
+
+    private static ProjetoInstitucional projetoComParticipante(UsuarioInstitucional usuario, PapelProjeto papel) {
+        return new ProjetoInstitucional(
+                new IdentificadorProjeto("ATHENA"),
+                "Athena",
+                "Plataforma institucional multiprojeto documental",
+                Set.of("DITEC"),
+                Set.of(new ParticipanteProjeto(usuario, papel)),
+                SituacaoProjeto.ATIVO,
+                OffsetDateTime.parse("2026-08-25T10:15:30-03:00"),
+                usuario
+        );
+    }
+
+    private static UsuarioInstitucional usuario(String id, String login, String unidade) {
+        return new UsuarioInstitucional(
+                new IdentificadorUsuario(id),
+                "Usuario Institucional",
+                login,
+                unidade
         );
     }
 }
