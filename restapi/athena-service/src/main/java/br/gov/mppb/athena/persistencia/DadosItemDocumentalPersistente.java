@@ -1,0 +1,15 @@
+package br.gov.mppb.athena.persistencia;
+
+import java.util.List;
+import java.util.UUID;
+
+public record DadosItemDocumentalPersistente(
+        UUID id,
+        UUID versaoId,
+        String identificador,
+        String titulo,
+        String conteudo,
+        int ordem,
+        List<String> fontesRastreabilidade
+) {
+}
