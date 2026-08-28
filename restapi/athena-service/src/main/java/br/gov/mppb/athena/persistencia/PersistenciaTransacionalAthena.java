@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -108,6 +110,155 @@ public class PersistenciaTransacionalAthena {
                 """, this::mapearItem, documentoId);
 
         return new HistoricoDocumentoPersistente(projeto, documento, versoes, itens);
+    }
+
+    public Optional<DadosProjetoPersistente> consultarProjetoPorIdentificador(String identificadorProjeto) {
+        List<DadosProjetoPersistente> projetos = jdbc.query("""
+                SELECT id, identificador, nome, descricao, situacao, criadoem, criadoporid
+                  FROM athena.projeto
+                 WHERE identificador = ?
+                """, this::mapearProjeto, identificadorProjeto);
+        return projetos.stream().findFirst();
+    }
+
+    public List<DadosParticipanteProjetoPersistente> listarParticipantesProjeto(UUID projetoId) {
+        return jdbc.query("""
+                SELECT u.id, u.identificador, u.nome, u.login, u.unidade, v.papel
+                  FROM athena.vinculoprojeto v
+                  JOIN athena.usuarioinstitucional u ON u.id = v.usuarioid
+                 WHERE v.projetoid = ?
+                   AND v.fimem IS NULL
+                 ORDER BY u.nome, v.papel
+                """, (rs, linha) -> new DadosParticipanteProjetoPersistente(
+                uuid(rs, "id"),
+                rs.getString("identificador"),
+                rs.getString("nome"),
+                rs.getString("login"),
+                rs.getString("unidade"),
+                rs.getString("papel")
+        ), projetoId);
+    }
+
+    public List<DadosDocumentoPersistente> listarDocumentosProjeto(UUID projetoId) {
+        return jdbc.query("""
+                SELECT id, identificador, projetoid, titulo, grupo, categoria, finalidade,
+                       apresentacao, criadoem, criadoporid
+                  FROM athena.documento
+                 WHERE projetoid = ?
+                 ORDER BY grupo, categoria, titulo
+                """, this::mapearDocumento, projetoId);
+    }
+
+    public Optional<DadosDocumentoPersistente> consultarDocumento(UUID projetoId, String identificadorDocumento) {
+        List<DadosDocumentoPersistente> documentos = jdbc.query("""
+                SELECT id, identificador, projetoid, titulo, grupo, categoria, finalidade,
+                       apresentacao, criadoem, criadoporid
+                  FROM athena.documento
+                 WHERE projetoid = ?
+                   AND identificador = ?
+                """, this::mapearDocumento, projetoId, identificadorDocumento);
+        return documentos.stream().findFirst();
+    }
+
+    public List<DadosVersaoDocumentoPersistente> listarVersoesDocumento(UUID documentoId) {
+        return jdbc.query("""
+                SELECT id, documentoid, numero, formato, conteudooriginal, hashconteudo,
+                       recebidaem, recebidaporid, origemexterna
+                  FROM athena.versaodocumento
+                 WHERE documentoid = ?
+                 ORDER BY numero
+                """, this::mapearVersao, documentoId);
+    }
+
+    public List<DadosItemDocumentalPersistente> listarItensDocumento(UUID documentoId) {
+        return jdbc.query("""
+                SELECT i.id, i.versaoid, i.identificador, i.titulo, i.conteudo, i.ordem,
+                       i.fontesrastreabilidade
+                  FROM athena.itemdocumental i
+                  JOIN athena.versaodocumento v ON v.id = i.versaoid
+                 WHERE v.documentoid = ?
+                 ORDER BY v.numero, i.ordem
+                """, this::mapearItem, documentoId);
+    }
+
+    public Optional<DadosItemDocumentalPersistente> consultarItem(UUID documentoId, String identificadorItem) {
+        List<DadosItemDocumentalPersistente> itens = jdbc.query("""
+                SELECT i.id, i.versaoid, i.identificador, i.titulo, i.conteudo, i.ordem,
+                       i.fontesrastreabilidade
+                  FROM athena.itemdocumental i
+                  JOIN athena.versaodocumento v ON v.id = i.versaoid
+                 WHERE v.documentoid = ?
+                   AND i.identificador = ?
+                 ORDER BY v.numero DESC, i.ordem
+                """, this::mapearItem, documentoId, identificadorItem);
+        return itens.stream().findFirst();
+    }
+
+    public List<Map<String, String>> listarRelacoesDocumento(UUID documentoId) {
+        return listarRelacoes("documentoid", documentoId);
+    }
+
+    public List<Map<String, String>> listarRelacoesItem(UUID itemId) {
+        return listarRelacoes("itemid", itemId);
+    }
+
+    public Map<String, Long> calcularIndicadoresProjeto(UUID projetoId) {
+        Long documentos = jdbc.queryForObject("""
+                SELECT COUNT(*) FROM athena.documento WHERE projetoid = ?
+                """, Long.class, projetoId);
+        Long versoes = jdbc.queryForObject("""
+                SELECT COUNT(*)
+                  FROM athena.versaodocumento v
+                  JOIN athena.documento d ON d.id = v.documentoid
+                 WHERE d.projetoid = ?
+                """, Long.class, projetoId);
+        Long participantes = jdbc.queryForObject("""
+                SELECT COUNT(*)
+                  FROM athena.vinculoprojeto
+                 WHERE projetoid = ?
+                   AND fimem IS NULL
+                """, Long.class, projetoId);
+        Long interacoes = jdbc.queryForObject("""
+                SELECT
+                    (SELECT COUNT(*) FROM athena.avaliacao a
+                      JOIN athena.itemdocumental i ON i.id = a.itemid
+                      JOIN athena.versaodocumento v ON v.id = i.versaoid
+                      JOIN athena.documento d ON d.id = v.documentoid
+                     WHERE d.projetoid = ?)
+                  + (SELECT COUNT(*) FROM athena.comentario c
+                      JOIN athena.itemdocumental i ON i.id = c.itemid
+                      JOIN athena.versaodocumento v ON v.id = i.versaoid
+                      JOIN athena.documento d ON d.id = v.documentoid
+                     WHERE d.projetoid = ?)
+                  + (SELECT COUNT(*) FROM athena.pedidoajuste p
+                      JOIN athena.itemdocumental i ON i.id = p.itemid
+                      JOIN athena.versaodocumento v ON v.id = i.versaoid
+                      JOIN athena.documento d ON d.id = v.documentoid
+                     WHERE d.projetoid = ?)
+                  + (SELECT COUNT(*) FROM athena.confirmacao f
+                      JOIN athena.itemdocumental i ON i.id = f.itemid
+                      JOIN athena.versaodocumento v ON v.id = i.versaoid
+                      JOIN athena.documento d ON d.id = v.documentoid
+                     WHERE d.projetoid = ?)
+                """, Long.class, projetoId, projetoId, projetoId, projetoId);
+        return Map.of(
+                "documentos", documentos == null ? 0L : documentos,
+                "versoes", versoes == null ? 0L : versoes,
+                "participantes", participantes == null ? 0L : participantes,
+                "interacoes", interacoes == null ? 0L : interacoes
+        );
+    }
+
+    private List<Map<String, String>> listarRelacoes(String coluna, UUID recursoId) {
+        return jdbc.query("""
+                SELECT tipo, recursorelacionado
+                  FROM athena.relacaorecebida
+                 WHERE %s = ?
+                 ORDER BY tipo, recursorelacionado
+                """.formatted(coluna), (rs, linha) -> Map.of(
+                "tipo", rs.getString("tipo"),
+                "recursoRelacionado", rs.getString("recursorelacionado")
+        ), recursoId);
     }
 
     private void inserirUsuario(DadosUsuarioPersistente usuario) {
