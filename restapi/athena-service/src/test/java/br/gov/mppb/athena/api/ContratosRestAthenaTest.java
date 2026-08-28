@@ -40,6 +40,7 @@ class ContratosRestAthenaTest {
                         "/api/projetos/{projetoId}",
                         "/api/projetos/{projetoId}/documentos",
                         "/api/projetos/{projetoId}/documentos/{documentoId}",
+                        "/api/projetos/{projetoId}/documentos/ingestoes",
                         "/api/projetos/{projetoId}/documentos/{documentoId}/itens/{itemId}",
                         "/api/projetos/{projetoId}/documentos/{documentoId}/avaliacoes",
                         "/api/projetos/{projetoId}/documentos/{documentoId}/comentarios",

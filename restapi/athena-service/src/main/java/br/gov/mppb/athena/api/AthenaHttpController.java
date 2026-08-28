@@ -42,6 +42,7 @@ import br.gov.mppb.athena.seguranca.OperacaoProjeto;
 import br.gov.mppb.athena.seguranca.PoliticaSegurancaAthena;
 import br.gov.mppb.athena.seguranca.ResultadoAutorizacao;
 import java.time.OffsetDateTime;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -158,6 +159,68 @@ public class AthenaHttpController {
                 "rastreabilidade", item.rastreabilidade().fontes(),
                 "relacoesRecebidas", item.relacoesRecebidas()
         );
+    }
+
+    @PostMapping("/{projetoId}/documentos/ingestoes")
+    public ResponseEntity<Map<String, Object>> ingerirDocumentoInterno(
+            @PathVariable String projetoId,
+            @RequestHeader Map<String, String> headers,
+            @RequestBody Map<String, Object> corpo
+    ) {
+        if (persistencia == null) {
+            throw new RespostaApiException(HttpStatus.UNPROCESSABLE_ENTITY, "REGRA_FUNCIONAL_VIOLADA",
+                    "ingestao operacional exige persistencia transacional configurada.");
+        }
+        ProjetoInstitucional projetoAutorizado = autorizar(projetoId, headers, OperacaoProjeto.ADMINISTRAR);
+        ContextoAutorizacaoInstitucional contexto = contexto(headers);
+        UUID projetoPersistenteId = uuidProjeto(projetoAutorizado);
+        DadosParticipanteProjetoPersistente usuarioPersistente = usuarioPersistenteAtual(projetoAutorizado, contexto);
+        String identificadorDocumento = textoObrigatorio(corpo, "identificadorDocumento");
+        String formato = FormatoDocumento.valueOf(textoObrigatorio(corpo, "formato")).name();
+        OffsetDateTime recebidaEm = OffsetDateTime.now();
+        DadosDocumentoPersistente documentoPersistente = persistencia.consultarDocumento(projetoPersistenteId, identificadorDocumento)
+                .orElseGet(() -> novoDocumentoPersistente(projetoPersistenteId, usuarioPersistente.id(), recebidaEm, corpo));
+        int numeroVersao = persistencia.listarVersoesDocumento(documentoPersistente.id()).stream()
+                .mapToInt(DadosVersaoDocumentoPersistente::numero)
+                .max()
+                .orElse(0) + 1;
+        DadosVersaoDocumentoPersistente versao = novaVersaoPersistente(
+                documentoPersistente.id(),
+                numeroVersao,
+                formato,
+                usuarioPersistente.id(),
+                recebidaEm,
+                corpo
+        );
+        List<DadosItemDocumentalPersistente> itens = itensPersistentes(versao.id(), corpo);
+        if (numeroVersao == 1) {
+            persistencia.registrarDocumentoComPrimeiraVersao(
+                    projetoPersistenteId,
+                    usuarioPersistente.id(),
+                    documentoPersistente,
+                    versao,
+                    itens,
+                    recebidaEm,
+                    UUID.randomUUID()
+            );
+        } else {
+            persistencia.registrarNovaVersaoDocumental(
+                    projetoPersistenteId,
+                    usuarioPersistente.id(),
+                    versao,
+                    itens,
+                    recebidaEm,
+                    UUID.randomUUID()
+            );
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                "documento", documentoPersistente.identificador(),
+                "versao", numeroVersao,
+                "formato", formato,
+                "itens", itens.stream().map(DadosItemDocumentalPersistente::identificador).toList(),
+                "relacoesRecebidas", persistencia.listarRelacoesDocumento(documentoPersistente.id()),
+                "dependenciaExternaCorporativa", "REGISTRADA_COMO_PENDENTE_NAO_SIMULADA"
+        ));
     }
 
     @PostMapping("/{projetoId}/documentos/{documentoId}/avaliacoes")
@@ -531,6 +594,87 @@ public class AthenaHttpController {
                 usuario("usuario-" + login, login, unidade == null || unidade.isBlank() ? "GABINETE" : unidade),
                 autorizacoes == null || autorizacoes.isBlank() ? Set.of() : Set.of(autorizacoes.split(","))
         );
+    }
+
+    private DadosDocumentoPersistente novoDocumentoPersistente(
+            UUID projetoId,
+            UUID usuarioId,
+            OffsetDateTime criadoEm,
+            Map<String, Object> corpo
+    ) {
+        return new DadosDocumentoPersistente(
+                UUID.randomUUID(),
+                textoObrigatorio(corpo, "identificadorDocumento"),
+                projetoId,
+                textoObrigatorio(corpo, "tituloDocumento"),
+                textoObrigatorio(corpo, "grupo"),
+                textoObrigatorio(corpo, "categoria"),
+                textoObrigatorio(corpo, "finalidade"),
+                textoObrigatorio(corpo, "apresentacao"),
+                criadoEm,
+                usuarioId
+        );
+    }
+
+    private DadosVersaoDocumentoPersistente novaVersaoPersistente(
+            UUID documentoId,
+            int numeroVersao,
+            String formato,
+            UUID usuarioId,
+            OffsetDateTime recebidaEm,
+            Map<String, Object> corpo
+    ) {
+        String conteudoOriginal = textoObrigatorio(corpo, "conteudoOriginal");
+        return new DadosVersaoDocumentoPersistente(
+                UUID.randomUUID(),
+                documentoId,
+                numeroVersao,
+                formato,
+                conteudoOriginal,
+                Integer.toHexString(conteudoOriginal.hashCode()),
+                recebidaEm,
+                usuarioId,
+                textoObrigatorio(corpo, "origem")
+        );
+    }
+
+    private List<DadosItemDocumentalPersistente> itensPersistentes(UUID versaoId, Map<String, Object> corpo) {
+        Object itens = corpo.get("representacaoInterna");
+        if (!(itens instanceof Collection<?> colecao) || colecao.isEmpty()) {
+            throw new IllegalArgumentException("representacaoInterna deve conter ao menos um item.");
+        }
+        int[] ordem = {1};
+        return colecao.stream()
+                .map(item -> itemPersistente(versaoId, item, ordem[0]++))
+                .toList();
+    }
+
+    @SuppressWarnings("unchecked")
+    private DadosItemDocumentalPersistente itemPersistente(UUID versaoId, Object item, int ordem) {
+        if (!(item instanceof Map<?, ?> mapaBruto)) {
+            throw new IllegalArgumentException("item da representacaoInterna deve ser objeto.");
+        }
+        Map<String, Object> mapa = (Map<String, Object>) mapaBruto;
+        return new DadosItemDocumentalPersistente(
+                UUID.randomUUID(),
+                versaoId,
+                textoObrigatorio(mapa, "identificador"),
+                textoObrigatorio(mapa, "titulo"),
+                textoObrigatorio(mapa, "conteudo"),
+                ordem,
+                textosObrigatorios(mapa, "fontesRastreabilidade")
+        );
+    }
+
+    private static List<String> textosObrigatorios(Map<String, Object> corpo, String campo) {
+        Object valor = corpo.get(campo);
+        if (!(valor instanceof Collection<?> colecao) || colecao.isEmpty()) {
+            throw new IllegalArgumentException(campo + " deve conter ao menos um valor.");
+        }
+        return colecao.stream()
+                .map(Object::toString)
+                .filter(texto -> !texto.isBlank())
+                .toList();
     }
 
     private String header(Map<String, String> headers, String nome) {

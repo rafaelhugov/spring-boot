@@ -61,6 +61,28 @@ public class PersistenciaTransacionalAthena {
         });
     }
 
+    public void registrarDocumentoComPrimeiraVersao(
+            UUID projetoId,
+            UUID usuarioId,
+            DadosDocumentoPersistente documento,
+            DadosVersaoDocumentoPersistente versao,
+            List<DadosItemDocumentalPersistente> itens,
+            OffsetDateTime ocorridoEm,
+            UUID eventoAuditoriaId
+    ) {
+        transacao.executeWithoutResult(status -> {
+            inserirDocumento(documento);
+            inserirVersao(versao);
+            itens.forEach(this::inserirItem);
+            jdbc.update("""
+                    INSERT INTO athena.eventoauditoria
+                        (id, projetoid, documentoid, versaoid, usuarioid, tipo, dados, ocorridoem, registradoporid)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, eventoAuditoriaId, projetoId, documento.id(), versao.id(), usuarioId,
+                    "HISTORICO_DOCUMENTAL_REGISTRADO", "{}", ocorridoEm, usuarioId);
+        });
+    }
+
     public void registrarInteracaoHumana(RegistroInteracaoHumana registro) {
         transacao.executeWithoutResult(status -> {
             switch (registro.tipo()) {
