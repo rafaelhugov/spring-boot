@@ -102,7 +102,7 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
 
         registrarInteracao(itemId, usuarioId, TipoInteracaoHumana.AVALIACAO, "APROVADO", "avaliacao registrada", agora.plusMinutes(1));
         registrarInteracao(itemId, usuarioId, TipoInteracaoHumana.COMENTARIO, "COMENTADO", "comentario registrado", agora.plusMinutes(2));
-        registrarInteracao(itemId, usuarioId, TipoInteracaoHumana.PEDIDO_AJUSTE, "ABERTO", "ajuste encaminhado externamente", agora.plusMinutes(3));
+        registrarInteracao(itemId, usuarioId, TipoInteracaoHumana.PEDIDO_AJUSTE, "ABERTO", "ajuste destinado ao responsavel tecnico", agora.plusMinutes(3));
         registrarInteracao(itemId, usuarioId, TipoInteracaoHumana.CONFIRMACAO, "CONFIRMADO", "entendimento confirmado", agora.plusMinutes(4));
 
         mvc.perform(post("/api/projetos/ATHENA/documentos/DOC-ENTENDIMENTO/avaliacoes")

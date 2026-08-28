@@ -8,8 +8,7 @@ public record ComandoRegistrarPedidoAjuste(
         ReferenciaAvaliacaoDocumental referencia,
         IdentificadorUsuario solicitante,
         OffsetDateTime data,
-        String justificativa,
-        String processoExternoResponsavel
+        String justificativa
 ) {
 
     public ComandoRegistrarPedidoAjuste {
@@ -23,9 +22,5 @@ public record ComandoRegistrarPedidoAjuste(
             throw new IllegalArgumentException("data do pedido de ajuste deve ser informada.");
         }
         justificativa = TextoAplicacao.validar(justificativa, "justificativa do pedido de ajuste");
-        processoExternoResponsavel = TextoAplicacao.validar(
-                processoExternoResponsavel,
-                "processo externo responsavel pelo ajuste"
-        );
     }
 }
