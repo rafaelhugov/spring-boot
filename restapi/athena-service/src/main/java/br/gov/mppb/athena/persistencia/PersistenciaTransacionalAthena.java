@@ -194,6 +194,33 @@ public class PersistenciaTransacionalAthena {
         return itens.stream().findFirst();
     }
 
+    public List<Map<String, Object>> listarEventosAuditoriaDocumento(UUID documentoId) {
+        return jdbc.query("""
+                SELECT e.id, e.tipo, e.decisao, e.justificativa, e.ocorridoem,
+                       u.identificador AS usuarioidentificador, u.login AS usuariologin,
+                       i.identificador AS itemidentificador, d.identificador AS documentoidentificador
+                  FROM athena.eventoauditoria e
+                  LEFT JOIN athena.usuarioinstitucional u ON u.id = e.usuarioid
+                  LEFT JOIN athena.itemdocumental i ON i.id = e.itemid
+                  LEFT JOIN athena.versaodocumento v ON v.id = i.versaoid
+                  LEFT JOIN athena.documento d ON d.id = COALESCE(e.documentoid, v.documentoid)
+                 WHERE d.id = ?
+                 ORDER BY e.ocorridoem, e.id
+                """, (rs, linha) -> Map.of(
+                "id", rs.getString("id"),
+                "tipo", rs.getString("tipo"),
+                "decisao", valorOuVazio(rs.getString("decisao")),
+                "justificativa", valorOuVazio(rs.getString("justificativa")),
+                "ocorridoEm", horario(rs, "ocorridoem"),
+                "usuario", Map.of(
+                        "identificador", valorOuVazio(rs.getString("usuarioidentificador")),
+                        "login", valorOuVazio(rs.getString("usuariologin"))
+                ),
+                "documento", valorOuVazio(rs.getString("documentoidentificador")),
+                "item", valorOuVazio(rs.getString("itemidentificador"))
+        ), documentoId);
+    }
+
     public List<Map<String, String>> listarRelacoesDocumento(UUID documentoId) {
         return listarRelacoes("documentoid", documentoId);
     }
@@ -417,5 +444,9 @@ public class PersistenciaTransacionalAthena {
             return horario;
         }
         return rs.getTimestamp(coluna).toInstant().atOffset(OffsetDateTime.now().getOffset());
+    }
+
+    private static String valorOuVazio(String valor) {
+        return valor == null ? "" : valor;
     }
 }

@@ -54,6 +54,9 @@ public final class ContratosRestAthena {
             contrato(GrupoOperacaoApi.CONFIRMACAO, MetodoHttp.POST, "/api/projetos/{projetoId}/documentos/{documentoId}/confirmacoes", OperacaoProjeto.CONFIRMAR,
                     Set.of("projetoId", "documentoId", "versaoConfirmada", "escopo"),
                     Set.of("projeto", "documento", "versaoConfirmada", "responsavel", "data", "escopo")),
+            contrato(GrupoOperacaoApi.HISTORICO, MetodoHttp.GET, "/api/projetos/{projetoId}/documentos/{documentoId}/historico", OperacaoProjeto.CONSULTAR,
+                    Set.of("projetoId", "documentoId"),
+                    Set.of("eventos", "tipo", "decisao", "justificativa", "ocorridoEm", "usuario", "documento", "item")),
             contrato(GrupoOperacaoApi.PARTICIPANTE, MetodoHttp.GET, "/api/projetos/{projetoId}/participantes/pesquisa", OperacaoProjeto.ADMINISTRAR,
                     Set.of("projetoId", "termo", "matricula", "unidadeOuLotacao"),
                     Set.of("nome", "matricula", "vinculo", "cargoOuFuncao", "email", "login", "unidadeOuLotacao"))

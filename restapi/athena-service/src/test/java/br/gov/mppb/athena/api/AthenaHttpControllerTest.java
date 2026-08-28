@@ -168,6 +168,110 @@ class AthenaHttpControllerTest {
                 .andExpect(content().string(not(containsString("DOC-ENTENDIMENTO"))));
     }
 
+    @Test
+    void devePersistirInteracoesPorHttpELerHistoricoOperacional() throws Exception {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource(
+                "jdbc:h2:mem:athena-api-interacoes-" + UUID.randomUUID()
+                        + ";MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
+                        + ";INIT=CREATE SCHEMA IF NOT EXISTS athena",
+                "sa",
+                ""
+        );
+        dataSource.setDriverClassName("org.h2.Driver");
+        JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+        criarEsquemaPersistente(jdbc);
+        PersistenciaTransacionalAthena persistencia = new PersistenciaTransacionalAthena(
+                jdbc,
+                new DataSourceTransactionManager(dataSource)
+        );
+        registrarProjetoDocumentalPersistente(persistencia);
+        MockMvc mvcPersistente = MockMvcBuilders
+                .standaloneSetup(new AthenaHttpController(persistencia))
+                .build();
+
+        mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO/avaliacoes")
+                        .headers(cabecalhosResponsavel())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versao": 1,
+                                  "itemId": "ITEM-PERSISTIDO",
+                                  "decisao": "APROVADO",
+                                  "justificativa": "Avaliacao persistente."
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.tipo").value("AVALIACAO"))
+                .andExpect(jsonPath("$.decisao").value("APROVADO"));
+
+        mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO/comentarios")
+                        .headers(cabecalhosResponsavel())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versao": 1,
+                                  "itemId": "ITEM-PERSISTIDO",
+                                  "texto": "Comentario persistente.",
+                                  "decisaoRelacionada": "APROVADO"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.tipo").value("COMENTARIO"))
+                .andExpect(jsonPath("$.conteudo").value("Comentario persistente."));
+
+        mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO/ajustes")
+                        .headers(cabecalhosResponsavel())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versao": 1,
+                                  "itemId": "ITEM-PERSISTIDO",
+                                  "justificativa": "Ajuste sem sobrescrever o documento.",
+                                  "processoExternoResponsavel": "processo-documental-externo"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.tipo").value("PEDIDO_AJUSTE"))
+                .andExpect(jsonPath("$.documento").value("DOC-PERSISTIDO"));
+
+        mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO/confirmacoes")
+                        .headers(cabecalhosResponsavel())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versaoConfirmada": 1,
+                                  "escopo": "Confirmacao formal da versao persistida."
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.tipo").value("CONFIRMACAO"))
+                .andExpect(jsonPath("$.decisao").value("CONFIRMADO"));
+
+        mvcPersistente.perform(get("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO/historico")
+                        .headers(cabecalhosResponsavel()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.eventos[0].tipo").value("HISTORICO_DOCUMENTAL_REGISTRADO"))
+                .andExpect(jsonPath("$.eventos[1].tipo").value("AVALIACAO"))
+                .andExpect(jsonPath("$.eventos[2].tipo").value("COMENTARIO"))
+                .andExpect(jsonPath("$.eventos[3].tipo").value("PEDIDO_AJUSTE"))
+                .andExpect(jsonPath("$.eventos[4].tipo").value("CONFIRMACAO"))
+                .andExpect(jsonPath("$.eventos[4].usuario.login").value("responsavel"))
+                .andExpect(content().string(not(containsString("cpf"))));
+
+        mvcPersistente.perform(get("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO")
+                        .headers(cabecalhosResponsavel()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.versoes.length()").value(1))
+                .andExpect(jsonPath("$.versoes[0].conteudoOriginal").value("Conteudo original persistido."));
+    }
+
+    private static org.springframework.http.HttpHeaders cabecalhosResponsavel() {
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.add("X-Athena-Usuario", "responsavel");
+        headers.add("X-Athena-Unidade", "DITEC");
+        return headers;
+    }
+
     private static void registrarProjetoDocumentalPersistente(PersistenciaTransacionalAthena persistencia) {
         OffsetDateTime agora = OffsetDateTime.parse("2026-08-27T10:00:00-03:00");
         UUID usuarioId = UUID.randomUUID();
