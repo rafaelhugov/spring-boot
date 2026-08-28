@@ -265,11 +265,95 @@ class AthenaHttpControllerTest {
                 .andExpect(jsonPath("$.versoes[0].conteudoOriginal").value("Conteudo original persistido."));
     }
 
+    @Test
+    void deveIngerirMarkdownJsonEYamlPorHttpEConsultarDocumentoVersionado() throws Exception {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource(
+                "jdbc:h2:mem:athena-api-ingestao-" + UUID.randomUUID()
+                        + ";MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
+                        + ";INIT=CREATE SCHEMA IF NOT EXISTS athena",
+                "sa",
+                ""
+        );
+        dataSource.setDriverClassName("org.h2.Driver");
+        JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+        criarEsquemaPersistente(jdbc);
+        registrarProjetoPersistenteSemDocumento(jdbc);
+        MockMvc mvcPersistente = MockMvcBuilders
+                .standaloneSetup(new AthenaHttpController(new PersistenciaTransacionalAthena(
+                        jdbc,
+                        new DataSourceTransactionManager(dataSource)
+                )))
+                .build();
+
+        mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/ingestoes")
+                        .headers(cabecalhosAdministrador())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoIngestao("MARKDOWN", "# Documento Athena", "REQ-MD", "Markdown persistido.")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.documento").value("DOC-INGESTAO"))
+                .andExpect(jsonPath("$.versao").value(1))
+                .andExpect(jsonPath("$.dependenciaExternaCorporativa").value("REGISTRADA_COMO_PENDENTE_NAO_SIMULADA"));
+
+        mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/ingestoes")
+                        .headers(cabecalhosAdministrador())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoIngestao("JSON", "{\"documento\":\"Athena\"}", "REQ-JSON", "JSON persistido.")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.versao").value(2));
+
+        mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/ingestoes")
+                        .headers(cabecalhosAdministrador())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoIngestao("YAML", "documento: Athena", "REQ-YAML", "YAML persistido.")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.versao").value(3));
+
+        mvcPersistente.perform(get("/api/projetos/ATHENA/documentos/DOC-INGESTAO")
+                        .headers(cabecalhosResponsavel()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.versoes.length()").value(3))
+                .andExpect(jsonPath("$.versoes[0].formato").value("MARKDOWN"))
+                .andExpect(jsonPath("$.versoes[1].formato").value("JSON"))
+                .andExpect(jsonPath("$.versoes[2].formato").value("YAML"))
+                .andExpect(jsonPath("$.versoes[2].itens[0].identificador").value("REQ-YAML"))
+                .andExpect(jsonPath("$.versoes[2].itens[0].rastreabilidade[0]").value("ENT.ESCOPO.006"));
+    }
+
     private static org.springframework.http.HttpHeaders cabecalhosResponsavel() {
         org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
         headers.add("X-Athena-Usuario", "responsavel");
         headers.add("X-Athena-Unidade", "DITEC");
         return headers;
+    }
+
+    private static org.springframework.http.HttpHeaders cabecalhosAdministrador() {
+        org.springframework.http.HttpHeaders headers = cabecalhosResponsavel();
+        headers.add("X-Athena-Autorizacoes", "ATHENA_ADMINISTRAR");
+        return headers;
+    }
+
+    private static String corpoIngestao(String formato, String conteudoOriginal, String itemId, String itemConteudo) {
+        return """
+                {
+                  "identificadorDocumento": "DOC-INGESTAO",
+                  "tituloDocumento": "Documento ingerido",
+                  "grupo": "Integracao",
+                  "categoria": "Documento interno",
+                  "finalidade": "Ingestao governada",
+                  "apresentacao": "Documento versionado por endpoint interno",
+                  "formato": "%s",
+                  "conteudoOriginal": "%s",
+                  "origem": "contrato-governado-interno",
+                  "representacaoInterna": [
+                    {
+                      "identificador": "%s",
+                      "titulo": "Item %s",
+                      "conteudo": "%s",
+                      "fontesRastreabilidade": ["ENT.ESCOPO.006", "BL.US.006"]
+                    }
+                  ]
+                }
+                """.formatted(formato, conteudoOriginal.replace("\"", "\\\""), itemId, itemId, itemConteudo);
     }
 
     private static void registrarProjetoDocumentalPersistente(PersistenciaTransacionalAthena persistencia) {
@@ -346,6 +430,25 @@ class AthenaHttpControllerTest {
                 agora,
                 UUID.randomUUID()
         ));
+    }
+
+    private static void registrarProjetoPersistenteSemDocumento(JdbcTemplate jdbc) {
+        UUID usuarioId = UUID.randomUUID();
+        UUID projetoId = UUID.randomUUID();
+        OffsetDateTime agora = OffsetDateTime.parse("2026-08-27T10:00:00-03:00");
+        jdbc.update("""
+                INSERT INTO athena.usuarioinstitucional (id, identificador, nome, login, unidade)
+                VALUES (?, ?, ?, ?, ?)
+                """, usuarioId, "usuario-responsavel", "Responsavel Tecnico", "responsavel", "DITEC");
+        jdbc.update("""
+                INSERT INTO athena.projeto (id, identificador, nome, descricao, situacao, criadoem, criadoporid)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, projetoId, "ATHENA", "Athena", "Projeto persistido para ingestao operacional.", "ATIVO", agora, usuarioId);
+        jdbc.update("""
+                INSERT INTO athena.vinculoprojeto
+                    (id, projetoid, usuarioid, papel, unidade, inicioem, registradoporid)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, UUID.randomUUID(), projetoId, usuarioId, "RESPONSAVEL_TECNICO", "DITEC", agora, usuarioId);
     }
 
     private static void criarEsquemaPersistente(JdbcTemplate jdbc) {
