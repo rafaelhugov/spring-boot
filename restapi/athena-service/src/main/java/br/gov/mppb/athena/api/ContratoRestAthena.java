@@ -48,6 +48,26 @@ public record ContratoRestAthena(
         return PoliticaSegurancaAthena.autorizar(projeto, contexto, operacaoAutorizacao);
     }
 
+    @Override
+    public Set<String> entradas() {
+        return Set.copyOf(entradas);
+    }
+
+    @Override
+    public Set<String> saidas() {
+        return Set.copyOf(saidas);
+    }
+
+    @Override
+    public List<ErroFuncionalApi> errosFuncionais() {
+        return List.copyOf(errosFuncionais);
+    }
+
+    @Override
+    public Set<String> fontesRastreabilidade() {
+        return Set.copyOf(fontesRastreabilidade);
+    }
+
     private static Set<String> copiarConjuntoObrigatorio(Set<String> valores, String campo) {
         if (valores == null || valores.isEmpty()) {
             throw new IllegalArgumentException(campo + " devem ser informadas.");

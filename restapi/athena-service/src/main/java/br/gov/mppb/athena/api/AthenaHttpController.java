@@ -63,7 +63,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/projetos")
-public class AthenaHttpController {
+public final class AthenaHttpController {
 
     private final ServicoAvaliacaoConfirmacao avaliacoes = new ServicoAvaliacaoConfirmacao();
     private final ServicoConsultaParticipantesCorporativos consultaParticipantes;

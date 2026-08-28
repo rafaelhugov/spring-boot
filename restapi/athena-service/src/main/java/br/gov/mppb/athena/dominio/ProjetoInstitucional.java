@@ -41,4 +41,14 @@ public record ProjetoInstitucional(
         }
         return Set.copyOf(valores);
     }
+
+    @Override
+    public Set<String> unidades() {
+        return Set.copyOf(unidades);
+    }
+
+    @Override
+    public Set<ParticipanteProjeto> participantes() {
+        return Set.copyOf(participantes);
+    }
 }
