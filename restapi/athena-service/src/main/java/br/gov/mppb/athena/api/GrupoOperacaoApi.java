@@ -9,5 +9,6 @@ public enum GrupoOperacaoApi {
     PEDIDO_AJUSTE,
     CONFIRMACAO,
     HISTORICO,
+    AUDITORIA,
     PARTICIPANTE
 }

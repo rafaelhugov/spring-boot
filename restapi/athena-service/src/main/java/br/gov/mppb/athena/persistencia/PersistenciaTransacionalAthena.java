@@ -95,6 +95,21 @@ public class PersistenciaTransacionalAthena {
         });
     }
 
+    public void registrarLeituraTecnica(
+            UUID projetoId,
+            UUID documentoId,
+            UUID itemId,
+            UUID usuarioId,
+            String tipo,
+            OffsetDateTime ocorridoEm
+    ) {
+        transacao.executeWithoutResult(status -> jdbc.update("""
+                INSERT INTO athena.eventoauditoria
+                    (id, projetoid, documentoid, itemid, usuarioid, tipo, dados, ocorridoem, registradoporid)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, UUID.randomUUID(), projetoId, documentoId, itemId, usuarioId, tipo, "{}", ocorridoEm, usuarioId));
+    }
+
     public void atualizarSituacaoProjeto(UUID projetoId, String situacao, UUID alteradoPorId, OffsetDateTime alteradoEm) {
         transacao.executeWithoutResult(status -> jdbc.update("""
                 UPDATE athena.projeto
@@ -241,6 +256,45 @@ public class PersistenciaTransacionalAthena {
                 "documento", valorOuVazio(rs.getString("documentoidentificador")),
                 "item", valorOuVazio(rs.getString("itemidentificador"))
         ), documentoId);
+    }
+
+    public List<Map<String, Object>> listarEventosAuditoriaProjeto(UUID projetoId, String identificadorDocumento) {
+        Object[] argumentos = identificadorDocumento == null || identificadorDocumento.isBlank()
+                ? new Object[] {projetoId, projetoId}
+                : new Object[] {projetoId, projetoId, identificadorDocumento};
+        String filtroDocumento = identificadorDocumento == null || identificadorDocumento.isBlank()
+                ? ""
+                : " AND d.identificador = ?";
+        return jdbc.query("""
+                SELECT e.id, e.tipo, e.decisao, e.justificativa, e.ocorridoem,
+                       p.identificador AS projetoidentificador,
+                       d.identificador AS documentoidentificador,
+                       i.identificador AS itemidentificador,
+                       u.login AS usuariologin
+                  FROM athena.eventoauditoria e
+                  LEFT JOIN athena.itemdocumental i ON i.id = e.itemid
+                  LEFT JOIN athena.versaodocumento v ON v.id = i.versaoid
+                  LEFT JOIN athena.documento d ON d.id = COALESCE(e.documentoid, v.documentoid)
+                  LEFT JOIN athena.projeto p ON p.id = COALESCE(e.projetoid, d.projetoid)
+                  LEFT JOIN athena.usuarioinstitucional u ON u.id = e.usuarioid
+                 WHERE (e.projetoid = ? OR d.projetoid = ?)
+                %s
+                 ORDER BY e.ocorridoem, e.id
+                """.formatted(filtroDocumento), (rs, linha) -> Map.of(
+                "correlacao", rs.getString("id"),
+                "autorTecnico", valorOuVazio(rs.getString("usuariologin")),
+                "projeto", valorOuVazio(rs.getString("projetoidentificador")),
+                "documento", valorOuVazio(rs.getString("documentoidentificador")),
+                "recurso", recursoAuditado(rs),
+                "acao", rs.getString("tipo"),
+                "resultado", "REGISTRADO",
+                "detalhes", Map.of(
+                        "decisao", valorOuVazio(rs.getString("decisao")),
+                        "justificativa", valorOuVazio(rs.getString("justificativa"))
+                ),
+                "ocorridoEm", horario(rs, "ocorridoem"),
+                "politicaRetencao", "PENDENTE_DEFINICAO_INSTITUCIONAL"
+        ), argumentos);
     }
 
     public List<Map<String, String>> listarRelacoesDocumento(UUID documentoId) {
@@ -470,5 +524,17 @@ public class PersistenciaTransacionalAthena {
 
     private static String valorOuVazio(String valor) {
         return valor == null ? "" : valor;
+    }
+
+    private static String recursoAuditado(ResultSet rs) throws SQLException {
+        String item = rs.getString("itemidentificador");
+        if (item != null && !item.isBlank()) {
+            return item;
+        }
+        String documento = rs.getString("documentoidentificador");
+        if (documento != null && !documento.isBlank()) {
+            return documento;
+        }
+        return valorOuVazio(rs.getString("projetoidentificador"));
     }
 }
