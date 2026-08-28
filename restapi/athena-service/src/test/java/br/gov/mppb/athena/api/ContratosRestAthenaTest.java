@@ -30,6 +30,7 @@ class ContratosRestAthenaTest {
                         GrupoOperacaoApi.PEDIDO_AJUSTE,
                         GrupoOperacaoApi.CONFIRMACAO,
                         GrupoOperacaoApi.HISTORICO,
+                        GrupoOperacaoApi.AUDITORIA,
                         GrupoOperacaoApi.PARTICIPANTE
                 );
 
@@ -47,6 +48,7 @@ class ContratosRestAthenaTest {
                         "/api/projetos/{projetoId}/documentos/{documentoId}/ajustes",
                         "/api/projetos/{projetoId}/documentos/{documentoId}/confirmacoes",
                         "/api/projetos/{projetoId}/documentos/{documentoId}/historico",
+                        "/api/projetos/{projetoId}/auditoria",
                         "/api/projetos/{projetoId}/participantes/pesquisa"
                 );
     }

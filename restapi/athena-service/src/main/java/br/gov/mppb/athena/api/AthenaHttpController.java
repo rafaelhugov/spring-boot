@@ -129,6 +129,7 @@ public class AthenaHttpController {
         ProjetoInstitucional projetoAutorizado = autorizar(projetoId, headers, OperacaoProjeto.CONSULTAR);
         if (persistencia != null) {
             DadosDocumentoPersistente documentoPersistente = documentoPersistente(uuidProjeto(projetoAutorizado), documentoId);
+            registrarLeitura(projetoAutorizado, contexto(headers), documentoPersistente, null, "LEITURA_DOCUMENTO");
             return respostaDocumentoDetalhadoPersistente(documentoPersistente);
         }
         validarDocumento(documentoId);
@@ -148,6 +149,7 @@ public class AthenaHttpController {
             DadosItemDocumentalPersistente itemPersistente = persistencia.consultarItem(documentoPersistente.id(), itemId)
                     .orElseThrow(() -> new RespostaApiException(HttpStatus.NOT_FOUND, "RECURSO_NAO_ENCONTRADO",
                             "item inexistente no contexto autorizado."));
+            registrarLeitura(projetoAutorizado, contexto(headers), documentoPersistente, itemPersistente.id(), "LEITURA_ITEM_DOCUMENTAL");
             return respostaItemPersistente(itemPersistente);
         }
         validarDocumento(documentoId);
@@ -405,6 +407,21 @@ public class AthenaHttpController {
         return Map.of("eventos", avaliacoes.historico());
     }
 
+    @GetMapping("/{projetoId}/auditoria")
+    public Map<String, Object> consultarAuditoriaTecnica(
+            @PathVariable String projetoId,
+            @RequestParam(required = false) String documentoId,
+            @RequestHeader Map<String, String> headers
+    ) {
+        if (persistencia == null) {
+            throw new RespostaApiException(HttpStatus.UNPROCESSABLE_ENTITY, "REGRA_FUNCIONAL_VIOLADA",
+                    "auditoria tecnica operacional exige persistencia transacional configurada.");
+        }
+        ProjetoInstitucional projetoAutorizado = autorizar(projetoId, headers, OperacaoProjeto.CONSULTAR);
+        UUID projetoPersistenteId = uuidProjeto(projetoAutorizado);
+        return Map.of("eventos", persistencia.listarEventosAuditoriaProjeto(projetoPersistenteId, documentoId));
+    }
+
     @GetMapping("/{projetoId}/participantes/pesquisa")
     public Map<String, Object> pesquisarParticipantes(
             @PathVariable String projetoId,
@@ -574,6 +591,24 @@ public class AthenaHttpController {
                 "autor", usuarioPersistente.login(),
                 "registradaEm", registradaEm
         ));
+    }
+
+    private void registrarLeitura(
+            ProjetoInstitucional projetoAutorizado,
+            ContextoAutorizacaoInstitucional contexto,
+            DadosDocumentoPersistente documentoPersistente,
+            UUID itemId,
+            String tipo
+    ) {
+        DadosParticipanteProjetoPersistente usuarioPersistente = usuarioPersistenteAtual(projetoAutorizado, contexto);
+        persistencia.registrarLeituraTecnica(
+                uuidProjeto(projetoAutorizado),
+                documentoPersistente.id(),
+                itemId,
+                usuarioPersistente.id(),
+                tipo,
+                OffsetDateTime.now()
+        );
     }
 
     private ItemDocumental item(String itemId) {

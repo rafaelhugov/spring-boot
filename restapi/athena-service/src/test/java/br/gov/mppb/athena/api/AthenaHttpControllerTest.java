@@ -319,6 +319,64 @@ class AthenaHttpControllerTest {
                 .andExpect(jsonPath("$.versoes[2].itens[0].rastreabilidade[0]").value("ENT.ESCOPO.006"));
     }
 
+    @Test
+    void deveConsultarAuditoriaTecnicaOperacionalSemExporDadoSensivel() throws Exception {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource(
+                "jdbc:h2:mem:athena-api-auditoria-" + UUID.randomUUID()
+                        + ";MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
+                        + ";INIT=CREATE SCHEMA IF NOT EXISTS athena",
+                "sa",
+                ""
+        );
+        dataSource.setDriverClassName("org.h2.Driver");
+        JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+        criarEsquemaPersistente(jdbc);
+        registrarProjetoPersistenteSemDocumento(jdbc);
+        MockMvc mvcPersistente = MockMvcBuilders
+                .standaloneSetup(new AthenaHttpController(new PersistenciaTransacionalAthena(
+                        jdbc,
+                        new DataSourceTransactionManager(dataSource)
+                )))
+                .build();
+
+        mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/ingestoes")
+                        .headers(cabecalhosAdministrador())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoIngestao("MARKDOWN", "# Auditoria", "REQ-AUD", "Auditoria persistida.")))
+                .andExpect(status().isCreated());
+
+        mvcPersistente.perform(get("/api/projetos/ATHENA/documentos/DOC-INGESTAO")
+                        .headers(cabecalhosResponsavel()))
+                .andExpect(status().isOk());
+
+        mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/DOC-INGESTAO/avaliacoes")
+                        .headers(cabecalhosResponsavel())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versao": 1,
+                                  "itemId": "REQ-AUD",
+                                  "decisao": "APROVADO",
+                                  "justificativa": "Avaliacao auditavel."
+                                }
+                                """))
+                .andExpect(status().isCreated());
+
+        mvcPersistente.perform(get("/api/projetos/ATHENA/auditoria")
+                        .headers(cabecalhosResponsavel())
+                        .param("documentoId", "DOC-INGESTAO"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.eventos[0].correlacao").isNotEmpty())
+                .andExpect(jsonPath("$.eventos[0].autorTecnico").value("responsavel"))
+                .andExpect(jsonPath("$.eventos[0].politicaRetencao").value("PENDENTE_DEFINICAO_INSTITUCIONAL"))
+                .andExpect(jsonPath("$.eventos[1].acao").value("LEITURA_DOCUMENTO"))
+                .andExpect(jsonPath("$.eventos[1].recurso").value("DOC-INGESTAO"))
+                .andExpect(jsonPath("$.eventos[2].acao").value("AVALIACAO"))
+                .andExpect(jsonPath("$.eventos[2].recurso").value("REQ-AUD"))
+                .andExpect(content().string(not(containsString("cpf"))))
+                .andExpect(content().string(not(containsString("segredo"))));
+    }
+
     private static org.springframework.http.HttpHeaders cabecalhosResponsavel() {
         org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
         headers.add("X-Athena-Usuario", "responsavel");
