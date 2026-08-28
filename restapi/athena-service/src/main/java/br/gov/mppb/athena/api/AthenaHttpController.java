@@ -23,14 +23,23 @@ import br.gov.mppb.athena.dominio.VersaoDocumento;
 import br.gov.mppb.athena.integracao.ConsultaParticipantesCorporativos;
 import br.gov.mppb.athena.integracao.FonteCorporativaParticipantesInstitucional;
 import br.gov.mppb.athena.integracao.ServicoConsultaParticipantesCorporativos;
+import br.gov.mppb.athena.persistencia.DadosDocumentoPersistente;
+import br.gov.mppb.athena.persistencia.DadosItemDocumentalPersistente;
+import br.gov.mppb.athena.persistencia.DadosParticipanteProjetoPersistente;
+import br.gov.mppb.athena.persistencia.DadosProjetoPersistente;
+import br.gov.mppb.athena.persistencia.DadosVersaoDocumentoPersistente;
+import br.gov.mppb.athena.persistencia.PersistenciaTransacionalAthena;
 import br.gov.mppb.athena.seguranca.ContextoAutorizacaoInstitucional;
 import br.gov.mppb.athena.seguranca.OperacaoProjeto;
 import br.gov.mppb.athena.seguranca.PoliticaSegurancaAthena;
 import br.gov.mppb.athena.seguranca.ResultadoAutorizacao;
 import java.time.OffsetDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -49,18 +58,29 @@ public class AthenaHttpController {
 
     private final ServicoAvaliacaoConfirmacao avaliacoes = new ServicoAvaliacaoConfirmacao();
     private final ServicoConsultaParticipantesCorporativos consultaParticipantes;
+    private final PersistenciaTransacionalAthena persistencia;
     private final UsuarioInstitucional responsavel = usuario("usuario-avaliador", "avaliador", "DITEC");
     private final ProjetoInstitucional projeto = projeto();
     private final Documento documento = documento();
 
     public AthenaHttpController() {
-        this(new ServicoConsultaParticipantesCorporativos(FonteCorporativaParticipantesInstitucional.cadastroGovernadoPadrao()));
+        this(null, new ServicoConsultaParticipantesCorporativos(FonteCorporativaParticipantesInstitucional.cadastroGovernadoPadrao()));
+    }
+
+    @Autowired
+    public AthenaHttpController(PersistenciaTransacionalAthena persistencia) {
+        this(persistencia, new ServicoConsultaParticipantesCorporativos(FonteCorporativaParticipantesInstitucional.cadastroGovernadoPadrao()));
     }
 
     AthenaHttpController(ServicoConsultaParticipantesCorporativos consultaParticipantes) {
+        this(null, consultaParticipantes);
+    }
+
+    AthenaHttpController(PersistenciaTransacionalAthena persistencia, ServicoConsultaParticipantesCorporativos consultaParticipantes) {
         if (consultaParticipantes == null) {
             throw new IllegalArgumentException("servico de consulta corporativa deve ser informado.");
         }
+        this.persistencia = persistencia;
         this.consultaParticipantes = consultaParticipantes;
     }
 
@@ -69,7 +89,10 @@ public class AthenaHttpController {
             @PathVariable String projetoId,
             @RequestHeader Map<String, String> headers
     ) {
-        autorizar(projetoId, headers, OperacaoProjeto.CONSULTAR);
+        ProjetoInstitucional projetoAutorizado = autorizar(projetoId, headers, OperacaoProjeto.CONSULTAR);
+        if (persistencia != null) {
+            return respostaProjetoPersistente(projetoAutorizado);
+        }
         return respostaProjeto();
     }
 
@@ -78,7 +101,13 @@ public class AthenaHttpController {
             @PathVariable String projetoId,
             @RequestHeader Map<String, String> headers
     ) {
-        autorizar(projetoId, headers, OperacaoProjeto.CONSULTAR);
+        ProjetoInstitucional projetoAutorizado = autorizar(projetoId, headers, OperacaoProjeto.CONSULTAR);
+        if (persistencia != null) {
+            return Map.of("documentos", persistencia.listarDocumentosProjeto(uuidProjeto(projetoAutorizado))
+                    .stream()
+                    .map(this::respostaDocumentoResumidoPersistente)
+                    .toList());
+        }
         return Map.of("documentos", List.of(respostaDocumentoResumido()));
     }
 
@@ -88,7 +117,11 @@ public class AthenaHttpController {
             @PathVariable String documentoId,
             @RequestHeader Map<String, String> headers
     ) {
-        autorizar(projetoId, headers, OperacaoProjeto.CONSULTAR);
+        ProjetoInstitucional projetoAutorizado = autorizar(projetoId, headers, OperacaoProjeto.CONSULTAR);
+        if (persistencia != null) {
+            DadosDocumentoPersistente documentoPersistente = documentoPersistente(uuidProjeto(projetoAutorizado), documentoId);
+            return respostaDocumentoDetalhadoPersistente(documentoPersistente);
+        }
         validarDocumento(documentoId);
         return respostaDocumentoDetalhado();
     }
@@ -100,7 +133,14 @@ public class AthenaHttpController {
             @PathVariable String itemId,
             @RequestHeader Map<String, String> headers
     ) {
-        autorizar(projetoId, headers, OperacaoProjeto.CONSULTAR);
+        ProjetoInstitucional projetoAutorizado = autorizar(projetoId, headers, OperacaoProjeto.CONSULTAR);
+        if (persistencia != null) {
+            DadosDocumentoPersistente documentoPersistente = documentoPersistente(uuidProjeto(projetoAutorizado), documentoId);
+            DadosItemDocumentalPersistente itemPersistente = persistencia.consultarItem(documentoPersistente.id(), itemId)
+                    .orElseThrow(() -> new RespostaApiException(HttpStatus.NOT_FOUND, "RECURSO_NAO_ENCONTRADO",
+                            "item inexistente no contexto autorizado."));
+            return respostaItemPersistente(itemPersistente);
+        }
         validarDocumento(documentoId);
         ItemDocumental item = item(itemId);
         return Map.of(
@@ -119,10 +159,15 @@ public class AthenaHttpController {
             @RequestHeader Map<String, String> headers,
             @RequestBody Map<String, Object> corpo
     ) {
-        validarDocumento(documentoId);
+        ProjetoInstitucional projetoAutorizado = projetoValidado(projetoId);
+        if (persistencia != null) {
+            documentoPersistente(uuidProjeto(projetoAutorizado), documentoId);
+        } else {
+            validarDocumento(documentoId);
+        }
         ContextoAutorizacaoInstitucional contexto = contexto(headers);
         AvaliacaoRegistrada avaliacao = avaliacoes.registrarAvaliacao(
-                projetoValidado(projetoId),
+                projetoAutorizado,
                 contexto,
                 new ComandoRegistrarAvaliacao(
                         new ReferenciaAvaliacaoDocumental(
@@ -180,17 +225,46 @@ public class AthenaHttpController {
                 .body(Map.of("codigo", "REGRA_FUNCIONAL_VIOLADA", "mensagem", exc.getMessage()));
     }
 
-    private void autorizar(String projetoId, Map<String, String> headers, OperacaoProjeto operacao) {
-        ResultadoAutorizacao resultado = PoliticaSegurancaAthena.autorizar(projetoValidado(projetoId), contexto(headers), operacao);
+    private ProjetoInstitucional autorizar(String projetoId, Map<String, String> headers, OperacaoProjeto operacao) {
+        ProjetoInstitucional projetoAutorizado = projetoValidado(projetoId);
+        ResultadoAutorizacao resultado = PoliticaSegurancaAthena.autorizar(projetoAutorizado, contexto(headers), operacao);
         if (!resultado.permitido() && resultado.motivo().contains("identidade institucional")) {
             throw new RespostaApiException(HttpStatus.UNAUTHORIZED, "IDENTIDADE_INSTITUCIONAL_AUSENTE", resultado.motivo());
         }
         if (!resultado.permitido()) {
             throw new RespostaApiException(HttpStatus.FORBIDDEN, "OPERACAO_NAO_AUTORIZADA", resultado.motivo());
         }
+        return projetoAutorizado;
     }
 
     private ProjetoInstitucional projetoValidado(String projetoId) {
+        if (persistencia != null) {
+            DadosProjetoPersistente projetoPersistente = persistencia.consultarProjetoPorIdentificador(projetoId)
+                    .orElseThrow(() -> new RespostaApiException(HttpStatus.NOT_FOUND, "RECURSO_NAO_ENCONTRADO",
+                            "projeto inexistente no contexto autorizado."));
+            List<DadosParticipanteProjetoPersistente> participantesPersistentes =
+                    persistencia.listarParticipantesProjeto(projetoPersistente.id());
+            if (participantesPersistentes.isEmpty()) {
+                throw new RespostaApiException(HttpStatus.NOT_FOUND, "RECURSO_NAO_ENCONTRADO",
+                        "projeto sem vinculo operacional consultavel.");
+            }
+            UsuarioInstitucional criador = usuarioPersistente(participantesPersistentes.stream()
+                    .filter(participante -> participante.id().equals(projetoPersistente.criadoPorId()))
+                    .findFirst()
+                    .orElse(participantesPersistentes.get(0)));
+            return new ProjetoInstitucional(
+                    new IdentificadorProjeto(projetoPersistente.identificador()),
+                    projetoPersistente.nome(),
+                    projetoPersistente.descricao(),
+                    participantesPersistentes.stream().map(DadosParticipanteProjetoPersistente::unidade).collect(java.util.stream.Collectors.toSet()),
+                    participantesPersistentes.stream()
+                            .map(participante -> new ParticipanteProjeto(usuarioPersistente(participante), PapelProjeto.valueOf(participante.papel())))
+                            .collect(java.util.stream.Collectors.toSet()),
+                    SituacaoProjeto.valueOf(projetoPersistente.situacao()),
+                    projetoPersistente.criadoEm(),
+                    criador
+            );
+        }
         if (!projeto.identificador().valor().equals(projetoId)) {
             throw new RespostaApiException(HttpStatus.NOT_FOUND, "RECURSO_NAO_ENCONTRADO", "projeto inexistente no contexto autorizado.");
         }
@@ -201,6 +275,12 @@ public class AthenaHttpController {
         if (!documento.identificador().equals(documentoId)) {
             throw new RespostaApiException(HttpStatus.NOT_FOUND, "RECURSO_NAO_ENCONTRADO", "documento inexistente no contexto autorizado.");
         }
+    }
+
+    private DadosDocumentoPersistente documentoPersistente(UUID projetoId, String documentoId) {
+        return persistencia.consultarDocumento(projetoId, documentoId)
+                .orElseThrow(() -> new RespostaApiException(HttpStatus.NOT_FOUND, "RECURSO_NAO_ENCONTRADO",
+                        "documento inexistente no contexto autorizado."));
     }
 
     private ItemDocumental item(String itemId) {
@@ -246,6 +326,82 @@ public class AthenaHttpController {
                 "situacao", projeto.situacao().name(),
                 "criadoEm", projeto.criadoEm(),
                 "criadoPor", responsavel.login()
+        );
+    }
+
+    private Map<String, Object> respostaProjetoPersistente(ProjetoInstitucional projetoAutorizado) {
+        UUID projetoId = uuidProjeto(projetoAutorizado);
+        Map<String, Long> indicadores = persistencia.calcularIndicadoresProjeto(projetoId);
+        return Map.of(
+                "identificador", projetoAutorizado.identificador().valor(),
+                "nome", projetoAutorizado.nome(),
+                "descricao", projetoAutorizado.descricao(),
+                "unidades", projetoAutorizado.unidades(),
+                "participantes", projetoAutorizado.participantes().stream()
+                        .map(participante -> Map.of(
+                                "nome", participante.usuario().nome(),
+                                "login", participante.usuario().login(),
+                                "unidade", participante.usuario().unidade(),
+                                "papel", participante.papel().name()
+                        ))
+                        .toList(),
+                "situacao", projetoAutorizado.situacao().name(),
+                "criadoEm", projetoAutorizado.criadoEm(),
+                "criadoPor", projetoAutorizado.criadoPor().login(),
+                "indicadores", indicadores
+        );
+    }
+
+    private Map<String, Object> respostaDocumentoResumidoPersistente(DadosDocumentoPersistente documentoPersistente) {
+        return Map.of(
+                "identificador", documentoPersistente.identificador(),
+                "titulo", documentoPersistente.titulo(),
+                "grupo", documentoPersistente.grupo(),
+                "categoria", documentoPersistente.categoria(),
+                "finalidade", documentoPersistente.finalidade(),
+                "apresentacao", documentoPersistente.apresentacao(),
+                "relacoesRecebidas", persistencia.listarRelacoesDocumento(documentoPersistente.id())
+        );
+    }
+
+    private Map<String, Object> respostaDocumentoDetalhadoPersistente(DadosDocumentoPersistente documentoPersistente) {
+        return Map.of(
+                "identificador", documentoPersistente.identificador(),
+                "titulo", documentoPersistente.titulo(),
+                "metadados", Map.of(
+                        "grupo", documentoPersistente.grupo(),
+                        "categoria", documentoPersistente.categoria(),
+                        "finalidade", documentoPersistente.finalidade(),
+                        "apresentacao", documentoPersistente.apresentacao()
+                ),
+                "versoes", persistencia.listarVersoesDocumento(documentoPersistente.id()).stream()
+                        .map(this::respostaVersaoPersistente)
+                        .toList(),
+                "relacoesRecebidas", persistencia.listarRelacoesDocumento(documentoPersistente.id())
+        );
+    }
+
+    private Map<String, Object> respostaVersaoPersistente(DadosVersaoDocumentoPersistente versao) {
+        return Map.of(
+                "numero", versao.numero(),
+                "formato", versao.formato(),
+                "conteudoOriginal", versao.conteudoOriginal(),
+                "recebidaEm", versao.recebidaEm(),
+                "itens", persistencia.listarItensDocumento(versao.documentoId()).stream()
+                        .filter(item -> item.versaoId().equals(versao.id()))
+                        .sorted(Comparator.comparingInt(DadosItemDocumentalPersistente::ordem))
+                        .map(this::respostaItemPersistente)
+                        .toList()
+        );
+    }
+
+    private Map<String, Object> respostaItemPersistente(DadosItemDocumentalPersistente item) {
+        return Map.of(
+                "identificador", item.identificador(),
+                "titulo", item.titulo(),
+                "conteudo", item.conteudo(),
+                "rastreabilidade", item.fontesRastreabilidade(),
+                "relacoesRecebidas", persistencia.listarRelacoesItem(item.id())
         );
     }
 
@@ -332,6 +488,22 @@ public class AthenaHttpController {
 
     private static UsuarioInstitucional usuario(String id, String login, String unidade) {
         return new UsuarioInstitucional(new IdentificadorUsuario(id), "Usuario Institucional", login, unidade);
+    }
+
+    private static UsuarioInstitucional usuarioPersistente(DadosParticipanteProjetoPersistente participante) {
+        return new UsuarioInstitucional(
+                new IdentificadorUsuario(participante.identificador()),
+                participante.nome(),
+                participante.login(),
+                participante.unidade()
+        );
+    }
+
+    private UUID uuidProjeto(ProjetoInstitucional projetoAutorizado) {
+        return persistencia.consultarProjetoPorIdentificador(projetoAutorizado.identificador().valor())
+                .map(DadosProjetoPersistente::id)
+                .orElseThrow(() -> new RespostaApiException(HttpStatus.NOT_FOUND, "RECURSO_NAO_ENCONTRADO",
+                        "projeto inexistente no contexto autorizado."));
     }
 
     private static final class RespostaApiException extends RuntimeException {

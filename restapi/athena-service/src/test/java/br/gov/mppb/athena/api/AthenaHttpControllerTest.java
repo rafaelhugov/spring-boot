@@ -8,8 +8,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import br.gov.mppb.athena.persistencia.DadosDocumentoPersistente;
+import br.gov.mppb.athena.persistencia.DadosItemDocumentalPersistente;
+import br.gov.mppb.athena.persistencia.DadosProjetoPersistente;
+import br.gov.mppb.athena.persistencia.DadosUsuarioPersistente;
+import br.gov.mppb.athena.persistencia.DadosVersaoDocumentoPersistente;
+import br.gov.mppb.athena.persistencia.DadosVinculoProjetoPersistente;
+import br.gov.mppb.athena.persistencia.PersistenciaTransacionalAthena;
+import br.gov.mppb.athena.persistencia.RegistroHistoricoDocumental;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -113,5 +127,261 @@ class AthenaHttpControllerTest {
                         .param("termo", "ana"))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.codigo").value("OPERACAO_NAO_AUTORIZADA"));
+    }
+
+    @Test
+    void deveConsultarProjetoDocumentoEItemPersistidosPorHttpSemMassaEmMemoria() throws Exception {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource(
+                "jdbc:h2:mem:athena-api-" + UUID.randomUUID()
+                        + ";MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
+                        + ";INIT=CREATE SCHEMA IF NOT EXISTS athena",
+                "sa",
+                ""
+        );
+        dataSource.setDriverClassName("org.h2.Driver");
+        JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+        criarEsquemaPersistente(jdbc);
+        PersistenciaTransacionalAthena persistencia = new PersistenciaTransacionalAthena(
+                jdbc,
+                new DataSourceTransactionManager(dataSource)
+        );
+        registrarProjetoDocumentalPersistente(persistencia);
+        MockMvc mvcPersistente = MockMvcBuilders
+                .standaloneSetup(new AthenaHttpController(persistencia))
+                .build();
+
+        mvcPersistente.perform(get("/api/projetos/ATHENA")
+                        .header("X-Athena-Usuario", "responsavel")
+                        .header("X-Athena-Unidade", "DITEC"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.indicadores.documentos").value(1))
+                .andExpect(jsonPath("$.indicadores.versoes").value(1))
+                .andExpect(jsonPath("$.indicadores.participantes").value(1));
+
+        mvcPersistente.perform(get("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO/itens/ITEM-PERSISTIDO")
+                        .header("X-Athena-Usuario", "responsavel")
+                        .header("X-Athena-Unidade", "DITEC"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.identificador").value("ITEM-PERSISTIDO"))
+                .andExpect(jsonPath("$.conteudo").value("Conteudo persistido e consultado por HTTP."))
+                .andExpect(jsonPath("$.rastreabilidade[0]").value("ESP.REQ.001"))
+                .andExpect(content().string(not(containsString("DOC-ENTENDIMENTO"))));
+    }
+
+    private static void registrarProjetoDocumentalPersistente(PersistenciaTransacionalAthena persistencia) {
+        OffsetDateTime agora = OffsetDateTime.parse("2026-08-27T10:00:00-03:00");
+        UUID usuarioId = UUID.randomUUID();
+        UUID projetoId = UUID.randomUUID();
+        UUID documentoId = UUID.randomUUID();
+        UUID versaoId = UUID.randomUUID();
+        UUID itemId = UUID.randomUUID();
+        DadosUsuarioPersistente usuario = new DadosUsuarioPersistente(
+                usuarioId,
+                "usuario-responsavel",
+                "Responsavel Tecnico",
+                "responsavel",
+                "DITEC"
+        );
+        DadosProjetoPersistente projeto = new DadosProjetoPersistente(
+                projetoId,
+                "ATHENA",
+                "Athena",
+                "Projeto persistido para consulta operacional.",
+                "ATIVO",
+                agora,
+                usuarioId
+        );
+        DadosVinculoProjetoPersistente vinculo = new DadosVinculoProjetoPersistente(
+                UUID.randomUUID(),
+                projetoId,
+                usuarioId,
+                "RESPONSAVEL_TECNICO",
+                "DITEC",
+                agora,
+                usuarioId
+        );
+        DadosDocumentoPersistente documento = new DadosDocumentoPersistente(
+                documentoId,
+                "DOC-PERSISTIDO",
+                projetoId,
+                "Documento persistido",
+                "Especificacao",
+                "Requisito",
+                "Consulta operacional",
+                "Arvore documental",
+                agora,
+                usuarioId
+        );
+        DadosVersaoDocumentoPersistente versao = new DadosVersaoDocumentoPersistente(
+                versaoId,
+                documentoId,
+                1,
+                "MARKDOWN",
+                "Conteudo original persistido.",
+                "hash-persistido",
+                agora,
+                usuarioId,
+                "teste integrado"
+        );
+        DadosItemDocumentalPersistente item = new DadosItemDocumentalPersistente(
+                itemId,
+                versaoId,
+                "ITEM-PERSISTIDO",
+                "Item persistido",
+                "Conteudo persistido e consultado por HTTP.",
+                1,
+                List.of("ESP.REQ.001", "SOL.API.001")
+        );
+        persistencia.registrarHistoricoDocumental(new RegistroHistoricoDocumental(
+                usuario,
+                projeto,
+                vinculo,
+                documento,
+                versao,
+                List.of(item),
+                agora,
+                UUID.randomUUID()
+        ));
+    }
+
+    private static void criarEsquemaPersistente(JdbcTemplate jdbc) {
+        jdbc.execute("""
+                CREATE TABLE athena.usuarioinstitucional (
+                    id UUID PRIMARY KEY,
+                    identificador VARCHAR(120) NOT NULL UNIQUE,
+                    nome VARCHAR(200) NOT NULL,
+                    login VARCHAR(120) NOT NULL UNIQUE,
+                    unidade VARCHAR(80) NOT NULL
+                )
+                """);
+        jdbc.execute("""
+                CREATE TABLE athena.projeto (
+                    id UUID PRIMARY KEY,
+                    identificador VARCHAR(80) NOT NULL UNIQUE,
+                    nome VARCHAR(200) NOT NULL,
+                    descricao CLOB NOT NULL,
+                    situacao VARCHAR(40) NOT NULL,
+                    criadoem TIMESTAMP WITH TIME ZONE NOT NULL,
+                    criadoporid UUID NOT NULL,
+                    alteradoem TIMESTAMP WITH TIME ZONE,
+                    alteradoporid UUID
+                )
+                """);
+        jdbc.execute("""
+                CREATE TABLE athena.vinculoprojeto (
+                    id UUID PRIMARY KEY,
+                    projetoid UUID NOT NULL,
+                    usuarioid UUID NOT NULL,
+                    papel VARCHAR(60) NOT NULL,
+                    unidade VARCHAR(80) NOT NULL,
+                    inicioem TIMESTAMP WITH TIME ZONE NOT NULL,
+                    fimem TIMESTAMP WITH TIME ZONE,
+                    registradoporid UUID NOT NULL
+                )
+                """);
+        jdbc.execute("""
+                CREATE TABLE athena.documento (
+                    id UUID PRIMARY KEY,
+                    identificador VARCHAR(120) NOT NULL,
+                    projetoid UUID NOT NULL,
+                    titulo VARCHAR(240) NOT NULL,
+                    grupo VARCHAR(120) NOT NULL,
+                    categoria VARCHAR(120) NOT NULL,
+                    finalidade VARCHAR(240) NOT NULL,
+                    apresentacao VARCHAR(240) NOT NULL,
+                    criadoem TIMESTAMP WITH TIME ZONE NOT NULL,
+                    criadoporid UUID NOT NULL
+                )
+                """);
+        jdbc.execute("""
+                CREATE TABLE athena.versaodocumento (
+                    id UUID PRIMARY KEY,
+                    documentoid UUID NOT NULL,
+                    numero INTEGER NOT NULL CHECK (numero > 0),
+                    formato VARCHAR(40) NOT NULL,
+                    conteudooriginal CLOB NOT NULL,
+                    hashconteudo VARCHAR(128) NOT NULL,
+                    recebidaem TIMESTAMP WITH TIME ZONE NOT NULL,
+                    recebidaporid UUID NOT NULL,
+                    origemexterna VARCHAR(240)
+                )
+                """);
+        jdbc.execute("""
+                CREATE TABLE athena.itemdocumental (
+                    id UUID PRIMARY KEY,
+                    versaoid UUID NOT NULL,
+                    identificador VARCHAR(160) NOT NULL,
+                    titulo VARCHAR(240) NOT NULL,
+                    conteudo CLOB NOT NULL,
+                    ordem INTEGER NOT NULL CHECK (ordem > 0),
+                    fontesrastreabilidade VARCHAR ARRAY NOT NULL
+                )
+                """);
+        jdbc.execute("""
+                CREATE TABLE athena.relacaorecebida (
+                    id UUID PRIMARY KEY,
+                    documentoid UUID,
+                    itemid UUID,
+                    tipo VARCHAR(80) NOT NULL,
+                    recursorelacionado VARCHAR(160) NOT NULL
+                )
+                """);
+        jdbc.execute("""
+                CREATE TABLE athena.avaliacao (
+                    id UUID PRIMARY KEY,
+                    itemid UUID NOT NULL,
+                    responsavelid UUID NOT NULL,
+                    decisao VARCHAR(80) NOT NULL,
+                    justificativa CLOB NOT NULL,
+                    avaliadaem TIMESTAMP WITH TIME ZONE NOT NULL
+                )
+                """);
+        jdbc.execute("""
+                CREATE TABLE athena.comentario (
+                    id UUID PRIMARY KEY,
+                    itemid UUID NOT NULL,
+                    autorid UUID NOT NULL,
+                    conteudo CLOB NOT NULL,
+                    registradoem TIMESTAMP WITH TIME ZONE NOT NULL,
+                    origem VARCHAR(120) NOT NULL
+                )
+                """);
+        jdbc.execute("""
+                CREATE TABLE athena.pedidoajuste (
+                    id UUID PRIMARY KEY,
+                    itemid UUID NOT NULL,
+                    solicitanteid UUID NOT NULL,
+                    descricao CLOB NOT NULL,
+                    justificativa CLOB NOT NULL,
+                    situacao VARCHAR(60) NOT NULL,
+                    solicitadoem TIMESTAMP WITH TIME ZONE NOT NULL
+                )
+                """);
+        jdbc.execute("""
+                CREATE TABLE athena.confirmacao (
+                    id UUID PRIMARY KEY,
+                    itemid UUID NOT NULL,
+                    responsavelid UUID NOT NULL,
+                    decisao VARCHAR(80) NOT NULL,
+                    justificativa CLOB NOT NULL,
+                    confirmadaem TIMESTAMP WITH TIME ZONE NOT NULL
+                )
+                """);
+        jdbc.execute("""
+                CREATE TABLE athena.eventoauditoria (
+                    id UUID PRIMARY KEY,
+                    projetoid UUID,
+                    documentoid UUID,
+                    versaoid UUID,
+                    itemid UUID,
+                    usuarioid UUID,
+                    tipo VARCHAR(100) NOT NULL,
+                    decisao VARCHAR(100),
+                    justificativa CLOB,
+                    dados CLOB DEFAULT '{}' NOT NULL,
+                    ocorridoem TIMESTAMP WITH TIME ZONE NOT NULL,
+                    registradoporid UUID NOT NULL
+                )
+                """);
     }
 }
