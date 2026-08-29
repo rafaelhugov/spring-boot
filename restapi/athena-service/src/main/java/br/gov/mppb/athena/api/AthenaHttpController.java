@@ -4,10 +4,12 @@ import br.gov.mppb.athena.aplicacao.AvaliacaoRegistrada;
 import br.gov.mppb.athena.aplicacao.ComandoConfirmarEntendimento;
 import br.gov.mppb.athena.aplicacao.ComandoRegistrarComentario;
 import br.gov.mppb.athena.aplicacao.ComandoRegistrarPedidoAjuste;
+import br.gov.mppb.athena.aplicacao.ComandoTratarPedidoAjuste;
 import br.gov.mppb.athena.aplicacao.ComentarioRegistrado;
 import br.gov.mppb.athena.aplicacao.ConfirmacaoEntendimentoRegistrada;
 import br.gov.mppb.athena.aplicacao.ComandoRegistrarAvaliacao;
 import br.gov.mppb.athena.aplicacao.DecisaoAvaliacao;
+import br.gov.mppb.athena.aplicacao.EstadoSolicitacaoAjuste;
 import br.gov.mppb.athena.aplicacao.PedidoAjusteRegistrado;
 import br.gov.mppb.athena.aplicacao.ReferenciaAvaliacaoDocumental;
 import br.gov.mppb.athena.aplicacao.ServicoAvaliacaoConfirmacao;
@@ -31,6 +33,7 @@ import br.gov.mppb.athena.integracao.FonteCorporativaParticipantesInstitucional;
 import br.gov.mppb.athena.integracao.ServicoConsultaParticipantesCorporativos;
 import br.gov.mppb.athena.persistencia.DadosDocumentoPersistente;
 import br.gov.mppb.athena.persistencia.DadosItemDocumentalPersistente;
+import br.gov.mppb.athena.persistencia.DadosPedidoAjustePersistente;
 import br.gov.mppb.athena.persistencia.DadosParticipanteProjetoPersistente;
 import br.gov.mppb.athena.persistencia.DadosProjetoPersistente;
 import br.gov.mppb.athena.persistencia.DadosVersaoDocumentoPersistente;
@@ -44,6 +47,7 @@ import br.gov.mppb.athena.seguranca.ResultadoAutorizacao;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -350,6 +354,122 @@ public final class AthenaHttpController {
         return ResponseEntity.status(HttpStatus.CREATED).body(pedido);
     }
 
+    @PostMapping("/{projetoId}/documentos/{documentoId}/ajustes/{pedidoAjusteId}/tratamentos")
+    public ResponseEntity<Object> tratarPedidoAjuste(
+            @PathVariable String projetoId,
+            @PathVariable String documentoId,
+            @PathVariable UUID pedidoAjusteId,
+            @RequestHeader Map<String, String> headers,
+            @RequestBody Map<String, Object> corpo
+    ) {
+        ProjetoInstitucional projetoAutorizado = autorizar(projetoId, headers, OperacaoProjeto.AVALIAR);
+        ContextoAutorizacaoInstitucional contexto = contexto(headers);
+        EstadoSolicitacaoAjuste decisao = EstadoSolicitacaoAjuste.valueOf(textoObrigatorio(corpo, "decisao"));
+        String justificativa = textoOpcional(corpo, "justificativa");
+        if (decisao == EstadoSolicitacaoAjuste.NAO_ACOLHIDA) {
+            justificativa = textoObrigatorio(corpo, "justificativa");
+        }
+        if (persistencia != null) {
+            DadosDocumentoPersistente documentoPersistente = documentoPersistente(uuidProjeto(projetoAutorizado), documentoId);
+            DadosPedidoAjustePersistente pedido = pedidoAjustePersistente(documentoPersistente, pedidoAjusteId);
+            DadosParticipanteProjetoPersistente usuarioPersistente = usuarioPersistenteAtual(projetoAutorizado, contexto);
+            if (!usuarioPersistente.identificador().equals(pedido.responsavelTecnico())
+                    && !usuarioPersistente.login().equals(pedido.responsavelTecnico())) {
+                throw new RespostaApiException(HttpStatus.FORBIDDEN, "OPERACAO_NAO_AUTORIZADA",
+                        "tratamento deve ser realizado pelo responsavel tecnico da solicitacao.");
+            }
+            OffsetDateTime tratadoEm = OffsetDateTime.now();
+            persistencia.tratarPedidoAjuste(pedidoAjusteId, decisao.name(), justificativa, tratadoEm,
+                    usuarioPersistente.id(), UUID.randomUUID());
+            DadosPedidoAjustePersistente tratado = persistencia.consultarPedidoAjuste(pedidoAjusteId)
+                    .orElseThrow(() -> new RespostaApiException(HttpStatus.NOT_FOUND, "RECURSO_NAO_ENCONTRADO",
+                            "pedido de ajuste inexistente no contexto autorizado."));
+            return ResponseEntity.status(HttpStatus.CREATED).body(respostaPedidoAjuste(tratado, documentoPersistente));
+        }
+        validarDocumento(documentoId);
+        PedidoAjusteRegistrado pedido = avaliacoes.registrarPedidoAjuste(
+                projetoAutorizado,
+                contexto,
+                new ComandoRegistrarPedidoAjuste(
+                        referencia(projetoId, documentoId, corpo, "versao"),
+                        contexto.usuario().identificador(),
+                        OffsetDateTime.now(),
+                        textoObrigatorio(corpo, "justificativaSolicitacao")
+                )
+        );
+        PedidoAjusteRegistrado tratado = avaliacoes.tratarPedidoAjuste(
+                projetoAutorizado,
+                contexto,
+                pedido,
+                new ComandoTratarPedidoAjuste(contexto.usuario().identificador(), OffsetDateTime.now(), decisao, justificativa)
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(tratado);
+    }
+
+    @PostMapping("/{projetoId}/documentos/{documentoId}/versoes")
+    public ResponseEntity<Map<String, Object>> criarVersaoVinculada(
+            @PathVariable String projetoId,
+            @PathVariable String documentoId,
+            @RequestHeader Map<String, String> headers,
+            @RequestBody Map<String, Object> corpo
+    ) {
+        if (persistencia == null) {
+            throw new RespostaApiException(HttpStatus.UNPROCESSABLE_ENTITY, "REGRA_FUNCIONAL_VIOLADA",
+                    "criacao operacional de versao vinculada exige persistencia transacional configurada.");
+        }
+        ProjetoInstitucional projetoAutorizado = autorizar(projetoId, headers, OperacaoProjeto.ADMINISTRAR);
+        DadosDocumentoPersistente documentoPersistente = documentoPersistente(uuidProjeto(projetoAutorizado), documentoId);
+        int numeroAnterior = inteiroObrigatorio(corpo, "versaoAnterior");
+        DadosVersaoDocumentoPersistente versaoAnterior = persistencia.consultarVersaoDocumento(documentoPersistente.id(), numeroAnterior)
+                .orElseThrow(() -> new RespostaApiException(HttpStatus.NOT_FOUND, "RECURSO_NAO_ENCONTRADO",
+                        "versao anterior inexistente no contexto autorizado."));
+        if (!versaoAnterior.confirmada()) {
+            throw new RespostaApiException(HttpStatus.UNPROCESSABLE_ENTITY, "REGRA_FUNCIONAL_VIOLADA",
+                    "nova versao vinculada exige versao anterior formalmente confirmada.");
+        }
+        UUID pedidoAjusteId = uuidOpcional(corpo, "pedidoAjusteId");
+        if (pedidoAjusteId != null) {
+            pedidoAjustePersistente(documentoPersistente, pedidoAjusteId);
+        }
+        DadosParticipanteProjetoPersistente usuarioPersistente = usuarioPersistenteAtual(projetoAutorizado, contexto(headers));
+        OffsetDateTime recebidaEm = OffsetDateTime.now();
+        int numeroVersao = persistencia.listarVersoesDocumento(documentoPersistente.id()).stream()
+                .mapToInt(DadosVersaoDocumentoPersistente::numero)
+                .max()
+                .orElse(0) + 1;
+        DadosVersaoDocumentoPersistente versao = novaVersaoPersistente(
+                documentoPersistente.id(),
+                numeroVersao,
+                FormatoDocumento.valueOf(textoObrigatorio(corpo, "formato")).name(),
+                usuarioPersistente.id(),
+                recebidaEm,
+                corpo,
+                versaoAnterior.id(),
+                pedidoAjusteId
+        );
+        List<DadosItemDocumentalPersistente> itens = itensPersistentes(versao.id(), corpo);
+        persistencia.registrarNovaVersaoDocumental(
+                uuidProjeto(projetoAutorizado),
+                usuarioPersistente.id(),
+                versao,
+                itens,
+                recebidaEm,
+                UUID.randomUUID()
+        );
+        if (pedidoAjusteId != null) {
+            persistencia.vincularVersaoResultanteAoPedidoAjuste(pedidoAjusteId, versao.id());
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
+                "documento", documentoPersistente.identificador(),
+                "versao", numeroVersao,
+                "versaoAnterior", numeroAnterior,
+                "versaoAnteriorId", versaoAnterior.id(),
+                "pedidoAjusteOrigemId", pedidoAjusteId == null ? "" : pedidoAjusteId,
+                "itens", itens.stream().map(DadosItemDocumentalPersistente::identificador).toList(),
+                "relacoesRecebidas", persistencia.listarRelacoesDocumento(documentoPersistente.id())
+        ));
+    }
+
     @PostMapping("/{projetoId}/documentos/{documentoId}/confirmacoes")
     public ResponseEntity<Object> confirmarEntendimento(
             @PathVariable String projetoId,
@@ -364,7 +484,7 @@ public final class AthenaHttpController {
             DadosDocumentoPersistente documentoPersistente = documentoPersistente(uuidProjeto(projetoAutorizado), documentoId);
             DadosItemDocumentalPersistente itemPersistente = primeiroItemDaVersao(documentoPersistente, versaoConfirmada);
             DadosParticipanteProjetoPersistente usuarioPersistente = usuarioPersistenteAtual(projetoAutorizado, contexto);
-            return registrarInteracaoPersistente(
+            ResponseEntity<Object> resposta = registrarInteracaoPersistente(
                     projetoAutorizado,
                     documentoPersistente,
                     itemPersistente,
@@ -374,6 +494,13 @@ public final class AthenaHttpController {
                     textoObrigatorio(corpo, "escopo"),
                     textoObrigatorio(corpo, "escopo")
             );
+            persistencia.confirmarVersaoDocumental(
+                    persistencia.consultarVersaoDocumento(documentoPersistente.id(), versaoConfirmada)
+                            .orElseThrow(() -> new RespostaApiException(HttpStatus.NOT_FOUND, "RECURSO_NAO_ENCONTRADO",
+                                    "versao inexistente no contexto autorizado."))
+                            .id()
+            );
+            return resposta;
         }
         validarDocumento(documentoId);
         ConfirmacaoEntendimentoRegistrada confirmacao = avaliacoes.confirmarEntendimento(
@@ -544,6 +671,22 @@ public final class AthenaHttpController {
                         "versao sem item documental consultavel."));
     }
 
+    private DadosPedidoAjustePersistente pedidoAjustePersistente(
+            DadosDocumentoPersistente documentoPersistente,
+            UUID pedidoAjusteId
+    ) {
+        DadosPedidoAjustePersistente pedido = persistencia.consultarPedidoAjuste(pedidoAjusteId)
+                .orElseThrow(() -> new RespostaApiException(HttpStatus.NOT_FOUND, "RECURSO_NAO_ENCONTRADO",
+                        "pedido de ajuste inexistente no contexto autorizado."));
+        boolean pertenceAoDocumento = persistencia.listarItensDocumento(documentoPersistente.id()).stream()
+                .anyMatch(item -> item.id().equals(pedido.itemId()));
+        if (!pertenceAoDocumento) {
+            throw new RespostaApiException(HttpStatus.NOT_FOUND, "RECURSO_NAO_ENCONTRADO",
+                    "pedido de ajuste inexistente no contexto autorizado.");
+        }
+        return pedido;
+    }
+
     private DadosParticipanteProjetoPersistente usuarioPersistenteAtual(
             ProjetoInstitucional projetoAutorizado,
             ContextoAutorizacaoInstitucional contexto
@@ -579,17 +722,23 @@ public final class AthenaHttpController {
                 UUID.randomUUID()
         );
         persistencia.registrarInteracaoHumana(registro);
-        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
-                "projeto", projetoAutorizado.identificador().valor(),
-                "documento", documentoPersistente.identificador(),
-                "item", itemPersistente.identificador(),
-                "tipo", tipo.name(),
-                "decisao", decisao == null ? "" : decisao,
-                "conteudo", conteudo == null ? "" : conteudo,
-                "justificativa", justificativa == null ? "" : justificativa,
-                "autor", usuarioPersistente.login(),
-                "registradaEm", registradaEm
-        ));
+        Map<String, Object> resposta = new LinkedHashMap<>();
+        resposta.put("id", registro.id());
+        resposta.put("projeto", projetoAutorizado.identificador().valor());
+        resposta.put("documento", documentoPersistente.identificador());
+        resposta.put("item", itemPersistente.identificador());
+        resposta.put("tipo", tipo.name());
+        resposta.put("decisao", decisao == null ? "" : decisao);
+        resposta.put("estado", decisao == null ? "" : decisao);
+        resposta.put("conteudo", conteudo == null ? "" : conteudo);
+        resposta.put("justificativa", justificativa == null ? "" : justificativa);
+        resposta.put("autor", usuarioPersistente.login());
+        resposta.put("registradaEm", registradaEm);
+        if (tipo == TipoInteracaoHumana.PEDIDO_AJUSTE) {
+            resposta.put("responsavelTecnico", conteudo == null ? "" : conteudo);
+            resposta.put("solicitadoEm", registradaEm);
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
     }
 
     private void registrarLeitura(
@@ -658,6 +807,19 @@ public final class AthenaHttpController {
             OffsetDateTime recebidaEm,
             Map<String, Object> corpo
     ) {
+        return novaVersaoPersistente(documentoId, numeroVersao, formato, usuarioId, recebidaEm, corpo, null, null);
+    }
+
+    private DadosVersaoDocumentoPersistente novaVersaoPersistente(
+            UUID documentoId,
+            int numeroVersao,
+            String formato,
+            UUID usuarioId,
+            OffsetDateTime recebidaEm,
+            Map<String, Object> corpo,
+            UUID versaoAnteriorId,
+            UUID pedidoAjusteOrigemId
+    ) {
         String conteudoOriginal = textoObrigatorio(corpo, "conteudoOriginal");
         return new DadosVersaoDocumentoPersistente(
                 UUID.randomUUID(),
@@ -668,7 +830,10 @@ public final class AthenaHttpController {
                 Integer.toHexString(conteudoOriginal.hashCode()),
                 recebidaEm,
                 usuarioId,
-                textoObrigatorio(corpo, "origem")
+                textoObrigatorio(corpo, "origem"),
+                versaoAnteriorId,
+                false,
+                pedidoAjusteOrigemId
         );
     }
 
@@ -791,16 +956,40 @@ public final class AthenaHttpController {
 
     private Map<String, Object> respostaVersaoPersistente(DadosVersaoDocumentoPersistente versao) {
         return Map.of(
+                "id", versao.id(),
                 "numero", versao.numero(),
                 "formato", versao.formato(),
                 "conteudoOriginal", versao.conteudoOriginal(),
                 "recebidaEm", versao.recebidaEm(),
+                "confirmada", versao.confirmada(),
+                "versaoAnteriorId", versao.versaoAnteriorId() == null ? "" : versao.versaoAnteriorId(),
+                "pedidoAjusteOrigemId", versao.pedidoAjusteOrigemId() == null ? "" : versao.pedidoAjusteOrigemId(),
                 "itens", persistencia.listarItensDocumento(versao.documentoId()).stream()
                         .filter(item -> item.versaoId().equals(versao.id()))
                         .sorted(Comparator.comparingInt(DadosItemDocumentalPersistente::ordem))
                         .map(this::respostaItemPersistente)
                         .toList()
         );
+    }
+
+    private Map<String, Object> respostaPedidoAjuste(
+            DadosPedidoAjustePersistente pedido,
+            DadosDocumentoPersistente documentoPersistente
+    ) {
+        Map<String, Object> resposta = new LinkedHashMap<>();
+        resposta.put("id", pedido.id());
+        resposta.put("documento", documentoPersistente.identificador());
+        resposta.put("itemId", pedido.itemId());
+        resposta.put("solicitanteId", pedido.solicitanteId());
+        resposta.put("justificativa", pedido.justificativa());
+        resposta.put("estado", pedido.situacao());
+        resposta.put("responsavelTecnico", pedido.responsavelTecnico());
+        resposta.put("solicitadoEm", pedido.solicitadoEm());
+        resposta.put("tratadoEm", pedido.tratadoEm() == null ? "" : pedido.tratadoEm());
+        resposta.put("decisaoTratamento", pedido.decisaoTratamento() == null ? "" : pedido.decisaoTratamento());
+        resposta.put("justificativaTratamento", pedido.justificativaTratamento() == null ? "" : pedido.justificativaTratamento());
+        resposta.put("versaoResultanteId", pedido.versaoResultanteId() == null ? "" : pedido.versaoResultanteId());
+        return resposta;
     }
 
     private Map<String, Object> respostaItemPersistente(DadosItemDocumentalPersistente item) {
@@ -885,6 +1074,14 @@ public final class AthenaHttpController {
             return numero.intValue();
         }
         return Integer.parseInt(textoObrigatorio(corpo, campo));
+    }
+
+    private static UUID uuidOpcional(Map<String, Object> corpo, String campo) {
+        Object valor = corpo.get(campo);
+        if (valor == null || valor.toString().isBlank()) {
+            return null;
+        }
+        return UUID.fromString(valor.toString());
     }
 
     private ProjetoInstitucional projeto() {

@@ -332,6 +332,9 @@ class AthenaFrontendBackendE2ETest {
                     recebidaem TIMESTAMP WITH TIME ZONE NOT NULL,
                     recebidaporid UUID NOT NULL,
                     origemexterna VARCHAR(240),
+                    versaoanteriorid UUID,
+                    confirmada BOOLEAN NOT NULL DEFAULT FALSE,
+                    pedidoajusteorigemid UUID,
                     UNIQUE (documentoid, numero)
                 )
                 """);
@@ -385,7 +388,12 @@ class AthenaFrontendBackendE2ETest {
                     justificativa CLOB NOT NULL,
                     situacao VARCHAR(60) NOT NULL,
                     solicitadoem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    concluidoem TIMESTAMP WITH TIME ZONE
+                    concluidoem TIMESTAMP WITH TIME ZONE,
+                    responsaveltecnico VARCHAR(120) NOT NULL,
+                    tratadoem TIMESTAMP WITH TIME ZONE,
+                    decisaotratamento VARCHAR(60),
+                    justificativatratamento CLOB,
+                    versaoresultanteid UUID
                 )
                 """);
         jdbc.execute("""

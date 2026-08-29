@@ -265,6 +265,140 @@ class AthenaHttpControllerTest {
     }
 
     @Test
+    void deveTratarSolicitacaoAjusteEConsultarNovaVersaoVinculadaPorHttp() throws Exception {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource(
+                "jdbc:h2:mem:athena-api-ajuste-versao-" + UUID.randomUUID()
+                        + ";MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
+                        + ";INIT=CREATE SCHEMA IF NOT EXISTS athena",
+                "sa",
+                ""
+        );
+        dataSource.setDriverClassName("org.h2.Driver");
+        JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+        criarEsquemaPersistente(jdbc);
+        PersistenciaTransacionalAthena persistencia = new PersistenciaTransacionalAthena(
+                jdbc,
+                new DataSourceTransactionManager(dataSource)
+        );
+        registrarProjetoDocumentalPersistente(persistencia);
+        MockMvc mvcPersistente = MockMvcBuilders
+                .standaloneSetup(new AthenaHttpController(persistencia))
+                .build();
+
+        mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO/confirmacoes")
+                        .headers(cabecalhosResponsavel())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versaoConfirmada": 1,
+                                  "escopo": "Confirmacao formal da versao persistida."
+                                }
+                                """))
+                .andExpect(status().isCreated());
+
+        mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO/ajustes")
+                        .headers(cabecalhosResponsavel())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versao": 1,
+                                  "itemId": "ITEM-PERSISTIDO",
+                                  "justificativa": "Solicitacao para avaliar consistencia do entendimento."
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.estado").value("PENDENTE"))
+                .andExpect(jsonPath("$.responsavelTecnico").value("usuario-responsavel"))
+                .andExpect(jsonPath("$.solicitadoEm").isNotEmpty());
+
+        UUID pedidoNaoAcolhidoId = jdbc.queryForObject("""
+                SELECT id
+                  FROM athena.pedidoajuste
+                 ORDER BY solicitadoem
+                 LIMIT 1
+                """, UUID.class);
+
+        mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO/ajustes/{pedidoAjusteId}/tratamentos",
+                        pedidoNaoAcolhidoId)
+                        .headers(cabecalhosResponsavel())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "decisao": "NAO_ACOLHIDA"
+                                }
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("REQUISICAO_INVALIDA"));
+
+        mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO/ajustes/{pedidoAjusteId}/tratamentos",
+                        pedidoNaoAcolhidoId)
+                        .headers(cabecalhosResponsavel())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "decisao": "NAO_ACOLHIDA",
+                                  "justificativa": "Versao atual permanece valida apos analise tecnica."
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.estado").value("NAO_ACOLHIDA"))
+                .andExpect(jsonPath("$.decisaoTratamento").value("NAO_ACOLHIDA"))
+                .andExpect(jsonPath("$.justificativaTratamento").value("Versao atual permanece valida apos analise tecnica."))
+                .andExpect(jsonPath("$.tratadoEm").isNotEmpty());
+
+        mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO/ajustes")
+                        .headers(cabecalhosResponsavel())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versao": 1,
+                                  "itemId": "ITEM-PERSISTIDO",
+                                  "justificativa": "Solicitacao acolhida para produzir nova versao vinculada."
+                                }
+                                """))
+                .andExpect(status().isCreated());
+        UUID pedidoAcolhidoId = jdbc.queryForObject("""
+                SELECT id
+                  FROM athena.pedidoajuste
+                 ORDER BY solicitadoem DESC
+                 LIMIT 1
+                """, UUID.class);
+
+        mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO/ajustes/{pedidoAjusteId}/tratamentos",
+                        pedidoAcolhidoId)
+                        .headers(cabecalhosResponsavel())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "decisao": "ACOLHIDA"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.estado").value("ACOLHIDA"));
+
+        mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO/versoes")
+                        .headers(cabecalhosAdministrador())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoNovaVersaoVinculada(pedidoAcolhidoId)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.versao").value(2))
+                .andExpect(jsonPath("$.versaoAnterior").value(1))
+                .andExpect(jsonPath("$.pedidoAjusteOrigemId").value(pedidoAcolhidoId.toString()));
+
+        mvcPersistente.perform(get("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO")
+                        .headers(cabecalhosResponsavel()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.versoes.length()").value(2))
+                .andExpect(jsonPath("$.versoes[0].confirmada").value(true))
+                .andExpect(jsonPath("$.versoes[1].numero").value(2))
+                .andExpect(jsonPath("$.versoes[1].pedidoAjusteOrigemId").value(pedidoAcolhidoId.toString()))
+                .andExpect(jsonPath("$.versoes[1].versaoAnteriorId").isNotEmpty())
+                .andExpect(jsonPath("$.versoes[1].itens[0].identificador").value("ITEM-VINCULADO"))
+                .andExpect(jsonPath("$.versoes[0].conteudoOriginal").value("Conteudo original persistido."))
+                .andExpect(jsonPath("$.versoes[1].conteudoOriginal").value("Conteudo revisado em nova versao."));
+    }
+
+    @Test
     void deveIngerirMarkdownJsonEYamlPorHttpEConsultarDocumentoVersionado() throws Exception {
         DriverManagerDataSource dataSource = new DriverManagerDataSource(
                 "jdbc:h2:mem:athena-api-ingestao-" + UUID.randomUUID()
@@ -411,6 +545,26 @@ class AthenaHttpControllerTest {
                   ]
                 }
                 """.formatted(formato, conteudoOriginal.replace("\"", "\\\""), itemId, itemId, itemConteudo);
+    }
+
+    private static String corpoNovaVersaoVinculada(UUID pedidoAjusteId) {
+        return """
+                {
+                  "versaoAnterior": 1,
+                  "pedidoAjusteId": "%s",
+                  "formato": "MARKDOWN",
+                  "conteudoOriginal": "Conteudo revisado em nova versao.",
+                  "origem": "tratamento de solicitacao de ajuste",
+                  "representacaoInterna": [
+                    {
+                      "identificador": "ITEM-VINCULADO",
+                      "titulo": "Item vinculado",
+                      "conteudo": "Conteudo vinculado a solicitacao acolhida.",
+                      "fontesRastreabilidade": ["ESP.REQ.010", "ESP.ACEITE.012"]
+                    }
+                  ]
+                }
+                """.formatted(pedidoAjusteId);
     }
 
     private static void registrarProjetoDocumentalPersistente(PersistenciaTransacionalAthena persistencia) {
@@ -567,7 +721,10 @@ class AthenaHttpControllerTest {
                     hashconteudo VARCHAR(128) NOT NULL,
                     recebidaem TIMESTAMP WITH TIME ZONE NOT NULL,
                     recebidaporid UUID NOT NULL,
-                    origemexterna VARCHAR(240)
+                    origemexterna VARCHAR(240),
+                    versaoanteriorid UUID,
+                    confirmada BOOLEAN NOT NULL DEFAULT FALSE,
+                    pedidoajusteorigemid UUID
                 )
                 """);
         jdbc.execute("""
@@ -618,7 +775,12 @@ class AthenaHttpControllerTest {
                     descricao CLOB NOT NULL,
                     justificativa CLOB NOT NULL,
                     situacao VARCHAR(60) NOT NULL,
-                    solicitadoem TIMESTAMP WITH TIME ZONE NOT NULL
+                    solicitadoem TIMESTAMP WITH TIME ZONE NOT NULL,
+                    responsaveltecnico VARCHAR(120) NOT NULL,
+                    tratadoem TIMESTAMP WITH TIME ZONE,
+                    decisaotratamento VARCHAR(60),
+                    justificativatratamento CLOB,
+                    versaoresultanteid UUID
                 )
                 """);
         jdbc.execute("""
