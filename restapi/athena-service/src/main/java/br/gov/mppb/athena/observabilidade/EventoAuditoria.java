@@ -36,6 +36,13 @@ public record EventoAuditoria(
             throw new IllegalArgumentException("resultado do evento de auditoria deve ser informado.");
         }
         detalhes = detalhes == null ? Map.of() : Map.copyOf(detalhes);
-        politicaRetencao = PoliticaRetencaoAuditavel.PENDENTE_DEFINICAO_INSTITUCIONAL;
+        if (politicaRetencao == null) {
+            politicaRetencao = PoliticaRetencaoAuditavel.PENDENTE_DEFINICAO_INSTITUCIONAL;
+        }
+    }
+
+    @Override
+    public Map<String, String> detalhes() {
+        return Map.copyOf(detalhes);
     }
 }

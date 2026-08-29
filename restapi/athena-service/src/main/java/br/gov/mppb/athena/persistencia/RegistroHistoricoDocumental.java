@@ -14,4 +14,13 @@ public record RegistroHistoricoDocumental(
         OffsetDateTime ocorridoEm,
         UUID eventoAuditoriaId
 ) {
+
+    public RegistroHistoricoDocumental {
+        itens = itens == null ? List.of() : List.copyOf(itens);
+    }
+
+    @Override
+    public List<DadosItemDocumentalPersistente> itens() {
+        return List.copyOf(itens);
+    }
 }

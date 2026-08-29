@@ -4,7 +4,7 @@ import br.gov.mppb.athena.seguranca.DadosParticipanteCorporativo;
 import java.util.List;
 import java.util.Locale;
 
-public class FonteCorporativaParticipantesInstitucional implements FonteCorporativaParticipantes {
+public final class FonteCorporativaParticipantesInstitucional implements FonteCorporativaParticipantes {
 
     private final List<DadosParticipanteCorporativo> registrosInstitucionais;
 

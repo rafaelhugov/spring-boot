@@ -55,8 +55,7 @@ class ServicoAvaliacaoConfirmacaoTest {
                 referencia,
                 responsavel,
                 OffsetDateTime.parse("2026-08-27T09:10:00-03:00"),
-                "Inconsistencia localizada em campo recebido.",
-                "processo-documental-externo"
+                "Inconsistencia localizada em campo recebido."
         ));
         ConfirmacaoEntendimentoRegistrada confirmacao = servico.confirmarEntendimento(projeto, contexto,
                 new ComandoConfirmarEntendimento(
@@ -130,15 +129,127 @@ class ServicoAvaliacaoConfirmacaoTest {
                 referencia,
                 responsavel,
                 OffsetDateTime.parse("2026-08-27T11:00:00-03:00"),
-                "Campo recebido diverge da fonte aprovada.",
-                "processo-documental-externo"
+                "Campo recebido diverge da fonte aprovada."
         ));
 
         assertThat(pedido.documentoOriginal()).isEqualTo(referencia);
         assertThat(pedido.documentoOriginal().documento()).isEqualTo("DOC-ENTENDIMENTO");
         assertThat(pedido.documentoOriginal().versao()).isEqualTo(2);
-        assertThat(pedido.processoExternoResponsavel()).isEqualTo("processo-documental-externo");
+        assertThat(pedido.responsavelTecnico()).isEqualTo(responsavel);
+        assertThat(pedido.estado()).isEqualTo(EstadoSolicitacaoAjuste.PENDENTE);
         assertThat(servico.historico().pedidosAjuste()).containsExactly(pedido);
+    }
+
+    @Test
+    void devePermitirResponsavelTecnicoAcolherSolicitacaoValida() {
+        PedidoAjusteRegistrado pedido = registrarPedidoAjusteValido();
+
+        PedidoAjusteRegistrado tratado = servico.tratarPedidoAjuste(projeto, contexto, pedido,
+                new ComandoTratarPedidoAjuste(
+                        responsavel,
+                        OffsetDateTime.parse("2026-08-28T09:00:00-03:00"),
+                        EstadoSolicitacaoAjuste.ACOLHIDA,
+                        "Ajuste acolhido para composicao de nova versao."
+                ));
+
+        assertThat(tratado.documentoOriginal()).isEqualTo(pedido.documentoOriginal());
+        assertThat(tratado.solicitante()).isEqualTo(pedido.solicitante());
+        assertThat(tratado.data()).isEqualTo(pedido.data());
+        assertThat(tratado.justificativa()).isEqualTo(pedido.justificativa());
+        assertThat(tratado.responsavelTecnico()).isEqualTo(responsavel);
+        assertThat(tratado.estado()).isEqualTo(EstadoSolicitacaoAjuste.ACOLHIDA);
+        assertThat(tratado.tratadoEm()).isEqualTo(OffsetDateTime.parse("2026-08-28T09:00:00-03:00"));
+        assertThat(tratado.permiteGerarNovaVersao()).isTrue();
+        assertThat(servico.historico().pedidosAjuste()).containsExactly(tratado);
+    }
+
+    @Test
+    void devePermitirNaoAcolhimentoComJustificativaObrigatoriaEPreservada() {
+        PedidoAjusteRegistrado pedido = registrarPedidoAjusteValido();
+
+        PedidoAjusteRegistrado tratado = servico.tratarPedidoAjuste(projeto, contexto, pedido,
+                new ComandoTratarPedidoAjuste(
+                        responsavel,
+                        OffsetDateTime.parse("2026-08-28T10:00:00-03:00"),
+                        EstadoSolicitacaoAjuste.NAO_ACOLHIDA,
+                        "Documento atual permanece valido porque a solicitacao nao altera o entendimento aprovado."
+                ));
+
+        assertThat(tratado.estado()).isEqualTo(EstadoSolicitacaoAjuste.NAO_ACOLHIDA);
+        assertThat(tratado.justificativaTratamento())
+                .isEqualTo("Documento atual permanece valido porque a solicitacao nao altera o entendimento aprovado.");
+        assertThat(tratado.permiteGerarNovaVersao()).isFalse();
+        assertThat(tratado.documentoOriginal()).isEqualTo(referencia);
+        assertThat(tratado.justificativa()).isEqualTo("Campo recebido diverge da fonte aprovada.");
+        assertThat(servico.historico().pedidosAjuste()).containsExactly(tratado);
+    }
+
+    @Test
+    void deveRecusarNaoAcolhimentoSemJustificativa() {
+        PedidoAjusteRegistrado pedido = registrarPedidoAjusteValido();
+
+        assertThatThrownBy(() -> servico.tratarPedidoAjuste(projeto, contexto, pedido,
+                new ComandoTratarPedidoAjuste(
+                        responsavel,
+                        OffsetDateTime.parse("2026-08-28T10:30:00-03:00"),
+                        EstadoSolicitacaoAjuste.NAO_ACOLHIDA,
+                        " "
+                )))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("justificativa do nao acolhimento deve ser informado.");
+        assertThat(servico.historico().pedidosAjuste()).containsExactly(pedido);
+    }
+
+    @Test
+    void deveDestinarSolicitacaoAoResponsavelTecnicoMesmoQuandoSolicitanteEhAvaliador() {
+        UsuarioInstitucional usuarioAvaliador = usuario("usuario-avaliador-externo", "avaliador.externo", "GABINETE");
+        ProjetoInstitucional projetoComAvaliador = projetoComParticipantes(
+                Set.of(
+                        new ParticipanteProjeto(usuarioResponsavel, PapelProjeto.RESPONSAVEL_TECNICO),
+                        new ParticipanteProjeto(usuarioAvaliador, PapelProjeto.AVALIADOR)
+                ),
+                usuarioResponsavel
+        );
+        ContextoAutorizacaoInstitucional contextoAvaliador = new ContextoAutorizacaoInstitucional(
+                usuarioAvaliador,
+                Set.of()
+        );
+
+        PedidoAjusteRegistrado pedido = servico.registrarPedidoAjuste(projetoComAvaliador, contextoAvaliador,
+                new ComandoRegistrarPedidoAjuste(
+                        referencia,
+                        usuarioAvaliador.identificador(),
+                        OffsetDateTime.parse("2026-08-28T11:00:00-03:00"),
+                        "Solicitacao valida sem fila externa."
+                ));
+
+        assertThat(pedido.solicitante()).isEqualTo(usuarioAvaliador.identificador());
+        assertThat(pedido.responsavelTecnico()).isEqualTo(responsavel);
+        assertThat(pedido.estado()).isEqualTo(EstadoSolicitacaoAjuste.PENDENTE);
+    }
+
+    @Test
+    void deveManterSolicitacaoAntigaTratavelSemExpiracaoAutomatica() {
+        PedidoAjusteRegistrado pedido = servico.registrarPedidoAjuste(projeto, contexto,
+                new ComandoRegistrarPedidoAjuste(
+                        referencia,
+                        responsavel,
+                        OffsetDateTime.parse("2026-08-01T09:00:00-03:00"),
+                        "Solicitacao registrada sem regra temporal automatica."
+                ));
+
+        PedidoAjusteRegistrado tratado = servico.tratarPedidoAjuste(projeto, contexto, pedido,
+                new ComandoTratarPedidoAjuste(
+                        responsavel,
+                        OffsetDateTime.parse("2026-08-28T11:30:00-03:00"),
+                        EstadoSolicitacaoAjuste.ACOLHIDA,
+                        null
+                ));
+
+        assertThat(tratado.estado()).isEqualTo(EstadoSolicitacaoAjuste.ACOLHIDA);
+        assertThat(tratado.data()).isEqualTo(OffsetDateTime.parse("2026-08-01T09:00:00-03:00"));
+        assertThat(tratado.tratadoEm()).isEqualTo(OffsetDateTime.parse("2026-08-28T11:30:00-03:00"));
+        assertThat(servico.historico().pedidosAjuste()).containsExactly(tratado);
     }
 
     @Test
@@ -213,15 +324,22 @@ class ServicoAvaliacaoConfirmacaoTest {
     }
 
     private static ProjetoInstitucional projetoComParticipante(UsuarioInstitucional usuario, PapelProjeto papel) {
+        return projetoComParticipantes(Set.of(new ParticipanteProjeto(usuario, papel)), usuario);
+    }
+
+    private static ProjetoInstitucional projetoComParticipantes(
+            Set<ParticipanteProjeto> participantes,
+            UsuarioInstitucional criador
+    ) {
         return new ProjetoInstitucional(
                 new IdentificadorProjeto("ATHENA"),
                 "Athena",
                 "Plataforma institucional multiprojeto documental",
                 Set.of("DITEC"),
-                Set.of(new ParticipanteProjeto(usuario, papel)),
+                participantes,
                 SituacaoProjeto.ATIVO,
                 OffsetDateTime.parse("2026-08-25T10:15:30-03:00"),
-                usuario
+                criador
         );
     }
 
@@ -232,5 +350,15 @@ class ServicoAvaliacaoConfirmacaoTest {
                 login,
                 unidade
         );
+    }
+
+    private PedidoAjusteRegistrado registrarPedidoAjusteValido() {
+        return servico.registrarPedidoAjuste(projeto, contexto,
+                new ComandoRegistrarPedidoAjuste(
+                        referencia,
+                        responsavel,
+                        OffsetDateTime.parse("2026-08-27T11:00:00-03:00"),
+                        "Campo recebido diverge da fonte aprovada."
+                ));
     }
 }

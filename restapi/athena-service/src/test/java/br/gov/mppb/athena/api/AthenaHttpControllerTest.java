@@ -226,8 +226,7 @@ class AthenaHttpControllerTest {
                                 {
                                   "versao": 1,
                                   "itemId": "ITEM-PERSISTIDO",
-                                  "justificativa": "Ajuste sem sobrescrever o documento.",
-                                  "processoExternoResponsavel": "processo-documental-externo"
+                                  "justificativa": "Ajuste sem sobrescrever o documento."
                                 }
                                 """))
                 .andExpect(status().isCreated())

@@ -19,7 +19,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
-public class ServicoIngestaoDocumentalPersistente {
+public final class ServicoIngestaoDocumentalPersistente {
 
     private final ServicoIngestaoDocumentalExterna ingestao = new ServicoIngestaoDocumentalExterna();
     private final PersistenciaTransacionalAthena persistencia;

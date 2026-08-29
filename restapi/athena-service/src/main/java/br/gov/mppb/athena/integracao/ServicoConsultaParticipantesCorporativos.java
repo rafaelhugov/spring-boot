@@ -8,7 +8,7 @@ import br.gov.mppb.athena.seguranca.PoliticaSegurancaAthena;
 import br.gov.mppb.athena.seguranca.ProtecaoDadosPessoais;
 import java.util.List;
 
-public class ServicoConsultaParticipantesCorporativos {
+public final class ServicoConsultaParticipantesCorporativos {
 
     private final FonteCorporativaParticipantes fonteCorporativa;
 

@@ -8,9 +8,11 @@ import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -25,8 +27,11 @@ public class PersistenciaTransacionalAthena {
     private final TransactionTemplate transacao;
 
     public PersistenciaTransacionalAthena(JdbcTemplate jdbc, PlatformTransactionManager gerenciadorTransacao) {
-        this.jdbc = jdbc;
-        this.transacao = new TransactionTemplate(gerenciadorTransacao);
+        this.jdbc = new JdbcTemplate(Objects.requireNonNull(
+                Objects.requireNonNull(jdbc, "jdbc deve ser informado.").getDataSource(),
+                "fonte de dados deve ser informada."));
+        this.transacao = new TransactionTemplate(Objects.requireNonNull(
+                gerenciadorTransacao, "gerenciador de transacao deve ser informado."));
     }
 
     public void registrarHistoricoDocumental(RegistroHistoricoDocumental registro) {
@@ -129,7 +134,7 @@ public class PersistenciaTransacionalAthena {
                 SELECT id, identificador, nome, descricao, situacao, criadoem, criadoporid
                   FROM athena.projeto
                  WHERE id = ?
-                """, this::mapearProjeto, documento.projetoId());
+                """, this::mapearProjeto, Objects.requireNonNull(documento, "documento deve existir.").projetoId());
         List<DadosVersaoDocumentoPersistente> versoes = jdbc.query("""
                 SELECT id, documentoid, numero, formato, conteudooriginal, hashconteudo,
                        recebidaem, recebidaporid, origemexterna
@@ -264,8 +269,8 @@ public class PersistenciaTransacionalAthena {
                 : new Object[] {projetoId, projetoId, identificadorDocumento};
         String filtroDocumento = identificadorDocumento == null || identificadorDocumento.isBlank()
                 ? ""
-                : " AND d.identificador = ?";
-        return jdbc.query("""
+                : " AND d.identificador = ?\n";
+        String consulta = """
                 SELECT e.id, e.tipo, e.decisao, e.justificativa, e.ocorridoem,
                        p.identificador AS projetoidentificador,
                        d.identificador AS documentoidentificador,
@@ -278,9 +283,10 @@ public class PersistenciaTransacionalAthena {
                   LEFT JOIN athena.projeto p ON p.id = COALESCE(e.projetoid, d.projetoid)
                   LEFT JOIN athena.usuarioinstitucional u ON u.id = e.usuarioid
                  WHERE (e.projetoid = ? OR d.projetoid = ?)
-                %s
+                """ + filtroDocumento + """
                  ORDER BY e.ocorridoem, e.id
-                """.formatted(filtroDocumento), (rs, linha) -> Map.of(
+                """;
+        return jdbc.query(consulta, (rs, linha) -> Map.of(
                 "correlacao", rs.getString("id"),
                 "autorTecnico", valorOuVazio(rs.getString("usuariologin")),
                 "projeto", valorOuVazio(rs.getString("projetoidentificador")),
@@ -306,22 +312,22 @@ public class PersistenciaTransacionalAthena {
     }
 
     public Map<String, Long> calcularIndicadoresProjeto(UUID projetoId) {
-        Long documentos = jdbc.queryForObject("""
+        long documentos = valorContador(jdbc.queryForObject("""
                 SELECT COUNT(*) FROM athena.documento WHERE projetoid = ?
-                """, Long.class, projetoId);
-        Long versoes = jdbc.queryForObject("""
+                """, Long.class, projetoId));
+        long versoes = valorContador(jdbc.queryForObject("""
                 SELECT COUNT(*)
                   FROM athena.versaodocumento v
                   JOIN athena.documento d ON d.id = v.documentoid
                  WHERE d.projetoid = ?
-                """, Long.class, projetoId);
-        Long participantes = jdbc.queryForObject("""
+                """, Long.class, projetoId));
+        long participantes = valorContador(jdbc.queryForObject("""
                 SELECT COUNT(*)
                   FROM athena.vinculoprojeto
                  WHERE projetoid = ?
                    AND fimem IS NULL
-                """, Long.class, projetoId);
-        Long interacoes = jdbc.queryForObject("""
+                """, Long.class, projetoId));
+        long interacoes = valorContador(jdbc.queryForObject("""
                 SELECT
                     (SELECT COUNT(*) FROM athena.avaliacao a
                       JOIN athena.itemdocumental i ON i.id = a.itemid
@@ -343,22 +349,23 @@ public class PersistenciaTransacionalAthena {
                       JOIN athena.versaodocumento v ON v.id = i.versaoid
                       JOIN athena.documento d ON d.id = v.documentoid
                      WHERE d.projetoid = ?)
-                """, Long.class, projetoId, projetoId, projetoId, projetoId);
+                """, Long.class, projetoId, projetoId, projetoId, projetoId));
         return Map.of(
-                "documentos", documentos == null ? 0L : documentos,
-                "versoes", versoes == null ? 0L : versoes,
-                "participantes", participantes == null ? 0L : participantes,
-                "interacoes", interacoes == null ? 0L : interacoes
+                "documentos", documentos,
+                "versoes", versoes,
+                "participantes", participantes,
+                "interacoes", interacoes
         );
     }
 
     private List<Map<String, String>> listarRelacoes(String coluna, UUID recursoId) {
-        return jdbc.query("""
+        String consulta = """
                 SELECT tipo, recursorelacionado
                   FROM athena.relacaorecebida
-                 WHERE %s = ?
+                """ + " WHERE " + coluna + " = ?\n" + """
                  ORDER BY tipo, recursorelacionado
-                """.formatted(coluna), (rs, linha) -> Map.of(
+                """;
+        return jdbc.query(consulta, (rs, linha) -> Map.of(
                 "tipo", rs.getString("tipo"),
                 "recursoRelacionado", rs.getString("recursorelacionado")
         ), recursoId);
@@ -411,20 +418,25 @@ public class PersistenciaTransacionalAthena {
     }
 
     private void inserirItem(DadosItemDocumentalPersistente item) {
-        jdbc.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement("""
+        jdbc.execute((ConnectionCallback<Void>) connection -> {
+            Array fontes = connection.createArrayOf("VARCHAR", item.fontesRastreabilidade().toArray());
+            try (PreparedStatement ps = connection.prepareStatement("""
                     INSERT INTO athena.itemdocumental
                         (id, versaoid, identificador, titulo, conteudo, ordem, fontesrastreabilidade)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
-                    """);
-            ps.setObject(1, item.id());
-            ps.setObject(2, item.versaoId());
-            ps.setString(3, item.identificador());
-            ps.setString(4, item.titulo());
-            ps.setString(5, item.conteudo());
-            ps.setInt(6, item.ordem());
-            ps.setArray(7, connection.createArrayOf("VARCHAR", item.fontesRastreabilidade().toArray()));
-            return ps;
+                    """)) {
+                ps.setObject(1, item.id());
+                ps.setObject(2, item.versaoId());
+                ps.setString(3, item.identificador());
+                ps.setString(4, item.titulo());
+                ps.setString(5, item.conteudo());
+                ps.setInt(6, item.ordem());
+                ps.setArray(7, fontes);
+                ps.executeUpdate();
+            } finally {
+                fontes.free();
+            }
+            return null;
         });
     }
 
@@ -524,6 +536,10 @@ public class PersistenciaTransacionalAthena {
 
     private static String valorOuVazio(String valor) {
         return valor == null ? "" : valor;
+    }
+
+    private static long valorContador(Long valor) {
+        return valor == null ? 0L : valor;
     }
 
     private static String recursoAuditado(ResultSet rs) throws SQLException {

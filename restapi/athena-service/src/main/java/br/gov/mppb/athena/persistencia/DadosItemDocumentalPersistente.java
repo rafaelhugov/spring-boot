@@ -12,4 +12,13 @@ public record DadosItemDocumentalPersistente(
         int ordem,
         List<String> fontesRastreabilidade
 ) {
+
+    public DadosItemDocumentalPersistente {
+        fontesRastreabilidade = fontesRastreabilidade == null ? List.of() : List.copyOf(fontesRastreabilidade);
+    }
+
+    @Override
+    public List<String> fontesRastreabilidade() {
+        return List.copyOf(fontesRastreabilidade);
+    }
 }

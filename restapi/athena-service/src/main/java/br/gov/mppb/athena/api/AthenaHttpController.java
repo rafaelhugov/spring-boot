@@ -63,7 +63,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/projetos")
-public class AthenaHttpController {
+public final class AthenaHttpController {
 
     private final ServicoAvaliacaoConfirmacao avaliacoes = new ServicoAvaliacaoConfirmacao();
     private final ServicoConsultaParticipantesCorporativos consultaParticipantes;
@@ -332,7 +332,7 @@ public class AthenaHttpController {
                     usuarioPersistente,
                     TipoInteracaoHumana.PEDIDO_AJUSTE,
                     "PENDENTE",
-                    textoObrigatorio(corpo, "processoExternoResponsavel"),
+                    responsavelTecnico(projetoAutorizado).valor(),
                     textoObrigatorio(corpo, "justificativa")
             );
         }
@@ -344,8 +344,7 @@ public class AthenaHttpController {
                         referencia(projetoId, documentoId, corpo, "versao"),
                         contexto.usuario().identificador(),
                         OffsetDateTime.now(),
-                        textoObrigatorio(corpo, "justificativa"),
-                        textoObrigatorio(corpo, "processoExternoResponsavel")
+                        textoObrigatorio(corpo, "justificativa")
                 )
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(pedido);
@@ -850,6 +849,15 @@ public class AthenaHttpController {
             return null;
         }
         return valor.toString();
+    }
+
+    private static IdentificadorUsuario responsavelTecnico(ProjetoInstitucional projeto) {
+        return projeto.participantes().stream()
+                .filter(participante -> participante.papel() == PapelProjeto.RESPONSAVEL_TECNICO)
+                .map(participante -> participante.usuario().identificador())
+                .findFirst()
+                .orElseThrow(() -> new RespostaApiException(HttpStatus.UNPROCESSABLE_ENTITY, "REGRA_FUNCIONAL_VIOLADA",
+                        "projeto deve possuir responsavel tecnico para tratar solicitacao de ajuste."));
     }
 
     private static DecisaoAvaliacao decisaoOpcional(Map<String, Object> corpo, String campo) {
