@@ -19,6 +19,10 @@ CREATE INDEX idxversaodocumentoanterior ON athena.versaodocumento (versaoanterio
 CREATE OR REPLACE FUNCTION athena.impediralteracaoversaoconfirmada()
 RETURNS trigger AS $$
 BEGIN
+    IF TG_OP = 'DELETE' AND OLD.confirmada IS TRUE THEN
+        RAISE EXCEPTION 'versao documental confirmada e imutavel';
+    END IF;
+
     IF OLD.confirmada IS TRUE AND (
         NEW.confirmada IS DISTINCT FROM TRUE OR
         OLD.numero IS DISTINCT FROM NEW.numero OR
@@ -29,11 +33,15 @@ BEGIN
     ) THEN
         RAISE EXCEPTION 'versao documental confirmada e imutavel';
     END IF;
+    IF TG_OP = 'DELETE' THEN
+        RETURN OLD;
+    END IF;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trgimpediralteracaoversaoconfirmada
-BEFORE UPDATE ON athena.versaodocumento
+BEFORE UPDATE OR DELETE ON athena.versaodocumento
 FOR EACH ROW
 EXECUTE FUNCTION athena.impediralteracaoversaoconfirmada();
