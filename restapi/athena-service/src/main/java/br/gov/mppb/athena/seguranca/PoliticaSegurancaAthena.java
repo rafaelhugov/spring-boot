@@ -78,10 +78,7 @@ public final class PoliticaSegurancaAthena {
                     OperacaoProjeto.AVALIAR,
                     OperacaoProjeto.COMENTAR
             );
-            case PARTICIPANTE -> EnumSet.of(
-                    OperacaoProjeto.CONSULTAR,
-                    OperacaoProjeto.COMENTAR
-            );
+            case PARTICIPANTE -> EnumSet.of(OperacaoProjeto.CONSULTAR);
         };
 
         if (operacoesPermitidas.contains(operacao)) {
