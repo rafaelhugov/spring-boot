@@ -55,8 +55,10 @@ public class PersistenciaTransacionalAthena {
             UUID eventoAuditoriaId
     ) {
         transacao.executeWithoutResult(status -> {
+            validarVinculoNovaVersao(versao);
             inserirVersao(versao);
             itens.forEach(this::inserirItem);
+            vincularPedidoAjusteAVersaoResultante(versao, ocorridoEm);
             jdbc.update("""
                     INSERT INTO athena.eventoauditoria
                         (id, projetoid, documentoid, versaoid, usuarioid, tipo, dados, ocorridoem, registradoporid)
@@ -137,7 +139,8 @@ public class PersistenciaTransacionalAthena {
                 """, this::mapearProjeto, Objects.requireNonNull(documento, "documento deve existir.").projetoId());
         List<DadosVersaoDocumentoPersistente> versoes = jdbc.query("""
                 SELECT id, documentoid, numero, formato, conteudooriginal, hashconteudo,
-                       recebidaem, recebidaporid, origemexterna
+                       recebidaem, recebidaporid, origemexterna, versaoanteriorid,
+                       confirmada, pedidoajusteorigemid
                   FROM athena.versaodocumento
                  WHERE documentoid = ?
                  ORDER BY numero
@@ -205,7 +208,8 @@ public class PersistenciaTransacionalAthena {
     public List<DadosVersaoDocumentoPersistente> listarVersoesDocumento(UUID documentoId) {
         return jdbc.query("""
                 SELECT id, documentoid, numero, formato, conteudooriginal, hashconteudo,
-                       recebidaem, recebidaporid, origemexterna
+                       recebidaem, recebidaporid, origemexterna, versaoanteriorid,
+                       confirmada, pedidoajusteorigemid
                   FROM athena.versaodocumento
                  WHERE documentoid = ?
                  ORDER BY numero
@@ -410,11 +414,13 @@ public class PersistenciaTransacionalAthena {
         jdbc.update("""
                 INSERT INTO athena.versaodocumento
                     (id, documentoid, numero, formato, conteudooriginal, hashconteudo,
-                     recebidaem, recebidaporid, origemexterna)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     recebidaem, recebidaporid, origemexterna, versaoanteriorid,
+                     confirmada, pedidoajusteorigemid)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, versao.id(), versao.documentoId(), versao.numero(), versao.formato(),
                 versao.conteudoOriginal(), versao.hashConteudo(), versao.recebidaEm(),
-                versao.recebidaPorId(), versao.origemExterna());
+                versao.recebidaPorId(), versao.origemExterna(), versao.versaoAnteriorId(),
+                versao.confirmada(), versao.pedidoAjusteOrigemId());
     }
 
     private void inserirItem(DadosItemDocumentalPersistente item) {
@@ -459,10 +465,10 @@ public class PersistenciaTransacionalAthena {
     private void inserirPedidoAjuste(RegistroInteracaoHumana registro) {
         jdbc.update("""
                 INSERT INTO athena.pedidoajuste
-                    (id, itemid, solicitanteid, descricao, justificativa, situacao, solicitadoem)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                    (id, itemid, solicitanteid, descricao, justificativa, situacao, solicitadoem, versaoresultanteid)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """, registro.id(), registro.itemId(), registro.usuarioId(), registro.conteudo(),
-                registro.justificativa(), registro.decisao(), registro.registradaEm());
+                registro.justificativa(), registro.decisao(), registro.registradaEm(), null);
     }
 
     private void inserirConfirmacao(RegistroInteracaoHumana registro) {
@@ -471,6 +477,28 @@ public class PersistenciaTransacionalAthena {
                 VALUES (?, ?, ?, ?, ?, ?)
                 """, registro.id(), registro.itemId(), registro.usuarioId(), registro.decisao(),
                 registro.justificativa(), registro.registradaEm());
+        jdbc.update("""
+                UPDATE athena.versaodocumento
+                   SET confirmada = TRUE
+                 WHERE id = (SELECT versaoid FROM athena.itemdocumental WHERE id = ?)
+                """, registro.itemId());
+    }
+
+    private void vincularPedidoAjusteAVersaoResultante(
+            DadosVersaoDocumentoPersistente versao,
+            OffsetDateTime ocorridoEm
+    ) {
+        if (versao.pedidoAjusteOrigemId() == null) {
+            return;
+        }
+        int atualizados = jdbc.update("""
+                UPDATE athena.pedidoajuste
+                   SET versaoresultanteid = ?, concluidoem = ?
+                 WHERE id = ?
+                """, versao.id(), ocorridoEm, versao.pedidoAjusteOrigemId());
+        if (atualizados != 1) {
+            throw new IllegalArgumentException("pedido de ajuste origem deve existir para vincular nova versao.");
+        }
     }
 
     private void inserirAuditoriaHistorico(RegistroHistoricoDocumental registro) {
@@ -508,7 +536,9 @@ public class PersistenciaTransacionalAthena {
     private DadosVersaoDocumentoPersistente mapearVersao(ResultSet rs, int linha) throws SQLException {
         return new DadosVersaoDocumentoPersistente(uuid(rs, "id"), uuid(rs, "documentoid"), rs.getInt("numero"),
                 rs.getString("formato"), rs.getString("conteudooriginal"), rs.getString("hashconteudo"),
-                horario(rs, "recebidaem"), uuid(rs, "recebidaporid"), rs.getString("origemexterna"));
+                horario(rs, "recebidaem"), uuid(rs, "recebidaporid"), rs.getString("origemexterna"),
+                uuidOpcional(rs, "versaoanteriorid"), rs.getBoolean("confirmada"),
+                uuidOpcional(rs, "pedidoajusteorigemid"));
     }
 
     private DadosItemDocumentalPersistente mapearItem(ResultSet rs, int linha) throws SQLException {
@@ -524,6 +554,32 @@ public class PersistenciaTransacionalAthena {
     private static UUID uuid(ResultSet rs, String coluna) throws SQLException {
         Object valor = rs.getObject(coluna);
         return valor instanceof UUID uuid ? uuid : UUID.fromString(valor.toString());
+    }
+
+    private static UUID uuidOpcional(ResultSet rs, String coluna) throws SQLException {
+        Object valor = rs.getObject(coluna);
+        if (valor == null) {
+            return null;
+        }
+        return valor instanceof UUID uuid ? uuid : UUID.fromString(valor.toString());
+    }
+
+    private void validarVinculoNovaVersao(DadosVersaoDocumentoPersistente versao) {
+        if (versao.numero() <= 1 || versao.versaoAnteriorId() == null) {
+            throw new IllegalArgumentException("nova versao documental deve referenciar versao anterior existente.");
+        }
+        Boolean existe = jdbc.queryForObject("""
+                SELECT EXISTS (
+                    SELECT 1
+                      FROM athena.versaodocumento
+                     WHERE id = ?
+                       AND documentoid = ?
+                       AND numero = ?
+                )
+                """, Boolean.class, versao.versaoAnteriorId(), versao.documentoId(), versao.numero() - 1);
+        if (!Boolean.TRUE.equals(existe)) {
+            throw new IllegalArgumentException("versao anterior da nova versao documental deve existir no mesmo documento.");
+        }
     }
 
     private static OffsetDateTime horario(ResultSet rs, String coluna) throws SQLException {

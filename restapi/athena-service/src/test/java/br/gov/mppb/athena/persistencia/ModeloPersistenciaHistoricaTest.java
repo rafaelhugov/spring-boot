@@ -19,10 +19,13 @@ class ModeloPersistenciaHistoricaTest {
     private static final Path MIGRACAO_MODELO_HISTORICO = Path.of(
             "src/main/resources/db/migration/V001__modelo_historico_athena.sql"
     );
+    private static final Path MIGRACAO_IMUTABILIDADE_VERSAO = Path.of(
+            "src/main/resources/db/migration/V002__imutabilidade_versao_documental.sql"
+    );
 
     @Test
     void deveCobrirEntidadesRastreaveisExigidasNoEsquemaAthena() throws IOException {
-        String ddl = ddlNormalizado();
+        String ddl = ddlModeloInicialNormalizado();
         Set<String> tabelas = tabelasCriadas(ddl);
 
         assertThat(ddl).contains("create schema if not exists athena");
@@ -44,7 +47,8 @@ class ModeloPersistenciaHistoricaTest {
 
     @Test
     void devePreservarHistoricoParaReconstrucaoDocumentalEAvaliativa() throws IOException {
-        String ddl = ddlNormalizado();
+        String ddl = ddlModeloInicialNormalizado();
+        String ddlImutabilidade = ddlImutabilidadeNormalizado();
 
         assertThat(ddl)
                 .contains("unique (documentoid, numero)")
@@ -57,6 +61,13 @@ class ModeloPersistenciaHistoricaTest {
                 .contains("dados jsonb not null default '{}'::jsonb")
                 .doesNotContain("on delete cascade");
 
+        assertThat(ddlImutabilidade)
+                .contains("add column versaoanteriorid uuid references athena.versaodocumento(id) on delete restrict")
+                .contains("add column confirmada boolean not null default false")
+                .contains("add column pedidoajusteorigemid uuid")
+                .contains("add column versaoresultanteid uuid references athena.versaodocumento(id) on delete restrict")
+                .contains("create trigger trgimpediralteracaoversaoconfirmada")
+                .doesNotContain("on delete cascade");
         assertThat(ddl).containsPattern("create table athena\\.eventoauditoria[\\s\\S]*registradoporid uuid not null");
         assertThat(ddl).containsPattern("create table athena\\.avaliacao[\\s\\S]*responsavelid uuid not null");
         assertThat(ddl).containsPattern("create table athena\\.confirmacao[\\s\\S]*responsavelid uuid not null");
@@ -65,7 +76,7 @@ class ModeloPersistenciaHistoricaTest {
 
     @Test
     void deveDefinirNomenclaturaPostgreSqlMppbComoRestricaoVerificavel() throws IOException {
-        String ddl = ddlNormalizado();
+        String ddl = ddlModeloInicialNormalizado();
         Set<String> identificadores = identificadoresVerificaveis(ddl);
 
         assertThat(identificadores)
@@ -75,8 +86,12 @@ class ModeloPersistenciaHistoricaTest {
                         .doesNotContain("_"));
     }
 
-    private static String ddlNormalizado() throws IOException {
+    private static String ddlModeloInicialNormalizado() throws IOException {
         return Files.readString(MIGRACAO_MODELO_HISTORICO).toLowerCase(Locale.ROOT);
+    }
+
+    private static String ddlImutabilidadeNormalizado() throws IOException {
+        return Files.readString(MIGRACAO_IMUTABILIDADE_VERSAO).toLowerCase(Locale.ROOT);
     }
 
     private static Set<String> tabelasCriadas(String ddl) {
