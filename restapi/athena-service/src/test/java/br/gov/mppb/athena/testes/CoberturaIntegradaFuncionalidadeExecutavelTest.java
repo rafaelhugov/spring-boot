@@ -20,6 +20,7 @@ import br.gov.mppb.athena.persistencia.PersistenciaTransacionalAthena;
 import br.gov.mppb.athena.persistencia.RegistroHistoricoDocumental;
 import br.gov.mppb.athena.persistencia.RegistroInteracaoHumana;
 import br.gov.mppb.athena.persistencia.TipoInteracaoHumana;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 class CoberturaIntegradaFuncionalidadeExecutavelTest {
@@ -39,6 +41,7 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
     private MockMvc mvc;
     private JdbcTemplate jdbc;
     private PersistenciaTransacionalAthena persistencia;
+    private final ObjectMapper json = new ObjectMapper();
 
     @BeforeEach
     void prepararSuiteIntegrada() {
@@ -157,6 +160,147 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
     }
 
     @Test
+    void deveCobrirRegressaoDeltaEspecificacao003ComVisibilidadeAjusteVersaoConfirmacaoEAuditoria() throws Exception {
+        mvc = MockMvcBuilders.standaloneSetup(new AthenaHttpController(persistencia)).build();
+        UUID responsavelId = UUID.randomUUID();
+        UUID participanteId = UUID.randomUUID();
+        UUID projetoId = UUID.randomUUID();
+        UUID documentoId = UUID.randomUUID();
+        UUID versaoUmId = UUID.randomUUID();
+        UUID itemUmId = UUID.randomUUID();
+        OffsetDateTime agora = OffsetDateTime.parse("2026-08-28T14:00:00-03:00");
+        persistencia.registrarHistoricoDocumental(registroDeltaEspecificacao003(
+                responsavelId, projetoId, documentoId, versaoUmId, itemUmId, agora
+        ));
+        registrarParticipanteVinculado(participanteId, projetoId, responsavelId, agora);
+
+        mvc.perform(get("/api/projetos/ATHENA/documentos/DOC-DELTA-003")
+                        .header("X-Athena-Usuario", "participante")
+                        .header("X-Athena-Unidade", "GABINETE"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.identificador").value("DOC-DELTA-003"))
+                .andExpect(jsonPath("$.versoes[0].itens[0].identificador").value("ESP.REQ.009"));
+
+        mvc.perform(get("/api/projetos/ATHENA/documentos/DOC-DELTA-003")
+                        .header("X-Athena-Usuario", "sem.vinculo")
+                        .header("X-Athena-Unidade", "GABINETE"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.codigo").value("OPERACAO_NAO_AUTORIZADA"));
+
+        MvcResult pedidoCriado = mvc.perform(post("/api/projetos/ATHENA/documentos/DOC-DELTA-003/ajustes")
+                        .header("X-Athena-Usuario", "responsavel")
+                        .header("X-Athena-Unidade", "DITEC")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versao": 1,
+                                  "itemId": "ESP.REQ.009",
+                                  "justificativa": "Solicitacao analisada pelo responsavel tecnico sem fila automatica."
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.tipo").value("PEDIDO_AJUSTE"))
+                .andExpect(jsonPath("$.responsavelTecnico").value("usuario-responsavel"))
+                .andReturn();
+        String pedidoAjusteId = campoTexto(pedidoCriado, "id");
+
+        mvc.perform(post("/api/projetos/ATHENA/documentos/DOC-DELTA-003/ajustes/{pedidoAjusteId}/tratamentos", pedidoAjusteId)
+                        .header("X-Athena-Usuario", "responsavel")
+                        .header("X-Athena-Unidade", "DITEC")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "decisao": "NAO_ACOLHIDA",
+                                  "justificativa": "Documento atual permanece valido e o historico preserva a solicitacao."
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.estado").value("NAO_ACOLHIDA"))
+                .andExpect(jsonPath("$.justificativaTratamento").value("Documento atual permanece valido e o historico preserva a solicitacao."))
+                .andExpect(jsonPath("$.versaoResultanteId").value(""));
+        assertThat(contar("athena.versaodocumento")).isOne();
+
+        mvc.perform(post("/api/projetos/ATHENA/documentos/DOC-DELTA-003/confirmacoes")
+                        .header("X-Athena-Usuario", "responsavel")
+                        .header("X-Athena-Unidade", "DITEC")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versaoConfirmada": 1,
+                                  "escopo": "Confirmacao de entendimento apresentada sem efeitos de fe publica."
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.tipo").value("CONFIRMACAO"))
+                .andExpect(jsonPath("$.justificativa").value("Confirmacao de entendimento apresentada sem efeitos de fe publica."))
+                .andExpect(content().string(not(containsString("SLA"))))
+                .andExpect(content().string(not(containsString("recurso automatico"))));
+
+        mvc.perform(post("/api/projetos/ATHENA/documentos/DOC-DELTA-003/versoes")
+                        .header("X-Athena-Usuario", "responsavel")
+                        .header("X-Athena-Unidade", "DITEC")
+                        .header("X-Athena-Autorizacoes", "ATHENA_ADMINISTRAR")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versaoAnterior": 1,
+                                  "formato": "MARKDOWN",
+                                  "conteudoOriginal": "Conteudo ajustado em nova versao vinculada.",
+                                  "origem": "regressao TT.TST.004",
+                                  "representacaoInterna": [
+                                    {
+                                      "identificador": "ESP.REQ.010",
+                                      "titulo": "Nova versao vinculada",
+                                      "conteudo": "Conteudo ajustado em nova versao vinculada.",
+                                      "fontesRastreabilidade": ["ESP.REQ.010", "ESP.ACEITE.012"]
+                                    }
+                                  ]
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.versao").value(2))
+                .andExpect(jsonPath("$.versaoAnterior").value(1));
+
+        mvc.perform(get("/api/projetos/ATHENA/documentos/DOC-DELTA-003")
+                        .header("X-Athena-Usuario", "responsavel")
+                        .header("X-Athena-Unidade", "DITEC"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.versoes[0].confirmada").value(true))
+                .andExpect(jsonPath("$.versoes[0].conteudoOriginal").value("Conteudo original confirmado e preservado."))
+                .andExpect(jsonPath("$.versoes[1].conteudoOriginal").value("Conteudo ajustado em nova versao vinculada."))
+                .andExpect(jsonPath("$.versoes[1].versaoAnteriorId").value(versaoUmId.toString()))
+                .andExpect(content().string(containsString("Confirmacao sem fe publica")))
+                .andExpect(content().string(not(containsString("fe publica reconhecida"))));
+
+        mvc.perform(get("/api/projetos/ATHENA/auditoria")
+                        .header("X-Athena-Usuario", "responsavel")
+                        .header("X-Athena-Unidade", "DITEC"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("LEITURA_DOCUMENTO")))
+                .andExpect(content().string(containsString("PEDIDO_AJUSTE")))
+                .andExpect(content().string(containsString("TRATAMENTO_PEDIDO_AJUSTE")))
+                .andExpect(content().string(containsString("CONFIRMACAO")))
+                .andExpect(content().string(containsString("NOVA_VERSAO_DOCUMENTAL_REGISTRADA")))
+                .andExpect(content().string(not(containsString("SLA"))))
+                .andExpect(content().string(not(containsString("recurso automatico"))));
+
+        assertThat(jdbc.queryForObject(
+                "SELECT conteudooriginal FROM athena.versaodocumento WHERE id = ?",
+                String.class,
+                versaoUmId
+        )).isEqualTo("Conteudo original confirmado e preservado.");
+        assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM athena.eventoauditoria WHERE tipo IN (?, ?, ?, ?, ?)",
+                Long.class,
+                "LEITURA_DOCUMENTO",
+                "PEDIDO_AJUSTE",
+                "TRATAMENTO_PEDIDO_AJUSTE",
+                "CONFIRMACAO",
+                "NOVA_VERSAO_DOCUMENTAL_REGISTRADA"
+        )).isGreaterThanOrEqualTo(5);
+    }
+
+    @Test
     void deveManterMatrizDeTestesRastreavelParaEspecificacao002ELinhaBase002() {
         Map<String, Set<String>> matriz = Map.of(
                 "leitura_documental_e2e", Set.of("BL.AC.001", "BL.AC.005", "BL.US.007", "ESP.REQ.001", "ESP.REQ.005"),
@@ -239,6 +383,64 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
         return new RegistroHistoricoDocumental(
                 usuario, projeto, vinculo, documento, versao, List.of(item), agora, UUID.randomUUID()
         );
+    }
+
+    private RegistroHistoricoDocumental registroDeltaEspecificacao003(
+            UUID usuarioId,
+            UUID projetoId,
+            UUID documentoId,
+            UUID versaoId,
+            UUID itemId,
+            OffsetDateTime agora
+    ) {
+        DadosUsuarioPersistente usuario = new DadosUsuarioPersistente(
+                usuarioId, "usuario-responsavel", "Responsavel Tecnico", "responsavel", "DITEC"
+        );
+        DadosProjetoPersistente projeto = new DadosProjetoPersistente(
+                projetoId, "ATHENA", "Athena", "Delta da especificacao 003",
+                "ATIVO", agora, usuarioId
+        );
+        DadosVinculoProjetoPersistente vinculo = new DadosVinculoProjetoPersistente(
+                UUID.randomUUID(), projetoId, usuarioId, "RESPONSAVEL_TECNICO", "DITEC", agora, usuarioId
+        );
+        DadosDocumentoPersistente documento = new DadosDocumentoPersistente(
+                documentoId, "DOC-DELTA-003", projetoId, "Delta da especificacao 003",
+                "ESPECIFICACAO", "DELTA", "Regressao funcional", "Confirmacao sem fe publica", agora, usuarioId
+        );
+        DadosVersaoDocumentoPersistente versao = new DadosVersaoDocumentoPersistente(
+                versaoId, documentoId, 1, "MARKDOWN", "Conteudo original confirmado e preservado.",
+                "hash-delta-003-v1", agora, usuarioId, "linha base especificacao 003"
+        );
+        DadosItemDocumentalPersistente item = new DadosItemDocumentalPersistente(
+                itemId, versaoId, "ESP.REQ.009", "Ajuste e confirmacao",
+                "Cenario de regressao envolvendo visibilidade, ajuste, confirmacao e auditoria.",
+                1, List.of("ESP.REQ.009", "ESP.REQ.010", "ESP.RN.013", "ESP.ACEITE.012")
+        );
+        return new RegistroHistoricoDocumental(
+                usuario, projeto, vinculo, documento, versao, List.of(item), agora, UUID.randomUUID()
+        );
+    }
+
+    private void registrarParticipanteVinculado(
+            UUID participanteId,
+            UUID projetoId,
+            UUID registradoPorId,
+            OffsetDateTime inicioEm
+    ) {
+        jdbc.update("""
+                INSERT INTO athena.usuarioinstitucional (id, identificador, nome, login, unidade)
+                VALUES (?, ?, ?, ?, ?)
+                """, participanteId, "usuario-participante", "Participante Vinculado", "participante", "GABINETE");
+        jdbc.update("""
+                INSERT INTO athena.vinculoprojeto
+                    (id, projetoid, usuarioid, papel, unidade, inicioem, registradoporid)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, UUID.randomUUID(), projetoId, participanteId, "PARTICIPANTE", "GABINETE", inicioEm, registradoPorId);
+    }
+
+    @SuppressWarnings("unchecked")
+    private String campoTexto(MvcResult resultado, String campo) throws Exception {
+        return String.valueOf(json.readValue(resultado.getResponse().getContentAsByteArray(), Map.class).get(campo));
     }
 
     private long contar(String tabela) {
@@ -326,6 +528,15 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                     ordem INTEGER NOT NULL CHECK (ordem > 0),
                     fontesrastreabilidade VARCHAR ARRAY NOT NULL,
                     UNIQUE (versaoid, identificador)
+                )
+                """);
+        jdbc.execute("""
+                CREATE TABLE athena.relacaorecebida (
+                    id UUID PRIMARY KEY,
+                    documentoid UUID,
+                    itemid UUID,
+                    tipo VARCHAR(80) NOT NULL,
+                    recursorelacionado VARCHAR(160) NOT NULL
                 )
                 """);
         jdbc.execute("""
