@@ -312,6 +312,7 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                     versaoanteriorid UUID,
                     confirmada BOOLEAN NOT NULL DEFAULT FALSE,
                     pedidoajusteorigemid UUID,
+                    CHECK ((numero = 1 AND versaoanteriorid IS NULL) OR (numero > 1 AND versaoanteriorid IS NOT NULL)),
                     UNIQUE (documentoid, numero)
                 )
                 """);

@@ -55,8 +55,10 @@ public class PersistenciaTransacionalAthena {
             UUID eventoAuditoriaId
     ) {
         transacao.executeWithoutResult(status -> {
+            validarVinculoNovaVersao(versao);
             inserirVersao(versao);
             itens.forEach(this::inserirItem);
+            vincularPedidoAjusteAVersaoResultante(versao, ocorridoEm);
             jdbc.update("""
                     INSERT INTO athena.eventoauditoria
                         (id, projetoid, documentoid, versaoid, usuarioid, tipo, dados, ocorridoem, registradoporid)
@@ -479,8 +481,8 @@ public class PersistenciaTransacionalAthena {
         jdbc.update("""
                 INSERT INTO athena.versaodocumento
                     (id, documentoid, numero, formato, conteudooriginal, hashconteudo,
-                     recebidaem, recebidaporid, origemexterna, versaoanteriorid, confirmada,
-                     pedidoajusteorigemid)
+                     recebidaem, recebidaporid, origemexterna, versaoanteriorid,
+                     confirmada, pedidoajusteorigemid)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, versao.id(), versao.documentoId(), versao.numero(), versao.formato(),
                 versao.conteudoOriginal(), versao.hashConteudo(), versao.recebidaEm(),
@@ -531,10 +533,10 @@ public class PersistenciaTransacionalAthena {
         jdbc.update("""
                 INSERT INTO athena.pedidoajuste
                     (id, itemid, solicitanteid, descricao, justificativa, situacao, solicitadoem,
-                     responsaveltecnico)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                     responsaveltecnico, versaoresultanteid)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, registro.id(), registro.itemId(), registro.usuarioId(), registro.conteudo(),
-                registro.justificativa(), registro.decisao(), registro.registradaEm(), registro.conteudo());
+                registro.justificativa(), registro.decisao(), registro.registradaEm(), registro.conteudo(), null);
     }
 
     private void inserirConfirmacao(RegistroInteracaoHumana registro) {
@@ -543,6 +545,28 @@ public class PersistenciaTransacionalAthena {
                 VALUES (?, ?, ?, ?, ?, ?)
                 """, registro.id(), registro.itemId(), registro.usuarioId(), registro.decisao(),
                 registro.justificativa(), registro.registradaEm());
+        jdbc.update("""
+                UPDATE athena.versaodocumento
+                   SET confirmada = TRUE
+                 WHERE id = (SELECT versaoid FROM athena.itemdocumental WHERE id = ?)
+                """, registro.itemId());
+    }
+
+    private void vincularPedidoAjusteAVersaoResultante(
+            DadosVersaoDocumentoPersistente versao,
+            OffsetDateTime ocorridoEm
+    ) {
+        if (versao.pedidoAjusteOrigemId() == null) {
+            return;
+        }
+        int atualizados = jdbc.update("""
+                UPDATE athena.pedidoajuste
+                   SET versaoresultanteid = ?, concluidoem = ?
+                 WHERE id = ?
+                """, versao.id(), ocorridoEm, versao.pedidoAjusteOrigemId());
+        if (atualizados != 1) {
+            throw new IllegalArgumentException("pedido de ajuste origem deve existir para vincular nova versao.");
+        }
     }
 
     private void inserirAuditoriaHistorico(RegistroHistoricoDocumental registro) {
@@ -623,6 +647,26 @@ public class PersistenciaTransacionalAthena {
             return null;
         }
         return valor instanceof UUID uuid ? uuid : UUID.fromString(valor.toString());
+    }
+
+    private void validarVinculoNovaVersao(DadosVersaoDocumentoPersistente versao) {
+        if (versao.numero() <= 1 || versao.versaoAnteriorId() == null) {
+            throw new IllegalArgumentException("nova versao documental deve referenciar versao anterior existente.");
+        }
+        Boolean existe = jdbc.queryForObject("""
+                SELECT EXISTS (
+                    SELECT 1
+                      FROM athena.versaodocumento
+                     WHERE id = ?
+                       AND documentoid = ?
+                       AND numero = ?
+                       AND confirmada = TRUE
+                )
+                """, Boolean.class, versao.versaoAnteriorId(), versao.documentoId(), versao.numero() - 1);
+        if (!Boolean.TRUE.equals(existe)) {
+            throw new IllegalArgumentException(
+                    "versao anterior da nova versao documental deve existir confirmada no mesmo documento.");
+        }
     }
 
     private static OffsetDateTime horario(ResultSet rs, String coluna) throws SQLException {

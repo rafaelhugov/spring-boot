@@ -807,7 +807,16 @@ public final class AthenaHttpController {
             OffsetDateTime recebidaEm,
             Map<String, Object> corpo
     ) {
-        return novaVersaoPersistente(documentoId, numeroVersao, formato, usuarioId, recebidaEm, corpo, null, null);
+        return novaVersaoPersistente(
+                documentoId,
+                numeroVersao,
+                formato,
+                usuarioId,
+                recebidaEm,
+                corpo,
+                versaoAnteriorId(documentoId, numeroVersao),
+                null
+        );
     }
 
     private DadosVersaoDocumentoPersistente novaVersaoPersistente(
@@ -835,6 +844,21 @@ public final class AthenaHttpController {
                 false,
                 pedidoAjusteOrigemId
         );
+    }
+
+    private UUID versaoAnteriorId(UUID documentoId, int numeroVersao) {
+        if (numeroVersao == 1) {
+            return null;
+        }
+        return persistencia.listarVersoesDocumento(documentoId).stream()
+                .filter(versao -> versao.numero() == numeroVersao - 1)
+                .map(DadosVersaoDocumentoPersistente::id)
+                .findFirst()
+                .orElseThrow(() -> new RespostaApiException(
+                        HttpStatus.UNPROCESSABLE_ENTITY,
+                        "REGRA_FUNCIONAL_VIOLADA",
+                        "nova versao documental exige versao anterior persistida."
+                ));
     }
 
     private List<DadosItemDocumentalPersistente> itensPersistentes(UUID versaoId, Map<String, Object> corpo) {
@@ -962,8 +986,8 @@ public final class AthenaHttpController {
                 "conteudoOriginal", versao.conteudoOriginal(),
                 "recebidaEm", versao.recebidaEm(),
                 "confirmada", versao.confirmada(),
-                "versaoAnteriorId", versao.versaoAnteriorId() == null ? "" : versao.versaoAnteriorId(),
-                "pedidoAjusteOrigemId", versao.pedidoAjusteOrigemId() == null ? "" : versao.pedidoAjusteOrigemId(),
+                "versaoAnteriorId", uuidComoTexto(versao.versaoAnteriorId()),
+                "pedidoAjusteOrigemId", uuidComoTexto(versao.pedidoAjusteOrigemId()),
                 "itens", persistencia.listarItensDocumento(versao.documentoId()).stream()
                         .filter(item -> item.versaoId().equals(versao.id()))
                         .sorted(Comparator.comparingInt(DadosItemDocumentalPersistente::ordem))
@@ -990,6 +1014,10 @@ public final class AthenaHttpController {
         resposta.put("justificativaTratamento", pedido.justificativaTratamento() == null ? "" : pedido.justificativaTratamento());
         resposta.put("versaoResultanteId", pedido.versaoResultanteId() == null ? "" : pedido.versaoResultanteId());
         return resposta;
+    }
+
+    private static String uuidComoTexto(UUID valor) {
+        return valor == null ? "" : valor.toString();
     }
 
     private Map<String, Object> respostaItemPersistente(DadosItemDocumentalPersistente item) {

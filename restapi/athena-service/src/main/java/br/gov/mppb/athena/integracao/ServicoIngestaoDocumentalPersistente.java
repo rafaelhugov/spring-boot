@@ -68,11 +68,12 @@ public final class ServicoIngestaoDocumentalPersistente {
         UUID projetoId = id("projeto:" + projeto.identificador().valor());
         UUID documentoId = id("documento:" + documento.projeto().valor() + ":" + documento.identificador());
         VersaoDocumento novaVersao = documento.versoes().get(documento.versoes().size() - 1);
+        UUID versaoAnteriorId = id("versao:" + documentoId + ":" + (novaVersao.numero() - 1));
 
         persistencia.registrarNovaVersaoDocumental(
                 projetoId,
                 usuarioId,
-                versao(documentoId, novaVersao, usuarioId, pedido.nomeFisicoArquivo()),
+                versao(documentoId, novaVersao, usuarioId, pedido.nomeFisicoArquivo(), versaoAnteriorId),
                 itens(documentoId, novaVersao),
                 novaVersao.recebidaEm(),
                 id("auditoria:" + documentoId + ":" + novaVersao.numero())
@@ -124,6 +125,29 @@ public final class ServicoIngestaoDocumentalPersistente {
                 versao.recebidaEm(),
                 usuarioId,
                 origemExterna
+        );
+    }
+
+    private static DadosVersaoDocumentoPersistente versao(
+            UUID documentoId,
+            VersaoDocumento versao,
+            UUID usuarioId,
+            String origemExterna,
+            UUID versaoAnteriorId
+    ) {
+        return new DadosVersaoDocumentoPersistente(
+                id("versao:" + documentoId + ":" + versao.numero()),
+                documentoId,
+                versao.numero(),
+                versao.formato().name(),
+                versao.conteudoOriginal(),
+                Integer.toHexString(versao.conteudoOriginal().hashCode()),
+                versao.recebidaEm(),
+                usuarioId,
+                origemExterna,
+                versaoAnteriorId,
+                false,
+                null
         );
     }
 

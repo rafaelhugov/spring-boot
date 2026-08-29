@@ -427,12 +427,16 @@ class AthenaHttpControllerTest {
                 .andExpect(jsonPath("$.versao").value(1))
                 .andExpect(jsonPath("$.dependenciaExternaCorporativa").value("REGISTRADA_COMO_PENDENTE_NAO_SIMULADA"));
 
+        confirmarVersaoPersistente(mvcPersistente, 1, "Confirmacao formal da versao markdown.");
+
         mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/ingestoes")
                         .headers(cabecalhosAdministrador())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(corpoIngestao("JSON", "{\"documento\":\"Athena\"}", "REQ-JSON", "JSON persistido.")))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.versao").value(2));
+
+        confirmarVersaoPersistente(mvcPersistente, 2, "Confirmacao formal da versao json.");
 
         mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/ingestoes")
                         .headers(cabecalhosAdministrador())
@@ -450,6 +454,20 @@ class AthenaHttpControllerTest {
                 .andExpect(jsonPath("$.versoes[2].formato").value("YAML"))
                 .andExpect(jsonPath("$.versoes[2].itens[0].identificador").value("REQ-YAML"))
                 .andExpect(jsonPath("$.versoes[2].itens[0].rastreabilidade[0]").value("ENT.ESCOPO.006"));
+    }
+
+    private static void confirmarVersaoPersistente(MockMvc mvcPersistente, int versao, String escopo) throws Exception {
+        mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/DOC-INGESTAO/confirmacoes")
+                        .headers(cabecalhosResponsavel())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versaoConfirmada": %d,
+                                  "escopo": "%s"
+                                }
+                                """.formatted(versao, escopo)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.tipo").value("CONFIRMACAO"));
     }
 
     @Test
@@ -724,7 +742,8 @@ class AthenaHttpControllerTest {
                     origemexterna VARCHAR(240),
                     versaoanteriorid UUID,
                     confirmada BOOLEAN NOT NULL DEFAULT FALSE,
-                    pedidoajusteorigemid UUID
+                    pedidoajusteorigemid UUID,
+                    CHECK ((numero = 1 AND versaoanteriorid IS NULL) OR (numero > 1 AND versaoanteriorid IS NOT NULL))
                 )
                 """);
         jdbc.execute("""
@@ -776,6 +795,7 @@ class AthenaHttpControllerTest {
                     justificativa CLOB NOT NULL,
                     situacao VARCHAR(60) NOT NULL,
                     solicitadoem TIMESTAMP WITH TIME ZONE NOT NULL,
+                    concluidoem TIMESTAMP WITH TIME ZONE,
                     responsaveltecnico VARCHAR(120) NOT NULL,
                     tratadoem TIMESTAMP WITH TIME ZONE,
                     decisaotratamento VARCHAR(60),
