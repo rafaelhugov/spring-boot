@@ -20,6 +20,7 @@ CREATE OR REPLACE FUNCTION athena.impediralteracaoversaoconfirmada()
 RETURNS trigger AS $$
 BEGIN
     IF OLD.confirmada IS TRUE AND (
+        NEW.confirmada IS DISTINCT FROM TRUE OR
         OLD.numero IS DISTINCT FROM NEW.numero OR
         OLD.conteudooriginal IS DISTINCT FROM NEW.conteudooriginal OR
         OLD.hashconteudo IS DISTINCT FROM NEW.hashconteudo OR

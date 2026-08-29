@@ -575,10 +575,12 @@ public class PersistenciaTransacionalAthena {
                      WHERE id = ?
                        AND documentoid = ?
                        AND numero = ?
+                       AND confirmada = TRUE
                 )
                 """, Boolean.class, versao.versaoAnteriorId(), versao.documentoId(), versao.numero() - 1);
         if (!Boolean.TRUE.equals(existe)) {
-            throw new IllegalArgumentException("versao anterior da nova versao documental deve existir no mesmo documento.");
+            throw new IllegalArgumentException(
+                    "versao anterior da nova versao documental deve existir confirmada no mesmo documento.");
         }
     }
 

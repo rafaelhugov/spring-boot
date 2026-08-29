@@ -149,6 +149,21 @@ class PersistenciaTransacionalAthenaTest {
                 contexto,
                 pedido(FormatoDocumento.MARKDOWN, "entrada.yaml", "conteudo original em MARKDOWN")
         );
+        DadosItemDocumentalPersistente itemPrimeiraVersao = persistencia
+                .consultarHistoricoDocumento(primeira.documentoIdPersistente())
+                .itens()
+                .get(0);
+        persistencia.registrarInteracaoHumana(new RegistroInteracaoHumana(
+                UUID.randomUUID(),
+                itemPrimeiraVersao.id(),
+                UUID.randomUUID(),
+                TipoInteracaoHumana.CONFIRMACAO,
+                "CONFIRMADO",
+                "confirmacao formal",
+                "conteudo conferido",
+                OffsetDateTime.parse("2026-08-25T10:25:30-03:00"),
+                UUID.randomUUID()
+        ));
         ResultadoIngestaoPersistente segunda = servico.registrarNovaVersao(
                 projeto,
                 contexto,
@@ -174,7 +189,7 @@ class PersistenciaTransacionalAthenaTest {
                 .containsExactly("SOL.INTEGRACAO.001", "SOL.INTEGRACAO.001");
         assertThat(contrato.dependenciaExternaDisponivel()).isFalse();
         assertThat(contrato.tratamentoIndisponibilidade()).contains("contrato de integracao pendente");
-        assertThat(contar("athena.eventoauditoria")).isEqualTo(2);
+        assertThat(contar("athena.eventoauditoria")).isEqualTo(3);
     }
 
     @Test
@@ -238,6 +253,39 @@ class PersistenciaTransacionalAthenaTest {
         ))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("versao anterior");
+
+        assertThat(persistencia.consultarHistoricoDocumento(documentoId).versoes())
+                .extracting(DadosVersaoDocumentoPersistente::numero)
+                .containsExactly(1);
+    }
+
+    @Test
+    void deveExigirVersaoAnteriorConfirmadaParaNovaVersaoPersistente() {
+        UUID usuarioId = UUID.randomUUID();
+        UUID projetoId = UUID.randomUUID();
+        UUID documentoId = UUID.randomUUID();
+        UUID versaoUmId = UUID.randomUUID();
+        UUID versaoDoisId = UUID.randomUUID();
+        UUID itemUmId = UUID.randomUUID();
+        UUID itemDoisId = UUID.randomUUID();
+        OffsetDateTime agora = OffsetDateTime.parse("2026-08-27T13:30:00-03:00");
+
+        persistencia.registrarHistoricoDocumental(registro(
+                usuarioId, projetoId, documentoId, versaoUmId, itemUmId, 1, "conteudo ainda nao confirmado", agora
+        ));
+        DadosVersaoDocumentoPersistente versaoDois = new DadosVersaoDocumentoPersistente(
+                versaoDoisId, documentoId, 2, "MARKDOWN", "conteudo revisado", "hash-2",
+                agora.plusHours(1), usuarioId, "origem externa", versaoUmId, false, null
+        );
+        DadosItemDocumentalPersistente itemDois = new DadosItemDocumentalPersistente(
+                itemDoisId, versaoDoisId, "ITEM-2", "Item versionado", "conteudo revisado", 1, List.of("ESP.REQ.010")
+        );
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> persistencia.registrarNovaVersaoDocumental(
+                projetoId, usuarioId, versaoDois, List.of(itemDois), agora.plusHours(1), UUID.randomUUID()
+        ))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("confirmada");
 
         assertThat(persistencia.consultarHistoricoDocumento(documentoId).versoes())
                 .extracting(DadosVersaoDocumentoPersistente::numero)

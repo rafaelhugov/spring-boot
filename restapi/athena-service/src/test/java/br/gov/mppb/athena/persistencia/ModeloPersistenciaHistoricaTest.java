@@ -67,6 +67,7 @@ class ModeloPersistenciaHistoricaTest {
                 .contains("add column pedidoajusteorigemid uuid")
                 .contains("add column versaoresultanteid uuid references athena.versaodocumento(id) on delete restrict")
                 .contains("create trigger trgimpediralteracaoversaoconfirmada")
+                .contains("new.confirmada is distinct from true")
                 .doesNotContain("on delete cascade");
         assertThat(ddl).containsPattern("create table athena\\.eventoauditoria[\\s\\S]*registradoporid uuid not null");
         assertThat(ddl).containsPattern("create table athena\\.avaliacao[\\s\\S]*responsavelid uuid not null");
