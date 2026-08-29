@@ -3,12 +3,16 @@ ALTER TABLE athena.versaodocumento
     ADD COLUMN confirmada BOOLEAN NOT NULL DEFAULT FALSE,
     ADD COLUMN pedidoajusteorigemid UUID;
 
+ALTER TABLE athena.pedidoajuste
+    ADD COLUMN responsaveltecnico VARCHAR(120) NOT NULL DEFAULT 'responsavel-tecnico-nao-informado',
+    ADD COLUMN tratadoem TIMESTAMPTZ,
+    ADD COLUMN decisaotratamento VARCHAR(60),
+    ADD COLUMN justificativatratamento TEXT,
+    ADD COLUMN versaoresultanteid UUID REFERENCES athena.versaodocumento(id) ON DELETE RESTRICT;
+
 ALTER TABLE athena.versaodocumento
     ADD CONSTRAINT ckversaodocumentovinculoanterior
     CHECK ((numero = 1 AND versaoanteriorid IS NULL) OR (numero > 1 AND versaoanteriorid IS NOT NULL));
-
-ALTER TABLE athena.pedidoajuste
-    ADD COLUMN versaoresultanteid UUID REFERENCES athena.versaodocumento(id) ON DELETE RESTRICT;
 
 ALTER TABLE athena.versaodocumento
     ADD CONSTRAINT fkversaodocumentopedidoajusteorigem

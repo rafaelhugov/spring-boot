@@ -102,6 +102,50 @@ public class PersistenciaTransacionalAthena {
         });
     }
 
+    public void tratarPedidoAjuste(
+            UUID pedidoId,
+            String decisao,
+            String justificativaTratamento,
+            OffsetDateTime tratadoEm,
+            UUID responsavelId,
+            UUID eventoAuditoriaId
+    ) {
+        transacao.executeWithoutResult(status -> {
+            DadosPedidoAjustePersistente pedido = consultarPedidoAjuste(pedidoId)
+                    .orElseThrow(() -> new IllegalArgumentException("pedido de ajuste deve existir para tratamento."));
+            jdbc.update("""
+                    UPDATE athena.pedidoajuste
+                       SET situacao = ?,
+                           tratadoem = ?,
+                           decisaotratamento = ?,
+                           justificativatratamento = ?
+                     WHERE id = ?
+                    """, decisao, tratadoEm, decisao, justificativaTratamento, pedidoId);
+            jdbc.update("""
+                    INSERT INTO athena.eventoauditoria
+                        (id, itemid, usuarioid, tipo, decisao, justificativa, dados, ocorridoem, registradoporid)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, eventoAuditoriaId, pedido.itemId(), responsavelId, "TRATAMENTO_PEDIDO_AJUSTE",
+                    decisao, justificativaTratamento, "{}", tratadoEm, responsavelId);
+        });
+    }
+
+    public void vincularVersaoResultanteAoPedidoAjuste(UUID pedidoId, UUID versaoResultanteId) {
+        transacao.executeWithoutResult(status -> jdbc.update("""
+                UPDATE athena.pedidoajuste
+                   SET versaoresultanteid = ?
+                 WHERE id = ?
+                """, versaoResultanteId, pedidoId));
+    }
+
+    public void confirmarVersaoDocumental(UUID versaoId) {
+        transacao.executeWithoutResult(status -> jdbc.update("""
+                UPDATE athena.versaodocumento
+                   SET confirmada = TRUE
+                 WHERE id = ?
+                """, versaoId));
+    }
+
     public void registrarLeituraTecnica(
             UUID projetoId,
             UUID documentoId,
@@ -216,6 +260,18 @@ public class PersistenciaTransacionalAthena {
                 """, this::mapearVersao, documentoId);
     }
 
+    public Optional<DadosVersaoDocumentoPersistente> consultarVersaoDocumento(UUID documentoId, int numero) {
+        List<DadosVersaoDocumentoPersistente> versoes = jdbc.query("""
+                SELECT id, documentoid, numero, formato, conteudooriginal, hashconteudo,
+                       recebidaem, recebidaporid, origemexterna, versaoanteriorid,
+                       confirmada, pedidoajusteorigemid
+                  FROM athena.versaodocumento
+                 WHERE documentoid = ?
+                   AND numero = ?
+                """, this::mapearVersao, documentoId, numero);
+        return versoes.stream().findFirst();
+    }
+
     public List<DadosItemDocumentalPersistente> listarItensDocumento(UUID documentoId) {
         return jdbc.query("""
                 SELECT i.id, i.versaoid, i.identificador, i.titulo, i.conteudo, i.ordem,
@@ -238,6 +294,17 @@ public class PersistenciaTransacionalAthena {
                  ORDER BY v.numero DESC, i.ordem
                 """, this::mapearItem, documentoId, identificadorItem);
         return itens.stream().findFirst();
+    }
+
+    public Optional<DadosPedidoAjustePersistente> consultarPedidoAjuste(UUID pedidoId) {
+        List<DadosPedidoAjustePersistente> pedidos = jdbc.query("""
+                SELECT id, itemid, solicitanteid, descricao, justificativa, situacao,
+                       solicitadoem, responsaveltecnico, tratadoem, decisaotratamento,
+                       justificativatratamento, versaoresultanteid
+                  FROM athena.pedidoajuste
+                 WHERE id = ?
+                """, this::mapearPedidoAjuste, pedidoId);
+        return pedidos.stream().findFirst();
     }
 
     public List<Map<String, Object>> listarEventosAuditoriaDocumento(UUID documentoId) {
@@ -465,10 +532,11 @@ public class PersistenciaTransacionalAthena {
     private void inserirPedidoAjuste(RegistroInteracaoHumana registro) {
         jdbc.update("""
                 INSERT INTO athena.pedidoajuste
-                    (id, itemid, solicitanteid, descricao, justificativa, situacao, solicitadoem, versaoresultanteid)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    (id, itemid, solicitanteid, descricao, justificativa, situacao, solicitadoem,
+                     responsaveltecnico, versaoresultanteid)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, registro.id(), registro.itemId(), registro.usuarioId(), registro.conteudo(),
-                registro.justificativa(), registro.decisao(), registro.registradaEm(), null);
+                registro.justificativa(), registro.decisao(), registro.registradaEm(), registro.conteudo(), null);
     }
 
     private void inserirConfirmacao(RegistroInteracaoHumana registro) {
@@ -541,6 +609,23 @@ public class PersistenciaTransacionalAthena {
                 uuidOpcional(rs, "pedidoajusteorigemid"));
     }
 
+    private DadosPedidoAjustePersistente mapearPedidoAjuste(ResultSet rs, int linha) throws SQLException {
+        return new DadosPedidoAjustePersistente(
+                uuid(rs, "id"),
+                uuid(rs, "itemid"),
+                uuid(rs, "solicitanteid"),
+                rs.getString("descricao"),
+                rs.getString("justificativa"),
+                rs.getString("situacao"),
+                horario(rs, "solicitadoem"),
+                rs.getString("responsaveltecnico"),
+                horarioOpcional(rs, "tratadoem"),
+                rs.getString("decisaotratamento"),
+                rs.getString("justificativatratamento"),
+                uuidOpcional(rs, "versaoresultanteid")
+        );
+    }
+
     private DadosItemDocumentalPersistente mapearItem(ResultSet rs, int linha) throws SQLException {
         Array fontes = rs.getArray("fontesrastreabilidade");
         List<String> valores = fontes == null
@@ -586,6 +671,17 @@ public class PersistenciaTransacionalAthena {
 
     private static OffsetDateTime horario(ResultSet rs, String coluna) throws SQLException {
         Object valor = rs.getObject(coluna);
+        if (valor instanceof OffsetDateTime horario) {
+            return horario;
+        }
+        return rs.getTimestamp(coluna).toInstant().atOffset(OffsetDateTime.now().getOffset());
+    }
+
+    private static OffsetDateTime horarioOpcional(ResultSet rs, String coluna) throws SQLException {
+        Object valor = rs.getObject(coluna);
+        if (valor == null) {
+            return null;
+        }
         if (valor instanceof OffsetDateTime horario) {
             return horario;
         }

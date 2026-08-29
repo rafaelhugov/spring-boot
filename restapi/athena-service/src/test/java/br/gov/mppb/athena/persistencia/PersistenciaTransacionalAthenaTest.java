@@ -498,7 +498,7 @@ class PersistenciaTransacionalAthenaTest {
                     recebidaporid UUID NOT NULL,
                     origemexterna VARCHAR(240),
                     versaoanteriorid UUID,
-                    confirmada BOOLEAN DEFAULT FALSE NOT NULL,
+                    confirmada BOOLEAN NOT NULL DEFAULT FALSE,
                     pedidoajusteorigemid UUID,
                     CHECK ((numero = 1 AND versaoanteriorid IS NULL) OR (numero > 1 AND versaoanteriorid IS NOT NULL)),
                     UNIQUE (documentoid, numero)
@@ -546,6 +546,10 @@ class PersistenciaTransacionalAthenaTest {
                     situacao VARCHAR(60) NOT NULL,
                     solicitadoem TIMESTAMP WITH TIME ZONE NOT NULL,
                     concluidoem TIMESTAMP WITH TIME ZONE,
+                    responsaveltecnico VARCHAR(120) NOT NULL,
+                    tratadoem TIMESTAMP WITH TIME ZONE,
+                    decisaotratamento VARCHAR(60),
+                    justificativatratamento CLOB,
                     versaoresultanteid UUID
                 )
                 """);
