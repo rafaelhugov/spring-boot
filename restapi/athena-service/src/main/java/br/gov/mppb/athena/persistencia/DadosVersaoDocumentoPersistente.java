@@ -12,6 +12,24 @@ public record DadosVersaoDocumentoPersistente(
         String hashConteudo,
         OffsetDateTime recebidaEm,
         UUID recebidaPorId,
-        String origemExterna
+        String origemExterna,
+        UUID versaoAnteriorId,
+        boolean confirmada,
+        UUID pedidoAjusteOrigemId
 ) {
+
+    public DadosVersaoDocumentoPersistente(
+            UUID id,
+            UUID documentoId,
+            int numero,
+            String formato,
+            String conteudoOriginal,
+            String hashConteudo,
+            OffsetDateTime recebidaEm,
+            UUID recebidaPorId,
+            String origemExterna
+    ) {
+        this(id, documentoId, numero, formato, conteudoOriginal, hashConteudo, recebidaEm, recebidaPorId,
+                origemExterna, null, false, null);
+    }
 }
