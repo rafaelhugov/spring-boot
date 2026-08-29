@@ -53,6 +53,19 @@ class PoliticaSegurancaAthenaTest {
     }
 
     @Test
+    void devePermitirSomenteConsultaDocumentalParaParticipanteFormalmenteVinculado() {
+        UsuarioInstitucional participante = usuario("usuario-1", "participante", "GABINETE");
+        ProjetoInstitucional projeto = projetoComParticipante(participante, PapelProjeto.PARTICIPANTE);
+        ContextoAutorizacaoInstitucional contexto = new ContextoAutorizacaoInstitucional(participante, Set.of());
+
+        assertThat(PoliticaSegurancaAthena.autorizar(projeto, contexto, OperacaoProjeto.CONSULTAR).permitido()).isTrue();
+        assertThat(PoliticaSegurancaAthena.autorizar(projeto, contexto, OperacaoProjeto.AVALIAR).permitido()).isFalse();
+        assertThat(PoliticaSegurancaAthena.autorizar(projeto, contexto, OperacaoProjeto.COMENTAR).permitido()).isFalse();
+        assertThat(PoliticaSegurancaAthena.autorizar(projeto, contexto, OperacaoProjeto.CONFIRMAR).permitido()).isFalse();
+        assertThat(PoliticaSegurancaAthena.autorizar(projeto, contexto, OperacaoProjeto.ADMINISTRAR).permitido()).isFalse();
+    }
+
+    @Test
     void devePermitirOperacaoPorAutorizacaoInstitucionalEspecificaNoProjeto() {
         UsuarioInstitucional responsavel = usuario("usuario-1", "responsavel", "DITEC");
         UsuarioInstitucional autorizado = usuario("usuario-2", "autorizado", "GABINETE");

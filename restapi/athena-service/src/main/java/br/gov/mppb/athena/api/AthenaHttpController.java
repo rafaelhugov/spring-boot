@@ -73,6 +73,7 @@ public final class AthenaHttpController {
     private final ServicoConsultaParticipantesCorporativos consultaParticipantes;
     private final PersistenciaTransacionalAthena persistencia;
     private final UsuarioInstitucional responsavel = usuario("usuario-avaliador", "avaliador", "DITEC");
+    private final UsuarioInstitucional participante = usuario("usuario-participante", "participante", "GABINETE");
     private final ProjetoInstitucional projeto = projeto();
     private final Documento documento = documento();
 
@@ -914,12 +915,14 @@ public final class AthenaHttpController {
                 "nome", projeto.nome(),
                 "descricao", projeto.descricao(),
                 "unidades", projeto.unidades(),
-                "participantes", List.of(Map.of(
-                        "nome", responsavel.nome(),
-                        "login", responsavel.login(),
-                        "unidade", responsavel.unidade(),
-                        "papel", PapelProjeto.RESPONSAVEL_TECNICO.name()
-                )),
+                "participantes", projeto.participantes().stream()
+                        .map(participanteProjeto -> Map.of(
+                                "nome", participanteProjeto.usuario().nome(),
+                                "login", participanteProjeto.usuario().login(),
+                                "unidade", participanteProjeto.usuario().unidade(),
+                                "papel", participanteProjeto.papel().name()
+                        ))
+                        .toList(),
                 "situacao", projeto.situacao().name(),
                 "criadoEm", projeto.criadoEm(),
                 "criadoPor", responsavel.login()
@@ -1118,7 +1121,10 @@ public final class AthenaHttpController {
                 "Athena",
                 "Plataforma institucional multiprojeto documental",
                 Set.of("DITEC"),
-                Set.of(new ParticipanteProjeto(responsavel, PapelProjeto.RESPONSAVEL_TECNICO)),
+                Set.of(
+                        new ParticipanteProjeto(responsavel, PapelProjeto.RESPONSAVEL_TECNICO),
+                        new ParticipanteProjeto(participante, PapelProjeto.PARTICIPANTE)
+                ),
                 SituacaoProjeto.ATIVO,
                 OffsetDateTime.parse("2026-08-25T10:15:30-03:00"),
                 responsavel

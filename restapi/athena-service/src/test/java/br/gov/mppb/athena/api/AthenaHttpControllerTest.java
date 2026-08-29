@@ -50,6 +50,85 @@ class AthenaHttpControllerTest {
     }
 
     @Test
+    void devePermitirLeituraDocumentalParaUsuarioFormalmenteVinculadoAoProjeto() throws Exception {
+        mvc.perform(get("/api/projetos/ATHENA/documentos/DOC-ENTENDIMENTO")
+                        .headers(cabecalhosParticipante()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.identificador").value("DOC-ENTENDIMENTO"))
+                .andExpect(jsonPath("$.versoes[0].itens[0].identificador").value("ESP.REQ.006"));
+    }
+
+    @Test
+    void deveNegarLeituraDocumentalParaUsuarioSemVinculoFormalAoProjeto() throws Exception {
+        mvc.perform(get("/api/projetos/ATHENA/documentos/DOC-ENTENDIMENTO")
+                        .header("X-Athena-Usuario", "sem.vinculo")
+                        .header("X-Athena-Unidade", "GABINETE"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.codigo").value("OPERACAO_NAO_AUTORIZADA"));
+    }
+
+    @Test
+    void deveBloquearAcoesFuncionaisParaParticipanteSemAutorizacaoContextual() throws Exception {
+        mvc.perform(post("/api/projetos/ATHENA/documentos/DOC-ENTENDIMENTO/avaliacoes")
+                        .headers(cabecalhosParticipante())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versao": 1,
+                                  "itemId": "ESP.REQ.006",
+                                  "decisao": "APROVADO",
+                                  "justificativa": "Tentativa sem autorizacao funcional."
+                                }
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.codigo").value("OPERACAO_NAO_AUTORIZADA"));
+
+        mvc.perform(post("/api/projetos/ATHENA/documentos/DOC-ENTENDIMENTO/comentarios")
+                        .headers(cabecalhosParticipante())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versao": 1,
+                                  "itemId": "ESP.REQ.006",
+                                  "texto": "Tentativa de comentario sem autorizacao funcional."
+                                }
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.codigo").value("OPERACAO_NAO_AUTORIZADA"));
+
+        mvc.perform(post("/api/projetos/ATHENA/documentos/DOC-ENTENDIMENTO/ajustes")
+                        .headers(cabecalhosParticipante())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versao": 1,
+                                  "itemId": "ESP.REQ.006",
+                                  "justificativa": "Tentativa de ajuste sem autorizacao funcional."
+                                }
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.codigo").value("OPERACAO_NAO_AUTORIZADA"));
+
+        mvc.perform(post("/api/projetos/ATHENA/documentos/DOC-ENTENDIMENTO/confirmacoes")
+                        .headers(cabecalhosParticipante())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versaoConfirmada": 1,
+                                  "escopo": "Tentativa de confirmacao sem autorizacao funcional."
+                                }
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.codigo").value("OPERACAO_NAO_AUTORIZADA"));
+
+        mvc.perform(get("/api/projetos/ATHENA/participantes/pesquisa")
+                        .headers(cabecalhosParticipante())
+                        .param("termo", "ana"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.codigo").value("OPERACAO_NAO_AUTORIZADA"));
+    }
+
+    @Test
     void deveExecutarFluxoDeEscritaPorHttpComAvaliacaoAutorizada() throws Exception {
         mvc.perform(post("/api/projetos/ATHENA/documentos/DOC-ENTENDIMENTO/avaliacoes")
                         .header("X-Athena-Usuario", "avaliador")
@@ -532,6 +611,13 @@ class AthenaHttpControllerTest {
         org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
         headers.add("X-Athena-Usuario", "responsavel");
         headers.add("X-Athena-Unidade", "DITEC");
+        return headers;
+    }
+
+    private static org.springframework.http.HttpHeaders cabecalhosParticipante() {
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.add("X-Athena-Usuario", "participante");
+        headers.add("X-Athena-Unidade", "GABINETE");
         return headers;
     }
 
