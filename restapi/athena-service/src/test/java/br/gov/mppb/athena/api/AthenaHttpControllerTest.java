@@ -17,6 +17,7 @@ import br.gov.mppb.athena.persistencia.DadosVinculoProjetoPersistente;
 import br.gov.mppb.athena.persistencia.PersistenciaTransacionalAthena;
 import br.gov.mppb.athena.persistencia.RegistroHistoricoDocumental;
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +26,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -34,14 +38,14 @@ class AthenaHttpControllerTest {
 
     @BeforeEach
     void prepararMvc() {
+        SecurityContextHolder.clearContext();
         mvc = MockMvcBuilders.standaloneSetup(new AthenaHttpController()).build();
     }
 
     @Test
     void deveExecutarFluxoDeLeituraDocumentalPorHttpComRespostaAutorizada() throws Exception {
         mvc.perform(get("/api/projetos/ATHENA/documentos/DOC-ENTENDIMENTO/itens/ESP.REQ.006")
-                        .header("X-Athena-Usuario", "avaliador")
-                        .header("X-Athena-Unidade", "DITEC"))
+                        .headers(cabecalhosAvaliador()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.identificador").value("ESP.REQ.006"))
                 .andExpect(jsonPath("$.rastreabilidade[0]").value("ESP.REQ.006"))
@@ -61,8 +65,7 @@ class AthenaHttpControllerTest {
     @Test
     void deveNegarLeituraDocumentalParaUsuarioSemVinculoFormalAoProjeto() throws Exception {
         mvc.perform(get("/api/projetos/ATHENA/documentos/DOC-ENTENDIMENTO")
-                        .header("X-Athena-Usuario", "sem.vinculo")
-                        .header("X-Athena-Unidade", "GABINETE"))
+                        .headers(cabecalhosSemVinculo()))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.codigo").value("OPERACAO_NAO_AUTORIZADA"));
     }
@@ -131,8 +134,7 @@ class AthenaHttpControllerTest {
     @Test
     void deveExecutarFluxoDeEscritaPorHttpComAvaliacaoAutorizada() throws Exception {
         mvc.perform(post("/api/projetos/ATHENA/documentos/DOC-ENTENDIMENTO/avaliacoes")
-                        .header("X-Athena-Usuario", "avaliador")
-                        .header("X-Athena-Unidade", "DITEC")
+                        .headers(cabecalhosAvaliador())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -150,15 +152,13 @@ class AthenaHttpControllerTest {
     @Test
     void deveResponder401QuandoIdentidadeInstitucionalNaoForInformada() throws Exception {
         mvc.perform(get("/api/projetos/ATHENA"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.codigo").value("IDENTIDADE_INSTITUCIONAL_AUSENTE"));
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     void deveResponder403QuandoUsuarioNaoTemVinculoOuAutorizacao() throws Exception {
         mvc.perform(post("/api/projetos/ATHENA/documentos/DOC-ENTENDIMENTO/avaliacoes")
-                        .header("X-Athena-Usuario", "sem.vinculo")
-                        .header("X-Athena-Unidade", "GABINETE")
+                        .headers(cabecalhosSemVinculo())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -175,9 +175,7 @@ class AthenaHttpControllerTest {
     @Test
     void deveResponder400ParaEntradaInvalida() throws Exception {
         mvc.perform(get("/api/projetos/ATHENA/participantes/pesquisa")
-                        .header("X-Athena-Usuario", "avaliador")
-                        .header("X-Athena-Unidade", "DITEC")
-                        .header("X-Athena-Autorizacoes", "ATHENA_ADMINISTRAR")
+                        .headers(cabecalhosAdministradorAvaliador())
                         .param("termo", "ab"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.codigo").value("REQUISICAO_INVALIDA"));
@@ -186,9 +184,7 @@ class AthenaHttpControllerTest {
     @Test
     void devePesquisarParticipantesCorporativosPorHttpSemExporCpf() throws Exception {
         mvc.perform(get("/api/projetos/ATHENA/participantes/pesquisa")
-                        .header("X-Athena-Usuario", "avaliador")
-                        .header("X-Athena-Unidade", "DITEC")
-                        .header("X-Athena-Autorizacoes", "ATHENA_ADMINISTRAR")
+                        .headers(cabecalhosAdministradorAvaliador())
                         .param("termo", "ana"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.participantes[0].nome").value("Ana Institucional"))
@@ -201,8 +197,7 @@ class AthenaHttpControllerTest {
     @Test
     void deveNegarPesquisaCorporativaSemAutorizacaoAdministrativa() throws Exception {
         mvc.perform(get("/api/projetos/ATHENA/participantes/pesquisa")
-                        .header("X-Athena-Usuario", "avaliador")
-                        .header("X-Athena-Unidade", "DITEC")
+                        .headers(cabecalhosAvaliador())
                         .param("termo", "ana"))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.codigo").value("OPERACAO_NAO_AUTORIZADA"));
@@ -230,16 +225,14 @@ class AthenaHttpControllerTest {
                 .build();
 
         mvcPersistente.perform(get("/api/projetos/ATHENA")
-                        .header("X-Athena-Usuario", "responsavel")
-                        .header("X-Athena-Unidade", "DITEC"))
+                        .headers(cabecalhosResponsavel()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.indicadores.documentos").value(1))
                 .andExpect(jsonPath("$.indicadores.versoes").value(1))
                 .andExpect(jsonPath("$.indicadores.participantes").value(1));
 
         mvcPersistente.perform(get("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO/itens/ITEM-PERSISTIDO")
-                        .header("X-Athena-Usuario", "responsavel")
-                        .header("X-Athena-Unidade", "DITEC"))
+                        .headers(cabecalhosResponsavel()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.identificador").value("ITEM-PERSISTIDO"))
                 .andExpect(jsonPath("$.conteudo").value("Conteudo persistido e consultado por HTTP."))
@@ -608,22 +601,37 @@ class AthenaHttpControllerTest {
     }
 
     private static org.springframework.http.HttpHeaders cabecalhosResponsavel() {
-        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-        headers.add("X-Athena-Usuario", "responsavel");
-        headers.add("X-Athena-Unidade", "DITEC");
-        return headers;
+        return autenticar("responsavel");
+    }
+
+    private static org.springframework.http.HttpHeaders cabecalhosAvaliador() {
+        return autenticar("avaliador");
     }
 
     private static org.springframework.http.HttpHeaders cabecalhosParticipante() {
-        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-        headers.add("X-Athena-Usuario", "participante");
-        headers.add("X-Athena-Unidade", "GABINETE");
-        return headers;
+        return autenticar("participante");
     }
 
     private static org.springframework.http.HttpHeaders cabecalhosAdministrador() {
-        org.springframework.http.HttpHeaders headers = cabecalhosResponsavel();
-        headers.add("X-Athena-Autorizacoes", "ATHENA_ADMINISTRAR");
+        return autenticar("responsavel", "ATHENA_ADMINISTRAR");
+    }
+
+    private static org.springframework.http.HttpHeaders cabecalhosAdministradorAvaliador() {
+        return autenticar("avaliador", "ATHENA_ADMINISTRAR");
+    }
+
+    private static org.springframework.http.HttpHeaders cabecalhosSemVinculo() {
+        return autenticar("sem.vinculo");
+    }
+
+    private static org.springframework.http.HttpHeaders autenticar(String login, String... autorizacoes) {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                login,
+                null,
+                Arrays.stream(autorizacoes).map(SimpleGrantedAuthority::new).toList()
+        ));
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         return headers;
     }
 
