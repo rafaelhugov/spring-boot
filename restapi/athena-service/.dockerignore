@@ -1,0 +1,8 @@
+.git
+.gitignore
+.env*
+src
+target/*
+!target/*.jar
+Dockerfile
+Dockerfile.dev
