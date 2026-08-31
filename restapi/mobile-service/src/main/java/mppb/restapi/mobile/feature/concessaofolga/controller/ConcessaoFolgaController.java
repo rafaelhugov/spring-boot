@@ -2,13 +2,19 @@ package mppb.restapi.mobile.feature.concessaofolga.controller;
 
 import java.util.List;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestClientResponseException;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +24,7 @@ import mppb.restapi.common.infrastructure.client.authapi.dto.ConsultaAutorizacao
 import mppb.restapi.common.infrastructure.util.Constants;
 import mppb.restapi.mobile.feature.concessaofolga.dto.AusenciaCalendarioDto;
 import mppb.restapi.mobile.feature.concessaofolga.dto.ConcessaoFolgaDto;
+import mppb.restapi.mobile.feature.concessaofolga.dto.SolicitacaoMarcacaoFeriasRequestDto;
 import mppb.restapi.mobile.feature.concessaofolga.repository.AtendimentoUnavailableException;
 import mppb.restapi.mobile.feature.concessaofolga.service.ConcessaoFolgaService;
 
@@ -76,6 +83,53 @@ public class ConcessaoFolgaController {
         } catch (Exception e) {
             log.error("Erro ao buscar ausencias", e);
             return ResponseEntity.status(500).build();
+        }
+    }
+
+    @GetMapping(value = "/concessoes/{concessaoId}/sugestoes-datas-finais", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> sugestoesDatasFinais(
+            @RequestParam("token") @NotNull String token,
+            @PathVariable("concessaoId") Long concessaoId,
+            @RequestParam("dataInicial") String dataInicial) {
+        if (matriculaAutenticada(token) == null) {
+            log.warn("Sugestoes de ferias negadas: usuario nao autenticado ou sem matricula");
+            return ResponseEntity.status(403).build();
+        }
+
+        try {
+            ResponseEntity<String> response = concessaoFolgaService.sugestoesDatasFinais(concessaoId, dataInicial, token);
+            return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
+        } catch (RestClientResponseException e) {
+            log.warn("MPVirtual recusou sugestao de datas finais: status={}", e.getStatusCode().value());
+            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+        } catch (Exception e) {
+            log.error("Erro ao buscar sugestoes de datas finais", e);
+            return ResponseEntity.status(502).build();
+        }
+    }
+
+    @PostMapping(
+            value = "/concessoes/{concessaoId}/solicitacoes",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> cadastrarSolicitacao(
+            @RequestParam("token") @NotNull String token,
+            @PathVariable("concessaoId") Long concessaoId,
+            @Valid @RequestBody SolicitacaoMarcacaoFeriasRequestDto request) {
+        if (matriculaAutenticada(token) == null) {
+            log.warn("Marcacao de ferias negada: usuario nao autenticado ou sem matricula");
+            return ResponseEntity.status(403).build();
+        }
+
+        try {
+            ResponseEntity<String> response = concessaoFolgaService.cadastrarSolicitacao(concessaoId, request, token);
+            return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
+        } catch (RestClientResponseException e) {
+            log.warn("MPVirtual recusou marcacao de ferias: status={}", e.getStatusCode().value());
+            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+        } catch (Exception e) {
+            log.error("Erro ao cadastrar marcacao de ferias", e);
+            return ResponseEntity.status(502).build();
         }
     }
 
