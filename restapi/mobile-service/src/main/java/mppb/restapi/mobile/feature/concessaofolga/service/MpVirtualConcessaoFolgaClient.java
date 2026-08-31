@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import mppb.restapi.mobile.feature.concessaofolga.dto.OperacaoSolicitacaoRequestDto;
 import mppb.restapi.mobile.feature.concessaofolga.dto.SolicitacaoMarcacaoFeriasRequestDto;
 
 @Service
@@ -53,6 +54,73 @@ public class MpVirtualConcessaoFolgaClient {
                 uri,
                 HttpMethod.POST,
                 new HttpEntity<>(request, headers(token)),
+                String.class);
+    }
+
+    public ResponseEntity<String> consultarSolicitacao(Long solicitacaoId, String token) {
+        return exchangeSolicitacao(solicitacaoId, null, HttpMethod.GET, null, token);
+    }
+
+    public ResponseEntity<String> consultarOperacoesSolicitacao(Long solicitacaoId, String token) {
+        return exchangeSolicitacao(solicitacaoId, "operacoes", HttpMethod.GET, null, token);
+    }
+
+    public ResponseEntity<String> cancelarSolicitacao(Long solicitacaoId, String token) {
+        return exchangeSolicitacao(solicitacaoId, "cancelamentos", HttpMethod.POST, null, token);
+    }
+
+    public ResponseEntity<String> adiarSolicitacao(
+            Long solicitacaoId,
+            OperacaoSolicitacaoRequestDto request,
+            String token) {
+        return exchangeSolicitacao(solicitacaoId, "adiamentos", HttpMethod.POST, request, token);
+    }
+
+    public ResponseEntity<String> anteciparSolicitacao(
+            Long solicitacaoId,
+            OperacaoSolicitacaoRequestDto request,
+            String token) {
+        return exchangeSolicitacao(solicitacaoId, "antecipacoes", HttpMethod.POST, request, token);
+    }
+
+    public ResponseEntity<String> interromperSolicitacao(
+            Long solicitacaoId,
+            OperacaoSolicitacaoRequestDto request,
+            String token) {
+        return exchangeSolicitacao(solicitacaoId, "interrupcoes", HttpMethod.POST, request, token);
+    }
+
+    public ResponseEntity<String> suspenderIntegralmenteSolicitacao(Long solicitacaoId, String token) {
+        return exchangeSolicitacao(solicitacaoId, "suspensoes-integrais", HttpMethod.POST, null, token);
+    }
+
+    public ResponseEntity<String> suspenderParcialmenteSolicitacao(
+            Long solicitacaoId,
+            OperacaoSolicitacaoRequestDto request,
+            String token) {
+        return exchangeSolicitacao(solicitacaoId, "suspensoes-parciais", HttpMethod.POST, request, token);
+    }
+
+    private ResponseEntity<String> exchangeSolicitacao(
+            Long solicitacaoId,
+            String action,
+            HttpMethod method,
+            Object body,
+            String token) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
+                .path("/recursoshumanos/solicitacoes/{solicitacaoId}");
+        if (action != null && !action.isBlank()) {
+            builder.path("/{action}");
+        }
+
+        URI uri = action == null || action.isBlank()
+                ? builder.buildAndExpand(solicitacaoId).toUri()
+                : builder.buildAndExpand(solicitacaoId, action).toUri();
+
+        return restTemplate.exchange(
+                uri,
+                method,
+                new HttpEntity<>(body, headers(token)),
                 String.class);
     }
 

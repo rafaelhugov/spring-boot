@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import mppb.restapi.mobile.feature.concessaofolga.dto.AusenciaCalendarioDto;
 import mppb.restapi.mobile.feature.concessaofolga.dto.ConcessaoFolgaDto;
+import mppb.restapi.mobile.feature.concessaofolga.dto.OperacaoSolicitacaoRequestDto;
 import mppb.restapi.mobile.feature.concessaofolga.dto.SolicitacaoMarcacaoFeriasRequestDto;
 import mppb.restapi.mobile.feature.concessaofolga.repository.ConcessaoFolgaIdentityRepository;
 import mppb.restapi.mobile.feature.concessaofolga.repository.ConcessaoFolgaRemoteRepository;
@@ -47,5 +48,49 @@ public class ConcessaoFolgaService {
             SolicitacaoMarcacaoFeriasRequestDto request,
             String token) {
         return mpVirtualClient.cadastrarSolicitacao(concessaoId, request, token);
+    }
+
+    public ResponseEntity<String> consultarSolicitacao(Long solicitacaoId, String token) {
+        return mpVirtualClient.consultarSolicitacao(solicitacaoId, token);
+    }
+
+    public ResponseEntity<String> consultarOperacoesSolicitacao(Long solicitacaoId, String token) {
+        return mpVirtualClient.consultarOperacoesSolicitacao(solicitacaoId, token);
+    }
+
+    public ResponseEntity<String> cancelarSolicitacao(Long solicitacaoId, String token) {
+        return mpVirtualClient.cancelarSolicitacao(solicitacaoId, token);
+    }
+
+    public ResponseEntity<String> adiarSolicitacao(
+            Long solicitacaoId,
+            OperacaoSolicitacaoRequestDto request,
+            String token) {
+        return mpVirtualClient.adiarSolicitacao(solicitacaoId, request, token);
+    }
+
+    public ResponseEntity<String> anteciparSolicitacao(
+            Long solicitacaoId,
+            OperacaoSolicitacaoRequestDto request,
+            String token) {
+        return mpVirtualClient.anteciparSolicitacao(solicitacaoId, request, token);
+    }
+
+    public ResponseEntity<String> interromperSolicitacao(
+            Long solicitacaoId,
+            OperacaoSolicitacaoRequestDto request,
+            String token) {
+        return mpVirtualClient.interromperSolicitacao(solicitacaoId, request, token);
+    }
+
+    public ResponseEntity<String> suspenderIntegralmenteSolicitacao(Long solicitacaoId, String token) {
+        return mpVirtualClient.suspenderIntegralmenteSolicitacao(solicitacaoId, token);
+    }
+
+    public ResponseEntity<String> suspenderParcialmenteSolicitacao(
+            Long solicitacaoId,
+            OperacaoSolicitacaoRequestDto request,
+            String token) {
+        return mpVirtualClient.suspenderParcialmenteSolicitacao(solicitacaoId, request, token);
     }
 }
