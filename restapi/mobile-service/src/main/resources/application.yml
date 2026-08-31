@@ -69,7 +69,7 @@ certidao:
 
 mpvirtual:
   recursos-humanos:
-    base-url: ${MPVIRTUAL_RECURSOS_HUMANOS_BASE_URL:http://10.128.4.50:8080}
+    base-url: ${MPVIRTUAL_RECURSOS_HUMANOS_BASE_URL:http://10.128.4.50:8080/api}
     orgao-id: ${MPVIRTUAL_RECURSOS_HUMANOS_ORGAO_ID:1464408}
 
 designacoes:

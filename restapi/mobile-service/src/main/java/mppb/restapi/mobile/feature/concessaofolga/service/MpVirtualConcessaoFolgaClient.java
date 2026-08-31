@@ -20,7 +20,7 @@ public class MpVirtualConcessaoFolgaClient {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${mpvirtual.recursos-humanos.base-url:http://10.128.4.50:8080}")
+    @Value("${mpvirtual.recursos-humanos.base-url:http://10.128.4.50:8080/api}")
     private String baseUrl;
 
     @Value("${mpvirtual.recursos-humanos.orgao-id:1464408}")
