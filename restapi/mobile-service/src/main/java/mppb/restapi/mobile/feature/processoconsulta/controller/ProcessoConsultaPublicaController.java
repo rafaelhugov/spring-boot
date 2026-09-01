@@ -17,6 +17,11 @@ public class ProcessoConsultaPublicaController {
     @Autowired
     private ProcessoConsultaService consultaService;
 
+    @GetMapping("/filtros")
+    public ResponseEntity<?> listarFiltros() {
+        return ResponseEntity.ok(consultaService.listarFiltros());
+    }
+
     @PostMapping("/consulta")
     public ResponseEntity<?> consultarProcessos(@RequestBody ConsultaProcessoFilterDTO filtro) {
         try {

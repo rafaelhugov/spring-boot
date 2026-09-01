@@ -33,8 +33,11 @@ spring:
     password: ${PG_PASSWORD:senha}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: ${POOL_MAX:5}
-      minimum-idle: ${POOL_MIN:1}
+      maximum-pool-size: ${POOL_MAX:10}
+      minimum-idle: ${POOL_MIN:2}
+      connection-timeout: ${POOL_CONNECTION_TIMEOUT_MS:30000}
+      idle-timeout: ${POOL_IDLE_TIMEOUT_MS:600000}
+      max-lifetime: ${POOL_MAX_LIFETIME_MS:1800000}
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -62,6 +65,16 @@ cors:
 
 carteira:
   pgj-fallback: ${CARTEIRA_PGJ_FALLBACK:ANTONIO HORTENCIO ROCHA NETO}
+
+certidao:
+  extrajudicial:
+    base-url: ${CERTIDAO_EXTRAJUDICIAL_BASE_URL:https://certservapp.mppb.mp.br}
+
+mpvirtual:
+  recursos-humanos:
+    # Producao preservada como default. Desenvolvimento pode sobrescrever via .env.dev.
+    base-url: ${MPVIRTUAL_RECURSOS_HUMANOS_BASE_URL:http://10.94.0.253:8080/api}
+    orgao-id: ${MPVIRTUAL_RECURSOS_HUMANOS_ORGAO_ID:1464408}
 
 designacoes:
   notificacao:
