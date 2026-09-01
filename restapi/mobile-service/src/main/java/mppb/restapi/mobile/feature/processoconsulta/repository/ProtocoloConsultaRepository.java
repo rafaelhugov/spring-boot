@@ -17,6 +17,16 @@ import java.util.concurrent.TimeUnit;
 @Repository
 public class ProtocoloConsultaRepository {
 
+    private static final String PROCESSO_SEM_SIGILO_ATIVO =
+            "      AND (p.id_ultimomovimentosigilosidade IS NULL " +
+            "           OR EXISTS ( " +
+            "               SELECT 1 " +
+            "               FROM protocolo.protocolomovimento pm_sigilo " +
+            "               JOIN taxonomia.movimentos mov_sigilo ON mov_sigilo.id_item = pm_sigilo.id_movimento " +
+            "               WHERE pm_sigilo.id = p.id_ultimomovimentosigilosidade " +
+            "                 AND mov_sigilo.cod_movimento = 920360 " +
+            "           )) ";
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -149,9 +159,7 @@ public class ProtocoloConsultaRepository {
             sql.append("      AND p.id_ultimomovimento IS NOT NULL ");
         }
 
-        if (temNome || temCpf || temCnpj) {
-            sql.append("      AND p.id_ultimomovimentosigilosidade IS NULL ");
-        }
+        sql.append(PROCESSO_SEM_SIGILO_ATIVO);
 
         if (temNumeroProcesso) {
             sql.append("      AND num.numero LIKE ? ");
