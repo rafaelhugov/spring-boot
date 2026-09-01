@@ -1,6 +1,8 @@
 package br.gov.mppb.athena.testes;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import br.gov.mppb.athena.AthenaApplication;
 import br.gov.mppb.athena.persistencia.DadosDocumentoPersistente;
@@ -11,6 +13,12 @@ import br.gov.mppb.athena.persistencia.DadosVersaoDocumentoPersistente;
 import br.gov.mppb.athena.persistencia.DadosVinculoProjetoPersistente;
 import br.gov.mppb.athena.persistencia.PersistenciaTransacionalAthena;
 import br.gov.mppb.athena.persistencia.RegistroHistoricoDocumental;
+import mppb.restapi.common.infrastructure.client.authapi.AuthServiceClient;
+import mppb.restapi.common.infrastructure.client.authapi.dto.AcessoDataResponseDto;
+import mppb.restapi.common.infrastructure.client.authapi.dto.ConsultaAutorizacaoRequestDto;
+import mppb.restapi.common.infrastructure.client.authapi.dto.ConsultaAutorizacaoResponseDto;
+import mppb.restapi.common.infrastructure.client.authapi.dto.FuncionalidadeAutorizadaResponseDto;
+import mppb.restapi.common.infrastructure.client.authapi.dto.UsuarioAutorizadoResponseDto;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -27,6 +35,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
@@ -62,8 +71,21 @@ class AthenaFrontendBackendE2ETest {
     @Autowired
     private TestRestTemplate rest;
 
+    @MockBean
+    private AuthServiceClient authServiceClient;
+
     @BeforeEach
     void prepararAmbientePersistente() {
+        when(authServiceClient.consultaAutorizacao(any()))
+                .thenReturn(new ConsultaAutorizacaoResponseDto(
+                        new AcessoDataResponseDto(
+                                List.of(),
+                                List.of(new FuncionalidadeAutorizadaResponseDto(1L, "Acesso", "athena.ler")),
+                                List.of(),
+                                List.of()
+                        ),
+                        new UsuarioAutorizadoResponseDto(1L, "Responsavel Tecnico", "responsavel")
+                ));
         criarEsquemaPersistente();
         persistencia.registrarHistoricoDocumental(registroBase());
     }
@@ -131,7 +153,7 @@ class AthenaFrontendBackendE2ETest {
         String alertaSemIdentidade = renderizarAlertaVisual(erroSemIdentidade);
         assertThat(erroSemIdentidade.status()).isEqualTo(HttpStatus.UNAUTHORIZED);
         assertThat(alertaSemIdentidade)
-                .contains("IDENTIDADE_INSTITUCIONAL_AUSENTE")
+                .contains("status=401")
                 .doesNotContainIgnoringCase("cpf")
                 .doesNotContainIgnoringCase("segredo");
 
@@ -161,8 +183,7 @@ class AthenaFrontendBackendE2ETest {
 
     private static HttpHeaders cabecalhosResponsavel() {
         HttpHeaders headers = new HttpHeaders();
-        headers.add("X-Athena-Usuario", "responsavel");
-        headers.add("X-Athena-Unidade", "DITEC");
+        headers.set("Authorization", "Token token-responsavel");
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         return headers;
     }

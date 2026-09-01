@@ -1,0 +1,36 @@
+server:
+  port: ${PORT:9002}
+
+project:
+  name: @project.name@
+  version: @project.version@
+  description: @project.description@
+  openapi:
+    url: ${PROJECT_OPENAPI_URL:http://localhost:${server.port}/}
+
+sistema:
+  sigla: ATHENA
+
+api:
+  auth:
+    url: "${AUTH_SERVICE_URL:https://auth-api.mppb.mp.br}"
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: athena-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  datasource:
+    url: "jdbc:${PG_URL:postgresql://localhost:5432/athena}"
+    username: ${PG_USERNAME:athena}
+    password: ${PG_PASSWORD:athena}
+  flyway:
+    enabled: ${FLYWAY_ENABLED:false}
+
+cors:
+  enabled: ${CORS_ENABLED:true}
+  access-control-headers:
+    allow-origin: ${ACCESS_CONTROL_ALLOW_ORIGIN:http://localhost:5173,http://127.0.0.1:5173}
+    allow-credentials: ${ACCESS_CONTROL_ALLOW_CREDENTIALS:false}

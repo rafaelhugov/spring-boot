@@ -12,7 +12,7 @@ public class ConsultaProcessoFilterDTO {
     private Long idClasse;
     private String status;
     private String nomePromotor;
-    private Long idTipoAtividade;
+    private String idTipoAtividade;
     
     // Captcha
     private String captchaToken;
@@ -99,11 +99,11 @@ public class ConsultaProcessoFilterDTO {
         this.nomePromotor = nomePromotor;
     }
 
-    public Long getIdTipoAtividade() {
+    public String getIdTipoAtividade() {
         return idTipoAtividade;
     }
 
-    public void setIdTipoAtividade(Long idTipoAtividade) {
+    public void setIdTipoAtividade(String idTipoAtividade) {
         this.idTipoAtividade = idTipoAtividade;
     }
 

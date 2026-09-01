@@ -22,6 +22,7 @@ import br.gov.mppb.athena.persistencia.RegistroInteracaoHumana;
 import br.gov.mppb.athena.persistencia.TipoInteracaoHumana;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +33,9 @@ import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -45,6 +49,7 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
 
     @BeforeEach
     void prepararSuiteIntegrada() {
+        SecurityContextHolder.clearContext();
         mvc = MockMvcBuilders.standaloneSetup(new AthenaHttpController()).build();
 
         DriverManagerDataSource dataSource = new DriverManagerDataSource(
@@ -63,28 +68,24 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
     @Test
     void deveExecutarFluxoDeLeituraDocumentalDePontaAPontaPorHttpSemMassaLocalFixa() throws Exception {
         mvc.perform(get("/api/projetos/ATHENA")
-                        .header("X-Athena-Usuario", "avaliador")
-                        .header("X-Athena-Unidade", "DITEC"))
+                        .headers(cabecalhosAvaliador()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.identificador").value("ATHENA"))
                 .andExpect(content().string(not(containsString("cpf"))));
 
         mvc.perform(get("/api/projetos/ATHENA/documentos")
-                        .header("X-Athena-Usuario", "avaliador")
-                        .header("X-Athena-Unidade", "DITEC"))
+                        .headers(cabecalhosAvaliador()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.documentos[0].identificador").value("DOC-ENTENDIMENTO"));
 
         mvc.perform(get("/api/projetos/ATHENA/documentos/DOC-ENTENDIMENTO")
-                        .header("X-Athena-Usuario", "avaliador")
-                        .header("X-Athena-Unidade", "DITEC"))
+                        .headers(cabecalhosAvaliador()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.titulo").value("Entendimento do Athena"))
                 .andExpect(jsonPath("$.versoes[0].itens[0].identificador").value("ESP.REQ.006"));
 
         mvc.perform(get("/api/projetos/ATHENA/documentos/DOC-ENTENDIMENTO/itens/ESP.REQ.006")
-                        .header("X-Athena-Usuario", "avaliador")
-                        .header("X-Athena-Unidade", "DITEC"))
+                        .headers(cabecalhosAvaliador()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.identificador").value("ESP.REQ.006"))
                 .andExpect(jsonPath("$.relacoesRecebidas[0].recursoRelacionado").value("BL.AC.002"));
@@ -109,8 +110,7 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
         registrarInteracao(itemId, usuarioId, TipoInteracaoHumana.CONFIRMACAO, "CONFIRMADO", "entendimento confirmado", agora.plusMinutes(4));
 
         mvc.perform(post("/api/projetos/ATHENA/documentos/DOC-ENTENDIMENTO/avaliacoes")
-                        .header("X-Athena-Usuario", "avaliador")
-                        .header("X-Athena-Unidade", "DITEC")
+                        .headers(cabecalhosAvaliador())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -133,12 +133,10 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
     @Test
     void deveComprovarNegativasPorAutenticacaoVinculoEAutorizacaoEspecifica() throws Exception {
         mvc.perform(get("/api/projetos/ATHENA"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.codigo").value("IDENTIDADE_INSTITUCIONAL_AUSENTE"));
+                .andExpect(status().isUnauthorized());
 
         mvc.perform(post("/api/projetos/ATHENA/documentos/DOC-ENTENDIMENTO/avaliacoes")
-                        .header("X-Athena-Usuario", "sem.vinculo")
-                        .header("X-Athena-Unidade", "GABINETE")
+                        .headers(cabecalhosSemVinculo())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -152,8 +150,7 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                 .andExpect(jsonPath("$.codigo").value("OPERACAO_NAO_AUTORIZADA"));
 
         mvc.perform(get("/api/projetos/ATHENA/participantes/pesquisa")
-                        .header("X-Athena-Usuario", "avaliador")
-                        .header("X-Athena-Unidade", "DITEC")
+                        .headers(cabecalhosAvaliador())
                         .param("termo", "ana"))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.codigo").value("OPERACAO_NAO_AUTORIZADA"));
@@ -175,21 +172,18 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
         registrarParticipanteVinculado(participanteId, projetoId, responsavelId, agora);
 
         mvc.perform(get("/api/projetos/ATHENA/documentos/DOC-DELTA-003")
-                        .header("X-Athena-Usuario", "participante")
-                        .header("X-Athena-Unidade", "GABINETE"))
+                        .headers(cabecalhosParticipante()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.identificador").value("DOC-DELTA-003"))
                 .andExpect(jsonPath("$.versoes[0].itens[0].identificador").value("ESP.REQ.009"));
 
         mvc.perform(get("/api/projetos/ATHENA/documentos/DOC-DELTA-003")
-                        .header("X-Athena-Usuario", "sem.vinculo")
-                        .header("X-Athena-Unidade", "GABINETE"))
+                        .headers(cabecalhosSemVinculo()))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.codigo").value("OPERACAO_NAO_AUTORIZADA"));
 
         MvcResult pedidoCriado = mvc.perform(post("/api/projetos/ATHENA/documentos/DOC-DELTA-003/ajustes")
-                        .header("X-Athena-Usuario", "responsavel")
-                        .header("X-Athena-Unidade", "DITEC")
+                        .headers(cabecalhosResponsavel())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -205,8 +199,7 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
         String pedidoAjusteId = campoTexto(pedidoCriado, "id");
 
         mvc.perform(post("/api/projetos/ATHENA/documentos/DOC-DELTA-003/ajustes/{pedidoAjusteId}/tratamentos", pedidoAjusteId)
-                        .header("X-Athena-Usuario", "responsavel")
-                        .header("X-Athena-Unidade", "DITEC")
+                        .headers(cabecalhosResponsavel())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -221,8 +214,7 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
         assertThat(contar("athena.versaodocumento")).isOne();
 
         mvc.perform(post("/api/projetos/ATHENA/documentos/DOC-DELTA-003/confirmacoes")
-                        .header("X-Athena-Usuario", "responsavel")
-                        .header("X-Athena-Unidade", "DITEC")
+                        .headers(cabecalhosResponsavel())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -237,9 +229,7 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                 .andExpect(content().string(not(containsString("recurso automatico"))));
 
         mvc.perform(post("/api/projetos/ATHENA/documentos/DOC-DELTA-003/versoes")
-                        .header("X-Athena-Usuario", "responsavel")
-                        .header("X-Athena-Unidade", "DITEC")
-                        .header("X-Athena-Autorizacoes", "ATHENA_ADMINISTRAR")
+                        .headers(cabecalhosAdministrador())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -262,8 +252,7 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                 .andExpect(jsonPath("$.versaoAnterior").value(1));
 
         mvc.perform(get("/api/projetos/ATHENA/documentos/DOC-DELTA-003")
-                        .header("X-Athena-Usuario", "responsavel")
-                        .header("X-Athena-Unidade", "DITEC"))
+                        .headers(cabecalhosResponsavel()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.versoes[0].confirmada").value(true))
                 .andExpect(jsonPath("$.versoes[0].conteudoOriginal").value("Conteudo original confirmado e preservado."))
@@ -273,8 +262,7 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                 .andExpect(content().string(not(containsString("fe publica reconhecida"))));
 
         mvc.perform(get("/api/projetos/ATHENA/auditoria")
-                        .header("X-Athena-Usuario", "responsavel")
-                        .header("X-Athena-Unidade", "DITEC"))
+                        .headers(cabecalhosResponsavel()))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("LEITURA_DOCUMENTO")))
                 .andExpect(content().string(containsString("PEDIDO_AJUSTE")))
@@ -348,6 +336,37 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                 registradaEm,
                 UUID.randomUUID()
         ));
+    }
+
+    private static org.springframework.http.HttpHeaders cabecalhosResponsavel() {
+        return autenticar("responsavel");
+    }
+
+    private static org.springframework.http.HttpHeaders cabecalhosAvaliador() {
+        return autenticar("avaliador");
+    }
+
+    private static org.springframework.http.HttpHeaders cabecalhosParticipante() {
+        return autenticar("participante");
+    }
+
+    private static org.springframework.http.HttpHeaders cabecalhosSemVinculo() {
+        return autenticar("sem.vinculo");
+    }
+
+    private static org.springframework.http.HttpHeaders cabecalhosAdministrador() {
+        return autenticar("responsavel", "ATHENA_ADMINISTRAR");
+    }
+
+    private static org.springframework.http.HttpHeaders autenticar(String login, String... autorizacoes) {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                login,
+                null,
+                Arrays.stream(autorizacoes).map(SimpleGrantedAuthority::new).toList()
+        ));
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        return headers;
     }
 
     private RegistroHistoricoDocumental registroBase(
