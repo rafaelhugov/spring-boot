@@ -12,6 +12,16 @@ import java.util.List;
 @Repository
 public class ProcessoDetalhesRepository {
 
+    private static final String PROCESSO_SEM_SIGILO_ATIVO =
+            "  AND (p.id_ultimomovimentosigilosidade IS NULL " +
+            "       OR EXISTS ( " +
+            "           SELECT 1 " +
+            "           FROM protocolo.protocolomovimento pm_sigilo " +
+            "           JOIN taxonomia.movimentos mov_sigilo ON mov_sigilo.id_item = pm_sigilo.id_movimento " +
+            "           WHERE pm_sigilo.id = p.id_ultimomovimentosigilosidade " +
+            "             AND mov_sigilo.cod_movimento = 920360 " +
+            "       ))";
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
@@ -25,7 +35,11 @@ public class ProcessoDetalhesRepository {
                      "LEFT JOIN taxonomia.itens a ON p.id_assunto = a.id " +
                      "LEFT JOIN orgao orgao_info ON p.id_orgaocriador = orgao_info.id_pessoa " +
                      "LEFT JOIN pessoa org ON orgao_info.id_pessoa = org.id " +
-                     "WHERE p.id = ?";
+                     "WHERE p.id = ? " +
+                     "  AND p.tipoprotocolo = 'P' " +
+                     "  AND p.id_pasta IS NULL " +
+                     "  AND p.dataexclusao IS NULL " +
+                     PROCESSO_SEM_SIGILO_ATIVO;
 
         List<ProcessoDetalheDTO> processos = jdbcTemplate.query(sql, new Object[]{idProcesso}, (rs, rowNum) -> {
             ProcessoDetalheDTO dto = new ProcessoDetalheDTO();
