@@ -293,12 +293,27 @@ public class ConcessaoFolgaController {
             ResponseEntity<String> response = call.execute();
             return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
         } catch (RestClientResponseException e) {
-            log.warn("MPVirtual recusou {}: status={}", action, e.getStatusCode().value());
+            log.warn("MPVirtual recusou {}: status={} body={}",
+                    action,
+                    e.getStatusCode().value(),
+                    truncateLogBody(e.getResponseBodyAsString()));
             return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
         } catch (Exception e) {
             log.error("Erro ao {}", action, e);
             return ResponseEntity.status(502).build();
         }
+    }
+
+    private String truncateLogBody(String body) {
+        if (body == null || body.isBlank()) {
+            return "<empty>";
+        }
+        String normalized = body.replaceAll("[\\r\\n\\t]+", " ").trim();
+        int maxLength = 1000;
+        if (normalized.length() <= maxLength) {
+            return normalized;
+        }
+        return normalized.substring(0, maxLength) + "...";
     }
 
     @FunctionalInterface
