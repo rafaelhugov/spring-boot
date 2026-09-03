@@ -86,7 +86,12 @@ class AulaServiceTest {
         assertEquals(LocalDateTime.of(2023, 1, 10, 14, 0), curso.getRealizacaoDataInicial());
         assertEquals(LocalDateTime.of(2023, 1, 10, 15, 0), curso.getRealizacaoDataFinal());
         verify(aulaRepository, times(1)).save(aulaValida);
-        verify(cursoRepository, times(1)).save(curso);
+        verify(cursoRepository).atualizarDadosRecalculados(
+                1L,
+                LocalDateTime.of(2023, 1, 10, 14, 0),
+                LocalDateTime.of(2023, 1, 10, 15, 0),
+                "01:00:00",
+                StatusCursoEnum.PUBLICADO);
         verify(frequenciaService).consolidarFrequenciasPorCurso(1L);
     }
 
@@ -109,6 +114,77 @@ class AulaServiceTest {
         assertNotNull(result);
         assertEquals(StatusCursoEnum.PUBLICADO, curso.getStatus());
         assertEquals("02:00:00", curso.getCargaHoraria());
+        verify(cursoRepository).atualizarDadosRecalculados(
+                1L,
+                LocalDateTime.of(2023, 1, 9, 10, 0),
+                LocalDateTime.of(2023, 1, 10, 15, 0),
+                "02:00:00",
+                StatusCursoEnum.PUBLICADO);
+    }
+
+    @Test
+    void updateAula_RecalculaDadosDoCursoComUpdateExplicito() {
+        aulaValida.setCurso(curso);
+
+        Aula aulaAtualizada = new Aula();
+        aulaAtualizada.setDescricao("Aula 1 atualizada");
+        aulaAtualizada.setData(LocalDate.of(2023, 1, 10));
+        aulaAtualizada.setHoraInicio(LocalTime.of(7, 0));
+        aulaAtualizada.setHoraFim(LocalTime.of(10, 0));
+
+        when(cursoRepository.findById(1L)).thenReturn(Optional.of(curso));
+        when(aulaRepository.findById(10L)).thenReturn(Optional.of(aulaValida));
+        when(aulaRepository.save(aulaValida)).thenReturn(aulaValida);
+        when(aulaRepository.findAllByCursoId(1L)).thenReturn(List.of(aulaValida));
+
+        Aula result = aulaService.updateAula(1L, 10L, aulaAtualizada);
+
+        assertSame(aulaValida, result);
+        assertEquals("Aula 1 atualizada", aulaValida.getDescricao());
+        assertEquals(LocalTime.of(7, 0), aulaValida.getHoraInicio());
+        assertEquals("03:00:00", curso.getCargaHoraria());
+        assertEquals(LocalDateTime.of(2023, 1, 10, 7, 0), curso.getRealizacaoDataInicial());
+        assertEquals(LocalDateTime.of(2023, 1, 10, 10, 0), curso.getRealizacaoDataFinal());
+        verify(aulaRepository).flush();
+        verify(cursoRepository).atualizarDadosRecalculados(
+                1L,
+                LocalDateTime.of(2023, 1, 10, 7, 0),
+                LocalDateTime.of(2023, 1, 10, 10, 0),
+                "03:00:00",
+                StatusCursoEnum.PUBLICADO);
+        verify(frequenciaService).consolidarFrequenciasPorCurso(1L);
+    }
+
+    @Test
+    void sincronizarDadosCursoSeNecessario_AtualizaQuandoDadosEstaoDivergentes() {
+        aulaValida.setHoraInicio(LocalTime.of(7, 0));
+        aulaValida.setHoraFim(LocalTime.of(14, 0));
+        when(aulaRepository.findAllByCursoId(1L)).thenReturn(List.of(aulaValida));
+
+        aulaService.sincronizarDadosCursoSeNecessario(curso);
+
+        assertEquals("07:00:00", curso.getCargaHoraria());
+        assertEquals(LocalDateTime.of(2023, 1, 10, 7, 0), curso.getRealizacaoDataInicial());
+        assertEquals(LocalDateTime.of(2023, 1, 10, 14, 0), curso.getRealizacaoDataFinal());
+        verify(cursoRepository).atualizarDadosRecalculados(
+                1L,
+                LocalDateTime.of(2023, 1, 10, 7, 0),
+                LocalDateTime.of(2023, 1, 10, 14, 0),
+                "07:00:00",
+                StatusCursoEnum.PUBLICADO);
+    }
+
+    @Test
+    void sincronizarDadosCursoSeNecessario_NaoAtualizaQuandoDadosJaEstaoConsistentes() {
+        curso.setCargaHoraria("01:00:00");
+        curso.setRealizacaoDataInicial(LocalDateTime.of(2023, 1, 10, 14, 0));
+        curso.setRealizacaoDataFinal(LocalDateTime.of(2023, 1, 10, 15, 0));
+        curso.setStatus(StatusCursoEnum.PUBLICADO);
+        when(aulaRepository.findAllByCursoId(1L)).thenReturn(List.of(aulaValida));
+
+        aulaService.sincronizarDadosCursoSeNecessario(curso);
+
+        verify(cursoRepository, never()).atualizarDadosRecalculados(any(), any(), any(), any(), any());
     }
 
     @Test
