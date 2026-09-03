@@ -111,11 +111,12 @@ public class CursoService extends AbstractService<Curso, Long> {
      * @return Um CursoDto completo com todos os detalhes, incluindo ministrantes.
      * @throws NotFoundException se o curso não for encontrado.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public CursoDto findDetalhesById(Long cursoId) {
         // 1. Busca a entidade principal (Curso)
         Curso curso = cursoRepository.findById(cursoId)
                 .orElseThrow(() -> new NotFoundException("Curso não encontrado com o id: " + cursoId));
+        aulaService.sincronizarDadosCursoSeNecessario(curso);
 
         // 2. Busca a lista de ministrantes associados de forma explícita
         List<CursoMinistranteDto> ministrantesDto = findAllMinistrantesByCursoId(cursoId);

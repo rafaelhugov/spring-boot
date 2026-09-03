@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.core.error.NotFoundException;
 import mppb.restapi.common.core.service.AbstractService;
 import mppb.restapi.cursos.feature.curso.entity.Curso;
+import mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum;
 import mppb.restapi.cursos.feature.curso.repository.CursoRepository;
 import mppb.restapi.cursos.feature.frequencia.converter.AulaConverter;
 import mppb.restapi.cursos.feature.frequencia.dto.AulaDto;
@@ -12,13 +13,13 @@ import mppb.restapi.cursos.feature.frequencia.entity.Aula;
 import mppb.restapi.cursos.feature.frequencia.entity.Chamada;
 import mppb.restapi.cursos.feature.frequencia.repository.AulaRepository;
 import mppb.restapi.cursos.feature.frequencia.repository.ChamadaRepository;
-import mppb.restapi.cursos.feature.frequencia.service.FrequenciaService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -88,6 +89,8 @@ public class AulaService extends AbstractService<Aula, Long> {
         }
 
         Aula savedAula = aulaRepository.save(aulaExistente);
+        // Força o flush para que o JPA escreva as mudanças antes da query JPQL em recalcularDadosCurso
+        aulaRepository.flush();
         recalcularDadosCurso(curso);
         frequenciaService.consolidarFrequenciasPorCurso(cursoId);
         return savedAula;
@@ -106,7 +109,7 @@ public class AulaService extends AbstractService<Aula, Long> {
 
         frequenciaService.removerPorAula(aulaId);
         aulaRepository.delete(aula);
-        aulaRepository.flush(); // Garantir que foi removido antes do recalculo
+        aulaRepository.flush(); // Garante que a deleção seja persistida antes do recalculo
         recalcularDadosCurso(curso);
         frequenciaService.consolidarFrequenciasPorCurso(cursoId);
     }
@@ -121,6 +124,33 @@ public class AulaService extends AbstractService<Aula, Long> {
     }
 
     public void recalcularDadosCurso(Curso curso) {
+        DadosCursoRecalculados dados = calcularDadosCurso(curso);
+
+        aplicarDadosCurso(curso, dados);
+        cursoRepository.atualizarDadosRecalculados(
+                curso.getId(),
+                dados.dataInicial(),
+                dados.dataFinal(),
+                dados.cargaHoraria(),
+                dados.status());
+    }
+
+    public void sincronizarDadosCursoSeNecessario(Curso curso) {
+        DadosCursoRecalculados dados = calcularDadosCurso(curso);
+        if (dadosIguais(curso, dados)) {
+            return;
+        }
+
+        aplicarDadosCurso(curso, dados);
+        cursoRepository.atualizarDadosRecalculados(
+                curso.getId(),
+                dados.dataInicial(),
+                dados.dataFinal(),
+                dados.cargaHoraria(),
+                dados.status());
+    }
+
+    private DadosCursoRecalculados calcularDadosCurso(Curso curso) {
         List<Aula> aulas = aulaRepository.findAllByCursoId(curso.getId());
         long totalMinutos = 0;
         LocalDateTime dataInicial = null;
@@ -143,16 +173,32 @@ public class AulaService extends AbstractService<Aula, Long> {
         long minutes = totalMinutos % 60;
         String chCalculada = String.format("%02d:%02d:00", hours, minutes);
 
-        curso.setCargaHoraria(chCalculada);
-        curso.setRealizacaoDataInicial(dataInicial);
-        curso.setRealizacaoDataFinal(dataFinal);
+        StatusCursoEnum status = totalMinutos > 0
+                ? StatusCursoEnum.PUBLICADO
+                : StatusCursoEnum.EM_CONSTRUCAO;
 
-        if (totalMinutos > 0) {
-            curso.setStatus(mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.PUBLICADO);
-        } else {
-            curso.setStatus(mppb.restapi.cursos.feature.curso.enums.StatusCursoEnum.EM_CONSTRUCAO);
-        }
-        cursoRepository.save(curso);
+        return new DadosCursoRecalculados(dataInicial, dataFinal, chCalculada, status);
+    }
+
+    private void aplicarDadosCurso(Curso curso, DadosCursoRecalculados dados) {
+        curso.setCargaHoraria(dados.cargaHoraria());
+        curso.setRealizacaoDataInicial(dados.dataInicial());
+        curso.setRealizacaoDataFinal(dados.dataFinal());
+        curso.setStatus(dados.status());
+    }
+
+    private boolean dadosIguais(Curso curso, DadosCursoRecalculados dados) {
+        return Objects.equals(curso.getRealizacaoDataInicial(), dados.dataInicial())
+                && Objects.equals(curso.getRealizacaoDataFinal(), dados.dataFinal())
+                && Objects.equals(curso.getCargaHoraria(), dados.cargaHoraria())
+                && curso.getStatus() == dados.status();
+    }
+
+    private record DadosCursoRecalculados(
+            LocalDateTime dataInicial,
+            LocalDateTime dataFinal,
+            String cargaHoraria,
+            StatusCursoEnum status) {
     }
 
     public Chamada adicionarChamada(Long aulaId, String tipoStr) {
