@@ -5,31 +5,31 @@ import java.util.UUID;
 
 public record DadosVersaoDocumentoPersistente(
         UUID id,
-        UUID documentoId,
+        UUID idDocumento,
         int numero,
         String formato,
         String conteudoOriginal,
         String hashConteudo,
-        OffsetDateTime recebidaEm,
-        UUID recebidaPorId,
+        OffsetDateTime dataRecebimento,
+        UUID idUsuarioRecebimento,
         String origemExterna,
-        UUID versaoAnteriorId,
+        UUID idVersaoAnterior,
         boolean confirmada,
-        UUID pedidoAjusteOrigemId
+        UUID idPedidoAjusteOrigem
 ) {
 
     public DadosVersaoDocumentoPersistente(
             UUID id,
-            UUID documentoId,
+            UUID idDocumento,
             int numero,
             String formato,
             String conteudoOriginal,
             String hashConteudo,
-            OffsetDateTime recebidaEm,
-            UUID recebidaPorId,
+            OffsetDateTime dataRecebimento,
+            UUID idUsuarioRecebimento,
             String origemExterna
     ) {
-        this(id, documentoId, numero, formato, conteudoOriginal, hashConteudo, recebidaEm, recebidaPorId,
+        this(id, idDocumento, numero, formato, conteudoOriginal, hashConteudo, dataRecebimento, idUsuarioRecebimento,
                 origemExterna, null, false, null);
     }
 }

@@ -190,18 +190,18 @@ class SegurancaInstitucionalAthenaHttpTest {
 
     private RegistroHistoricoDocumental registroBase(String login, String unidade) {
         OffsetDateTime agora = OffsetDateTime.parse("2026-08-30T00:30:00-03:00");
-        UUID usuarioId = UUID.randomUUID();
-        UUID projetoId = UUID.randomUUID();
-        UUID documentoId = UUID.randomUUID();
-        UUID versaoId = UUID.randomUUID();
-        UUID itemId = UUID.randomUUID();
+        UUID idUsuario = UUID.randomUUID();
+        UUID idProjeto = UUID.randomUUID();
+        UUID idDocumento = UUID.randomUUID();
+        UUID idVersao = UUID.randomUUID();
+        UUID idItem = UUID.randomUUID();
         return new RegistroHistoricoDocumental(
-                new DadosUsuarioPersistente(usuarioId, "usuario-" + login, "Responsavel Athena", login, unidade),
-                new DadosProjetoPersistente(projetoId, "ATHENA", "Athena", "Projeto Athena", "ATIVO", agora, usuarioId),
-                new DadosVinculoProjetoPersistente(UUID.randomUUID(), projetoId, usuarioId, "RESPONSAVEL_TECNICO", unidade, agora, usuarioId),
-                new DadosDocumentoPersistente(documentoId, "DOC-SEG", projetoId, "Documento", "SEGURANCA", "TESTE", "Teste", "Teste", agora, usuarioId),
-                new DadosVersaoDocumentoPersistente(versaoId, documentoId, 1, "MARKDOWN", "Conteudo", "hash", agora, usuarioId, "teste", null, false, null),
-                List.of(new DadosItemDocumentalPersistente(itemId, versaoId, "ITEM-SEG", "Item", "Conteudo", 1, List.of("SEG"))),
+                new DadosUsuarioPersistente(idUsuario, "usuario-" + login, "Responsavel Athena", login, unidade),
+                new DadosProjetoPersistente(idProjeto, "ATHENA", "Athena", "Projeto Athena", "ATIVO", agora, idUsuario),
+                new DadosVinculoProjetoPersistente(UUID.randomUUID(), idProjeto, idUsuario, "RESPONSAVEL_TECNICO", unidade, agora, idUsuario),
+                new DadosDocumentoPersistente(idDocumento, "DOC-SEG", idProjeto, "Documento", "SEGURANCA", "TESTE", "Teste", "Teste", agora, idUsuario),
+                new DadosVersaoDocumentoPersistente(idVersao, idDocumento, 1, "MARKDOWN", "Conteudo", "hash", agora, idUsuario, "teste", null, false, null),
+                List.of(new DadosItemDocumentalPersistente(idItem, idVersao, "ITEM-SEG", "Item", "Conteudo", 1, List.of("SEG"))),
                 agora,
                 UUID.randomUUID()
         );
@@ -223,7 +223,7 @@ class SegurancaInstitucionalAthenaHttpTest {
                     nome VARCHAR(200) NOT NULL,
                     login VARCHAR(120) NOT NULL UNIQUE,
                     unidade VARCHAR(80) NOT NULL,
-                    cadastradoem TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+                    datacadastro TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
                 )
                 """);
         jdbc.execute("""
@@ -233,76 +233,76 @@ class SegurancaInstitucionalAthenaHttpTest {
                     nome VARCHAR(200) NOT NULL,
                     descricao CLOB NOT NULL,
                     situacao VARCHAR(40) NOT NULL,
-                    criadoem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    criadoporid UUID NOT NULL,
-                    alteradoem TIMESTAMP WITH TIME ZONE,
-                    alteradoporid UUID
+                    datacriacao TIMESTAMP WITH TIME ZONE NOT NULL,
+                    id_usuariocriacao UUID NOT NULL,
+                    dataalteracao TIMESTAMP WITH TIME ZONE,
+                    id_usuarioalteracao UUID
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.vinculoprojeto (
                     id UUID PRIMARY KEY,
-                    projetoid UUID NOT NULL,
-                    usuarioid UUID NOT NULL,
+                    id_projeto UUID NOT NULL,
+                    id_usuario UUID NOT NULL,
                     papel VARCHAR(60) NOT NULL,
                     unidade VARCHAR(80) NOT NULL,
-                    inicioem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    fimem TIMESTAMP WITH TIME ZONE,
-                    registradoporid UUID NOT NULL,
-                    UNIQUE (projetoid, usuarioid, papel, inicioem)
+                    datainicio TIMESTAMP WITH TIME ZONE NOT NULL,
+                    datafim TIMESTAMP WITH TIME ZONE,
+                    id_usuarioregistro UUID NOT NULL,
+                    UNIQUE (id_projeto, id_usuario, papel, datainicio)
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.documento (
                     id UUID PRIMARY KEY,
                     identificador VARCHAR(120) NOT NULL,
-                    projetoid UUID NOT NULL,
+                    id_projeto UUID NOT NULL,
                     titulo VARCHAR(240) NOT NULL,
                     grupo VARCHAR(120) NOT NULL,
                     categoria VARCHAR(120) NOT NULL,
                     finalidade VARCHAR(240) NOT NULL,
                     apresentacao VARCHAR(240) NOT NULL,
-                    criadoem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    criadoporid UUID NOT NULL,
-                    UNIQUE (projetoid, identificador)
+                    datacriacao TIMESTAMP WITH TIME ZONE NOT NULL,
+                    id_usuariocriacao UUID NOT NULL,
+                    UNIQUE (id_projeto, identificador)
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.versaodocumento (
                     id UUID PRIMARY KEY,
-                    documentoid UUID NOT NULL,
+                    id_documento UUID NOT NULL,
                     numero INTEGER NOT NULL CHECK (numero > 0),
                     formato VARCHAR(40) NOT NULL,
                     conteudooriginal CLOB NOT NULL,
                     hashconteudo VARCHAR(128) NOT NULL,
-                    recebidaem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    recebidaporid UUID NOT NULL,
+                    datarecebimento TIMESTAMP WITH TIME ZONE NOT NULL,
+                    id_usuariorecebimento UUID NOT NULL,
                     origemexterna VARCHAR(240),
-                    versaoanteriorid UUID,
+                    id_versao_anterior UUID,
                     confirmada BOOLEAN NOT NULL DEFAULT FALSE,
-                    pedidoajusteorigemid UUID,
-                    CHECK ((numero = 1 AND versaoanteriorid IS NULL) OR (numero > 1 AND versaoanteriorid IS NOT NULL)),
-                    UNIQUE (documentoid, numero)
+                    id_pedido_ajuste_origem UUID,
+                    CHECK ((numero = 1 AND id_versao_anterior IS NULL) OR (numero > 1 AND id_versao_anterior IS NOT NULL)),
+                    UNIQUE (id_documento, numero)
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.itemdocumental (
                     id UUID PRIMARY KEY,
-                    versaoid UUID NOT NULL,
+                    id_versao UUID NOT NULL,
                     identificador VARCHAR(160) NOT NULL,
                     titulo VARCHAR(240) NOT NULL,
                     conteudo CLOB NOT NULL,
                     ordem INTEGER NOT NULL CHECK (ordem > 0),
                     fontesrastreabilidade VARCHAR ARRAY NOT NULL,
-                    UNIQUE (versaoid, identificador)
+                    UNIQUE (id_versao, identificador)
                 )
                 """);
-        jdbc.execute("CREATE TABLE athena.relacaorecebida (id UUID PRIMARY KEY, documentoid UUID, itemid UUID, tipo VARCHAR(80) NOT NULL, recursorelacionado VARCHAR(160) NOT NULL)");
-        jdbc.execute("CREATE TABLE athena.avaliacao (id UUID PRIMARY KEY, itemid UUID NOT NULL, responsavelid UUID NOT NULL, decisao VARCHAR(80) NOT NULL, justificativa CLOB NOT NULL, avaliadaem TIMESTAMP WITH TIME ZONE NOT NULL)");
-        jdbc.execute("CREATE TABLE athena.comentario (id UUID PRIMARY KEY, itemid UUID NOT NULL, autorid UUID NOT NULL, conteudo CLOB NOT NULL, registradoem TIMESTAMP WITH TIME ZONE NOT NULL, origem VARCHAR(120) NOT NULL)");
-        jdbc.execute("CREATE TABLE athena.pedidoajuste (id UUID PRIMARY KEY, itemid UUID NOT NULL, solicitanteid UUID NOT NULL, descricao CLOB NOT NULL, justificativa CLOB NOT NULL, situacao VARCHAR(60) NOT NULL, solicitadoem TIMESTAMP WITH TIME ZONE NOT NULL, concluidoem TIMESTAMP WITH TIME ZONE, responsaveltecnico VARCHAR(120) NOT NULL, tratadoem TIMESTAMP WITH TIME ZONE, decisaotratamento VARCHAR(60), justificativatratamento CLOB, versaoresultanteid UUID)");
-        jdbc.execute("CREATE TABLE athena.confirmacao (id UUID PRIMARY KEY, itemid UUID NOT NULL, responsavelid UUID NOT NULL, decisao VARCHAR(80) NOT NULL, justificativa CLOB NOT NULL, confirmadaem TIMESTAMP WITH TIME ZONE NOT NULL)");
-        jdbc.execute("CREATE TABLE athena.eventoauditoria (id UUID PRIMARY KEY, projetoid UUID, documentoid UUID, versaoid UUID, itemid UUID, usuarioid UUID, tipo VARCHAR(100) NOT NULL, decisao VARCHAR(100), justificativa CLOB, dados CLOB DEFAULT '{}' NOT NULL, ocorridoem TIMESTAMP WITH TIME ZONE NOT NULL, registradoporid UUID NOT NULL)");
+        jdbc.execute("CREATE TABLE athena.relacaorecebida (id UUID PRIMARY KEY, id_documento UUID, id_item UUID, tipo VARCHAR(80) NOT NULL, recursorelacionado VARCHAR(160) NOT NULL)");
+        jdbc.execute("CREATE TABLE athena.avaliacao (id UUID PRIMARY KEY, id_item UUID NOT NULL, id_responsavel UUID NOT NULL, decisao VARCHAR(80) NOT NULL, justificativa CLOB NOT NULL, dataavaliacao TIMESTAMP WITH TIME ZONE NOT NULL)");
+        jdbc.execute("CREATE TABLE athena.comentario (id UUID PRIMARY KEY, id_item UUID NOT NULL, id_autor UUID NOT NULL, conteudo CLOB NOT NULL, dataregistro TIMESTAMP WITH TIME ZONE NOT NULL, origem VARCHAR(120) NOT NULL)");
+        jdbc.execute("CREATE TABLE athena.pedidoajuste (id UUID PRIMARY KEY, id_item UUID NOT NULL, id_solicitante UUID NOT NULL, descricao CLOB NOT NULL, justificativa CLOB NOT NULL, situacao VARCHAR(60) NOT NULL, datasolicitacao TIMESTAMP WITH TIME ZONE NOT NULL, dataconclusao TIMESTAMP WITH TIME ZONE, responsaveltecnico VARCHAR(120) NOT NULL, datatratamento TIMESTAMP WITH TIME ZONE, decisaotratamento VARCHAR(60), justificativatratamento CLOB, id_versao_resultante UUID)");
+        jdbc.execute("CREATE TABLE athena.confirmacao (id UUID PRIMARY KEY, id_item UUID NOT NULL, id_responsavel UUID NOT NULL, decisao VARCHAR(80) NOT NULL, justificativa CLOB NOT NULL, dataconfirmacao TIMESTAMP WITH TIME ZONE NOT NULL)");
+        jdbc.execute("CREATE TABLE athena.eventoauditoria (id UUID PRIMARY KEY, id_projeto UUID, id_documento UUID, id_versao UUID, id_item UUID, id_usuario UUID, tipo VARCHAR(100) NOT NULL, decisao VARCHAR(100), justificativa CLOB, dados CLOB DEFAULT '{}' NOT NULL, dataocorrencia TIMESTAMP WITH TIME ZONE NOT NULL, id_usuarioregistro UUID NOT NULL)");
     }
 
     @TestConfiguration

@@ -29,7 +29,7 @@ public final class AdaptadorWsLogAuditoriaInstitucional {
     private static Map<String, Object> payload(EventoAuditoria evento) {
         return Map.of(
                 "ator", evento.ator().valor(),
-                "ocorridoEm", evento.ocorridoEm().toString(),
+                "dataOcorrencia", evento.dataOcorrencia().toString(),
                 "projeto", evento.projeto().valor(),
                 "recurso", Map.of(
                         "tipo", evento.recursoAfetado().tipo(),

@@ -15,7 +15,7 @@ public record PedidoIngestaoDocumentoExterno(
         FormatoDocumento formato,
         String conteudoOriginal,
         List<ItemDocumental> representacaoInterna,
-        OffsetDateTime recebidaEm,
+        OffsetDateTime dataRecebimento,
         String nomeFisicoArquivo
 ) {
 
@@ -36,7 +36,7 @@ public record PedidoIngestaoDocumentoExterno(
             throw new IllegalArgumentException("representacao interna do documento deve ser informada.");
         }
         representacaoInterna = List.copyOf(representacaoInterna);
-        if (recebidaEm == null) {
+        if (dataRecebimento == null) {
             throw new IllegalArgumentException("data de recebimento do documento deve ser informada.");
         }
     }

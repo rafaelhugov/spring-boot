@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public record ResultadoIngestaoPersistente(
         Documento documento,
-        UUID projetoIdPersistente,
-        UUID documentoIdPersistente
+        UUID idProjetoPersistente,
+        UUID idDocumentoPersistente
 ) {
 }

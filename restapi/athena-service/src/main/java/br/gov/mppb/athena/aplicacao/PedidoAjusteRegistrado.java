@@ -11,7 +11,7 @@ public record PedidoAjusteRegistrado(
         String justificativa,
         IdentificadorUsuario responsavelTecnico,
         EstadoSolicitacaoAjuste estado,
-        OffsetDateTime tratadoEm,
+        OffsetDateTime dataTratamento,
         String justificativaTratamento,
         boolean permiteGerarNovaVersao
 ) {
@@ -40,14 +40,14 @@ public record PedidoAjusteRegistrado(
             );
         }
         if (estado == EstadoSolicitacaoAjuste.PENDENTE) {
-            tratadoEm = null;
+            dataTratamento = null;
             justificativaTratamento = null;
             permiteGerarNovaVersao = false;
         }
         if (estado == EstadoSolicitacaoAjuste.ACOLHIDA) {
             permiteGerarNovaVersao = true;
         }
-        if (estado != EstadoSolicitacaoAjuste.PENDENTE && tratadoEm == null) {
+        if (estado != EstadoSolicitacaoAjuste.PENDENTE && dataTratamento == null) {
             throw new IllegalArgumentException("data do tratamento deve ser informada.");
         }
     }

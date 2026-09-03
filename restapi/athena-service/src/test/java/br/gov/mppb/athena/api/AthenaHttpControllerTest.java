@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -71,6 +72,93 @@ class AthenaHttpControllerTest {
     }
 
     @Test
+    void deveExecutarBootstrapAdministrativoComProjetoParticipanteEIngestao() throws Exception {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource(
+                "jdbc:h2:mem:athena-api-bootstrap-" + UUID.randomUUID()
+                        + ";MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
+                        + ";INIT=CREATE SCHEMA IF NOT EXISTS athena",
+                "sa",
+                ""
+        );
+        dataSource.setDriverClassName("org.h2.Driver");
+        JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+        criarEsquemaPersistente(jdbc);
+        MockMvc mvcPersistente = MockMvcBuilders
+                .standaloneSetup(new AthenaHttpController(new PersistenciaTransacionalAthena(
+                        jdbc,
+                        new DataSourceTransactionManager(dataSource)
+                )))
+                .build();
+
+        mvcPersistente.perform(get("/api/projetos")
+                        .headers(cabecalhosAdministrador()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.projetos.length()").value(0));
+
+        mvcPersistente.perform(post("/api/projetos")
+                        .headers(cabecalhosAdministrador())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "identificador": "ATHENA",
+                                  "nome": "Athena",
+                                  "descricao": "Projeto administrado pelo Athena.",
+                                  "unidade": "DITEC",
+                                  "situacao": "ATIVO"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.identificador").value("ATHENA"))
+                .andExpect(jsonPath("$.participantes[0].login").value("responsavel"));
+
+        mvcPersistente.perform(put("/api/projetos/ATHENA")
+                        .headers(cabecalhosAdministrador())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nome": "Athena Recuperado",
+                                  "descricao": "Projeto editado pelo fluxo administrativo.",
+                                  "situacao": "ATIVO"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nome").value("Athena Recuperado"));
+
+        mvcPersistente.perform(get("/api/projetos/ATHENA/participantes/pesquisa")
+                        .headers(cabecalhosAdministrador())
+                        .param("termo", "ana"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.participantes[0].login").value("ana.institucional"));
+
+        mvcPersistente.perform(post("/api/projetos/ATHENA/participantes")
+                        .headers(cabecalhosAdministrador())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "identificador": "usuario-ana.institucional",
+                                  "nome": "Ana Institucional",
+                                  "login": "ana.institucional",
+                                  "unidade": "DITEC",
+                                  "papel": "PARTICIPANTE"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.login").value("ana.institucional"));
+
+        mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/ingestoes")
+                        .headers(cabecalhosAdministrador())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoIngestao("MARKDOWN", "# Bootstrap Athena", "BL.US.005", "Documento recebido.")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.documento").value("DOC-INGESTAO"));
+
+        mvcPersistente.perform(get("/api/projetos")
+                        .headers(cabecalhosAdministrador()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.projetos[0].identificador").value("ATHENA"));
+    }
+
+    @Test
     void deveBloquearAcoesFuncionaisParaParticipanteSemAutorizacaoContextual() throws Exception {
         mvc.perform(post("/api/projetos/ATHENA/documentos/DOC-ENTENDIMENTO/avaliacoes")
                         .headers(cabecalhosParticipante())
@@ -78,7 +166,7 @@ class AthenaHttpControllerTest {
                         .content("""
                                 {
                                   "versao": 1,
-                                  "itemId": "ESP.REQ.006",
+                                  "idItem": "ESP.REQ.006",
                                   "decisao": "APROVADO",
                                   "justificativa": "Tentativa sem autorizacao funcional."
                                 }
@@ -92,7 +180,7 @@ class AthenaHttpControllerTest {
                         .content("""
                                 {
                                   "versao": 1,
-                                  "itemId": "ESP.REQ.006",
+                                  "idItem": "ESP.REQ.006",
                                   "texto": "Tentativa de comentario sem autorizacao funcional."
                                 }
                                 """))
@@ -105,7 +193,7 @@ class AthenaHttpControllerTest {
                         .content("""
                                 {
                                   "versao": 1,
-                                  "itemId": "ESP.REQ.006",
+                                  "idItem": "ESP.REQ.006",
                                   "justificativa": "Tentativa de ajuste sem autorizacao funcional."
                                 }
                                 """))
@@ -139,7 +227,7 @@ class AthenaHttpControllerTest {
                         .content("""
                                 {
                                   "versao": 1,
-                                  "itemId": "ESP.REQ.006",
+                                  "idItem": "ESP.REQ.006",
                                   "decisao": "APROVADO",
                                   "justificativa": "Contrato HTTP validado."
                                 }
@@ -163,7 +251,7 @@ class AthenaHttpControllerTest {
                         .content("""
                                 {
                                   "versao": 1,
-                                  "itemId": "ESP.REQ.006",
+                                  "idItem": "ESP.REQ.006",
                                   "decisao": "APROVADO",
                                   "justificativa": "Tentativa sem autorizacao."
                                 }
@@ -267,7 +355,7 @@ class AthenaHttpControllerTest {
                         .content("""
                                 {
                                   "versao": 1,
-                                  "itemId": "ITEM-PERSISTIDO",
+                                  "idItem": "ITEM-PERSISTIDO",
                                   "decisao": "APROVADO",
                                   "justificativa": "Avaliacao persistente."
                                 }
@@ -282,7 +370,7 @@ class AthenaHttpControllerTest {
                         .content("""
                                 {
                                   "versao": 1,
-                                  "itemId": "ITEM-PERSISTIDO",
+                                  "idItem": "ITEM-PERSISTIDO",
                                   "texto": "Comentario persistente.",
                                   "decisaoRelacionada": "APROVADO"
                                 }
@@ -297,7 +385,7 @@ class AthenaHttpControllerTest {
                         .content("""
                                 {
                                   "versao": 1,
-                                  "itemId": "ITEM-PERSISTIDO",
+                                  "idItem": "ITEM-PERSISTIDO",
                                   "justificativa": "Ajuste sem sobrescrever o documento."
                                 }
                                 """))
@@ -374,19 +462,19 @@ class AthenaHttpControllerTest {
                         .content("""
                                 {
                                   "versao": 1,
-                                  "itemId": "ITEM-PERSISTIDO",
+                                  "idItem": "ITEM-PERSISTIDO",
                                   "justificativa": "Solicitacao para avaliar consistencia do entendimento."
                                 }
                                 """))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.estado").value("PENDENTE"))
                 .andExpect(jsonPath("$.responsavelTecnico").value("usuario-responsavel"))
-                .andExpect(jsonPath("$.solicitadoEm").isNotEmpty());
+                .andExpect(jsonPath("$.dataSolicitacao").isNotEmpty());
 
         UUID pedidoNaoAcolhidoId = jdbc.queryForObject("""
                 SELECT id
                   FROM athena.pedidoajuste
-                 ORDER BY solicitadoem
+                 ORDER BY datasolicitacao
                  LIMIT 1
                 """, UUID.class);
 
@@ -416,7 +504,7 @@ class AthenaHttpControllerTest {
                 .andExpect(jsonPath("$.estado").value("NAO_ACOLHIDA"))
                 .andExpect(jsonPath("$.decisaoTratamento").value("NAO_ACOLHIDA"))
                 .andExpect(jsonPath("$.justificativaTratamento").value("Versao atual permanece valida apos analise tecnica."))
-                .andExpect(jsonPath("$.tratadoEm").isNotEmpty());
+                .andExpect(jsonPath("$.dataTratamento").isNotEmpty());
 
         mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO/ajustes")
                         .headers(cabecalhosResponsavel())
@@ -424,7 +512,7 @@ class AthenaHttpControllerTest {
                         .content("""
                                 {
                                   "versao": 1,
-                                  "itemId": "ITEM-PERSISTIDO",
+                                  "idItem": "ITEM-PERSISTIDO",
                                   "justificativa": "Solicitacao acolhida para produzir nova versao vinculada."
                                 }
                                 """))
@@ -432,7 +520,7 @@ class AthenaHttpControllerTest {
         UUID pedidoAcolhidoId = jdbc.queryForObject("""
                 SELECT id
                   FROM athena.pedidoajuste
-                 ORDER BY solicitadoem DESC
+                 ORDER BY datasolicitacao DESC
                  LIMIT 1
                 """, UUID.class);
 
@@ -455,7 +543,7 @@ class AthenaHttpControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.versao").value(2))
                 .andExpect(jsonPath("$.versaoAnterior").value(1))
-                .andExpect(jsonPath("$.pedidoAjusteOrigemId").value(pedidoAcolhidoId.toString()));
+                .andExpect(jsonPath("$.idPedidoAjusteOrigem").value(pedidoAcolhidoId.toString()));
 
         mvcPersistente.perform(get("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO")
                         .headers(cabecalhosResponsavel()))
@@ -463,8 +551,8 @@ class AthenaHttpControllerTest {
                 .andExpect(jsonPath("$.versoes.length()").value(2))
                 .andExpect(jsonPath("$.versoes[0].confirmada").value(true))
                 .andExpect(jsonPath("$.versoes[1].numero").value(2))
-                .andExpect(jsonPath("$.versoes[1].pedidoAjusteOrigemId").value(pedidoAcolhidoId.toString()))
-                .andExpect(jsonPath("$.versoes[1].versaoAnteriorId").isNotEmpty())
+                .andExpect(jsonPath("$.versoes[1].idPedidoAjusteOrigem").value(pedidoAcolhidoId.toString()))
+                .andExpect(jsonPath("$.versoes[1].idVersaoAnterior").isNotEmpty())
                 .andExpect(jsonPath("$.versoes[1].itens[0].identificador").value("ITEM-VINCULADO"))
                 .andExpect(jsonPath("$.versoes[0].conteudoOriginal").value("Conteudo original persistido."))
                 .andExpect(jsonPath("$.versoes[1].conteudoOriginal").value("Conteudo revisado em nova versao."));
@@ -578,7 +666,7 @@ class AthenaHttpControllerTest {
                         .content("""
                                 {
                                   "versao": 1,
-                                  "itemId": "REQ-AUD",
+                                  "idItem": "REQ-AUD",
                                   "decisao": "APROVADO",
                                   "justificativa": "Avaliacao auditavel."
                                 }
@@ -587,7 +675,7 @@ class AthenaHttpControllerTest {
 
         mvcPersistente.perform(get("/api/projetos/ATHENA/auditoria")
                         .headers(cabecalhosResponsavel())
-                        .param("documentoId", "DOC-INGESTAO"))
+                        .param("idDocumento", "DOC-INGESTAO"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.eventos[0].correlacao").isNotEmpty())
                 .andExpect(jsonPath("$.eventos[0].autorTecnico").value("responsavel"))
@@ -635,7 +723,7 @@ class AthenaHttpControllerTest {
         return headers;
     }
 
-    private static String corpoIngestao(String formato, String conteudoOriginal, String itemId, String itemConteudo) {
+    private static String corpoIngestao(String formato, String conteudoOriginal, String idItem, String itemConteudo) {
         return """
                 {
                   "identificadorDocumento": "DOC-INGESTAO",
@@ -656,7 +744,7 @@ class AthenaHttpControllerTest {
                     }
                   ]
                 }
-                """.formatted(formato, conteudoOriginal.replace("\"", "\\\""), itemId, itemId, itemConteudo);
+                """.formatted(formato, conteudoOriginal.replace("\"", "\\\""), idItem, idItem, itemConteudo);
     }
 
     private static String corpoNovaVersaoVinculada(UUID pedidoAjusteId) {
@@ -681,62 +769,62 @@ class AthenaHttpControllerTest {
 
     private static void registrarProjetoDocumentalPersistente(PersistenciaTransacionalAthena persistencia) {
         OffsetDateTime agora = OffsetDateTime.parse("2026-08-27T10:00:00-03:00");
-        UUID usuarioId = UUID.randomUUID();
-        UUID projetoId = UUID.randomUUID();
-        UUID documentoId = UUID.randomUUID();
-        UUID versaoId = UUID.randomUUID();
-        UUID itemId = UUID.randomUUID();
+        UUID idUsuario = UUID.randomUUID();
+        UUID idProjeto = UUID.randomUUID();
+        UUID idDocumento = UUID.randomUUID();
+        UUID idVersao = UUID.randomUUID();
+        UUID idItem = UUID.randomUUID();
         DadosUsuarioPersistente usuario = new DadosUsuarioPersistente(
-                usuarioId,
+                idUsuario,
                 "usuario-responsavel",
                 "Responsavel Tecnico",
                 "responsavel",
                 "DITEC"
         );
         DadosProjetoPersistente projeto = new DadosProjetoPersistente(
-                projetoId,
+                idProjeto,
                 "ATHENA",
                 "Athena",
                 "Projeto persistido para consulta operacional.",
                 "ATIVO",
                 agora,
-                usuarioId
+                idUsuario
         );
         DadosVinculoProjetoPersistente vinculo = new DadosVinculoProjetoPersistente(
                 UUID.randomUUID(),
-                projetoId,
-                usuarioId,
+                idProjeto,
+                idUsuario,
                 "RESPONSAVEL_TECNICO",
                 "DITEC",
                 agora,
-                usuarioId
+                idUsuario
         );
         DadosDocumentoPersistente documento = new DadosDocumentoPersistente(
-                documentoId,
+                idDocumento,
                 "DOC-PERSISTIDO",
-                projetoId,
+                idProjeto,
                 "Documento persistido",
                 "Especificacao",
                 "Requisito",
                 "Consulta operacional",
                 "Arvore documental",
                 agora,
-                usuarioId
+                idUsuario
         );
         DadosVersaoDocumentoPersistente versao = new DadosVersaoDocumentoPersistente(
-                versaoId,
-                documentoId,
+                idVersao,
+                idDocumento,
                 1,
                 "MARKDOWN",
                 "Conteudo original persistido.",
                 "hash-persistido",
                 agora,
-                usuarioId,
+                idUsuario,
                 "teste integrado"
         );
         DadosItemDocumentalPersistente item = new DadosItemDocumentalPersistente(
-                itemId,
-                versaoId,
+                idItem,
+                idVersao,
                 "ITEM-PERSISTIDO",
                 "Item persistido",
                 "Conteudo persistido e consultado por HTTP.",
@@ -756,22 +844,22 @@ class AthenaHttpControllerTest {
     }
 
     private static void registrarProjetoPersistenteSemDocumento(JdbcTemplate jdbc) {
-        UUID usuarioId = UUID.randomUUID();
-        UUID projetoId = UUID.randomUUID();
+        UUID idUsuario = UUID.randomUUID();
+        UUID idProjeto = UUID.randomUUID();
         OffsetDateTime agora = OffsetDateTime.parse("2026-08-27T10:00:00-03:00");
         jdbc.update("""
                 INSERT INTO athena.usuarioinstitucional (id, identificador, nome, login, unidade)
                 VALUES (?, ?, ?, ?, ?)
-                """, usuarioId, "usuario-responsavel", "Responsavel Tecnico", "responsavel", "DITEC");
+                """, idUsuario, "usuario-responsavel", "Responsavel Tecnico", "responsavel", "DITEC");
         jdbc.update("""
-                INSERT INTO athena.projeto (id, identificador, nome, descricao, situacao, criadoem, criadoporid)
+                INSERT INTO athena.projeto (id, identificador, nome, descricao, situacao, datacriacao, id_usuariocriacao)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, projetoId, "ATHENA", "Athena", "Projeto persistido para ingestao operacional.", "ATIVO", agora, usuarioId);
+                """, idProjeto, "ATHENA", "Athena", "Projeto persistido para ingestao operacional.", "ATIVO", agora, idUsuario);
         jdbc.update("""
                 INSERT INTO athena.vinculoprojeto
-                    (id, projetoid, usuarioid, papel, unidade, inicioem, registradoporid)
+                    (id, id_projeto, id_usuario, papel, unidade, datainicio, id_usuarioregistro)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, UUID.randomUUID(), projetoId, usuarioId, "RESPONSAVEL_TECNICO", "DITEC", agora, usuarioId);
+                """, UUID.randomUUID(), idProjeto, idUsuario, "RESPONSAVEL_TECNICO", "DITEC", agora, idUsuario);
     }
 
     private static void criarEsquemaPersistente(JdbcTemplate jdbc) {
@@ -791,59 +879,59 @@ class AthenaHttpControllerTest {
                     nome VARCHAR(200) NOT NULL,
                     descricao CLOB NOT NULL,
                     situacao VARCHAR(40) NOT NULL,
-                    criadoem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    criadoporid UUID NOT NULL,
-                    alteradoem TIMESTAMP WITH TIME ZONE,
-                    alteradoporid UUID
+                    datacriacao TIMESTAMP WITH TIME ZONE NOT NULL,
+                    id_usuariocriacao UUID NOT NULL,
+                    dataalteracao TIMESTAMP WITH TIME ZONE,
+                    id_usuarioalteracao UUID
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.vinculoprojeto (
                     id UUID PRIMARY KEY,
-                    projetoid UUID NOT NULL,
-                    usuarioid UUID NOT NULL,
+                    id_projeto UUID NOT NULL,
+                    id_usuario UUID NOT NULL,
                     papel VARCHAR(60) NOT NULL,
                     unidade VARCHAR(80) NOT NULL,
-                    inicioem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    fimem TIMESTAMP WITH TIME ZONE,
-                    registradoporid UUID NOT NULL
+                    datainicio TIMESTAMP WITH TIME ZONE NOT NULL,
+                    datafim TIMESTAMP WITH TIME ZONE,
+                    id_usuarioregistro UUID NOT NULL
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.documento (
                     id UUID PRIMARY KEY,
                     identificador VARCHAR(120) NOT NULL,
-                    projetoid UUID NOT NULL,
+                    id_projeto UUID NOT NULL,
                     titulo VARCHAR(240) NOT NULL,
                     grupo VARCHAR(120) NOT NULL,
                     categoria VARCHAR(120) NOT NULL,
                     finalidade VARCHAR(240) NOT NULL,
                     apresentacao VARCHAR(240) NOT NULL,
-                    criadoem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    criadoporid UUID NOT NULL
+                    datacriacao TIMESTAMP WITH TIME ZONE NOT NULL,
+                    id_usuariocriacao UUID NOT NULL
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.versaodocumento (
                     id UUID PRIMARY KEY,
-                    documentoid UUID NOT NULL,
+                    id_documento UUID NOT NULL,
                     numero INTEGER NOT NULL CHECK (numero > 0),
                     formato VARCHAR(40) NOT NULL,
                     conteudooriginal CLOB NOT NULL,
                     hashconteudo VARCHAR(128) NOT NULL,
-                    recebidaem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    recebidaporid UUID NOT NULL,
+                    datarecebimento TIMESTAMP WITH TIME ZONE NOT NULL,
+                    id_usuariorecebimento UUID NOT NULL,
                     origemexterna VARCHAR(240),
-                    versaoanteriorid UUID,
+                    id_versao_anterior UUID,
                     confirmada BOOLEAN NOT NULL DEFAULT FALSE,
-                    pedidoajusteorigemid UUID,
-                    CHECK ((numero = 1 AND versaoanteriorid IS NULL) OR (numero > 1 AND versaoanteriorid IS NOT NULL))
+                    id_pedido_ajuste_origem UUID,
+                    CHECK ((numero = 1 AND id_versao_anterior IS NULL) OR (numero > 1 AND id_versao_anterior IS NOT NULL))
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.itemdocumental (
                     id UUID PRIMARY KEY,
-                    versaoid UUID NOT NULL,
+                    id_versao UUID NOT NULL,
                     identificador VARCHAR(160) NOT NULL,
                     titulo VARCHAR(240) NOT NULL,
                     conteudo CLOB NOT NULL,
@@ -854,8 +942,8 @@ class AthenaHttpControllerTest {
         jdbc.execute("""
                 CREATE TABLE athena.relacaorecebida (
                     id UUID PRIMARY KEY,
-                    documentoid UUID,
-                    itemid UUID,
+                    id_documento UUID,
+                    id_item UUID,
                     tipo VARCHAR(80) NOT NULL,
                     recursorelacionado VARCHAR(160) NOT NULL
                 )
@@ -863,64 +951,64 @@ class AthenaHttpControllerTest {
         jdbc.execute("""
                 CREATE TABLE athena.avaliacao (
                     id UUID PRIMARY KEY,
-                    itemid UUID NOT NULL,
-                    responsavelid UUID NOT NULL,
+                    id_item UUID NOT NULL,
+                    id_responsavel UUID NOT NULL,
                     decisao VARCHAR(80) NOT NULL,
                     justificativa CLOB NOT NULL,
-                    avaliadaem TIMESTAMP WITH TIME ZONE NOT NULL
+                    dataavaliacao TIMESTAMP WITH TIME ZONE NOT NULL
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.comentario (
                     id UUID PRIMARY KEY,
-                    itemid UUID NOT NULL,
-                    autorid UUID NOT NULL,
+                    id_item UUID NOT NULL,
+                    id_autor UUID NOT NULL,
                     conteudo CLOB NOT NULL,
-                    registradoem TIMESTAMP WITH TIME ZONE NOT NULL,
+                    dataregistro TIMESTAMP WITH TIME ZONE NOT NULL,
                     origem VARCHAR(120) NOT NULL
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.pedidoajuste (
                     id UUID PRIMARY KEY,
-                    itemid UUID NOT NULL,
-                    solicitanteid UUID NOT NULL,
+                    id_item UUID NOT NULL,
+                    id_solicitante UUID NOT NULL,
                     descricao CLOB NOT NULL,
                     justificativa CLOB NOT NULL,
                     situacao VARCHAR(60) NOT NULL,
-                    solicitadoem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    concluidoem TIMESTAMP WITH TIME ZONE,
+                    datasolicitacao TIMESTAMP WITH TIME ZONE NOT NULL,
+                    dataconclusao TIMESTAMP WITH TIME ZONE,
                     responsaveltecnico VARCHAR(120) NOT NULL,
-                    tratadoem TIMESTAMP WITH TIME ZONE,
+                    datatratamento TIMESTAMP WITH TIME ZONE,
                     decisaotratamento VARCHAR(60),
                     justificativatratamento CLOB,
-                    versaoresultanteid UUID
+                    id_versao_resultante UUID
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.confirmacao (
                     id UUID PRIMARY KEY,
-                    itemid UUID NOT NULL,
-                    responsavelid UUID NOT NULL,
+                    id_item UUID NOT NULL,
+                    id_responsavel UUID NOT NULL,
                     decisao VARCHAR(80) NOT NULL,
                     justificativa CLOB NOT NULL,
-                    confirmadaem TIMESTAMP WITH TIME ZONE NOT NULL
+                    dataconfirmacao TIMESTAMP WITH TIME ZONE NOT NULL
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.eventoauditoria (
                     id UUID PRIMARY KEY,
-                    projetoid UUID,
-                    documentoid UUID,
-                    versaoid UUID,
-                    itemid UUID,
-                    usuarioid UUID,
+                    id_projeto UUID,
+                    id_documento UUID,
+                    id_versao UUID,
+                    id_item UUID,
+                    id_usuario UUID,
                     tipo VARCHAR(100) NOT NULL,
                     decisao VARCHAR(100),
                     justificativa CLOB,
                     dados CLOB DEFAULT '{}' NOT NULL,
-                    ocorridoem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    registradoporid UUID NOT NULL
+                    dataocorrencia TIMESTAMP WITH TIME ZONE NOT NULL,
+                    id_usuarioregistro UUID NOT NULL
                 )
                 """);
     }

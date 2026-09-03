@@ -91,7 +91,7 @@ public class ServicoIngestaoDocumentalExterna {
                 numero,
                 pedido.formato(),
                 pedido.conteudoOriginal(),
-                pedido.recebidaEm(),
+                pedido.dataRecebimento(),
                 pedido.representacaoInterna()
         );
     }

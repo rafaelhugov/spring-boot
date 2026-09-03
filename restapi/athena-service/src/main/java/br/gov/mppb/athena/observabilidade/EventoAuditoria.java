@@ -7,7 +7,7 @@ import java.util.Map;
 
 public record EventoAuditoria(
         IdentificadorUsuario ator,
-        OffsetDateTime ocorridoEm,
+        OffsetDateTime dataOcorrencia,
         IdentificadorProjeto projeto,
         RecursoAuditavel recursoAfetado,
         AcaoAuditavel acao,
@@ -20,7 +20,7 @@ public record EventoAuditoria(
         if (ator == null) {
             throw new IllegalArgumentException("ator do evento de auditoria deve ser informado.");
         }
-        if (ocorridoEm == null) {
+        if (dataOcorrencia == null) {
             throw new IllegalArgumentException("data do evento de auditoria deve ser informada.");
         }
         if (projeto == null) {

@@ -93,21 +93,21 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
 
     @Test
     void deveExecutarFluxoDeEscritaComInteracoesHumanasPersistidas() throws Exception {
-        UUID usuarioId = UUID.randomUUID();
-        UUID projetoId = UUID.randomUUID();
-        UUID documentoId = UUID.randomUUID();
-        UUID versaoId = UUID.randomUUID();
-        UUID itemId = UUID.randomUUID();
+        UUID idUsuario = UUID.randomUUID();
+        UUID idProjeto = UUID.randomUUID();
+        UUID idDocumento = UUID.randomUUID();
+        UUID idVersao = UUID.randomUUID();
+        UUID idItem = UUID.randomUUID();
         OffsetDateTime agora = OffsetDateTime.parse("2026-08-27T20:30:00-03:00");
 
         persistencia.registrarHistoricoDocumental(registroBase(
-                usuarioId, projetoId, documentoId, versaoId, itemId, agora
+                idUsuario, idProjeto, idDocumento, idVersao, idItem, agora
         ));
 
-        registrarInteracao(itemId, usuarioId, TipoInteracaoHumana.AVALIACAO, "APROVADO", "avaliacao registrada", agora.plusMinutes(1));
-        registrarInteracao(itemId, usuarioId, TipoInteracaoHumana.COMENTARIO, "COMENTADO", "comentario registrado", agora.plusMinutes(2));
-        registrarInteracao(itemId, usuarioId, TipoInteracaoHumana.PEDIDO_AJUSTE, "ABERTO", "ajuste destinado ao responsavel tecnico", agora.plusMinutes(3));
-        registrarInteracao(itemId, usuarioId, TipoInteracaoHumana.CONFIRMACAO, "CONFIRMADO", "entendimento confirmado", agora.plusMinutes(4));
+        registrarInteracao(idItem, idUsuario, TipoInteracaoHumana.AVALIACAO, "APROVADO", "avaliacao registrada", agora.plusMinutes(1));
+        registrarInteracao(idItem, idUsuario, TipoInteracaoHumana.COMENTARIO, "COMENTADO", "comentario registrado", agora.plusMinutes(2));
+        registrarInteracao(idItem, idUsuario, TipoInteracaoHumana.PEDIDO_AJUSTE, "ABERTO", "ajuste destinado ao responsavel tecnico", agora.plusMinutes(3));
+        registrarInteracao(idItem, idUsuario, TipoInteracaoHumana.CONFIRMACAO, "CONFIRMADO", "entendimento confirmado", agora.plusMinutes(4));
 
         mvc.perform(post("/api/projetos/ATHENA/documentos/DOC-ENTENDIMENTO/avaliacoes")
                         .headers(cabecalhosAvaliador())
@@ -115,7 +115,7 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                         .content("""
                                 {
                                   "versao": 1,
-                                  "itemId": "ESP.REQ.006",
+                                  "idItem": "ESP.REQ.006",
                                   "decisao": "APROVADO",
                                   "justificativa": "Fluxo integrado validado."
                                 }
@@ -141,7 +141,7 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                         .content("""
                                 {
                                   "versao": 1,
-                                  "itemId": "ESP.REQ.006",
+                                  "idItem": "ESP.REQ.006",
                                   "decisao": "APROVADO",
                                   "justificativa": "Tentativa sem vinculo."
                                 }
@@ -159,17 +159,17 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
     @Test
     void deveCobrirRegressaoDeltaEspecificacao003ComVisibilidadeAjusteVersaoConfirmacaoEAuditoria() throws Exception {
         mvc = MockMvcBuilders.standaloneSetup(new AthenaHttpController(persistencia)).build();
-        UUID responsavelId = UUID.randomUUID();
+        UUID idResponsavel = UUID.randomUUID();
         UUID participanteId = UUID.randomUUID();
-        UUID projetoId = UUID.randomUUID();
-        UUID documentoId = UUID.randomUUID();
+        UUID idProjeto = UUID.randomUUID();
+        UUID idDocumento = UUID.randomUUID();
         UUID versaoUmId = UUID.randomUUID();
         UUID itemUmId = UUID.randomUUID();
         OffsetDateTime agora = OffsetDateTime.parse("2026-08-28T14:00:00-03:00");
         persistencia.registrarHistoricoDocumental(registroDeltaEspecificacao003(
-                responsavelId, projetoId, documentoId, versaoUmId, itemUmId, agora
+                idResponsavel, idProjeto, idDocumento, versaoUmId, itemUmId, agora
         ));
-        registrarParticipanteVinculado(participanteId, projetoId, responsavelId, agora);
+        registrarParticipanteVinculado(participanteId, idProjeto, idResponsavel, agora);
 
         mvc.perform(get("/api/projetos/ATHENA/documentos/DOC-DELTA-003")
                         .headers(cabecalhosParticipante()))
@@ -188,7 +188,7 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                         .content("""
                                 {
                                   "versao": 1,
-                                  "itemId": "ESP.REQ.009",
+                                  "idItem": "ESP.REQ.009",
                                   "justificativa": "Solicitacao analisada pelo responsavel tecnico sem fila automatica."
                                 }
                                 """))
@@ -210,7 +210,7 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.estado").value("NAO_ACOLHIDA"))
                 .andExpect(jsonPath("$.justificativaTratamento").value("Documento atual permanece valido e o historico preserva a solicitacao."))
-                .andExpect(jsonPath("$.versaoResultanteId").value(""));
+                .andExpect(jsonPath("$.idVersaoResultante").value(""));
         assertThat(contar("athena.versaodocumento")).isOne();
 
         mvc.perform(post("/api/projetos/ATHENA/documentos/DOC-DELTA-003/confirmacoes")
@@ -257,7 +257,7 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                 .andExpect(jsonPath("$.versoes[0].confirmada").value(true))
                 .andExpect(jsonPath("$.versoes[0].conteudoOriginal").value("Conteudo original confirmado e preservado."))
                 .andExpect(jsonPath("$.versoes[1].conteudoOriginal").value("Conteudo ajustado em nova versao vinculada."))
-                .andExpect(jsonPath("$.versoes[1].versaoAnteriorId").value(versaoUmId.toString()))
+                .andExpect(jsonPath("$.versoes[1].idVersaoAnterior").value(versaoUmId.toString()))
                 .andExpect(content().string(containsString("Confirmacao sem fe publica")))
                 .andExpect(content().string(not(containsString("fe publica reconhecida"))));
 
@@ -318,22 +318,22 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
     }
 
     private void registrarInteracao(
-            UUID itemId,
-            UUID usuarioId,
+            UUID idItem,
+            UUID idUsuario,
             TipoInteracaoHumana tipo,
             String decisao,
             String justificativa,
-            OffsetDateTime registradaEm
+            OffsetDateTime dataRegistro
     ) {
         persistencia.registrarInteracaoHumana(new RegistroInteracaoHumana(
                 UUID.randomUUID(),
-                itemId,
-                usuarioId,
+                idItem,
+                idUsuario,
                 tipo,
                 decisao,
                 justificativa,
                 justificativa,
-                registradaEm,
+                dataRegistro,
                 UUID.randomUUID()
         ));
     }
@@ -370,33 +370,33 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
     }
 
     private RegistroHistoricoDocumental registroBase(
-            UUID usuarioId,
-            UUID projetoId,
-            UUID documentoId,
-            UUID versaoId,
-            UUID itemId,
+            UUID idUsuario,
+            UUID idProjeto,
+            UUID idDocumento,
+            UUID idVersao,
+            UUID idItem,
             OffsetDateTime agora
     ) {
         DadosUsuarioPersistente usuario = new DadosUsuarioPersistente(
-                usuarioId, "USR-ATHENA", "Usuario Institucional", "avaliador", "DITEC"
+                idUsuario, "USR-ATHENA", "Usuario Institucional", "avaliador", "DITEC"
         );
         DadosProjetoPersistente projeto = new DadosProjetoPersistente(
-                projetoId, "ATHENA", "Athena", "Plataforma institucional multiprojeto documental",
-                "ATIVO", agora, usuarioId
+                idProjeto, "ATHENA", "Athena", "Plataforma institucional multiprojeto documental",
+                "ATIVO", agora, idUsuario
         );
         DadosVinculoProjetoPersistente vinculo = new DadosVinculoProjetoPersistente(
-                UUID.randomUUID(), projetoId, usuarioId, "RESPONSAVEL_TECNICO", "DITEC", agora, usuarioId
+                UUID.randomUUID(), idProjeto, idUsuario, "RESPONSAVEL_TECNICO", "DITEC", agora, idUsuario
         );
         DadosDocumentoPersistente documento = new DadosDocumentoPersistente(
-                documentoId, "DOC-ENTENDIMENTO", projetoId, "Entendimento do Athena",
-                "ESPECIFICACAO", "ENTENDIMENTO", "Consulta institucional", "Arvore documental", agora, usuarioId
+                idDocumento, "DOC-ENTENDIMENTO", idProjeto, "Entendimento do Athena",
+                "ESPECIFICACAO", "ENTENDIMENTO", "Consulta institucional", "Arvore documental", agora, idUsuario
         );
         DadosVersaoDocumentoPersistente versao = new DadosVersaoDocumentoPersistente(
-                versaoId, documentoId, 1, "MARKDOWN", "conteudo recebido do backend",
-                "hash-e2e", agora, usuarioId, "origem externa governada"
+                idVersao, idDocumento, 1, "MARKDOWN", "conteudo recebido do backend",
+                "hash-e2e", agora, idUsuario, "origem externa governada"
         );
         DadosItemDocumentalPersistente item = new DadosItemDocumentalPersistente(
-                itemId, versaoId, "ESP.REQ.006", "Avaliacao humana",
+                idItem, idVersao, "ESP.REQ.006", "Avaliacao humana",
                 "Item documental exposto pela API.", 1, List.of("ESP.REQ.006", "BL.AC.002")
         );
         return new RegistroHistoricoDocumental(
@@ -405,33 +405,33 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
     }
 
     private RegistroHistoricoDocumental registroDeltaEspecificacao003(
-            UUID usuarioId,
-            UUID projetoId,
-            UUID documentoId,
-            UUID versaoId,
-            UUID itemId,
+            UUID idUsuario,
+            UUID idProjeto,
+            UUID idDocumento,
+            UUID idVersao,
+            UUID idItem,
             OffsetDateTime agora
     ) {
         DadosUsuarioPersistente usuario = new DadosUsuarioPersistente(
-                usuarioId, "usuario-responsavel", "Responsavel Tecnico", "responsavel", "DITEC"
+                idUsuario, "usuario-responsavel", "Responsavel Tecnico", "responsavel", "DITEC"
         );
         DadosProjetoPersistente projeto = new DadosProjetoPersistente(
-                projetoId, "ATHENA", "Athena", "Delta da especificacao 003",
-                "ATIVO", agora, usuarioId
+                idProjeto, "ATHENA", "Athena", "Delta da especificacao 003",
+                "ATIVO", agora, idUsuario
         );
         DadosVinculoProjetoPersistente vinculo = new DadosVinculoProjetoPersistente(
-                UUID.randomUUID(), projetoId, usuarioId, "RESPONSAVEL_TECNICO", "DITEC", agora, usuarioId
+                UUID.randomUUID(), idProjeto, idUsuario, "RESPONSAVEL_TECNICO", "DITEC", agora, idUsuario
         );
         DadosDocumentoPersistente documento = new DadosDocumentoPersistente(
-                documentoId, "DOC-DELTA-003", projetoId, "Delta da especificacao 003",
-                "ESPECIFICACAO", "DELTA", "Regressao funcional", "Confirmacao sem fe publica", agora, usuarioId
+                idDocumento, "DOC-DELTA-003", idProjeto, "Delta da especificacao 003",
+                "ESPECIFICACAO", "DELTA", "Regressao funcional", "Confirmacao sem fe publica", agora, idUsuario
         );
         DadosVersaoDocumentoPersistente versao = new DadosVersaoDocumentoPersistente(
-                versaoId, documentoId, 1, "MARKDOWN", "Conteudo original confirmado e preservado.",
-                "hash-delta-003-v1", agora, usuarioId, "linha base especificacao 003"
+                idVersao, idDocumento, 1, "MARKDOWN", "Conteudo original confirmado e preservado.",
+                "hash-delta-003-v1", agora, idUsuario, "linha base especificacao 003"
         );
         DadosItemDocumentalPersistente item = new DadosItemDocumentalPersistente(
-                itemId, versaoId, "ESP.REQ.009", "Ajuste e confirmacao",
+                idItem, idVersao, "ESP.REQ.009", "Ajuste e confirmacao",
                 "Cenario de regressao envolvendo visibilidade, ajuste, confirmacao e auditoria.",
                 1, List.of("ESP.REQ.009", "ESP.REQ.010", "ESP.RN.013", "ESP.ACEITE.012")
         );
@@ -442,9 +442,9 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
 
     private void registrarParticipanteVinculado(
             UUID participanteId,
-            UUID projetoId,
-            UUID registradoPorId,
-            OffsetDateTime inicioEm
+            UUID idProjeto,
+            UUID idUsuarioRegistro,
+            OffsetDateTime dataInicio
     ) {
         jdbc.update("""
                 INSERT INTO athena.usuarioinstitucional (id, identificador, nome, login, unidade)
@@ -452,9 +452,9 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                 """, participanteId, "usuario-participante", "Participante Vinculado", "participante", "GABINETE");
         jdbc.update("""
                 INSERT INTO athena.vinculoprojeto
-                    (id, projetoid, usuarioid, papel, unidade, inicioem, registradoporid)
+                    (id, id_projeto, id_usuario, papel, unidade, datainicio, id_usuarioregistro)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
-                """, UUID.randomUUID(), projetoId, participanteId, "PARTICIPANTE", "GABINETE", inicioEm, registradoPorId);
+                """, UUID.randomUUID(), idProjeto, participanteId, "PARTICIPANTE", "GABINETE", dataInicio, idUsuarioRegistro);
     }
 
     @SuppressWarnings("unchecked")
@@ -475,7 +475,7 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                     nome VARCHAR(200) NOT NULL,
                     login VARCHAR(120) NOT NULL UNIQUE,
                     unidade VARCHAR(80) NOT NULL,
-                    cadastradoem TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+                    datacadastro TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
                 )
                 """);
         jdbc.execute("""
@@ -485,75 +485,75 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                     nome VARCHAR(200) NOT NULL,
                     descricao CLOB NOT NULL,
                     situacao VARCHAR(40) NOT NULL,
-                    criadoem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    criadoporid UUID NOT NULL,
-                    alteradoem TIMESTAMP WITH TIME ZONE,
-                    alteradoporid UUID
+                    datacriacao TIMESTAMP WITH TIME ZONE NOT NULL,
+                    id_usuariocriacao UUID NOT NULL,
+                    dataalteracao TIMESTAMP WITH TIME ZONE,
+                    id_usuarioalteracao UUID
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.vinculoprojeto (
                     id UUID PRIMARY KEY,
-                    projetoid UUID NOT NULL,
-                    usuarioid UUID NOT NULL,
+                    id_projeto UUID NOT NULL,
+                    id_usuario UUID NOT NULL,
                     papel VARCHAR(60) NOT NULL,
                     unidade VARCHAR(80) NOT NULL,
-                    inicioem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    fimem TIMESTAMP WITH TIME ZONE,
-                    registradoporid UUID NOT NULL,
-                    UNIQUE (projetoid, usuarioid, papel, inicioem)
+                    datainicio TIMESTAMP WITH TIME ZONE NOT NULL,
+                    datafim TIMESTAMP WITH TIME ZONE,
+                    id_usuarioregistro UUID NOT NULL,
+                    UNIQUE (id_projeto, id_usuario, papel, datainicio)
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.documento (
                     id UUID PRIMARY KEY,
                     identificador VARCHAR(120) NOT NULL,
-                    projetoid UUID NOT NULL,
+                    id_projeto UUID NOT NULL,
                     titulo VARCHAR(240) NOT NULL,
                     grupo VARCHAR(120) NOT NULL,
                     categoria VARCHAR(120) NOT NULL,
                     finalidade VARCHAR(240) NOT NULL,
                     apresentacao VARCHAR(240) NOT NULL,
-                    criadoem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    criadoporid UUID NOT NULL,
-                    UNIQUE (projetoid, identificador)
+                    datacriacao TIMESTAMP WITH TIME ZONE NOT NULL,
+                    id_usuariocriacao UUID NOT NULL,
+                    UNIQUE (id_projeto, identificador)
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.versaodocumento (
                     id UUID PRIMARY KEY,
-                    documentoid UUID NOT NULL,
+                    id_documento UUID NOT NULL,
                     numero INTEGER NOT NULL CHECK (numero > 0),
                     formato VARCHAR(40) NOT NULL,
                     conteudooriginal CLOB NOT NULL,
                     hashconteudo VARCHAR(128) NOT NULL,
-                    recebidaem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    recebidaporid UUID NOT NULL,
+                    datarecebimento TIMESTAMP WITH TIME ZONE NOT NULL,
+                    id_usuariorecebimento UUID NOT NULL,
                     origemexterna VARCHAR(240),
-                    versaoanteriorid UUID,
+                    id_versao_anterior UUID,
                     confirmada BOOLEAN NOT NULL DEFAULT FALSE,
-                    pedidoajusteorigemid UUID,
-                    CHECK ((numero = 1 AND versaoanteriorid IS NULL) OR (numero > 1 AND versaoanteriorid IS NOT NULL)),
-                    UNIQUE (documentoid, numero)
+                    id_pedido_ajuste_origem UUID,
+                    CHECK ((numero = 1 AND id_versao_anterior IS NULL) OR (numero > 1 AND id_versao_anterior IS NOT NULL)),
+                    UNIQUE (id_documento, numero)
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.itemdocumental (
                     id UUID PRIMARY KEY,
-                    versaoid UUID NOT NULL,
+                    id_versao UUID NOT NULL,
                     identificador VARCHAR(160) NOT NULL,
                     titulo VARCHAR(240) NOT NULL,
                     conteudo CLOB NOT NULL,
                     ordem INTEGER NOT NULL CHECK (ordem > 0),
                     fontesrastreabilidade VARCHAR ARRAY NOT NULL,
-                    UNIQUE (versaoid, identificador)
+                    UNIQUE (id_versao, identificador)
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.relacaorecebida (
                     id UUID PRIMARY KEY,
-                    documentoid UUID,
-                    itemid UUID,
+                    id_documento UUID,
+                    id_item UUID,
                     tipo VARCHAR(80) NOT NULL,
                     recursorelacionado VARCHAR(160) NOT NULL
                 )
@@ -561,64 +561,64 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
         jdbc.execute("""
                 CREATE TABLE athena.avaliacao (
                     id UUID PRIMARY KEY,
-                    itemid UUID NOT NULL,
-                    responsavelid UUID NOT NULL,
+                    id_item UUID NOT NULL,
+                    id_responsavel UUID NOT NULL,
                     decisao VARCHAR(80) NOT NULL,
                     justificativa CLOB NOT NULL,
-                    avaliadaem TIMESTAMP WITH TIME ZONE NOT NULL
+                    dataavaliacao TIMESTAMP WITH TIME ZONE NOT NULL
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.comentario (
                     id UUID PRIMARY KEY,
-                    itemid UUID NOT NULL,
-                    autorid UUID NOT NULL,
+                    id_item UUID NOT NULL,
+                    id_autor UUID NOT NULL,
                     conteudo CLOB NOT NULL,
-                    registradoem TIMESTAMP WITH TIME ZONE NOT NULL,
+                    dataregistro TIMESTAMP WITH TIME ZONE NOT NULL,
                     origem VARCHAR(120) NOT NULL
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.pedidoajuste (
                     id UUID PRIMARY KEY,
-                    itemid UUID NOT NULL,
-                    solicitanteid UUID NOT NULL,
+                    id_item UUID NOT NULL,
+                    id_solicitante UUID NOT NULL,
                     descricao CLOB NOT NULL,
                     justificativa CLOB NOT NULL,
                     situacao VARCHAR(60) NOT NULL,
-                    solicitadoem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    concluidoem TIMESTAMP WITH TIME ZONE,
+                    datasolicitacao TIMESTAMP WITH TIME ZONE NOT NULL,
+                    dataconclusao TIMESTAMP WITH TIME ZONE,
                     responsaveltecnico VARCHAR(120) NOT NULL,
-                    tratadoem TIMESTAMP WITH TIME ZONE,
+                    datatratamento TIMESTAMP WITH TIME ZONE,
                     decisaotratamento VARCHAR(60),
                     justificativatratamento CLOB,
-                    versaoresultanteid UUID
+                    id_versao_resultante UUID
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.confirmacao (
                     id UUID PRIMARY KEY,
-                    itemid UUID NOT NULL,
-                    responsavelid UUID NOT NULL,
+                    id_item UUID NOT NULL,
+                    id_responsavel UUID NOT NULL,
                     decisao VARCHAR(80) NOT NULL,
                     justificativa CLOB NOT NULL,
-                    confirmadaem TIMESTAMP WITH TIME ZONE NOT NULL
+                    dataconfirmacao TIMESTAMP WITH TIME ZONE NOT NULL
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.eventoauditoria (
                     id UUID PRIMARY KEY,
-                    projetoid UUID,
-                    documentoid UUID,
-                    versaoid UUID,
-                    itemid UUID,
-                    usuarioid UUID,
+                    id_projeto UUID,
+                    id_documento UUID,
+                    id_versao UUID,
+                    id_item UUID,
+                    id_usuario UUID,
                     tipo VARCHAR(100) NOT NULL,
                     decisao VARCHAR(100),
                     justificativa CLOB,
                     dados CLOB DEFAULT '{}' NOT NULL,
-                    ocorridoem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    registradoporid UUID NOT NULL
+                    dataocorrencia TIMESTAMP WITH TIME ZONE NOT NULL,
+                    id_usuarioregistro UUID NOT NULL
                 )
                 """);
     }

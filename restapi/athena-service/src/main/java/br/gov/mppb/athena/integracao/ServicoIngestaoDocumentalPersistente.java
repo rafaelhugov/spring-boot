@@ -38,22 +38,22 @@ public final class ServicoIngestaoDocumentalPersistente {
     ) {
         Documento documento = ingestao.registrarPrimeiraVersao(projeto, contexto, pedido);
         UsuarioInstitucional usuario = contexto.usuario();
-        UUID usuarioId = id("usuario:" + usuario.identificador().valor());
-        UUID projetoId = id("projeto:" + projeto.identificador().valor());
-        UUID documentoId = id("documento:" + documento.projeto().valor() + ":" + documento.identificador());
+        UUID idUsuario = id("usuario:" + usuario.identificador().valor());
+        UUID idProjeto = id("projeto:" + projeto.identificador().valor());
+        UUID idDocumento = id("documento:" + documento.projeto().valor() + ":" + documento.identificador());
         VersaoDocumento primeiraVersao = documento.versoes().get(0);
 
         persistencia.registrarHistoricoDocumental(new RegistroHistoricoDocumental(
-                usuario(usuarioId, usuario),
-                projeto(projetoId, projeto, usuarioId),
-                vinculo(projetoId, usuarioId, primeiraVersao.recebidaEm()),
-                documento(documentoId, documento, usuarioId, primeiraVersao.recebidaEm()),
-                versao(documentoId, primeiraVersao, usuarioId, pedido.nomeFisicoArquivo()),
-                itens(documentoId, primeiraVersao),
-                primeiraVersao.recebidaEm(),
-                id("auditoria:" + documentoId + ":1")
+                usuario(idUsuario, usuario),
+                projeto(idProjeto, projeto, idUsuario),
+                vinculo(idProjeto, idUsuario, primeiraVersao.dataRecebimento()),
+                documento(idDocumento, documento, idUsuario, primeiraVersao.dataRecebimento()),
+                versao(idDocumento, primeiraVersao, idUsuario, pedido.nomeFisicoArquivo()),
+                itens(idDocumento, primeiraVersao),
+                primeiraVersao.dataRecebimento(),
+                id("auditoria:" + idDocumento + ":1")
         ));
-        return new ResultadoIngestaoPersistente(documento, projetoId, documentoId);
+        return new ResultadoIngestaoPersistente(documento, idProjeto, idDocumento);
     }
 
     public ResultadoIngestaoPersistente registrarNovaVersao(
@@ -64,21 +64,21 @@ public final class ServicoIngestaoDocumentalPersistente {
     ) {
         Documento documento = ingestao.registrarNovaVersao(projeto, contexto, documentoAtual, pedido);
         UsuarioInstitucional usuario = contexto.usuario();
-        UUID usuarioId = id("usuario:" + usuario.identificador().valor());
-        UUID projetoId = id("projeto:" + projeto.identificador().valor());
-        UUID documentoId = id("documento:" + documento.projeto().valor() + ":" + documento.identificador());
+        UUID idUsuario = id("usuario:" + usuario.identificador().valor());
+        UUID idProjeto = id("projeto:" + projeto.identificador().valor());
+        UUID idDocumento = id("documento:" + documento.projeto().valor() + ":" + documento.identificador());
         VersaoDocumento novaVersao = documento.versoes().get(documento.versoes().size() - 1);
-        UUID versaoAnteriorId = id("versao:" + documentoId + ":" + (novaVersao.numero() - 1));
+        UUID idVersaoAnterior = id("versao:" + idDocumento + ":" + (novaVersao.numero() - 1));
 
         persistencia.registrarNovaVersaoDocumental(
-                projetoId,
-                usuarioId,
-                versao(documentoId, novaVersao, usuarioId, pedido.nomeFisicoArquivo(), versaoAnteriorId),
-                itens(documentoId, novaVersao),
-                novaVersao.recebidaEm(),
-                id("auditoria:" + documentoId + ":" + novaVersao.numero())
+                idProjeto,
+                idUsuario,
+                versao(idDocumento, novaVersao, idUsuario, pedido.nomeFisicoArquivo(), idVersaoAnterior),
+                itens(idDocumento, novaVersao),
+                novaVersao.dataRecebimento(),
+                id("auditoria:" + idDocumento + ":" + novaVersao.numero())
         );
-        return new ResultadoIngestaoPersistente(documento, projetoId, documentoId);
+        return new ResultadoIngestaoPersistente(documento, idProjeto, idDocumento);
     }
 
     public ContratoIntegracaoDocumentalExterna contratoDependenciaExternaGovernada() {
@@ -93,75 +93,75 @@ public final class ServicoIngestaoDocumentalPersistente {
         return new DadosUsuarioPersistente(id, usuario.identificador().valor(), usuario.nome(), usuario.login(), usuario.unidade());
     }
 
-    private static DadosProjetoPersistente projeto(UUID id, ProjetoInstitucional projeto, UUID usuarioId) {
+    private static DadosProjetoPersistente projeto(UUID id, ProjetoInstitucional projeto, UUID idUsuario) {
         return new DadosProjetoPersistente(id, projeto.identificador().valor(), projeto.nome(), projeto.descricao(),
-                projeto.situacao().name(), projeto.criadoEm(), usuarioId);
+                projeto.situacao().name(), projeto.dataCriacao(), idUsuario);
     }
 
-    private static DadosVinculoProjetoPersistente vinculo(UUID projetoId, UUID usuarioId, OffsetDateTime inicioEm) {
-        return new DadosVinculoProjetoPersistente(id("vinculo:" + projetoId + ":" + usuarioId), projetoId,
-                usuarioId, "RESPONSAVEL_TECNICO", "DITEC", inicioEm, usuarioId);
+    private static DadosVinculoProjetoPersistente vinculo(UUID idProjeto, UUID idUsuario, OffsetDateTime dataInicio) {
+        return new DadosVinculoProjetoPersistente(id("vinculo:" + idProjeto + ":" + idUsuario), idProjeto,
+                idUsuario, "RESPONSAVEL_TECNICO", "DITEC", dataInicio, idUsuario);
     }
 
-    private static DadosDocumentoPersistente documento(UUID id, Documento documento, UUID usuarioId, OffsetDateTime criadoEm) {
+    private static DadosDocumentoPersistente documento(UUID id, Documento documento, UUID idUsuario, OffsetDateTime dataCriacao) {
         return new DadosDocumentoPersistente(id, documento.identificador(), id("projeto:" + documento.projeto().valor()),
                 documento.titulo(), documento.metadados().grupo(), documento.metadados().categoria(),
-                documento.metadados().finalidade(), documento.metadados().apresentacao(), criadoEm, usuarioId);
+                documento.metadados().finalidade(), documento.metadados().apresentacao(), dataCriacao, idUsuario);
     }
 
     private static DadosVersaoDocumentoPersistente versao(
-            UUID documentoId,
+            UUID idDocumento,
             VersaoDocumento versao,
-            UUID usuarioId,
+            UUID idUsuario,
             String origemExterna
     ) {
         return new DadosVersaoDocumentoPersistente(
-                id("versao:" + documentoId + ":" + versao.numero()),
-                documentoId,
+                id("versao:" + idDocumento + ":" + versao.numero()),
+                idDocumento,
                 versao.numero(),
                 versao.formato().name(),
                 versao.conteudoOriginal(),
                 Integer.toHexString(versao.conteudoOriginal().hashCode()),
-                versao.recebidaEm(),
-                usuarioId,
+                versao.dataRecebimento(),
+                idUsuario,
                 origemExterna
         );
     }
 
     private static DadosVersaoDocumentoPersistente versao(
-            UUID documentoId,
+            UUID idDocumento,
             VersaoDocumento versao,
-            UUID usuarioId,
+            UUID idUsuario,
             String origemExterna,
-            UUID versaoAnteriorId
+            UUID idVersaoAnterior
     ) {
         return new DadosVersaoDocumentoPersistente(
-                id("versao:" + documentoId + ":" + versao.numero()),
-                documentoId,
+                id("versao:" + idDocumento + ":" + versao.numero()),
+                idDocumento,
                 versao.numero(),
                 versao.formato().name(),
                 versao.conteudoOriginal(),
                 Integer.toHexString(versao.conteudoOriginal().hashCode()),
-                versao.recebidaEm(),
-                usuarioId,
+                versao.dataRecebimento(),
+                idUsuario,
                 origemExterna,
-                versaoAnteriorId,
+                idVersaoAnterior,
                 false,
                 null
         );
     }
 
-    private static List<DadosItemDocumentalPersistente> itens(UUID documentoId, VersaoDocumento versao) {
+    private static List<DadosItemDocumentalPersistente> itens(UUID idDocumento, VersaoDocumento versao) {
         return versao.itens().stream()
-                .map(item -> item(documentoId, item, versao))
+                .map(item -> item(idDocumento, item, versao))
                 .toList();
     }
 
-    private static DadosItemDocumentalPersistente item(UUID documentoId, ItemDocumental item, VersaoDocumento versao) {
-        UUID versaoId = id("versao:" + documentoId + ":" + versao.numero());
+    private static DadosItemDocumentalPersistente item(UUID idDocumento, ItemDocumental item, VersaoDocumento versao) {
+        UUID idVersao = id("versao:" + idDocumento + ":" + versao.numero());
         return new DadosItemDocumentalPersistente(
-                id("item:" + versaoId + ":" + item.identificador()),
-                versaoId,
+                id("item:" + idVersao + ":" + item.identificador()),
+                idVersao,
                 item.identificador(),
                 item.titulo(),
                 item.conteudo(),

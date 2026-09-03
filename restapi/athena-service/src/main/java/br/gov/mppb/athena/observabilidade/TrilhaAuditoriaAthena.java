@@ -23,7 +23,7 @@ public final class TrilhaAuditoriaAthena {
 
     public static EventoAuditoria registrar(
             IdentificadorUsuario ator,
-            OffsetDateTime ocorridoEm,
+            OffsetDateTime dataOcorrencia,
             IdentificadorProjeto projeto,
             RecursoAuditavel recursoAfetado,
             AcaoAuditavel acao,
@@ -32,7 +32,7 @@ public final class TrilhaAuditoriaAthena {
     ) {
         return new EventoAuditoria(
                 ator,
-                ocorridoEm,
+                dataOcorrencia,
                 projeto,
                 recursoAfetado,
                 acao,

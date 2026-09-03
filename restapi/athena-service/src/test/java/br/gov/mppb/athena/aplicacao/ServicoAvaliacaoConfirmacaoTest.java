@@ -158,7 +158,7 @@ class ServicoAvaliacaoConfirmacaoTest {
         assertThat(tratado.justificativa()).isEqualTo(pedido.justificativa());
         assertThat(tratado.responsavelTecnico()).isEqualTo(responsavel);
         assertThat(tratado.estado()).isEqualTo(EstadoSolicitacaoAjuste.ACOLHIDA);
-        assertThat(tratado.tratadoEm()).isEqualTo(OffsetDateTime.parse("2026-08-28T09:00:00-03:00"));
+        assertThat(tratado.dataTratamento()).isEqualTo(OffsetDateTime.parse("2026-08-28T09:00:00-03:00"));
         assertThat(tratado.permiteGerarNovaVersao()).isTrue();
         assertThat(servico.historico().pedidosAjuste()).containsExactly(tratado);
     }
@@ -248,7 +248,7 @@ class ServicoAvaliacaoConfirmacaoTest {
 
         assertThat(tratado.estado()).isEqualTo(EstadoSolicitacaoAjuste.ACOLHIDA);
         assertThat(tratado.data()).isEqualTo(OffsetDateTime.parse("2026-08-01T09:00:00-03:00"));
-        assertThat(tratado.tratadoEm()).isEqualTo(OffsetDateTime.parse("2026-08-28T11:30:00-03:00"));
+        assertThat(tratado.dataTratamento()).isEqualTo(OffsetDateTime.parse("2026-08-28T11:30:00-03:00"));
         assertThat(servico.historico().pedidosAjuste()).containsExactly(tratado);
     }
 

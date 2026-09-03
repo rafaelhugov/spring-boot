@@ -54,9 +54,9 @@ class PersistenciaTransacionalAthenaTest {
 
     @Test
     void devePersistirConsultarEAtualizarHistoricoDocumentalEmTransacao() {
-        UUID usuarioId = UUID.randomUUID();
-        UUID projetoId = UUID.randomUUID();
-        UUID documentoId = UUID.randomUUID();
+        UUID idUsuario = UUID.randomUUID();
+        UUID idProjeto = UUID.randomUUID();
+        UUID idDocumento = UUID.randomUUID();
         UUID versaoUmId = UUID.randomUUID();
         UUID versaoDoisId = UUID.randomUUID();
         UUID itemUmId = UUID.randomUUID();
@@ -64,15 +64,15 @@ class PersistenciaTransacionalAthenaTest {
         OffsetDateTime agora = OffsetDateTime.parse("2026-08-27T10:00:00-03:00");
 
         persistencia.registrarHistoricoDocumental(registro(
-                usuarioId, projetoId, documentoId, versaoUmId, itemUmId, 1, "conteudo aprovado", agora
+                idUsuario, idProjeto, idDocumento, versaoUmId, itemUmId, 1, "conteudo aprovado", agora
         ));
-        inserirNovaVersao(documentoId, versaoUmId, versaoDoisId, itemDoisId, usuarioId, agora.plusHours(1));
+        inserirNovaVersao(idDocumento, versaoUmId, versaoDoisId, itemDoisId, idUsuario, agora.plusHours(1));
 
-        persistencia.atualizarSituacaoProjeto(projetoId, "EM_REVISAO", usuarioId, agora.plusHours(2));
+        persistencia.atualizarSituacaoProjeto(idProjeto, "EM_REVISAO", idUsuario, agora.plusHours(2));
         persistencia.registrarInteracaoHumana(new RegistroInteracaoHumana(
                 UUID.randomUUID(),
                 itemDoisId,
-                usuarioId,
+                idUsuario,
                 TipoInteracaoHumana.CONFIRMACAO,
                 "CONFIRMADO",
                 "conteudo conferido",
@@ -81,7 +81,7 @@ class PersistenciaTransacionalAthenaTest {
                 UUID.randomUUID()
         ));
 
-        HistoricoDocumentoPersistente historico = persistencia.consultarHistoricoDocumento(documentoId);
+        HistoricoDocumentoPersistente historico = persistencia.consultarHistoricoDocumento(idDocumento);
 
         assertThat(historico.projeto().situacao()).isEqualTo("EM_REVISAO");
         assertThat(historico.versoes())
@@ -99,15 +99,15 @@ class PersistenciaTransacionalAthenaTest {
 
     @Test
     void deveExecutarRollbackQuandoRegistroHistoricoViolaRestricaoPersistente() {
-        UUID usuarioId = UUID.randomUUID();
-        UUID projetoId = UUID.randomUUID();
-        UUID documentoId = UUID.randomUUID();
-        UUID versaoId = UUID.randomUUID();
-        UUID itemId = UUID.randomUUID();
+        UUID idUsuario = UUID.randomUUID();
+        UUID idProjeto = UUID.randomUUID();
+        UUID idDocumento = UUID.randomUUID();
+        UUID idVersao = UUID.randomUUID();
+        UUID idItem = UUID.randomUUID();
         OffsetDateTime agora = OffsetDateTime.parse("2026-08-27T11:00:00-03:00");
 
         RegistroHistoricoDocumental registro = registro(
-                usuarioId, projetoId, documentoId, versaoId, itemId, 0, "conteudo invalido", agora
+                idUsuario, idProjeto, idDocumento, idVersao, idItem, 0, "conteudo invalido", agora
         );
 
         org.assertj.core.api.Assertions.assertThatThrownBy(
@@ -150,7 +150,7 @@ class PersistenciaTransacionalAthenaTest {
                 pedido(FormatoDocumento.MARKDOWN, "entrada.yaml", "conteudo original em MARKDOWN")
         );
         DadosItemDocumentalPersistente itemPrimeiraVersao = persistencia
-                .consultarHistoricoDocumento(primeira.documentoIdPersistente())
+                .consultarHistoricoDocumento(primeira.idDocumentoPersistente())
                 .itens()
                 .get(0);
         persistencia.registrarInteracaoHumana(new RegistroInteracaoHumana(
@@ -171,7 +171,7 @@ class PersistenciaTransacionalAthenaTest {
                 pedido(FormatoDocumento.JSON, "entrada.md", "conteudo original em JSON")
         );
 
-        HistoricoDocumentoPersistente historico = persistencia.consultarHistoricoDocumento(segunda.documentoIdPersistente());
+        HistoricoDocumentoPersistente historico = persistencia.consultarHistoricoDocumento(segunda.idDocumentoPersistente());
         ContratoIntegracaoDocumentalExterna contrato = servico.contratoDependenciaExternaGovernada();
 
         assertThat(primeira.documento().versoes()).singleElement()
@@ -194,20 +194,20 @@ class PersistenciaTransacionalAthenaTest {
 
     @Test
     void deveMarcarVersaoConfirmadaComoImutavelEPreservarConteudoOriginal() {
-        UUID usuarioId = UUID.randomUUID();
-        UUID projetoId = UUID.randomUUID();
-        UUID documentoId = UUID.randomUUID();
-        UUID versaoId = UUID.randomUUID();
-        UUID itemId = UUID.randomUUID();
+        UUID idUsuario = UUID.randomUUID();
+        UUID idProjeto = UUID.randomUUID();
+        UUID idDocumento = UUID.randomUUID();
+        UUID idVersao = UUID.randomUUID();
+        UUID idItem = UUID.randomUUID();
         OffsetDateTime agora = OffsetDateTime.parse("2026-08-27T12:00:00-03:00");
 
         persistencia.registrarHistoricoDocumental(registro(
-                usuarioId, projetoId, documentoId, versaoId, itemId, 1, "conteudo formalmente confirmado", agora
+                idUsuario, idProjeto, idDocumento, idVersao, idItem, 1, "conteudo formalmente confirmado", agora
         ));
         persistencia.registrarInteracaoHumana(new RegistroInteracaoHumana(
                 UUID.randomUUID(),
-                itemId,
-                usuarioId,
+                idItem,
+                idUsuario,
                 TipoInteracaoHumana.CONFIRMACAO,
                 "CONFIRMADO",
                 "confirmacao formal",
@@ -216,21 +216,21 @@ class PersistenciaTransacionalAthenaTest {
                 UUID.randomUUID()
         ));
 
-        HistoricoDocumentoPersistente historico = persistencia.consultarHistoricoDocumento(documentoId);
+        HistoricoDocumentoPersistente historico = persistencia.consultarHistoricoDocumento(idDocumento);
 
         assertThat(historico.versoes()).singleElement()
                 .satisfies(versao -> {
                     assertThat(versao.confirmada()).isTrue();
                     assertThat(versao.conteudoOriginal()).isEqualTo("conteudo formalmente confirmado");
-                    assertThat(versao.versaoAnteriorId()).isNull();
+                    assertThat(versao.idVersaoAnterior()).isNull();
                 });
     }
 
     @Test
     void deveExigirVinculoComVersaoAnteriorParaNovaVersaoPersistente() {
-        UUID usuarioId = UUID.randomUUID();
-        UUID projetoId = UUID.randomUUID();
-        UUID documentoId = UUID.randomUUID();
+        UUID idUsuario = UUID.randomUUID();
+        UUID idProjeto = UUID.randomUUID();
+        UUID idDocumento = UUID.randomUUID();
         UUID versaoUmId = UUID.randomUUID();
         UUID versaoDoisId = UUID.randomUUID();
         UUID itemUmId = UUID.randomUUID();
@@ -238,32 +238,32 @@ class PersistenciaTransacionalAthenaTest {
         OffsetDateTime agora = OffsetDateTime.parse("2026-08-27T13:00:00-03:00");
 
         persistencia.registrarHistoricoDocumental(registro(
-                usuarioId, projetoId, documentoId, versaoUmId, itemUmId, 1, "conteudo preservado", agora
+                idUsuario, idProjeto, idDocumento, versaoUmId, itemUmId, 1, "conteudo preservado", agora
         ));
         DadosVersaoDocumentoPersistente versaoSemPredecessora = new DadosVersaoDocumentoPersistente(
-                versaoDoisId, documentoId, 2, "MARKDOWN", "conteudo revisado", "hash-2",
-                agora.plusHours(1), usuarioId, "origem externa", null, false, null
+                versaoDoisId, idDocumento, 2, "MARKDOWN", "conteudo revisado", "hash-2",
+                agora.plusHours(1), idUsuario, "origem externa", null, false, null
         );
         DadosItemDocumentalPersistente itemDois = new DadosItemDocumentalPersistente(
                 itemDoisId, versaoDoisId, "ITEM-2", "Item versionado", "conteudo revisado", 1, List.of("ESP.REQ.010")
         );
 
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> persistencia.registrarNovaVersaoDocumental(
-                projetoId, usuarioId, versaoSemPredecessora, List.of(itemDois), agora.plusHours(1), UUID.randomUUID()
+                idProjeto, idUsuario, versaoSemPredecessora, List.of(itemDois), agora.plusHours(1), UUID.randomUUID()
         ))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("versao anterior");
 
-        assertThat(persistencia.consultarHistoricoDocumento(documentoId).versoes())
+        assertThat(persistencia.consultarHistoricoDocumento(idDocumento).versoes())
                 .extracting(DadosVersaoDocumentoPersistente::numero)
                 .containsExactly(1);
     }
 
     @Test
     void deveExigirVersaoAnteriorConfirmadaParaNovaVersaoPersistente() {
-        UUID usuarioId = UUID.randomUUID();
-        UUID projetoId = UUID.randomUUID();
-        UUID documentoId = UUID.randomUUID();
+        UUID idUsuario = UUID.randomUUID();
+        UUID idProjeto = UUID.randomUUID();
+        UUID idDocumento = UUID.randomUUID();
         UUID versaoUmId = UUID.randomUUID();
         UUID versaoDoisId = UUID.randomUUID();
         UUID itemUmId = UUID.randomUUID();
@@ -271,32 +271,32 @@ class PersistenciaTransacionalAthenaTest {
         OffsetDateTime agora = OffsetDateTime.parse("2026-08-27T13:30:00-03:00");
 
         persistencia.registrarHistoricoDocumental(registro(
-                usuarioId, projetoId, documentoId, versaoUmId, itemUmId, 1, "conteudo ainda nao confirmado", agora
+                idUsuario, idProjeto, idDocumento, versaoUmId, itemUmId, 1, "conteudo ainda nao confirmado", agora
         ));
         DadosVersaoDocumentoPersistente versaoDois = new DadosVersaoDocumentoPersistente(
-                versaoDoisId, documentoId, 2, "MARKDOWN", "conteudo revisado", "hash-2",
-                agora.plusHours(1), usuarioId, "origem externa", versaoUmId, false, null
+                versaoDoisId, idDocumento, 2, "MARKDOWN", "conteudo revisado", "hash-2",
+                agora.plusHours(1), idUsuario, "origem externa", versaoUmId, false, null
         );
         DadosItemDocumentalPersistente itemDois = new DadosItemDocumentalPersistente(
                 itemDoisId, versaoDoisId, "ITEM-2", "Item versionado", "conteudo revisado", 1, List.of("ESP.REQ.010")
         );
 
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> persistencia.registrarNovaVersaoDocumental(
-                projetoId, usuarioId, versaoDois, List.of(itemDois), agora.plusHours(1), UUID.randomUUID()
+                idProjeto, idUsuario, versaoDois, List.of(itemDois), agora.plusHours(1), UUID.randomUUID()
         ))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("confirmada");
 
-        assertThat(persistencia.consultarHistoricoDocumento(documentoId).versoes())
+        assertThat(persistencia.consultarHistoricoDocumento(idDocumento).versoes())
                 .extracting(DadosVersaoDocumentoPersistente::numero)
                 .containsExactly(1);
     }
 
     @Test
     void deveCriarNovaVersaoVinculadaSemSobrescreverVersaoConfirmadaAnterior() {
-        UUID usuarioId = UUID.randomUUID();
-        UUID projetoId = UUID.randomUUID();
-        UUID documentoId = UUID.randomUUID();
+        UUID idUsuario = UUID.randomUUID();
+        UUID idProjeto = UUID.randomUUID();
+        UUID idDocumento = UUID.randomUUID();
         UUID versaoUmId = UUID.randomUUID();
         UUID versaoDoisId = UUID.randomUUID();
         UUID itemUmId = UUID.randomUUID();
@@ -305,12 +305,12 @@ class PersistenciaTransacionalAthenaTest {
         OffsetDateTime agora = OffsetDateTime.parse("2026-08-27T14:00:00-03:00");
 
         persistencia.registrarHistoricoDocumental(registro(
-                usuarioId, projetoId, documentoId, versaoUmId, itemUmId, 1, "conteudo aprovado imutavel", agora
+                idUsuario, idProjeto, idDocumento, versaoUmId, itemUmId, 1, "conteudo aprovado imutavel", agora
         ));
         persistencia.registrarInteracaoHumana(new RegistroInteracaoHumana(
                 UUID.randomUUID(),
                 itemUmId,
-                usuarioId,
+                idUsuario,
                 TipoInteracaoHumana.CONFIRMACAO,
                 "CONFIRMADO",
                 "confirmacao formal",
@@ -321,7 +321,7 @@ class PersistenciaTransacionalAthenaTest {
         persistencia.registrarInteracaoHumana(new RegistroInteracaoHumana(
                 pedidoAjusteId,
                 itemUmId,
-                usuarioId,
+                idUsuario,
                 TipoInteracaoHumana.PEDIDO_AJUSTE,
                 "ACOLHIDO",
                 "ajuste acolhido",
@@ -330,8 +330,8 @@ class PersistenciaTransacionalAthenaTest {
                 UUID.randomUUID()
         ));
         DadosVersaoDocumentoPersistente versaoDois = new DadosVersaoDocumentoPersistente(
-                versaoDoisId, documentoId, 2, "MARKDOWN", "conteudo alterado em nova versao", "hash-2",
-                agora.plusHours(1), usuarioId, "origem externa", versaoUmId, false, pedidoAjusteId
+                versaoDoisId, idDocumento, 2, "MARKDOWN", "conteudo alterado em nova versao", "hash-2",
+                agora.plusHours(1), idUsuario, "origem externa", versaoUmId, false, pedidoAjusteId
         );
         DadosItemDocumentalPersistente itemDois = new DadosItemDocumentalPersistente(
                 itemDoisId, versaoDoisId, "ITEM-2", "Item versionado", "conteudo alterado em nova versao", 1,
@@ -339,10 +339,10 @@ class PersistenciaTransacionalAthenaTest {
         );
 
         persistencia.registrarNovaVersaoDocumental(
-                projetoId, usuarioId, versaoDois, List.of(itemDois), agora.plusHours(1), UUID.randomUUID()
+                idProjeto, idUsuario, versaoDois, List.of(itemDois), agora.plusHours(1), UUID.randomUUID()
         );
 
-        HistoricoDocumentoPersistente historico = persistencia.consultarHistoricoDocumento(documentoId);
+        HistoricoDocumentoPersistente historico = persistencia.consultarHistoricoDocumento(idDocumento);
         assertThat(historico.versoes())
                 .extracting(DadosVersaoDocumentoPersistente::numero, DadosVersaoDocumentoPersistente::conteudoOriginal)
                 .containsExactly(
@@ -350,47 +350,47 @@ class PersistenciaTransacionalAthenaTest {
                         org.assertj.core.groups.Tuple.tuple(2, "conteudo alterado em nova versao")
                 );
         assertThat(historico.versoes().get(0).confirmada()).isTrue();
-        assertThat(historico.versoes().get(1).versaoAnteriorId()).isEqualTo(versaoUmId);
-        assertThat(historico.versoes().get(1).pedidoAjusteOrigemId()).isEqualTo(pedidoAjusteId);
+        assertThat(historico.versoes().get(1).idVersaoAnterior()).isEqualTo(versaoUmId);
+        assertThat(historico.versoes().get(1).idPedidoAjusteOrigem()).isEqualTo(pedidoAjusteId);
         assertThat(historico.itens())
                 .extracting(DadosItemDocumentalPersistente::conteudo)
                 .containsExactly("conteudo aprovado imutavel", "conteudo alterado em nova versao");
         assertThat(jdbc.queryForObject(
-                "SELECT versaoresultanteid FROM athena.pedidoajuste WHERE id = ?",
+                "SELECT id_versao_resultante FROM athena.pedidoajuste WHERE id = ?",
                 UUID.class,
                 pedidoAjusteId
         )).isEqualTo(versaoDoisId);
     }
 
     private RegistroHistoricoDocumental registro(
-            UUID usuarioId,
-            UUID projetoId,
-            UUID documentoId,
-            UUID versaoId,
-            UUID itemId,
+            UUID idUsuario,
+            UUID idProjeto,
+            UUID idDocumento,
+            UUID idVersao,
+            UUID idItem,
             int numeroVersao,
             String conteudo,
             OffsetDateTime agora
     ) {
         DadosUsuarioPersistente usuario = new DadosUsuarioPersistente(
-                usuarioId, "USR-001", "Responsavel Tecnico", "responsavel", "TI"
+                idUsuario, "USR-001", "Responsavel Tecnico", "responsavel", "TI"
         );
         DadosProjetoPersistente projeto = new DadosProjetoPersistente(
-                projetoId, "ATHENA", "Athena", "Gestao documental", "ATIVO", agora, usuarioId
+                idProjeto, "ATHENA", "Athena", "Gestao documental", "ATIVO", agora, idUsuario
         );
         DadosVinculoProjetoPersistente vinculo = new DadosVinculoProjetoPersistente(
-                UUID.randomUUID(), projetoId, usuarioId, "RESPONSAVEL_TECNICO", "TI", agora, usuarioId
+                UUID.randomUUID(), idProjeto, idUsuario, "RESPONSAVEL_TECNICO", "TI", agora, idUsuario
         );
         DadosDocumentoPersistente documento = new DadosDocumentoPersistente(
-                documentoId, "DOC-001", projetoId, "Linha de Base", "BACKLOG", "REQUISITO",
-                "Preservar historico documental", "Markdown", agora, usuarioId
+                idDocumento, "DOC-001", idProjeto, "Linha de Base", "BACKLOG", "REQUISITO",
+                "Preservar historico documental", "Markdown", agora, idUsuario
         );
         DadosVersaoDocumentoPersistente versao = new DadosVersaoDocumentoPersistente(
-                versaoId, documentoId, numeroVersao, "MARKDOWN", conteudo, "hash-" + numeroVersao,
-                agora, usuarioId, "origem externa"
+                idVersao, idDocumento, numeroVersao, "MARKDOWN", conteudo, "hash-" + numeroVersao,
+                agora, idUsuario, "origem externa"
         );
         DadosItemDocumentalPersistente item = new DadosItemDocumentalPersistente(
-                itemId, versaoId, "ITEM-" + numeroVersao, "Item versionado", conteudo, 1, List.of("BL.US.005")
+                idItem, idVersao, "ITEM-" + numeroVersao, "Item versionado", conteudo, 1, List.of("BL.US.005")
         );
         return new RegistroHistoricoDocumental(
                 usuario, projeto, vinculo, documento, versao, List.of(item), agora, UUID.randomUUID()
@@ -398,28 +398,28 @@ class PersistenciaTransacionalAthenaTest {
     }
 
     private void inserirNovaVersao(
-            UUID documentoId,
-            UUID versaoAnteriorId,
-            UUID versaoId,
-            UUID itemId,
-            UUID usuarioId,
-            OffsetDateTime recebidaEm
+            UUID idDocumento,
+            UUID idVersaoAnterior,
+            UUID idVersao,
+            UUID idItem,
+            UUID idUsuario,
+            OffsetDateTime dataRecebimento
     ) {
         jdbc.update("""
                 INSERT INTO athena.versaodocumento
-                    (id, documentoid, numero, formato, conteudooriginal, hashconteudo,
-                     recebidaem, recebidaporid, origemexterna, versaoanteriorid)
+                    (id, id_documento, numero, formato, conteudooriginal, hashconteudo,
+                     datarecebimento, id_usuariorecebimento, origemexterna, id_versao_anterior)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, versaoId, documentoId, 2, "MARKDOWN", "conteudo revisado", "hash-2",
-                recebidaEm, usuarioId, "origem externa", versaoAnteriorId);
+                """, idVersao, idDocumento, 2, "MARKDOWN", "conteudo revisado", "hash-2",
+                dataRecebimento, idUsuario, "origem externa", idVersaoAnterior);
         jdbc.update(connection -> {
             java.sql.PreparedStatement ps = connection.prepareStatement("""
                     INSERT INTO athena.itemdocumental
-                        (id, versaoid, identificador, titulo, conteudo, ordem, fontesrastreabilidade)
+                        (id, id_versao, identificador, titulo, conteudo, ordem, fontesrastreabilidade)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                     """);
-            ps.setObject(1, itemId);
-            ps.setObject(2, versaoId);
+            ps.setObject(1, idItem);
+            ps.setObject(2, idVersao);
             ps.setString(3, "ITEM-2");
             ps.setString(4, "Item versionado");
             ps.setString(5, "conteudo revisado");
@@ -442,7 +442,7 @@ class PersistenciaTransacionalAthenaTest {
                     nome VARCHAR(200) NOT NULL,
                     login VARCHAR(120) NOT NULL UNIQUE,
                     unidade VARCHAR(80) NOT NULL,
-                    cadastradoem TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
+                    datacadastro TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP NOT NULL
                 )
                 """);
         jdbc.execute("""
@@ -452,131 +452,131 @@ class PersistenciaTransacionalAthenaTest {
                     nome VARCHAR(200) NOT NULL,
                     descricao CLOB NOT NULL,
                     situacao VARCHAR(40) NOT NULL,
-                    criadoem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    criadoporid UUID NOT NULL,
-                    alteradoem TIMESTAMP WITH TIME ZONE,
-                    alteradoporid UUID
+                    datacriacao TIMESTAMP WITH TIME ZONE NOT NULL,
+                    id_usuariocriacao UUID NOT NULL,
+                    dataalteracao TIMESTAMP WITH TIME ZONE,
+                    id_usuarioalteracao UUID
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.vinculoprojeto (
                     id UUID PRIMARY KEY,
-                    projetoid UUID NOT NULL,
-                    usuarioid UUID NOT NULL,
+                    id_projeto UUID NOT NULL,
+                    id_usuario UUID NOT NULL,
                     papel VARCHAR(60) NOT NULL,
                     unidade VARCHAR(80) NOT NULL,
-                    inicioem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    fimem TIMESTAMP WITH TIME ZONE,
-                    registradoporid UUID NOT NULL,
-                    UNIQUE (projetoid, usuarioid, papel, inicioem)
+                    datainicio TIMESTAMP WITH TIME ZONE NOT NULL,
+                    datafim TIMESTAMP WITH TIME ZONE,
+                    id_usuarioregistro UUID NOT NULL,
+                    UNIQUE (id_projeto, id_usuario, papel, datainicio)
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.documento (
                     id UUID PRIMARY KEY,
                     identificador VARCHAR(120) NOT NULL,
-                    projetoid UUID NOT NULL,
+                    id_projeto UUID NOT NULL,
                     titulo VARCHAR(240) NOT NULL,
                     grupo VARCHAR(120) NOT NULL,
                     categoria VARCHAR(120) NOT NULL,
                     finalidade VARCHAR(240) NOT NULL,
                     apresentacao VARCHAR(240) NOT NULL,
-                    criadoem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    criadoporid UUID NOT NULL,
-                    UNIQUE (projetoid, identificador)
+                    datacriacao TIMESTAMP WITH TIME ZONE NOT NULL,
+                    id_usuariocriacao UUID NOT NULL,
+                    UNIQUE (id_projeto, identificador)
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.versaodocumento (
                     id UUID PRIMARY KEY,
-                    documentoid UUID NOT NULL,
+                    id_documento UUID NOT NULL,
                     numero INTEGER NOT NULL CHECK (numero > 0),
                     formato VARCHAR(40) NOT NULL,
                     conteudooriginal CLOB NOT NULL,
                     hashconteudo VARCHAR(128) NOT NULL,
-                    recebidaem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    recebidaporid UUID NOT NULL,
+                    datarecebimento TIMESTAMP WITH TIME ZONE NOT NULL,
+                    id_usuariorecebimento UUID NOT NULL,
                     origemexterna VARCHAR(240),
-                    versaoanteriorid UUID,
+                    id_versao_anterior UUID,
                     confirmada BOOLEAN NOT NULL DEFAULT FALSE,
-                    pedidoajusteorigemid UUID,
-                    CHECK ((numero = 1 AND versaoanteriorid IS NULL) OR (numero > 1 AND versaoanteriorid IS NOT NULL)),
-                    UNIQUE (documentoid, numero)
+                    id_pedido_ajuste_origem UUID,
+                    CHECK ((numero = 1 AND id_versao_anterior IS NULL) OR (numero > 1 AND id_versao_anterior IS NOT NULL)),
+                    UNIQUE (id_documento, numero)
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.itemdocumental (
                     id UUID PRIMARY KEY,
-                    versaoid UUID NOT NULL,
+                    id_versao UUID NOT NULL,
                     identificador VARCHAR(160) NOT NULL,
                     titulo VARCHAR(240) NOT NULL,
                     conteudo CLOB NOT NULL,
                     ordem INTEGER NOT NULL CHECK (ordem > 0),
                     fontesrastreabilidade VARCHAR ARRAY NOT NULL,
-                    UNIQUE (versaoid, identificador)
+                    UNIQUE (id_versao, identificador)
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.avaliacao (
                     id UUID PRIMARY KEY,
-                    itemid UUID NOT NULL,
-                    responsavelid UUID NOT NULL,
+                    id_item UUID NOT NULL,
+                    id_responsavel UUID NOT NULL,
                     decisao VARCHAR(80) NOT NULL,
                     justificativa CLOB NOT NULL,
-                    avaliadaem TIMESTAMP WITH TIME ZONE NOT NULL
+                    dataavaliacao TIMESTAMP WITH TIME ZONE NOT NULL
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.comentario (
                     id UUID PRIMARY KEY,
-                    itemid UUID NOT NULL,
-                    autorid UUID NOT NULL,
+                    id_item UUID NOT NULL,
+                    id_autor UUID NOT NULL,
                     conteudo CLOB NOT NULL,
-                    registradoem TIMESTAMP WITH TIME ZONE NOT NULL,
+                    dataregistro TIMESTAMP WITH TIME ZONE NOT NULL,
                     origem VARCHAR(120) NOT NULL
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.pedidoajuste (
                     id UUID PRIMARY KEY,
-                    itemid UUID NOT NULL,
-                    solicitanteid UUID NOT NULL,
+                    id_item UUID NOT NULL,
+                    id_solicitante UUID NOT NULL,
                     descricao CLOB NOT NULL,
                     justificativa CLOB NOT NULL,
                     situacao VARCHAR(60) NOT NULL,
-                    solicitadoem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    concluidoem TIMESTAMP WITH TIME ZONE,
+                    datasolicitacao TIMESTAMP WITH TIME ZONE NOT NULL,
+                    dataconclusao TIMESTAMP WITH TIME ZONE,
                     responsaveltecnico VARCHAR(120) NOT NULL,
-                    tratadoem TIMESTAMP WITH TIME ZONE,
+                    datatratamento TIMESTAMP WITH TIME ZONE,
                     decisaotratamento VARCHAR(60),
                     justificativatratamento CLOB,
-                    versaoresultanteid UUID
+                    id_versao_resultante UUID
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.confirmacao (
                     id UUID PRIMARY KEY,
-                    itemid UUID NOT NULL,
-                    responsavelid UUID NOT NULL,
+                    id_item UUID NOT NULL,
+                    id_responsavel UUID NOT NULL,
                     decisao VARCHAR(80) NOT NULL,
                     justificativa CLOB NOT NULL,
-                    confirmadaem TIMESTAMP WITH TIME ZONE NOT NULL
+                    dataconfirmacao TIMESTAMP WITH TIME ZONE NOT NULL
                 )
                 """);
         jdbc.execute("""
                 CREATE TABLE athena.eventoauditoria (
                     id UUID PRIMARY KEY,
-                    projetoid UUID,
-                    documentoid UUID,
-                    versaoid UUID,
-                    itemid UUID,
-                    usuarioid UUID,
+                    id_projeto UUID,
+                    id_documento UUID,
+                    id_versao UUID,
+                    id_item UUID,
+                    id_usuario UUID,
                     tipo VARCHAR(100) NOT NULL,
                     decisao VARCHAR(100),
                     justificativa CLOB,
                     dados CLOB DEFAULT '{}' NOT NULL,
-                    ocorridoem TIMESTAMP WITH TIME ZONE NOT NULL,
-                    registradoporid UUID NOT NULL
+                    dataocorrencia TIMESTAMP WITH TIME ZONE NOT NULL,
+                    id_usuarioregistro UUID NOT NULL
                 )
                 """);
     }
