@@ -84,6 +84,7 @@ designacoes:
     max-tentativas: ${DESIGNACOES_NOTIFICACAO_MAX_TENTATIVAS:3}
     fcm:
       enabled: ${DESIGNACOES_FCM_ENABLED:false}
+      project-id: ${FIREBASE_PROJECT_ID:appmppb}
 
 google:
   wallet:

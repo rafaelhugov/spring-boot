@@ -1,77 +1,123 @@
 package mppb.restapi.mobile.feature.designacao.service;
 
+import java.util.List;
+
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import mppb.restapi.mobile.feature.designacao.mapper.DesignacaoMapper;
 import mppb.restapi.mobile.feature.designacao.model.DesignacaoAtivaRow;
+import mppb.restapi.mobile.feature.designacao.model.ResultadoNotificacaoDesignacao;
+import mppb.restapi.mobile.feature.notificacao.model.DispositivoFcm;
+import mppb.restapi.mobile.feature.notificacao.model.ResultadoEnvioFcm;
+import mppb.restapi.mobile.feature.notificacao.model.StatusEnvioFcm;
+import mppb.restapi.mobile.feature.notificacao.repository.DispositivoFcmRepository;
+import mppb.restapi.mobile.feature.notificacao.service.FcmSenderService;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class DesignacaoNotificacaoService {
 
-    private final DesignacaoMapper mapper;
+    private final DispositivoFcmRepository dispositivoRepository;
+    private final ObjectProvider<FcmSenderService> fcmSenderProvider;
 
     @Value("${designacoes.notificacao.fcm.enabled:false}")
     private boolean fcmEnabled;
 
-    public void notificarNovaDesignacao(DesignacaoAtivaRow designacao) {
+    public ResultadoNotificacaoDesignacao notificarNovaDesignacao(DesignacaoAtivaRow designacao) {
         if (!fcmEnabled) {
             log.debug("Notificacao FCM de designacoes desabilitada por configuracao");
-            return;
+            return ResultadoNotificacaoDesignacao.desligado();
         }
 
-        String titulo = titulo(designacao);
-        String corpo = corpo(designacao);
-        log.info("Notificacao de designacao pronta para envio: titulo='{}', route='/designacoes'", titulo);
-        log.debug("Corpo sanitizado da notificacao de designacao: {}", corpo);
-    }
-
-    private String titulo(DesignacaoAtivaRow designacao) {
-        String tipo = mapper.tipoDescricao(designacao);
-        return switch (tipo) {
-            case "Titularidade" -> "Nova titularidade";
-            case "Substituição Cumulativa" -> "Nova substituição cumulativa";
-            case "Função" -> "Nova função";
-            default -> "Nova designação";
-        };
-    }
-
-    private String corpo(DesignacaoAtivaRow designacao) {
-        String tipo = mapper.tipoDescricao(designacao);
-        String destino = firstNonBlank(designacao.orgaoExecucaoNome(), designacao.orgaoNome(), designacao.funcaoNome(), "Designação");
-        if ("Titularidade".equals(tipo)) {
-            return "Você foi designado como %s.".formatted(destino);
+        String matricula = designacao == null ? null : designacao.servidorMatricula();
+        if (matricula == null || matricula.isBlank()) {
+            log.info("Notificacao FCM de designacoes ignorada: sem destinatario autenticavel");
+            return ResultadoNotificacaoDesignacao.semDispositivos();
         }
-        if ("Função".equals(tipo)) {
-            return joinNonBlank(" — ", designacao.funcaoNome(), firstNonBlank(designacao.orgaoExecucaoNome(), designacao.orgaoNome()));
-        }
-        return destino;
-    }
 
-    private static String firstNonBlank(String... values) {
-        for (String value : values) {
-            if (value != null && !value.isBlank()) {
-                return value.trim();
+        List<DispositivoFcm> dispositivos = dispositivoRepository.findAtivosByMatricula(matricula.trim());
+        if (dispositivos.isEmpty()) {
+            log.info("Notificacao FCM de designacoes sem dispositivos ativos");
+            return ResultadoNotificacaoDesignacao.semDispositivos();
+        }
+
+        FcmSenderService fcmSender = fcmSenderProvider.getIfAvailable();
+        if (fcmSender == null) {
+            log.warn("Notificacao FCM de designacoes sem FirebaseMessaging disponivel");
+            return new ResultadoNotificacaoDesignacao(dispositivos.size(), 0, 0, 0, dispositivos.size(), 0, false);
+        }
+
+        ContadoresEnvio contadores = new ContadoresEnvio(dispositivos.size());
+        for (DispositivoFcm dispositivo : dispositivos) {
+            ResultadoEnvioFcm resultado = enviarParaDispositivo(fcmSender, dispositivo);
+            contadores.registrar(resultado.status());
+            if (resultado.status() == StatusEnvioFcm.TOKEN_INVALIDO) {
+                desativarTokenInvalido(dispositivo);
             }
         }
-        return null;
+
+        ResultadoNotificacaoDesignacao resultado = contadores.toResultado();
+        log.info("Notificacao FCM de designacoes processada: dispositivos={}, aceitos={}, invalidos={}, transitorios={}, configuracao={}, desconhecidos={}",
+                resultado.dispositivosAtivos(),
+                resultado.aceitos(),
+                resultado.tokensInvalidos(),
+                resultado.falhasTransitorias(),
+                resultado.falhasConfiguracao(),
+                resultado.falhasDesconhecidas());
+        return resultado;
     }
 
-    private static String joinNonBlank(String separator, String... values) {
-        StringBuilder builder = new StringBuilder();
-        for (String value : values) {
-            if (value == null || value.isBlank()) {
-                continue;
-            }
-            if (!builder.isEmpty()) {
-                builder.append(separator);
-            }
-            builder.append(value.trim());
+    private ResultadoEnvioFcm enviarParaDispositivo(FcmSenderService fcmSender, DispositivoFcm dispositivo) {
+        try {
+            return fcmSender.enviarNovaDesignacao(dispositivo.tokenFcm());
+        } catch (RuntimeException e) {
+            return ResultadoEnvioFcm.falhaDesconhecida();
         }
-        return builder.isEmpty() ? "Nova designação" : builder.toString();
+    }
+
+    private void desativarTokenInvalido(DispositivoFcm dispositivo) {
+        try {
+            dispositivoRepository.desativarPorId(dispositivo.id());
+        } catch (RuntimeException e) {
+            log.warn("Falha ao desativar dispositivo FCM invalido");
+        }
+    }
+
+    private static class ContadoresEnvio {
+        private final int dispositivosAtivos;
+        private int aceitos;
+        private int tokensInvalidos;
+        private int falhasTransitorias;
+        private int falhasConfiguracao;
+        private int falhasDesconhecidas;
+
+        private ContadoresEnvio(int dispositivosAtivos) {
+            this.dispositivosAtivos = dispositivosAtivos;
+        }
+
+        private void registrar(StatusEnvioFcm status) {
+            switch (status) {
+                case ACEITO -> aceitos++;
+                case TOKEN_INVALIDO -> tokensInvalidos++;
+                case FALHA_TRANSITORIA -> falhasTransitorias++;
+                case FALHA_CONFIGURACAO -> falhasConfiguracao++;
+                case FALHA_DESCONHECIDA -> falhasDesconhecidas++;
+            }
+        }
+
+        private ResultadoNotificacaoDesignacao toResultado() {
+            return new ResultadoNotificacaoDesignacao(
+                    dispositivosAtivos,
+                    aceitos,
+                    tokensInvalidos,
+                    falhasTransitorias,
+                    falhasConfiguracao,
+                    falhasDesconhecidas,
+                    false);
+        }
     }
 }
