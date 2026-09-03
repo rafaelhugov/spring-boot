@@ -21,25 +21,24 @@ public class DesignacaoDeteccaoService {
 
     private final DesignacaoViewRepository viewRepository;
     private final DesignacaoControleRepository controleRepository;
-    private final DesignacaoNotificacaoService notificacaoService;
     private final TransactionTemplate transactionTemplate;
 
     @Value("${designacoes.notificacao.batch-size:100}")
     private int batchSize;
 
-    public void detectarNovasDesignacoes() {
+    public int detectarNovasDesignacoes() {
         Instant inicio = Instant.now();
         List<DesignacaoPendenteNotificacao> novas = viewRepository.findNovasParaUsuariosInicializados(batchSize);
         int inseridas = 0;
         for (DesignacaoPendenteNotificacao pendente : novas) {
             if (registrarNovaEmTransacaoCurta(pendente)) {
                 inseridas++;
-                notificacaoService.notificarNovaDesignacao(pendente.designacao());
             }
         }
         long millis = Duration.between(inicio, Instant.now()).toMillis();
         log.info("Scheduler de designacoes finalizado: candidatas={}, novas={}, tempoMs={}",
                 novas.size(), inseridas, millis);
+        return inseridas;
     }
 
     private boolean registrarNovaEmTransacaoCurta(DesignacaoPendenteNotificacao pendente) {

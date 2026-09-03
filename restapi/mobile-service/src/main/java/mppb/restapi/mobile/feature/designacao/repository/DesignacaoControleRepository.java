@@ -1,6 +1,8 @@
 package mppb.restapi.mobile.feature.designacao.repository;
 
 import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -8,8 +10,10 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import mppb.restapi.mobile.feature.designacao.model.DesignacaoAtivaRow;
+import mppb.restapi.mobile.feature.designacao.model.DesignacaoControlePendenteNotificacao;
 
 @Repository
 public class DesignacaoControleRepository {
@@ -82,6 +86,90 @@ public class DesignacaoControleRepository {
         return inserirConhecida(matricula, designacao, "N", "PE");
     }
 
+    @Transactional
+    public List<DesignacaoControlePendenteNotificacao> reservarPendentesParaNotificacao(
+            int batchSize,
+            int maxTentativas,
+            String identificadorReserva) {
+        String sql = """
+                WITH candidatas AS (
+                    SELECT id
+                    FROM diariooficial.designacaoconhecida
+                    WHERE origemregistro = 'N'
+                      AND statusnotificacao IN ('PE', 'ER')
+                      AND quantidadetentativas < :maxTentativas
+                      AND (
+                          datareservaprocessamento IS NULL
+                          OR datareservaprocessamento < CURRENT_TIMESTAMP - INTERVAL '10 minutes'
+                      )
+                    ORDER BY
+                        dataregistro ASC,
+                        id ASC
+                    LIMIT :batchSize
+                    FOR UPDATE SKIP LOCKED
+                )
+                UPDATE diariooficial.designacaoconhecida dc
+                SET datareservaprocessamento = CURRENT_TIMESTAMP,
+                    identificadorreserva = :identificadorReserva
+                FROM candidatas
+                WHERE dc.id = candidatas.id
+                RETURNING
+                    dc.id,
+                    dc.identificadorreserva,
+                    dc.servidormatricula,
+                    dc.id_designacao,
+                    dc.tipodesignacao,
+                    dc.datapublicacao,
+                    dc.statusnotificacao,
+                    dc.quantidadetentativas
+                """;
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("batchSize", batchSize)
+                .addValue("maxTentativas", maxTentativas)
+                .addValue("identificadorReserva", identificadorReserva);
+        return jdbcTemplate.query(sql, params, this::mapPendenteNotificacao);
+    }
+
+    public boolean marcarNotificacaoEnviada(Long id, String identificadorReserva) {
+        String sql = """
+                UPDATE diariooficial.designacaoconhecida
+                SET statusnotificacao = 'EN',
+                    datanotificacao = CURRENT_TIMESTAMP,
+                    quantidadetentativas = quantidadetentativas + 1,
+                    ultimamensagemerro = NULL,
+                    datareservaprocessamento = NULL,
+                    identificadorreserva = NULL
+                WHERE id = :id
+                  AND identificadorreserva = :identificadorReserva
+                  AND origemregistro = 'N'
+                  AND statusnotificacao IN ('PE', 'ER')
+                """;
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("id", id)
+                .addValue("identificadorReserva", identificadorReserva);
+        return jdbcTemplate.update(sql, params) > 0;
+    }
+
+    public boolean marcarNotificacaoErro(Long id, String identificadorReserva, String mensagemErro) {
+        String sql = """
+                UPDATE diariooficial.designacaoconhecida
+                SET statusnotificacao = 'ER',
+                    quantidadetentativas = quantidadetentativas + 1,
+                    ultimamensagemerro = :mensagemErro,
+                    datareservaprocessamento = NULL,
+                    identificadorreserva = NULL
+                WHERE id = :id
+                  AND identificadorreserva = :identificadorReserva
+                  AND origemregistro = 'N'
+                  AND statusnotificacao IN ('PE', 'ER')
+                """;
+        MapSqlParameterSource params = new MapSqlParameterSource()
+                .addValue("id", id)
+                .addValue("identificadorReserva", identificadorReserva)
+                .addValue("mensagemErro", mensagemErro);
+        return jdbcTemplate.update(sql, params) > 0;
+    }
+
     private boolean inserirConhecida(String matricula, DesignacaoAtivaRow designacao, String origem, String status) {
         if (designacao.id() == null || designacao.tipoCodigo() == null || designacao.tipoCodigo().isBlank()) {
             return false;
@@ -117,5 +205,33 @@ public class DesignacaoControleRepository {
         } catch (DuplicateKeyException e) {
             return false;
         }
+    }
+
+    private DesignacaoControlePendenteNotificacao mapPendenteNotificacao(ResultSet rs, int rowNum) throws SQLException {
+        String matricula = rs.getString("servidormatricula");
+        String tipoDesignacao = rs.getString("tipodesignacao");
+        Date dataPublicacao = rs.getDate("datapublicacao");
+        DesignacaoAtivaRow designacao = new DesignacaoAtivaRow(
+                rs.getLong("id_designacao"),
+                matricula,
+                tipoDesignacao,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                dataPublicacao == null ? null : dataPublicacao.toLocalDate(),
+                null,
+                false,
+                null,
+                null);
+        return new DesignacaoControlePendenteNotificacao(
+                rs.getLong("id"),
+                rs.getString("identificadorreserva"),
+                matricula,
+                rs.getString("statusnotificacao"),
+                rs.getInt("quantidadetentativas"),
+                designacao);
     }
 }
