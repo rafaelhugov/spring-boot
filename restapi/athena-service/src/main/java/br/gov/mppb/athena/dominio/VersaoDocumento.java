@@ -7,7 +7,7 @@ public record VersaoDocumento(
         int numero,
         FormatoDocumento formato,
         String conteudoOriginal,
-        OffsetDateTime recebidaEm,
+        OffsetDateTime dataRecebimento,
         List<ItemDocumental> itens
 ) {
 
@@ -19,7 +19,7 @@ public record VersaoDocumento(
             throw new IllegalArgumentException("formato da versao deve ser informado.");
         }
         conteudoOriginal = TextoObrigatorio.validar(conteudoOriginal, "conteudo original da versao");
-        if (recebidaEm == null) {
+        if (dataRecebimento == null) {
             throw new IllegalArgumentException("data de recebimento da versao deve ser informada.");
         }
         itens = itens == null ? List.of() : List.copyOf(itens);

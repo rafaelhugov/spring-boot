@@ -6,13 +6,13 @@ import java.util.UUID;
 public record DadosDocumentoPersistente(
         UUID id,
         String identificador,
-        UUID projetoId,
+        UUID idProjeto,
         String titulo,
         String grupo,
         String categoria,
         String finalidade,
         String apresentacao,
-        OffsetDateTime criadoEm,
-        UUID criadoPorId
+        OffsetDateTime dataCriacao,
+        UUID idUsuarioCriacao
 ) {
 }

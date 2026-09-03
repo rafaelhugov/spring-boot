@@ -11,7 +11,7 @@ public record RegistroHistoricoDocumental(
         DadosDocumentoPersistente documento,
         DadosVersaoDocumentoPersistente versao,
         List<DadosItemDocumentalPersistente> itens,
-        OffsetDateTime ocorridoEm,
+        OffsetDateTime dataOcorrencia,
         UUID eventoAuditoriaId
 ) {
 

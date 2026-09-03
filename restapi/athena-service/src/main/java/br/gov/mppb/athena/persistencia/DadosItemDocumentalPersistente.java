@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public record DadosItemDocumentalPersistente(
         UUID id,
-        UUID versaoId,
+        UUID idVersao,
         String identificador,
         String titulo,
         String conteudo,

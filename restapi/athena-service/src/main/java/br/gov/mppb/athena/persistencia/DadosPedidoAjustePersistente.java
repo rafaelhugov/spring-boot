@@ -5,16 +5,16 @@ import java.util.UUID;
 
 public record DadosPedidoAjustePersistente(
         UUID id,
-        UUID itemId,
-        UUID solicitanteId,
+        UUID idItem,
+        UUID idSolicitante,
         String descricao,
         String justificativa,
         String situacao,
-        OffsetDateTime solicitadoEm,
+        OffsetDateTime dataSolicitacao,
         String responsavelTecnico,
-        OffsetDateTime tratadoEm,
+        OffsetDateTime dataTratamento,
         String decisaoTratamento,
         String justificativaTratamento,
-        UUID versaoResultanteId
+        UUID idVersaoResultante
 ) {
 }

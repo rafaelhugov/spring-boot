@@ -5,13 +5,13 @@ import java.util.UUID;
 
 public record RegistroInteracaoHumana(
         UUID id,
-        UUID itemId,
-        UUID usuarioId,
+        UUID idItem,
+        UUID idUsuario,
         TipoInteracaoHumana tipo,
         String decisao,
         String conteudo,
         String justificativa,
-        OffsetDateTime registradaEm,
+        OffsetDateTime dataRegistro,
         UUID eventoAuditoriaId
 ) {
 }

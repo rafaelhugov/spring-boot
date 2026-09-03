@@ -5,11 +5,11 @@ import java.util.UUID;
 
 public record DadosVinculoProjetoPersistente(
         UUID id,
-        UUID projetoId,
-        UUID usuarioId,
+        UUID idProjeto,
+        UUID idUsuario,
         String papel,
         String unidade,
-        OffsetDateTime inicioEm,
-        UUID registradoPorId
+        OffsetDateTime dataInicio,
+        UUID idUsuarioRegistro
 ) {
 }

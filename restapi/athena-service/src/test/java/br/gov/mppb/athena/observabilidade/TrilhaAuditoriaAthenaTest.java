@@ -35,7 +35,7 @@ class TrilhaAuditoriaAthenaTest {
         EventoAuditoria evento = eventoCom(Map.of("decisao", "APROVADO"));
 
         assertThat(evento)
-                .extracting(EventoAuditoria::ator, EventoAuditoria::ocorridoEm, EventoAuditoria::projeto,
+                .extracting(EventoAuditoria::ator, EventoAuditoria::dataOcorrencia, EventoAuditoria::projeto,
                         EventoAuditoria::recursoAfetado, EventoAuditoria::acao, EventoAuditoria::resultado)
                 .containsExactly(ator, OffsetDateTime.parse("2026-08-27T14:00:00-03:00"), projeto,
                         new RecursoAuditavel("item-documental", "ESP.REQ.009"),
@@ -136,7 +136,7 @@ class TrilhaAuditoriaAthenaTest {
         )));
 
         assertThat(cliente.payloads()).singleElement().satisfies(payload -> {
-            assertThat(payload).containsKeys("ator", "ocorridoEm", "projeto", "recurso", "acao", "resultado",
+            assertThat(payload).containsKeys("ator", "dataOcorrencia", "projeto", "recurso", "acao", "resultado",
                     "detalhes", "politicaRetencao");
             assertThat(payload).doesNotContainKeys("logger", "metricas", "exception", "stackTrace", "httpStatus");
             @SuppressWarnings("unchecked")

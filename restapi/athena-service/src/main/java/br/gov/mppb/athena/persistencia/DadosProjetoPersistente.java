@@ -9,7 +9,7 @@ public record DadosProjetoPersistente(
         String nome,
         String descricao,
         String situacao,
-        OffsetDateTime criadoEm,
-        UUID criadoPorId
+        OffsetDateTime dataCriacao,
+        UUID idUsuarioCriacao
 ) {
 }

@@ -38,18 +38,19 @@ class ContratosRestAthenaTest {
                 .extracting(ContratoRestAthena::caminho)
                 .contains(
                         "/api/projetos",
-                        "/api/projetos/{projetoId}",
-                        "/api/projetos/{projetoId}/documentos",
-                        "/api/projetos/{projetoId}/documentos/{documentoId}",
-                        "/api/projetos/{projetoId}/documentos/ingestoes",
-                        "/api/projetos/{projetoId}/documentos/{documentoId}/itens/{itemId}",
-                        "/api/projetos/{projetoId}/documentos/{documentoId}/avaliacoes",
-                        "/api/projetos/{projetoId}/documentos/{documentoId}/comentarios",
-                        "/api/projetos/{projetoId}/documentos/{documentoId}/ajustes",
-                        "/api/projetos/{projetoId}/documentos/{documentoId}/confirmacoes",
-                        "/api/projetos/{projetoId}/documentos/{documentoId}/historico",
-                        "/api/projetos/{projetoId}/auditoria",
-                        "/api/projetos/{projetoId}/participantes/pesquisa"
+                        "/api/projetos/{idProjeto}",
+                        "/api/projetos/{idProjeto}/documentos",
+                        "/api/projetos/{idProjeto}/documentos/{idDocumento}",
+                        "/api/projetos/{idProjeto}/documentos/ingestoes",
+                        "/api/projetos/{idProjeto}/documentos/{idDocumento}/itens/{idItem}",
+                        "/api/projetos/{idProjeto}/documentos/{idDocumento}/avaliacoes",
+                        "/api/projetos/{idProjeto}/documentos/{idDocumento}/comentarios",
+                        "/api/projetos/{idProjeto}/documentos/{idDocumento}/ajustes",
+                        "/api/projetos/{idProjeto}/documentos/{idDocumento}/confirmacoes",
+                        "/api/projetos/{idProjeto}/documentos/{idDocumento}/historico",
+                        "/api/projetos/{idProjeto}/auditoria",
+                        "/api/projetos/{idProjeto}/participantes",
+                        "/api/projetos/{idProjeto}/participantes/pesquisa"
                 );
     }
 
@@ -76,9 +77,8 @@ class ContratosRestAthenaTest {
                 .extracting(ContratoRestAthena::operacaoAutorizacao)
                 .contains(OperacaoProjeto.ADMINISTRAR, OperacaoProjeto.CONSULTAR);
         assertThat(ContratosRestAthena.porGrupo(GrupoOperacaoApi.PARTICIPANTE))
-                .singleElement()
                 .extracting(ContratoRestAthena::operacaoAutorizacao)
-                .isEqualTo(OperacaoProjeto.ADMINISTRAR);
+                .containsOnly(OperacaoProjeto.ADMINISTRAR);
     }
 
     @Test

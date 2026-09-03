@@ -10,8 +10,8 @@ public record ProjetoInstitucional(
         Set<String> unidades,
         Set<ParticipanteProjeto> participantes,
         SituacaoProjeto situacao,
-        OffsetDateTime criadoEm,
-        UsuarioInstitucional criadoPor
+        OffsetDateTime dataCriacao,
+        UsuarioInstitucional usuarioCriacao
 ) {
 
     public ProjetoInstitucional {
@@ -27,10 +27,10 @@ public record ProjetoInstitucional(
         if (situacao == null) {
             throw new IllegalArgumentException("situacao do projeto deve ser informada.");
         }
-        if (criadoEm == null) {
+        if (dataCriacao == null) {
             throw new IllegalArgumentException("data de criacao do projeto deve ser informada.");
         }
-        if (criadoPor == null) {
+        if (usuarioCriacao == null) {
             throw new IllegalArgumentException("usuario criador do projeto deve ser informado.");
         }
     }
