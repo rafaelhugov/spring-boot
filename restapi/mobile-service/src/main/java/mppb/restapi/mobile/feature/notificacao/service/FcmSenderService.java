@@ -21,6 +21,10 @@ public class FcmSenderService {
     static final String CORPO_NOVA_DESIGNACAO = "Você possui uma nova designação disponível.";
     static final String TIPO_EVENTO_NOVAS_DESIGNACOES = "NOVAS_DESIGNACOES";
     static final String ROTA_DESIGNACOES = "/designacoes";
+    static final String TITULO_NOVA_NOTICIA = "Nova notícia";
+    static final String CORPO_NOVA_NOTICIA = "Uma nova notícia está disponível no MPPB+.";
+    static final String TIPO_EVENTO_NOVAS_NOTICIAS = "NOVAS_NOTICIAS";
+    static final String ROTA_NOTICIAS = "/noticias";
 
     private final FcmMessagingClient messagingClient;
 
@@ -46,6 +50,19 @@ public class FcmSenderService {
         }
     }
 
+    public ResultadoEnvioFcm enviarNovaNoticiaTopico(String topic) {
+        String nomeTopico = obrigatorio(topic, "topic");
+
+        try {
+            String messageId = messagingClient.send(novaNoticiaTopicMessage(nomeTopico));
+            return ResultadoEnvioFcm.aceito(messageId);
+        } catch (FirebaseMessagingException e) {
+            return classificarErro(e);
+        } catch (RuntimeException e) {
+            return ResultadoEnvioFcm.falhaDesconhecida();
+        }
+    }
+
     private Message novaDesignacaoMessage(String tokenFcm) {
         return Message.builder()
                 .setToken(tokenFcm)
@@ -55,6 +72,18 @@ public class FcmSenderService {
                         .build())
                 .putData("tipo_evento", TIPO_EVENTO_NOVAS_DESIGNACOES)
                 .putData("rota", ROTA_DESIGNACOES)
+                .build();
+    }
+
+    private Message novaNoticiaTopicMessage(String topic) {
+        return Message.builder()
+                .setTopic(topic)
+                .setNotification(Notification.builder()
+                        .setTitle(TITULO_NOVA_NOTICIA)
+                        .setBody(CORPO_NOVA_NOTICIA)
+                        .build())
+                .putData("tipo_evento", TIPO_EVENTO_NOVAS_NOTICIAS)
+                .putData("rota", ROTA_NOTICIAS)
                 .build();
     }
 

@@ -86,6 +86,15 @@ designacoes:
       enabled: ${DESIGNACOES_FCM_ENABLED:false}
       project-id: ${FIREBASE_PROJECT_ID:appmppb}
 
+noticias:
+  notificacao:
+    enabled: ${NOTICIAS_NOTIFICACAO_ENABLED:false}
+    cron: ${NOTICIAS_NOTIFICACAO_CRON:0 */15 * * * *}
+    batch-size: ${NOTICIAS_NOTIFICACAO_BATCH_SIZE:50}
+    max-tentativas: ${NOTICIAS_NOTIFICACAO_MAX_TENTATIVAS:3}
+    fcm:
+      topic: ${NOTICIAS_FCM_TOPIC:mppb_noticias}
+
 google:
   wallet:
     issuer-id: ${GOOGLE_WALLET_ISSUER_ID:3388000000023147746}

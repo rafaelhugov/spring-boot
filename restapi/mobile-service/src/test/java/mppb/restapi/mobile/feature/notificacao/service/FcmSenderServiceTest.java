@@ -47,6 +47,29 @@ class FcmSenderServiceTest {
     }
 
     @Test
+    void montaMensagemGenericaDeNoticiasParaTopicoPublico() throws Exception {
+        FakeFcmMessagingClient client = new FakeFcmMessagingClient();
+        client.response = "projects/appmppb/messages/noticias-123";
+        FcmSenderService service = new FcmSenderService(client);
+
+        ResultadoEnvioFcm resultado = service.enviarNovaNoticiaTopico("mppb_noticias");
+
+        assertEquals(StatusEnvioFcm.ACEITO, resultado.status());
+        assertEquals("projects/appmppb/messages/noticias-123", resultado.messageId());
+        assertEquals("mppb_noticias", valorCampo(client.message, "topic"));
+        assertNull(valorCampo(client.message, "token"));
+
+        Notification notification = valorCampo(client.message, "notification");
+        assertEquals("Nova notícia", valorCampo(notification, "title"));
+        assertEquals("Uma nova notícia está disponível no MPPB+.", valorCampo(notification, "body"));
+
+        Map<String, String> data = valorCampo(client.message, "data");
+        assertEquals("NOVAS_NOTICIAS", data.get("tipo_evento"));
+        assertEquals("/noticias", data.get("rota"));
+        assertEquals(2, data.size());
+    }
+
+    @Test
     void naoIncluiDadosSensiveisNoPayload() throws Exception {
         FakeFcmMessagingClient client = new FakeFcmMessagingClient();
         FcmSenderService service = new FcmSenderService(client);
@@ -63,6 +86,23 @@ class FcmSenderServiceTest {
         assertFalse(data.containsKey("cargo"));
         assertFalse(data.containsKey("periodo"));
         assertFalse(data.containsKey("descricao"));
+        assertFalse(data.containsKey("jwt"));
+        assertFalse(data.containsKey("credenciais"));
+    }
+
+    @Test
+    void naoIncluiConteudoDaNoticiaNoPayloadDeNoticias() throws Exception {
+        FakeFcmMessagingClient client = new FakeFcmMessagingClient();
+        FcmSenderService service = new FcmSenderService(client);
+
+        service.enviarNovaNoticiaTopico("mppb_noticias");
+
+        Map<String, String> data = valorCampo(client.message, "data");
+        assertFalse(data.containsKey("titulo"));
+        assertFalse(data.containsKey("resumo"));
+        assertFalse(data.containsKey("link"));
+        assertFalse(data.containsKey("id_noticia"));
+        assertFalse(data.containsKey("matricula"));
         assertFalse(data.containsKey("jwt"));
         assertFalse(data.containsKey("credenciais"));
     }
@@ -167,6 +207,14 @@ class FcmSenderServiceTest {
 
         assertThrows(IllegalArgumentException.class, () -> service.enviarNovaDesignacao(null));
         assertThrows(IllegalArgumentException.class, () -> service.enviarNovaDesignacao("  "));
+    }
+
+    @Test
+    void rejeitaTopicoAusente() {
+        FcmSenderService service = new FcmSenderService(new FakeFcmMessagingClient());
+
+        assertThrows(IllegalArgumentException.class, () -> service.enviarNovaNoticiaTopico(null));
+        assertThrows(IllegalArgumentException.class, () -> service.enviarNovaNoticiaTopico("  "));
     }
 
     private static FirebaseMessagingException messagingException(

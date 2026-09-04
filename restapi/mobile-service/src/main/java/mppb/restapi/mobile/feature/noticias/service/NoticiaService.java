@@ -2,6 +2,7 @@ package mppb.restapi.mobile.feature.noticias.service;
 
 import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.mobile.feature.noticias.dto.NoticiaDto;
+import mppb.restapi.mobile.feature.noticias.model.NoticiaPublicada;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -15,8 +16,11 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.text.Normalizer;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -31,6 +35,8 @@ import java.util.regex.Pattern;
 @Service
 public class NoticiaService {
 
+    private static final DateTimeFormatter HUMAN_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
     private final String RSS_URL = "https://www.mppb.mp.br/rss/";
     private final String NOTICIAS_URL = "https://www.mppb.mp.br/index.php/pt/comunicacao/noticias";
     private final Pattern ARTICLE_ID_PATTERN = Pattern.compile("[?&]id=(\\d+)");
@@ -41,7 +47,13 @@ public class NoticiaService {
             .build();
 
     public List<NoticiaDto> getUltimasNoticias() {
-        List<NoticiaDto> noticias = new ArrayList<>();
+        return getUltimasNoticiasPublicadas().stream()
+                .map(NoticiaPublicada::toDto)
+                .toList();
+    }
+
+    public List<NoticiaPublicada> getUltimasNoticiasPublicadas() {
+        List<NoticiaPublicada> noticias = new ArrayList<>();
         try {
             String xmlResult = buscarFeed();
 
@@ -64,17 +76,16 @@ public class NoticiaService {
             NodeList items = doc.getElementsByTagName("item");
             Map<String, String> linksNoticias = buscarLinksNoticias();
 
-            DateTimeFormatter humanFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-
             for (int i = 0; i < items.getLength(); i++) {
                 Element item = (Element) items.item(i);
                 
                 String title = getTagValue(item, "title");
                 title = replaceInvalidCharacters(title);
 
-                String link = getTagValue(item, "link");
+                String linkOriginal = getTagValue(item, "link");
+                String idArtigo = extrairIdArtigo(linkOriginal);
                 String category = getTagValue(item, "category");
-                link = resolverLinkNoticia(link, title, category, linksNoticias);
+                String link = resolverLinkNoticia(linkOriginal, title, category, linksNoticias);
                 
                 String description = getTagValue(item, "description");
                 String imageUrl = extractImageFromDescription(description);
@@ -82,21 +93,24 @@ public class NoticiaService {
 
                 String pubDateStr = getTagValue(item, "pubDate");
                 String formattedDate = pubDateStr;
+                LocalDateTime dataPublicacao = null;
                 try {
                     ZonedDateTime dateTime = ZonedDateTime.parse(pubDateStr, DateTimeFormatter.RFC_1123_DATE_TIME);
-                    formattedDate = dateTime.format(humanFormatter);
+                    dataPublicacao = dateTime.toLocalDateTime();
+                    formattedDate = dateTime.format(HUMAN_FORMATTER);
                 } catch (DateTimeParseException e) {
                     // Ignora o parse se a data do RSS mudar
                 }
 
-                noticias.add(NoticiaDto.builder()
-                        .titulo(title)
-                        .link(link)
-                        .resumo(description)
-                        .imagemUrl(imageUrl)
-                        .dataPublicacao(formattedDate)
-                        .categoria(category)
-                        .build());
+                noticias.add(new NoticiaPublicada(
+                        chaveExterna(idArtigo, link, title, pubDateStr),
+                        title,
+                        link,
+                        description,
+                        imageUrl,
+                        dataPublicacao,
+                        formattedDate,
+                        category));
             }
 
         } catch (Exception e) {
@@ -143,6 +157,28 @@ public class NoticiaService {
         if (link == null) return null;
         Matcher matcher = ARTICLE_ID_PATTERN.matcher(link);
         return matcher.find() ? matcher.group(1) : null;
+    }
+
+    private String chaveExterna(String idArtigo, String link, String titulo, String dataPublicacao) {
+        if (idArtigo != null && !idArtigo.isBlank()) {
+            return "portal:" + idArtigo.trim();
+        }
+        String base = "%s|%s|%s".formatted(link, titulo, dataPublicacao);
+        return "hash:" + sha256(base);
+    }
+
+    private String sha256(String value) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(value.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder(hash.length * 2);
+            for (byte b : hash) {
+                hex.append(String.format("%02x", b));
+            }
+            return hex.toString();
+        } catch (Exception e) {
+            throw new IllegalStateException("Falha ao calcular hash da noticia", e);
+        }
     }
 
     private String categoriaPath(String categoria) {

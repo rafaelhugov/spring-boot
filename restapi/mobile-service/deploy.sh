@@ -94,11 +94,13 @@ case "$BUMP_TYPE" in
 esac
 
 NEW_VERSION=$(bump_version "$CURRENT_BACKEND_VERSION" "$BUMP")
+NEW_HOMOLOG_VERSION="${NEW_VERSION}-homolog"
 
 echo ""
 echo -e "${GREEN}${BOLD}Nova versão: ${NEW_VERSION}${RESET}"
+echo -e "${GREEN}${BOLD}Tag homologação backend: ${NEW_HOMOLOG_VERSION}${RESET}"
 echo ""
-read -p "$(echo -e "${YELLOW}Confirmar deploy da versão ${NEW_VERSION}? [s/N]:${RESET} ")" CONFIRM
+read -p "$(echo -e "${YELLOW}Confirmar deploy da versão ${NEW_VERSION} e homolog ${NEW_HOMOLOG_VERSION}? [s/N]:${RESET} ")" CONFIRM
 [[ "${CONFIRM,,}" == "s" ]] || err "Deploy cancelado pelo usuário."
 
 # ─────────────────────────────────────────
@@ -134,20 +136,22 @@ $MAVEN clean package -f mobile-service/pom.xml -Dmaven.test.skip=true -q
 ok "JAR gerado: $(ls mobile-service/target/*.jar | grep -v original)"
 
 # ─────────────────────────────────────────
-# 3. Build + Push imagem Backend (Nome temporário: mobile-service-2)
+# 3. Build + Push imagem Backend (produção + homologação)
 # ─────────────────────────────────────────
 log "3/6 — Docker Build + Push — Backend"
-info "Tags: :${NEW_VERSION} e :latest"
+info "Tags: :${NEW_VERSION}, :${NEW_HOMOLOG_VERSION} e :latest"
 cd "$BACKEND_DIR"
 "${DOCKER_CMD[@]}" build --no-cache \
   -t $REGISTRY/mobile-service-2:${NEW_VERSION} \
+  -t $REGISTRY/mobile-service-2:${NEW_HOMOLOG_VERSION} \
   -t $REGISTRY/mobile-service-2:latest \
   . 2>&1 | grep -E "^(#|✓|DONE|ERROR|=>)" | tail -10
 ok "Imagem backend gerada"
 
 "${DOCKER_CMD[@]}" push $REGISTRY/mobile-service-2:${NEW_VERSION} 2>&1 | tail -3
+"${DOCKER_CMD[@]}" push $REGISTRY/mobile-service-2:${NEW_HOMOLOG_VERSION} 2>&1 | tail -3
 "${DOCKER_CMD[@]}" push $REGISTRY/mobile-service-2:latest 2>&1 | tail -3
-ok "Backend enviado: ${NEW_VERSION} + latest"
+ok "Backend enviado: ${NEW_VERSION} + ${NEW_HOMOLOG_VERSION} + latest"
 
 # ─────────────────────────────────────────
 # 4. Build do Frontend (Quasar SPA)
@@ -188,10 +192,14 @@ echo -e "${GREEN}${BOLD}  ✅ VERSÃO ${NEW_VERSION} PUBLICADA COM SUCESSO! ${RE
 echo -e "${GREEN}${BOLD}═════════════════════════════════════════${RESET}"
 echo ""
 echo -e "  ${CYAN}Backend:  ${RESET} $REGISTRY/mobile-service-2:${NEW_VERSION}"
+echo -e "  ${CYAN}Backend homologação:${RESET} $REGISTRY/mobile-service-2:${NEW_HOMOLOG_VERSION}"
 echo -e "  ${CYAN}Frontend: ${RESET} $REGISTRY/mobile-web:${NEW_VERSION}"
 echo ""
 echo -e "${YELLOW}${BOLD}Para ativar no Portainer:${RESET}"
 echo "  1. Stacks → aplicativo-mppb (ou stack correspondente)"
-echo "  2. ✅ Marque 'Re-pull image'"
-echo "  3. Clique em 'Update the stack'"
+echo "  2. Produção backend: image: $REGISTRY/mobile-service-2:${NEW_VERSION}"
+echo "  3. Homologação backend: image: $REGISTRY/mobile-service-2:${NEW_HOMOLOG_VERSION}"
+echo "  4. Frontend produção: image: $REGISTRY/mobile-web:${NEW_VERSION}"
+echo "  5. ✅ Marque 'Re-pull image'"
+echo "  6. Clique em 'Update the stack'"
 echo ""
