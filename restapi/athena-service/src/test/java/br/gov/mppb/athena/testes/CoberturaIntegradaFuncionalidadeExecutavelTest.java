@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -317,6 +318,265 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                 );
     }
 
+    @Test
+    void deveValidarRecuperacaoFuncionalBLAthenaComBootstrapProjetoParticipanteIngestaoEFluxosDocumentais() throws Exception {
+        mvc = MockMvcBuilders.standaloneSetup(new AthenaHttpController(persistencia)).build();
+
+        // 1. Bootstrap administrativo e mantencao do projeto institucional (BL.FEATURE.001, BL.US.001)
+        mvc.perform(get("/api/projetos")
+                        .headers(cabecalhosAdministrador()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.projetos.length()").value(0));
+
+        mvc.perform(post("/api/projetos")
+                        .headers(cabecalhosAdministrador())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "identificador": "ATHENA-BL",
+                                  "nome": "Athena Linha de Base",
+                                  "descricao": "Projeto governado multiprojeto para validacao BL TT.TST.005.",
+                                  "unidade": "DITEC",
+                                  "situacao": "ATIVO"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.identificador").value("ATHENA-BL"))
+                .andExpect(jsonPath("$.participantes[0].login").value("responsavel"));
+
+        mvc.perform(put("/api/projetos/ATHENA-BL")
+                        .headers(cabecalhosAdministrador())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "nome": "Athena Linha de Base Recuperado",
+                                  "descricao": "Projeto atualizado pelo fluxo administrativo governado.",
+                                  "situacao": "ATIVO"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nome").value("Athena Linha de Base Recuperado"));
+
+        // 2. Visao geral e acompanhamento do projeto autorizado (BL.FEATURE.002, BL.US.004)
+        mvc.perform(get("/api/projetos/ATHENA-BL")
+                        .headers(cabecalhosResponsavel()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.identificador").value("ATHENA-BL"))
+                .andExpect(jsonPath("$.nome").value("Athena Linha de Base Recuperado"))
+                .andExpect(content().string(not(containsString("cpf"))));
+
+        // 3. Pesquisa institucional e vinculacao de participante (BL.FEATURE.001, BL.US.002)
+        mvc.perform(get("/api/projetos/ATHENA-BL/participantes/pesquisa")
+                        .headers(cabecalhosAdministrador())
+                        .param("termo", "ana"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.participantes[0].login").value("ana.institucional"))
+                .andExpect(content().string(not(containsString("cpf"))));
+
+        mvc.perform(post("/api/projetos/ATHENA-BL/participantes")
+                        .headers(cabecalhosAdministrador())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "identificador": "usuario-ana.institucional",
+                                  "nome": "Ana Institucional",
+                                  "login": "ana.institucional",
+                                  "unidade": "DITEC",
+                                  "papel": "PARTICIPANTE"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.login").value("ana.institucional"))
+                .andExpect(jsonPath("$.papel").value("PARTICIPANTE"));
+
+        // 4. Ingestao documental versionada e organizacao por metadados (BL.FEATURE.003, BL.FEATURE.004, BL.US.005, BL.US.006)
+        mvc.perform(post("/api/projetos/ATHENA-BL/documentos/ingestoes")
+                        .headers(cabecalhosAdministrador())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoIngestaoBl("MARKDOWN", "# Documento de Recuperacao BL", "BL.US.005", "Conteudo recuperado BL.")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.documento").value("DOC-BL-001"))
+                .andExpect(jsonPath("$.versao").value(1));
+
+        mvc.perform(get("/api/projetos/ATHENA-BL/documentos")
+                        .headers(cabecalhosResponsavel()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.documentos[0].identificador").value("DOC-BL-001"))
+                .andExpect(jsonPath("$.documentos[0].grupo").value("Especificacao"))
+                .andExpect(jsonPath("$.documentos[0].categoria").value("Documento interno"));
+
+        // 5. Apresentacao amigavel e consulta de item estruturado (BL.FEATURE.004, BL.US.007, BL.US.008)
+        mvc.perform(get("/api/projetos/ATHENA-BL/documentos/DOC-BL-001")
+                        .headers(cabecalhosResponsavel()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.identificador").value("DOC-BL-001"))
+                .andExpect(jsonPath("$.titulo").value("Documento funcional BL"))
+                .andExpect(jsonPath("$.versoes[0].itens[0].identificador").value("BL.US.005"));
+
+        mvc.perform(get("/api/projetos/ATHENA-BL/documentos/DOC-BL-001/itens/BL.US.005")
+                        .headers(cabecalhosResponsavel()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.identificador").value("BL.US.005"))
+                .andExpect(jsonPath("$.conteudo").value("Conteudo recuperado BL."));
+
+        // 6. Registro de decisoes e interacoes humanas (BL.FEATURE.005, BL.US.009, BL.US.010, BL.US.011, BL.US.012)
+        mvc.perform(post("/api/projetos/ATHENA-BL/documentos/DOC-BL-001/avaliacoes")
+                        .headers(cabecalhosResponsavel())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versao": 1,
+                                  "idItem": "BL.US.005",
+                                  "decisao": "APROVADO",
+                                  "justificativa": "Validacao de avaliacao humana na recuperacao BL."
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.tipo").value("AVALIACAO"))
+                .andExpect(jsonPath("$.decisao").value("APROVADO"));
+
+        mvc.perform(post("/api/projetos/ATHENA-BL/documentos/DOC-BL-001/comentarios")
+                        .headers(cabecalhosResponsavel())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versao": 1,
+                                  "idItem": "BL.US.005",
+                                  "texto": "Comentario rastreavel de acompanhamento BL.",
+                                  "decisaoRelacionada": "APROVADO"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.tipo").value("COMENTARIO"))
+                .andExpect(jsonPath("$.conteudo").value("Comentario rastreavel de acompanhamento BL."));
+
+        MvcResult resultadoAjuste = mvc.perform(post("/api/projetos/ATHENA-BL/documentos/DOC-BL-001/ajustes")
+                        .headers(cabecalhosResponsavel())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versao": 1,
+                                  "idItem": "BL.US.005",
+                                  "justificativa": "Solicitacao de ajuste para demonstrar evolucao versionada BL."
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.tipo").value("PEDIDO_AJUSTE"))
+                .andExpect(jsonPath("$.estado").value("PENDENTE"))
+                .andReturn();
+        String pedidoAjusteId = campoTexto(resultadoAjuste, "id");
+
+        mvc.perform(post("/api/projetos/ATHENA-BL/documentos/DOC-BL-001/ajustes/{pedidoAjusteId}/tratamentos", pedidoAjusteId)
+                        .headers(cabecalhosResponsavel())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "decisao": "ACOLHIDA",
+                                  "justificativa": "Ajuste acolhido pelo responsavel tecnico."
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.estado").value("ACOLHIDA"));
+
+        mvc.perform(post("/api/projetos/ATHENA-BL/documentos/DOC-BL-001/confirmacoes")
+                        .headers(cabecalhosResponsavel())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versaoConfirmada": 1,
+                                  "escopo": "Confirmacao formal do Entendimento do projeto Athena BL."
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.tipo").value("CONFIRMACAO"))
+                .andExpect(jsonPath("$.decisao").value("CONFIRMADO"));
+
+        // 7. Preservacao de versoes e historico documental (BL.FEATURE.006, BL.US.005, BL.US.013)
+        mvc.perform(post("/api/projetos/ATHENA-BL/documentos/DOC-BL-001/versoes")
+                        .headers(cabecalhosAdministrador())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoNovaVersaoBl(UUID.fromString(pedidoAjusteId))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.versao").value(2))
+                .andExpect(jsonPath("$.versaoAnterior").value(1));
+
+        mvc.perform(get("/api/projetos/ATHENA-BL/documentos/DOC-BL-001/historico")
+                        .headers(cabecalhosResponsavel()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("AVALIACAO")))
+                .andExpect(content().string(containsString("COMENTARIO")))
+                .andExpect(content().string(containsString("PEDIDO_AJUSTE")))
+                .andExpect(content().string(containsString("CONFIRMACAO")))
+                .andExpect(content().string(containsString("responsavel")))
+                .andExpect(content().string(not(containsString("cpf"))));
+
+        mvc.perform(get("/api/projetos/ATHENA-BL/auditoria")
+                        .headers(cabecalhosResponsavel()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("LEITURA_DOCUMENTO")))
+                .andExpect(content().string(containsString("PEDIDO_AJUSTE")))
+                .andExpect(content().string(containsString("TRATAMENTO_PEDIDO_AJUSTE")))
+                .andExpect(content().string(containsString("CONFIRMACAO")))
+                .andExpect(content().string(containsString("NOVA_VERSAO_DOCUMENTAL_REGISTRADA")))
+                .andExpect(content().string(not(containsString("cpf"))));
+
+        // 8. Segregacao e controle de autorizacao (BL.US.003, CONST.INST.007)
+        mvc.perform(get("/api/projetos/ATHENA-BL/documentos/DOC-BL-001")
+                        .headers(autenticar("ana.institucional")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.identificador").value("DOC-BL-001"));
+
+        mvc.perform(get("/api/projetos/ATHENA-BL/documentos/DOC-BL-001")
+                        .headers(cabecalhosSemVinculo()))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.codigo").value("OPERACAO_NAO_AUTORIZADA"));
+
+        // 9. Comprovacao da persistencia transacional completa no banco de dados H2
+        assertThat(contar("athena.projeto")).isGreaterThanOrEqualTo(1);
+        assertThat(contar("athena.vinculoprojeto")).isGreaterThanOrEqualTo(2);
+        assertThat(contar("athena.documento")).isGreaterThanOrEqualTo(1);
+        assertThat(contar("athena.versaodocumento")).isGreaterThanOrEqualTo(2);
+        assertThat(contar("athena.itemdocumental")).isGreaterThanOrEqualTo(2);
+        assertThat(contar("athena.avaliacao")).isGreaterThanOrEqualTo(1);
+        assertThat(contar("athena.comentario")).isGreaterThanOrEqualTo(1);
+        assertThat(contar("athena.pedidoajuste")).isGreaterThanOrEqualTo(1);
+        assertThat(contar("athena.confirmacao")).isGreaterThanOrEqualTo(1);
+        assertThat(contar("athena.eventoauditoria")).isGreaterThanOrEqualTo(5);
+    }
+
+    @Test
+    void deveManterMatrizDeRastreabilidadeRecuperacaoFuncionalBLAthena() {
+        Map<String, Set<String>> matrizBL = Map.of(
+                "bootstrap_administrativo_projeto", Set.of("BL.FEATURE.001", "BL.US.001", "BL.US.002", "BL.US.003"),
+                "visao_geral_acompanhamento", Set.of("BL.FEATURE.002", "BL.US.004"),
+                "recebimento_organizacao_documental", Set.of("BL.FEATURE.003", "BL.US.005", "BL.US.006"),
+                "apresentacao_navegacao_itens", Set.of("BL.FEATURE.004", "BL.US.007", "BL.US.008"),
+                "interacoes_humanas_decisoes", Set.of("BL.FEATURE.005", "BL.US.009", "BL.US.010", "BL.US.011", "BL.US.012"),
+                "historico_rastreabilidade_auditoria", Set.of("BL.FEATURE.006", "BL.US.013", "TT.TST.005", "EVD.FUNCIONAL.TT.TST.005.001")
+        );
+
+        assertThat(matrizBL)
+                .containsKeys(
+                        "bootstrap_administrativo_projeto",
+                        "visao_geral_acompanhamento",
+                        "recebimento_organizacao_documental",
+                        "apresentacao_navegacao_itens",
+                        "interacoes_humanas_decisoes",
+                        "historico_rastreabilidade_auditoria"
+                );
+
+        assertThat(matrizBL.values())
+                .flatExtracting(itens -> itens)
+                .contains(
+                        "BL.FEATURE.001", "BL.FEATURE.002", "BL.FEATURE.003",
+                        "BL.FEATURE.004", "BL.FEATURE.005", "BL.FEATURE.006",
+                        "BL.US.001", "BL.US.002", "BL.US.003", "BL.US.004",
+                        "BL.US.005", "BL.US.006", "BL.US.007", "BL.US.008",
+                        "BL.US.009", "BL.US.010", "BL.US.011", "BL.US.012", "BL.US.013",
+                        "TT.TST.005", "EVD.FUNCIONAL.TT.TST.005.001"
+                );
+    }
+
     private void registrarInteracao(
             UUID idItem,
             UUID idUsuario,
@@ -621,5 +881,49 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                     id_usuarioregistro UUID NOT NULL
                 )
                 """);
+    }
+
+    private static String corpoIngestaoBl(String formato, String conteudoOriginal, String idItem, String itemConteudo) {
+        return """
+                {
+                  "identificadorDocumento": "DOC-BL-001",
+                  "tituloDocumento": "Documento funcional BL",
+                  "grupo": "Especificacao",
+                  "categoria": "Documento interno",
+                  "finalidade": "Validacao de recuperacao funcional",
+                  "apresentacao": "Apresentacao amigavel de entendimento",
+                  "formato": "%s",
+                  "conteudoOriginal": "%s",
+                  "origem": "recuperacao-funcional-bl-TT.TST.005",
+                  "representacaoInterna": [
+                    {
+                      "identificador": "%s",
+                      "titulo": "Item %s",
+                      "conteudo": "%s",
+                      "fontesRastreabilidade": ["BL.FEATURE.003", "BL.US.005"]
+                    }
+                  ]
+                }
+                """.formatted(formato, conteudoOriginal.replace("\"", "\\\""), idItem, idItem, itemConteudo);
+    }
+
+    private static String corpoNovaVersaoBl(UUID pedidoAjusteId) {
+        return """
+                {
+                  "versaoAnterior": 1,
+                  "pedidoAjusteId": "%s",
+                  "formato": "MARKDOWN",
+                  "conteudoOriginal": "Conteudo revisado em nova versao BL.",
+                  "origem": "tratamento de solicitacao de ajuste TT.TST.005",
+                  "representacaoInterna": [
+                    {
+                      "identificador": "BL.US.005-V2",
+                      "titulo": "Item vinculado BL",
+                      "conteudo": "Conteudo vinculado a solicitacao acolhida.",
+                      "fontesRastreabilidade": ["BL.FEATURE.006", "BL.US.005", "BL.US.013"]
+                    }
+                  ]
+                }
+                """.formatted(pedidoAjusteId);
     }
 }
