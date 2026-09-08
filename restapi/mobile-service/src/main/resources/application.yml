@@ -75,6 +75,7 @@ mpvirtual:
     # Producao preservada como default. Desenvolvimento pode sobrescrever via .env.dev.
     base-url: ${MPVIRTUAL_RECURSOS_HUMANOS_BASE_URL:http://10.94.0.253:8080/api}
     orgao-id: ${MPVIRTUAL_RECURSOS_HUMANOS_ORGAO_ID:1464408}
+    auth-mode: ${MPVIRTUAL_RECURSOS_HUMANOS_AUTH_MODE:token}
 
 designacoes:
   notificacao:

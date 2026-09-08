@@ -2,6 +2,7 @@ package mppb.restapi.mobile.feature.concessaofolga.controller;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -39,17 +40,20 @@ public class ConcessaoFolgaController {
     private final ConcessaoFolgaService concessaoFolgaService;
     private final AuthServiceClient authServiceClient;
 
+    @Value("${mpvirtual.recursos-humanos.auth-mode:token}")
+    private String mpVirtualAuthMode;
+
     @GetMapping("/minhas-concessoes-folga")
     public ResponseEntity<List<ConcessaoFolgaDto>> minhasConcessoes(
             @RequestParam("token") @NotNull String token) {
-        String matricula = matriculaAutenticada(token);
-        if (matricula == null) {
+        UsuarioAutenticado usuario = usuarioAutenticado(token);
+        if (usuario == null) {
             log.warn("Concessoes de folga negadas: usuario nao autenticado ou sem matricula");
             return ResponseEntity.status(403).build();
         }
 
         try {
-            List<ConcessaoFolgaDto> concessoes = concessaoFolgaService.listarConcessoes(matricula);
+            List<ConcessaoFolgaDto> concessoes = concessaoFolgaService.listarConcessoes(usuario.matricula());
             log.info("Concessoes de folga consultadas com sucesso: {} registro(s)", concessoes.size());
             return ResponseEntity.ok(concessoes);
         } catch (AtendimentoUnavailableException e) {
@@ -66,14 +70,14 @@ public class ConcessaoFolgaController {
             @RequestParam("token") @NotNull String token,
             @RequestParam(value = "mes", required = false) Integer mes,
             @RequestParam(value = "ano", required = false) Integer ano) {
-        String matricula = matriculaAutenticada(token);
-        if (matricula == null) {
+        UsuarioAutenticado usuario = usuarioAutenticado(token);
+        if (usuario == null) {
             log.warn("Ausencias negadas: usuario nao autenticado ou sem matricula");
             return ResponseEntity.status(403).build();
         }
 
         try {
-            List<AusenciaCalendarioDto> ausencias = concessaoFolgaService.listarAusencias(matricula, mes, ano);
+            List<AusenciaCalendarioDto> ausencias = concessaoFolgaService.listarAusencias(usuario.matricula(), mes, ano);
             log.info("Ausencias consultadas com sucesso: {} registro(s)", ausencias.size());
             return ResponseEntity.ok(ausencias);
         } catch (IllegalArgumentException e) {
@@ -92,13 +96,18 @@ public class ConcessaoFolgaController {
             @RequestParam("token") @NotNull String token,
             @PathVariable("concessaoId") Long concessaoId,
             @RequestParam("dataInicial") String dataInicial) {
-        if (matriculaAutenticada(token) == null) {
+        UsuarioAutenticado usuario = usuarioAutenticado(token);
+        if (usuario == null) {
             log.warn("Sugestoes de ferias negadas: usuario nao autenticado ou sem matricula");
             return ResponseEntity.status(403).build();
         }
+        String mpVirtualCredential = mpVirtualCredential(token, usuario);
 
         try {
-            ResponseEntity<String> response = concessaoFolgaService.sugestoesDatasFinais(concessaoId, dataInicial, token);
+            ResponseEntity<String> response = concessaoFolgaService.sugestoesDatasFinais(
+                    concessaoId,
+                    dataInicial,
+                    mpVirtualCredential);
             return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
         } catch (RestClientResponseException e) {
             log.warn("MPVirtual recusou sugestao de datas finais: status={}", e.getStatusCode().value());
@@ -117,13 +126,18 @@ public class ConcessaoFolgaController {
             @RequestParam("token") @NotNull String token,
             @PathVariable("concessaoId") Long concessaoId,
             @Valid @RequestBody SolicitacaoMarcacaoFeriasRequestDto request) {
-        if (matriculaAutenticada(token) == null) {
+        UsuarioAutenticado usuario = usuarioAutenticado(token);
+        if (usuario == null) {
             log.warn("Marcacao de ferias negada: usuario nao autenticado ou sem matricula");
             return ResponseEntity.status(403).build();
         }
+        String mpVirtualCredential = mpVirtualCredential(token, usuario);
 
         try {
-            ResponseEntity<String> response = concessaoFolgaService.cadastrarSolicitacao(concessaoId, request, token);
+            ResponseEntity<String> response = concessaoFolgaService.cadastrarSolicitacao(
+                    concessaoId,
+                    request,
+                    mpVirtualCredential);
             return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
         } catch (RestClientResponseException e) {
             log.warn("MPVirtual recusou marcacao de ferias: status={}", e.getStatusCode().value());
@@ -138,13 +152,15 @@ public class ConcessaoFolgaController {
     public ResponseEntity<String> consultarSolicitacao(
             @RequestParam("token") @NotNull String token,
             @PathVariable("solicitacaoId") Long solicitacaoId) {
-        if (matriculaAutenticada(token) == null) {
+        UsuarioAutenticado usuario = usuarioAutenticado(token);
+        if (usuario == null) {
             log.warn("Consulta de solicitacao negada: usuario nao autenticado ou sem matricula");
             return ResponseEntity.status(403).build();
         }
+        String mpVirtualCredential = mpVirtualCredential(token, usuario);
 
         return proxyMpVirtual(
-                () -> concessaoFolgaService.consultarSolicitacao(solicitacaoId, token),
+                () -> concessaoFolgaService.consultarSolicitacao(solicitacaoId, mpVirtualCredential),
                 "consultar solicitacao");
     }
 
@@ -152,13 +168,15 @@ public class ConcessaoFolgaController {
     public ResponseEntity<String> consultarOperacoesSolicitacao(
             @RequestParam("token") @NotNull String token,
             @PathVariable("solicitacaoId") Long solicitacaoId) {
-        if (matriculaAutenticada(token) == null) {
+        UsuarioAutenticado usuario = usuarioAutenticado(token);
+        if (usuario == null) {
             log.warn("Consulta de operacoes negada: usuario nao autenticado ou sem matricula");
             return ResponseEntity.status(403).build();
         }
+        String mpVirtualCredential = mpVirtualCredential(token, usuario);
 
         return proxyMpVirtual(
-                () -> concessaoFolgaService.consultarOperacoesSolicitacao(solicitacaoId, token),
+                () -> concessaoFolgaService.consultarOperacoesSolicitacao(solicitacaoId, mpVirtualCredential),
                 "consultar operacoes da solicitacao");
     }
 
@@ -166,13 +184,15 @@ public class ConcessaoFolgaController {
     public ResponseEntity<String> cancelarSolicitacao(
             @RequestParam("token") @NotNull String token,
             @PathVariable("solicitacaoId") Long solicitacaoId) {
-        if (matriculaAutenticada(token) == null) {
+        UsuarioAutenticado usuario = usuarioAutenticado(token);
+        if (usuario == null) {
             log.warn("Cancelamento negado: usuario nao autenticado ou sem matricula");
             return ResponseEntity.status(403).build();
         }
+        String mpVirtualCredential = mpVirtualCredential(token, usuario);
 
         return proxyMpVirtual(
-                () -> concessaoFolgaService.cancelarSolicitacao(solicitacaoId, token),
+                () -> concessaoFolgaService.cancelarSolicitacao(solicitacaoId, mpVirtualCredential),
                 "cancelar solicitacao");
     }
 
@@ -184,13 +204,15 @@ public class ConcessaoFolgaController {
             @RequestParam("token") @NotNull String token,
             @PathVariable("solicitacaoId") Long solicitacaoId,
             @RequestBody OperacaoSolicitacaoRequestDto request) {
-        if (matriculaAutenticada(token) == null) {
+        UsuarioAutenticado usuario = usuarioAutenticado(token);
+        if (usuario == null) {
             log.warn("Adiamento negado: usuario nao autenticado ou sem matricula");
             return ResponseEntity.status(403).build();
         }
+        String mpVirtualCredential = mpVirtualCredential(token, usuario);
 
         return proxyMpVirtual(
-                () -> concessaoFolgaService.adiarSolicitacao(solicitacaoId, request, token),
+                () -> concessaoFolgaService.adiarSolicitacao(solicitacaoId, request, mpVirtualCredential),
                 "adiar solicitacao");
     }
 
@@ -202,13 +224,15 @@ public class ConcessaoFolgaController {
             @RequestParam("token") @NotNull String token,
             @PathVariable("solicitacaoId") Long solicitacaoId,
             @RequestBody OperacaoSolicitacaoRequestDto request) {
-        if (matriculaAutenticada(token) == null) {
+        UsuarioAutenticado usuario = usuarioAutenticado(token);
+        if (usuario == null) {
             log.warn("Antecipacao negada: usuario nao autenticado ou sem matricula");
             return ResponseEntity.status(403).build();
         }
+        String mpVirtualCredential = mpVirtualCredential(token, usuario);
 
         return proxyMpVirtual(
-                () -> concessaoFolgaService.anteciparSolicitacao(solicitacaoId, request, token),
+                () -> concessaoFolgaService.anteciparSolicitacao(solicitacaoId, request, mpVirtualCredential),
                 "antecipar solicitacao");
     }
 
@@ -220,13 +244,15 @@ public class ConcessaoFolgaController {
             @RequestParam("token") @NotNull String token,
             @PathVariable("solicitacaoId") Long solicitacaoId,
             @RequestBody OperacaoSolicitacaoRequestDto request) {
-        if (matriculaAutenticada(token) == null) {
+        UsuarioAutenticado usuario = usuarioAutenticado(token);
+        if (usuario == null) {
             log.warn("Interrupcao negada: usuario nao autenticado ou sem matricula");
             return ResponseEntity.status(403).build();
         }
+        String mpVirtualCredential = mpVirtualCredential(token, usuario);
 
         return proxyMpVirtual(
-                () -> concessaoFolgaService.interromperSolicitacao(solicitacaoId, request, token),
+                () -> concessaoFolgaService.interromperSolicitacao(solicitacaoId, request, mpVirtualCredential),
                 "interromper solicitacao");
     }
 
@@ -236,13 +262,15 @@ public class ConcessaoFolgaController {
     public ResponseEntity<String> suspenderIntegralmenteSolicitacao(
             @RequestParam("token") @NotNull String token,
             @PathVariable("solicitacaoId") Long solicitacaoId) {
-        if (matriculaAutenticada(token) == null) {
+        UsuarioAutenticado usuario = usuarioAutenticado(token);
+        if (usuario == null) {
             log.warn("Suspensao integral negada: usuario nao autenticado ou sem matricula");
             return ResponseEntity.status(403).build();
         }
+        String mpVirtualCredential = mpVirtualCredential(token, usuario);
 
         return proxyMpVirtual(
-                () -> concessaoFolgaService.suspenderIntegralmenteSolicitacao(solicitacaoId, token),
+                () -> concessaoFolgaService.suspenderIntegralmenteSolicitacao(solicitacaoId, mpVirtualCredential),
                 "suspender integralmente solicitacao");
     }
 
@@ -254,23 +282,35 @@ public class ConcessaoFolgaController {
             @RequestParam("token") @NotNull String token,
             @PathVariable("solicitacaoId") Long solicitacaoId,
             @RequestBody OperacaoSolicitacaoRequestDto request) {
-        if (matriculaAutenticada(token) == null) {
+        UsuarioAutenticado usuario = usuarioAutenticado(token);
+        if (usuario == null) {
             log.warn("Suspensao parcial negada: usuario nao autenticado ou sem matricula");
             return ResponseEntity.status(403).build();
         }
+        String mpVirtualCredential = mpVirtualCredential(token, usuario);
 
         return proxyMpVirtual(
-                () -> concessaoFolgaService.suspenderParcialmenteSolicitacao(solicitacaoId, request, token),
+                () -> concessaoFolgaService.suspenderParcialmenteSolicitacao(solicitacaoId, request, mpVirtualCredential),
                 "suspender parcialmente solicitacao");
     }
 
-    private String matriculaAutenticada(String token) {
+    private UsuarioAutenticado usuarioAutenticado(String token) {
         String login = extractLoginFromToken(token);
         if (login == null) {
             return null;
         }
         String matricula = concessaoFolgaService.getMatriculaByLogin(login);
-        return matricula == null || matricula.isBlank() ? null : matricula;
+        if (matricula == null || matricula.isBlank()) {
+            return null;
+        }
+        return new UsuarioAutenticado(login, matricula);
+    }
+
+    private String mpVirtualCredential(String token, UsuarioAutenticado usuario) {
+        if ("login".equalsIgnoreCase(mpVirtualAuthMode)) {
+            return usuario.login();
+        }
+        return token;
     }
 
     private String extractLoginFromToken(String token) {
@@ -319,5 +359,8 @@ public class ConcessaoFolgaController {
     @FunctionalInterface
     private interface MpVirtualCall {
         ResponseEntity<String> execute();
+    }
+
+    private record UsuarioAutenticado(String login, String matricula) {
     }
 }
