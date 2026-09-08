@@ -35,6 +35,8 @@ public class SecurityConfig {
             "/" + Constants.API_PREFIX + "/recursos-humanos/**",
             "/designacoes/**",
             "/" + Constants.API_PREFIX + "/designacoes/**",
+            "/notificacoes/dispositivos/**",
+            "/" + Constants.API_PREFIX + "/notificacoes/dispositivos/**",
             "/pagamentos/**",
             "/" + Constants.API_PREFIX + "/pagamentos/**",
             "/" + Constants.API_PREFIX + "/manuais/pdf/**", // Permitir download nativo via browser (validação manual)
