@@ -145,6 +145,19 @@ class AthenaHttpControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.login").value("ana.institucional"));
 
+        mvcPersistente.perform(get("/api/projetos/ATHENA/participantes")
+                        .headers(cabecalhosAdministrador()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.participantes.length()").value(2))
+                .andExpect(jsonPath("$.participantes[0].login").value("ana.institucional"))
+                .andExpect(jsonPath("$.participantes[0].papel").value("PARTICIPANTE"))
+                .andExpect(content().string(not(containsString("cpf"))));
+
+        mvcPersistente.perform(get("/api/projetos/ATHENA/participantes")
+                        .headers(cabecalhosResponsavel()))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.codigo").value("OPERACAO_NAO_AUTORIZADA"));
+
         mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/ingestoes")
                         .headers(cabecalhosAdministrador())
                         .contentType(MediaType.APPLICATION_JSON)

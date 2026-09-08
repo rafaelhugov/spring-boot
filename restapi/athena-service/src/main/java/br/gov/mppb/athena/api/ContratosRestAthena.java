@@ -81,6 +81,9 @@ public final class ContratosRestAthena {
             contrato(GrupoOperacaoApi.PARTICIPANTE, MetodoHttp.POST, "/api/projetos/{idProjeto}/participantes", OperacaoProjeto.ADMINISTRAR,
                     Set.of("idProjeto", "identificador", "nome", "login", "unidade", "papel"),
                     Set.of("nome", "login", "unidade", "papel")),
+            contrato(GrupoOperacaoApi.PARTICIPANTE, MetodoHttp.GET, "/api/projetos/{idProjeto}/participantes", OperacaoProjeto.ADMINISTRAR,
+                    Set.of("idProjeto"),
+                    Set.of("participantes", "nome", "login", "unidade", "papel")),
             contrato(GrupoOperacaoApi.PARTICIPANTE, MetodoHttp.GET, "/api/projetos/{idProjeto}/participantes/pesquisa", OperacaoProjeto.ADMINISTRAR,
                     Set.of("idProjeto", "termo", "matricula", "unidadeOuLotacao"),
                     Set.of("nome", "matricula", "vinculo", "cargoOuFuncao", "email", "login", "unidadeOuLotacao"))
