@@ -6,6 +6,7 @@ import java.security.NoSuchAlgorithmException;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -143,6 +144,11 @@ public class DispositivoNotificacaoController {
 
     private String loginAutenticadoNoContexto() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || authentication instanceof AnonymousAuthenticationToken) {
+            return null;
+        }
         if (authentication instanceof TokenAuthentication tokenAuthentication
                 && tokenAuthentication.getUsuario() != null
                 && tokenAuthentication.getUsuario().getLogin() != null
@@ -150,7 +156,7 @@ public class DispositivoNotificacaoController {
             return tokenAuthentication.getUsuario().getLogin().trim();
         }
         Object principal = authentication == null ? null : authentication.getPrincipal();
-        if (principal instanceof String login && !login.isBlank()) {
+        if (principal instanceof String login && !login.isBlank() && !"anonymousUser".equals(login)) {
             return login.trim();
         }
         return null;

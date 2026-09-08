@@ -13,7 +13,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -43,7 +45,8 @@ class DispositivoNotificacaoControllerTest {
     void registrarUsaLoginJaAutenticadoNoContexto() {
         authService.matricula = "98765";
         SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("eduardo.ribas", null));
+                new UsernamePasswordAuthenticationToken("eduardo.ribas", null,
+                        AuthorityUtils.createAuthorityList("ROLE_USER")));
 
         ResponseEntity<DispositivoNotificacaoResponse> response = controller.registrar(
                 "Bearer token-auth",
@@ -77,6 +80,23 @@ class DispositivoNotificacaoControllerTest {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("12345", dispositivoService.matriculaRecebida);
+        assertEquals("token-auth", authService.tokenRecebido);
+    }
+
+    @Test
+    void registrarIgnoraAnonymousUserEUsaBearerToken() {
+        authService.matricula = "12345";
+        SecurityContextHolder.getContext().setAuthentication(
+                new AnonymousAuthenticationToken("key", "anonymousUser",
+                        AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")));
+
+        ResponseEntity<DispositivoNotificacaoResponse> response = controller.registrar(
+                "Bearer token-auth",
+                new RegistrarDispositivoRequest(null, "fcm-token", "ANDROID"));
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("12345", dispositivoService.matriculaRecebida);
+        assertEquals(null, authService.loginRecebido);
         assertEquals("token-auth", authService.tokenRecebido);
     }
 
