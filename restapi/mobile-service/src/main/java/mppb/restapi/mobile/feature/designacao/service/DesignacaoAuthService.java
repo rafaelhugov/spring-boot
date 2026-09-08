@@ -1,6 +1,7 @@
 package mppb.restapi.mobile.feature.designacao.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,9 @@ public class DesignacaoAuthService {
 
     private final AuthServiceClient authServiceClient;
     private final DesignacaoIdentityRepository identityRepository;
+
+    @Value("${sistema.sigla:MPVIRTUAL}")
+    private String siglaSistema;
 
     public String matriculaAutenticada(String token) {
         String login = loginAutenticado(token);
@@ -35,7 +39,7 @@ public class DesignacaoAuthService {
             return null;
         }
         try {
-            ConsultaAutorizacaoRequestDto req = new ConsultaAutorizacaoRequestDto(token, "ANDROID");
+            ConsultaAutorizacaoRequestDto req = new ConsultaAutorizacaoRequestDto(token, siglaSistema);
             ConsultaAutorizacaoResponseDto autorizacao = authServiceClient.consultaAutorizacao(req);
             if (autorizacao == null || autorizacao.getUsuario() == null) {
                 return null;
