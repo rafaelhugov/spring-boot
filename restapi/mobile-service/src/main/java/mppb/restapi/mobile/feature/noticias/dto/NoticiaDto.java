@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class NoticiaDto {
+    private String chaveExterna;
     private String titulo;
     private String link;
     private String resumo;

@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ import com.google.firebase.messaging.Notification;
 
 import mppb.restapi.mobile.feature.notificacao.model.ResultadoEnvioFcm;
 import mppb.restapi.mobile.feature.notificacao.model.StatusEnvioFcm;
+import mppb.restapi.mobile.feature.noticias.model.NoticiaPublicada;
 
 class FcmSenderServiceTest {
 
@@ -99,17 +101,30 @@ class FcmSenderServiceTest {
     }
 
     @Test
-    void naoIncluiConteudoDaNoticiaNoPayloadDeNoticias() throws Exception {
+    void montaMensagemDeNoticiasComConteudoPublicoParaAbrirNoApp() throws Exception {
         FakeFcmMessagingClient client = new FakeFcmMessagingClient();
         FcmSenderService service = new FcmSenderService(client);
+        NoticiaPublicada noticia = new NoticiaPublicada(
+                "chave-1",
+                "Titulo publico da noticia",
+                "https://www.mppb.mp.br/noticia/1",
+                "Previa publica da noticia para aparecer na notificacao.",
+                "https://www.mppb.mp.br/imagem.jpg",
+                LocalDateTime.now(),
+                "08/09/2026 16:09",
+                "CEAF");
 
-        service.enviarNovaNoticiaTopico("mppb_noticias");
+        service.enviarNovaNoticiaTopico("mppb_noticias", noticia);
+
+        Notification notification = valorCampo(client.message, "notification");
+        assertEquals("Titulo publico da noticia", valorCampo(notification, "title"));
+        assertEquals("Previa publica da noticia para aparecer na notificacao.", valorCampo(notification, "body"));
 
         Map<String, String> data = valorCampo(client.message, "data");
-        assertFalse(data.containsKey("titulo"));
-        assertFalse(data.containsKey("resumo"));
-        assertFalse(data.containsKey("link"));
-        assertFalse(data.containsKey("id_noticia"));
+        assertEquals("chave-1", data.get("noticia_chave"));
+        assertEquals("https://www.mppb.mp.br/noticia/1", data.get("noticia_link"));
+        assertEquals("Titulo publico da noticia", data.get("noticia_titulo"));
+        assertEquals("https://www.mppb.mp.br/imagem.jpg", data.get("noticia_imagem"));
         assertFalse(data.containsKey("matricula"));
         assertFalse(data.containsKey("jwt"));
         assertFalse(data.containsKey("credenciais"));
