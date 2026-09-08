@@ -1,5 +1,9 @@
 package mppb.restapi.mobile.feature.notificacao.controller;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -16,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.infrastructure.util.Constants;
 import mppb.restapi.mobile.feature.designacao.service.DesignacaoAuthService;
+import mppb.restapi.mobile.feature.notificacao.dto.DiagnosticoDispositivoRequest;
 import mppb.restapi.mobile.feature.notificacao.dto.DispositivoNotificacaoResponse;
 import mppb.restapi.mobile.feature.notificacao.dto.RegistrarDispositivoRequest;
 import mppb.restapi.mobile.feature.notificacao.service.DispositivoFcmService;
@@ -34,6 +39,10 @@ public class DispositivoNotificacaoController {
     public ResponseEntity<DispositivoNotificacaoResponse> registrar(
             @RequestHeader(value = "Authorization", required = false) String authorization,
             @Valid @RequestBody RegistrarDispositivoRequest request) {
+        log.info("Tentativa de registro FCM recebida: identificador={}, plataforma={}, tokenLength={}, tokenHashPrefix={}",
+                safe(request.identificador()), safe(request.plataforma()), length(request.tokenFcm()),
+                tokenHashPrefix(request.tokenFcm()));
+
         String token = extrairBearerToken(authorization);
         if (token == null) {
             log.warn("Registro de dispositivo FCM negado: Authorization Bearer ausente ou invalido");
@@ -45,6 +54,8 @@ public class DispositivoNotificacaoController {
             log.warn("Registro de dispositivo FCM negado: usuario nao autenticado ou sem matricula");
             return ResponseEntity.status(401).build();
         }
+        log.info("Tentativa de registro FCM autenticada: matricula={}, plataforma={}", matricula,
+                safe(request.plataforma()));
 
         try {
             return ResponseEntity.ok(dispositivoService.registrar(matricula, request));
@@ -54,6 +65,22 @@ public class DispositivoNotificacaoController {
             log.error("Erro ao registrar dispositivo FCM", e);
             return ResponseEntity.status(500).build();
         }
+    }
+
+    @PostMapping(path = "/diagnostico", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Void> diagnostico(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @Valid @RequestBody DiagnosticoDispositivoRequest request) {
+        String token = extrairBearerToken(authorization);
+        String matricula = token == null ? null : authService.matriculaAutenticada(token);
+
+        log.info(
+                "Diagnostico registro FCM: autenticado={}, matricula={}, etapa={}, permissao={}, possuiToken={}, tamanhoToken={}, statusBackend={}, erro={}, mensagem={}",
+                matricula != null, safe(matricula), safe(request.etapa()), safe(request.permissao()),
+                request.possuiToken(), request.tamanhoToken(), request.statusBackend(), safe(request.erro()),
+                safe(request.mensagem()));
+
+        return ResponseEntity.accepted().build();
     }
 
     @DeleteMapping("/{identificador}")
@@ -95,5 +122,33 @@ public class DispositivoNotificacaoController {
 
         String token = authorization.substring(prefixo.length()).trim();
         return token.isEmpty() ? null : token;
+    }
+
+    private static String safe(String value) {
+        if (value == null || value.isBlank()) {
+            return "-";
+        }
+        return value.trim();
+    }
+
+    private static int length(String value) {
+        return value == null ? 0 : value.length();
+    }
+
+    private static String tokenHashPrefix(String tokenFcm) {
+        if (tokenFcm == null || tokenFcm.isBlank()) {
+            return "-";
+        }
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] bytes = digest.digest(tokenFcm.getBytes(StandardCharsets.UTF_8));
+            StringBuilder builder = new StringBuilder(12);
+            for (int i = 0; i < 6 && i < bytes.length; i++) {
+                builder.append(String.format("%02x", bytes[i]));
+            }
+            return builder.toString();
+        } catch (NoSuchAlgorithmException e) {
+            return "sha256-indisponivel";
+        }
     }
 }
