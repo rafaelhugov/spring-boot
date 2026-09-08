@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -30,10 +32,27 @@ class DispositivoNotificacaoControllerTest {
 
     @BeforeEach
     void setUp() {
+        SecurityContextHolder.clearContext();
         authService = new FakeAuthService();
         dispositivoService = new FakeDispositivoFcmService();
         controller = new DispositivoNotificacaoController(authService, dispositivoService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+    }
+
+    @Test
+    void registrarUsaLoginJaAutenticadoNoContexto() {
+        authService.matricula = "98765";
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("eduardo.ribas", null));
+
+        ResponseEntity<DispositivoNotificacaoResponse> response = controller.registrar(
+                "Bearer token-auth",
+                new RegistrarDispositivoRequest(null, "fcm-token", "ANDROID"));
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("98765", dispositivoService.matriculaRecebida);
+        assertEquals("eduardo.ribas", authService.loginRecebido);
+        assertEquals(null, authService.tokenRecebido);
     }
 
     @Test
@@ -142,6 +161,7 @@ class DispositivoNotificacaoControllerTest {
 
         private String matricula = "12345";
         private String tokenRecebido;
+        private String loginRecebido;
 
         FakeAuthService() {
             super(null, null);
@@ -150,6 +170,12 @@ class DispositivoNotificacaoControllerTest {
         @Override
         public String matriculaAutenticada(String token) {
             tokenRecebido = token;
+            return matricula;
+        }
+
+        @Override
+        public String matriculaPorLogin(String login) {
+            loginRecebido = login;
             return matricula;
         }
     }
