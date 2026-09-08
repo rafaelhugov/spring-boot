@@ -16,6 +16,7 @@ public record NoticiaPublicada(
 
     public NoticiaDto toDto() {
         return NoticiaDto.builder()
+                .chaveExterna(chaveExterna)
                 .titulo(titulo)
                 .link(link)
                 .resumo(resumo)

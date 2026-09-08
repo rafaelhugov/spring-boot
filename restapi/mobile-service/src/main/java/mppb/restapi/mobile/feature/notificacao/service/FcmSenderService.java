@@ -13,6 +13,7 @@ import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.MessagingErrorCode;
 import com.google.firebase.messaging.Notification;
 
+import mppb.restapi.mobile.feature.noticias.model.NoticiaPublicada;
 import mppb.restapi.mobile.feature.notificacao.model.ResultadoEnvioFcm;
 
 @Service
@@ -55,10 +56,14 @@ public class FcmSenderService {
     }
 
     public ResultadoEnvioFcm enviarNovaNoticiaTopico(String topic) {
+        return enviarNovaNoticiaTopico(topic, null);
+    }
+
+    public ResultadoEnvioFcm enviarNovaNoticiaTopico(String topic, NoticiaPublicada noticia) {
         String nomeTopico = obrigatorio(topic, "topic");
 
         try {
-            String messageId = messagingClient.send(novaNoticiaTopicMessage(nomeTopico));
+            String messageId = messagingClient.send(novaNoticiaTopicMessage(nomeTopico, noticia));
             return ResultadoEnvioFcm.aceito(messageId);
         } catch (FirebaseMessagingException e) {
             return classificarErro(e);
@@ -83,37 +88,83 @@ public class FcmSenderService {
                 .build();
     }
 
-    private Message novaNoticiaTopicMessage(String topic) {
-        return Message.builder()
+    private Message novaNoticiaTopicMessage(String topic, NoticiaPublicada noticia) {
+        String title = textoOuPadrao(noticia == null ? null : noticia.titulo(), TITULO_NOVA_NOTICIA, 120);
+        String body = textoOuPadrao(noticia == null ? null : noticia.resumo(), CORPO_NOVA_NOTICIA, 180);
+        String imageUrl = urlOuNull(noticia == null ? null : noticia.imagemUrl());
+
+        Notification.Builder notification = Notification.builder()
+                .setTitle(title)
+                .setBody(body);
+        if (imageUrl != null) {
+            notification.setImage(imageUrl);
+        }
+
+        Message.Builder message = Message.builder()
                 .setTopic(topic)
-                .setNotification(Notification.builder()
-                        .setTitle(TITULO_NOVA_NOTICIA)
-                        .setBody(CORPO_NOVA_NOTICIA)
-                        .build())
+                .setNotification(notification.build())
                 .setAndroidConfig(androidConfig(
-                        TITULO_NOVA_NOTICIA,
-                        CORPO_NOVA_NOTICIA,
-                        TIPO_EVENTO_NOVAS_NOTICIAS))
+                        title,
+                        body,
+                        TIPO_EVENTO_NOVAS_NOTICIAS,
+                        imageUrl))
                 .putData("tipo_evento", TIPO_EVENTO_NOVAS_NOTICIAS)
-                .putData("rota", ROTA_NOTICIAS)
-                .build();
+                .putData("rota", ROTA_NOTICIAS);
+
+        if (noticia != null) {
+            putDataIfPresent(message, "noticia_chave", noticia.chaveExterna());
+            putDataIfPresent(message, "noticia_link", noticia.link());
+            putDataIfPresent(message, "noticia_titulo", title);
+            putDataIfPresent(message, "noticia_imagem", imageUrl);
+        }
+        return message.build();
     }
 
     private AndroidConfig androidConfig(String title, String body, String tag) {
+        return androidConfig(title, body, tag, null);
+    }
+
+    private AndroidConfig androidConfig(String title, String body, String tag, String imageUrl) {
+        AndroidNotification.Builder notification = AndroidNotification.builder()
+                .setTitle(title)
+                .setBody(body)
+                .setChannelId(CANAL_ANDROID_ALERTAS)
+                .setColor(COR_ANDROID_MPPB)
+                .setDefaultSound(true)
+                .setDefaultVibrateTimings(true)
+                .setPriority(AndroidNotification.Priority.HIGH)
+                .setVisibility(AndroidNotification.Visibility.PUBLIC)
+                .setTag(tag);
+        if (imageUrl != null) {
+            notification.setImage(imageUrl);
+        }
+
         return AndroidConfig.builder()
                 .setPriority(AndroidConfig.Priority.HIGH)
-                .setNotification(AndroidNotification.builder()
-                        .setTitle(title)
-                        .setBody(body)
-                        .setChannelId(CANAL_ANDROID_ALERTAS)
-                        .setColor(COR_ANDROID_MPPB)
-                        .setDefaultSound(true)
-                        .setDefaultVibrateTimings(true)
-                        .setPriority(AndroidNotification.Priority.HIGH)
-                        .setVisibility(AndroidNotification.Visibility.PUBLIC)
-                        .setTag(tag)
-                        .build())
+                .setNotification(notification.build())
                 .build();
+    }
+
+    private static void putDataIfPresent(Message.Builder message, String key, String value) {
+        if (value != null && !value.isBlank()) {
+            message.putData(key, value.trim());
+        }
+    }
+
+    private static String textoOuPadrao(String valor, String padrao, int limite) {
+        String texto = valor == null || valor.isBlank() ? padrao : valor.trim();
+        if (texto.length() <= limite) {
+            return texto;
+        }
+        return texto.substring(0, limite - 3).trim() + "...";
+    }
+
+    private static String urlOuNull(String valor) {
+        if (valor == null || valor.isBlank()) {
+            return null;
+        }
+        String url = valor.trim();
+        return url.startsWith("https://") || url.startsWith("http://") ? url : null;
     }
 
     private ResultadoEnvioFcm classificarErro(FirebaseMessagingException erro) {

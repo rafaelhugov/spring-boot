@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.mobile.feature.noticias.model.NoticiaPendenteNotificacao;
+import mppb.restapi.mobile.feature.noticias.model.NoticiaPublicada;
 import mppb.restapi.mobile.feature.noticias.model.ResultadoProcessamentoNotificacaoNoticia;
 import mppb.restapi.mobile.feature.noticias.repository.NoticiaControleRepository;
 import mppb.restapi.mobile.feature.notificacao.model.ResultadoEnvioFcm;
@@ -25,6 +26,7 @@ public class NoticiaProcessamentoNotificacaoService {
 
     private final NoticiaControleRepository controleRepository;
     private final ObjectProvider<FcmSenderService> fcmSenderProvider;
+    private final NoticiaService noticiaService;
 
     @Value("${noticias.notificacao.batch-size:50}")
     private int batchSize;
@@ -47,15 +49,21 @@ public class NoticiaProcessamentoNotificacaoService {
                 batchSize,
                 maxTentativas,
                 identificadorReserva);
+        if (pendentes.isEmpty()) {
+            return List.of();
+        }
+        List<NoticiaPublicada> noticiasPublicadas = noticiaService.getUltimasNoticiasPublicadas();
         return pendentes.stream()
-                .map(pendente -> processar(sender, pendente))
+                .map(pendente -> processar(sender, pendente, noticiasPublicadas))
                 .toList();
     }
 
     private ResultadoProcessamentoNotificacaoNoticia processar(
             FcmSenderService sender,
-            NoticiaPendenteNotificacao pendente) {
-        ResultadoEnvioFcm resultado = sender.enviarNovaNoticiaTopico(topic);
+            NoticiaPendenteNotificacao pendente,
+            List<NoticiaPublicada> noticiasPublicadas) {
+        ResultadoEnvioFcm resultado = sender.enviarNovaNoticiaTopico(topic,
+                noticiaDaPendente(pendente, noticiasPublicadas));
         if (resultado.status() == StatusEnvioFcm.ACEITO) {
             controleRepository.marcarNotificacaoEnviada(pendente.id(), pendente.identificadorReserva());
             log.info("Controle de notificacao de noticia marcado como enviado: resultado=EN");
@@ -78,6 +86,16 @@ public class NoticiaProcessamentoNotificacaoService {
                 pendente.quantidadeTentativas(),
                 mensagemErro,
                 resultado);
+    }
+
+    private NoticiaPublicada noticiaDaPendente(
+            NoticiaPendenteNotificacao pendente,
+            List<NoticiaPublicada> noticiasPublicadas) {
+        return noticiasPublicadas.stream()
+                .filter(noticia -> pendente.chaveExterna() != null
+                        && pendente.chaveExterna().equals(noticia.chaveExterna()))
+                .findFirst()
+                .orElse(null);
     }
 
     private static String mensagemErroSanitizada(StatusEnvioFcm status) {
