@@ -241,6 +241,15 @@ public final class AthenaHttpController {
         ));
     }
 
+    @GetMapping("/{idProjeto}/participantes")
+    public Map<String, Object> listarParticipantes(
+            @PathVariable String idProjeto,
+            @RequestHeader Map<String, String> headers
+    ) {
+        ProjetoInstitucional projetoAutorizado = autorizar(idProjeto, OperacaoProjeto.ADMINISTRAR);
+        return Map.of("participantes", participantesProjeto(projetoAutorizado));
+    }
+
     @GetMapping("/{idProjeto}/documentos/{idDocumento}")
     public Map<String, Object> consultarDocumento(
             @PathVariable String idProjeto,
@@ -1086,19 +1095,24 @@ public final class AthenaHttpController {
                 "nome", projetoAutorizado.nome(),
                 "descricao", projetoAutorizado.descricao(),
                 "unidades", projetoAutorizado.unidades(),
-                "participantes", projetoAutorizado.participantes().stream()
-                        .map(participante -> Map.of(
-                                "nome", participante.usuario().nome(),
-                                "login", participante.usuario().login(),
-                                "unidade", participante.usuario().unidade(),
-                                "papel", participante.papel().name()
-                        ))
-                        .toList(),
+                "participantes", participantesProjeto(projetoAutorizado),
                 "situacao", projetoAutorizado.situacao().name(),
                 "dataCriacao", projetoAutorizado.dataCriacao(),
                 "usuarioCriacao", projetoAutorizado.usuarioCriacao().login(),
                 "indicadores", indicadores
         );
+    }
+
+    private List<Map<String, String>> participantesProjeto(ProjetoInstitucional projetoAutorizado) {
+        return projetoAutorizado.participantes().stream()
+                .sorted(Comparator.comparing(participante -> participante.usuario().nome()))
+                .map(participante -> Map.of(
+                        "nome", participante.usuario().nome(),
+                        "login", participante.usuario().login(),
+                        "unidade", participante.usuario().unidade(),
+                        "papel", participante.papel().name()
+                ))
+                .toList();
     }
 
     private Map<String, Object> respostaProjetoPersistente(DadosProjetoPersistente projetoPersistente) {
