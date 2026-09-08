@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import com.google.firebase.ErrorCode;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
+import com.google.firebase.messaging.AndroidConfig;
+import com.google.firebase.messaging.AndroidNotification;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.MessagingErrorCode;
 import com.google.firebase.messaging.Notification;
@@ -25,6 +27,8 @@ public class FcmSenderService {
     static final String CORPO_NOVA_NOTICIA = "Uma nova notícia está disponível no MPPB+.";
     static final String TIPO_EVENTO_NOVAS_NOTICIAS = "NOVAS_NOTICIAS";
     static final String ROTA_NOTICIAS = "/noticias";
+    static final String CANAL_ANDROID_ALERTAS = "mppb_alertas";
+    static final String COR_ANDROID_MPPB = "#D62828";
 
     private final FcmMessagingClient messagingClient;
 
@@ -70,6 +74,10 @@ public class FcmSenderService {
                         .setTitle(TITULO_NOVA_DESIGNACAO)
                         .setBody(CORPO_NOVA_DESIGNACAO)
                         .build())
+                .setAndroidConfig(androidConfig(
+                        TITULO_NOVA_DESIGNACAO,
+                        CORPO_NOVA_DESIGNACAO,
+                        TIPO_EVENTO_NOVAS_DESIGNACOES))
                 .putData("tipo_evento", TIPO_EVENTO_NOVAS_DESIGNACOES)
                 .putData("rota", ROTA_DESIGNACOES)
                 .build();
@@ -82,8 +90,29 @@ public class FcmSenderService {
                         .setTitle(TITULO_NOVA_NOTICIA)
                         .setBody(CORPO_NOVA_NOTICIA)
                         .build())
+                .setAndroidConfig(androidConfig(
+                        TITULO_NOVA_NOTICIA,
+                        CORPO_NOVA_NOTICIA,
+                        TIPO_EVENTO_NOVAS_NOTICIAS))
                 .putData("tipo_evento", TIPO_EVENTO_NOVAS_NOTICIAS)
                 .putData("rota", ROTA_NOTICIAS)
+                .build();
+    }
+
+    private AndroidConfig androidConfig(String title, String body, String tag) {
+        return AndroidConfig.builder()
+                .setPriority(AndroidConfig.Priority.HIGH)
+                .setNotification(AndroidNotification.builder()
+                        .setTitle(title)
+                        .setBody(body)
+                        .setChannelId(CANAL_ANDROID_ALERTAS)
+                        .setColor(COR_ANDROID_MPPB)
+                        .setDefaultSound(true)
+                        .setDefaultVibrateTimings(true)
+                        .setPriority(AndroidNotification.Priority.HIGH)
+                        .setVisibility(AndroidNotification.Visibility.PUBLIC)
+                        .setTag(tag)
+                        .build())
                 .build();
     }
 

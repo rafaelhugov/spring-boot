@@ -14,6 +14,8 @@ import org.junit.jupiter.api.Test;
 
 import com.google.firebase.ErrorCode;
 import com.google.firebase.FirebaseException;
+import com.google.firebase.messaging.AndroidConfig;
+import com.google.firebase.messaging.AndroidNotification;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.MessagingErrorCode;
@@ -40,6 +42,9 @@ class FcmSenderServiceTest {
         assertEquals("Nova designação", valorCampo(notification, "title"));
         assertEquals("Você possui uma nova designação disponível.", valorCampo(notification, "body"));
 
+        assertAndroidAlertConfig(client.message, "Nova designação", "Você possui uma nova designação disponível.",
+                "NOVAS_DESIGNACOES");
+
         Map<String, String> data = valorCampo(client.message, "data");
         assertEquals("NOVAS_DESIGNACOES", data.get("tipo_evento"));
         assertEquals("/designacoes", data.get("rota"));
@@ -62,6 +67,9 @@ class FcmSenderServiceTest {
         Notification notification = valorCampo(client.message, "notification");
         assertEquals("Nova notícia", valorCampo(notification, "title"));
         assertEquals("Uma nova notícia está disponível no MPPB+.", valorCampo(notification, "body"));
+
+        assertAndroidAlertConfig(client.message, "Nova notícia", "Uma nova notícia está disponível no MPPB+.",
+                "NOVAS_NOTICIAS");
 
         Map<String, String> data = valorCampo(client.message, "data");
         assertEquals("NOVAS_NOTICIAS", data.get("tipo_evento"));
@@ -236,6 +244,26 @@ class FcmSenderServiceTest {
         Field field = target.getClass().getDeclaredField(fieldName);
         field.setAccessible(true);
         return (T) field.get(target);
+    }
+
+    private static void assertAndroidAlertConfig(
+            Message message,
+            String title,
+            String body,
+            String tag) throws Exception {
+        AndroidConfig androidConfig = valorCampo(message, "androidConfig");
+        assertEquals("high", valorCampo(androidConfig, "priority"));
+
+        AndroidNotification androidNotification = valorCampo(androidConfig, "notification");
+        assertEquals(title, valorCampo(androidNotification, "title"));
+        assertEquals(body, valorCampo(androidNotification, "body"));
+        assertEquals("mppb_alertas", valorCampo(androidNotification, "channelId"));
+        assertEquals("#D62828", valorCampo(androidNotification, "color"));
+        assertEquals(Boolean.TRUE, valorCampo(androidNotification, "defaultSound"));
+        assertEquals(Boolean.TRUE, valorCampo(androidNotification, "defaultVibrateTimings"));
+        assertEquals("PRIORITY_HIGH", valorCampo(androidNotification, "priority"));
+        assertEquals("public", valorCampo(androidNotification, "visibility"));
+        assertEquals(tag, valorCampo(androidNotification, "tag"));
     }
 
     private static class FakeFcmMessagingClient implements FcmSenderService.FcmMessagingClient {
