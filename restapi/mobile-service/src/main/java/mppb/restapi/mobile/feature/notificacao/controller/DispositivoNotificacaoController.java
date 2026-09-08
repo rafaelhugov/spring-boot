@@ -6,6 +6,8 @@ import java.security.NoSuchAlgorithmException;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +21,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.infrastructure.util.Constants;
+import mppb.restapi.common.infrastructure.security.authorization.TokenAuthentication;
 import mppb.restapi.mobile.feature.designacao.service.DesignacaoAuthService;
 import mppb.restapi.mobile.feature.notificacao.dto.DiagnosticoDispositivoRequest;
 import mppb.restapi.mobile.feature.notificacao.dto.DispositivoNotificacaoResponse;
@@ -49,7 +52,7 @@ public class DispositivoNotificacaoController {
             return ResponseEntity.status(401).build();
         }
 
-        String matricula = authService.matriculaAutenticada(token);
+        String matricula = matriculaAutenticada(token);
         if (matricula == null) {
             log.warn("Registro de dispositivo FCM negado: usuario nao autenticado ou sem matricula");
             return ResponseEntity.status(401).build();
@@ -72,7 +75,7 @@ public class DispositivoNotificacaoController {
             @RequestHeader(value = "Authorization", required = false) String authorization,
             @Valid @RequestBody DiagnosticoDispositivoRequest request) {
         String token = extrairBearerToken(authorization);
-        String matricula = token == null ? null : authService.matriculaAutenticada(token);
+        String matricula = token == null ? null : matriculaAutenticada(token);
 
         log.info(
                 "Diagnostico registro FCM: autenticado={}, matricula={}, etapa={}, permissao={}, possuiToken={}, tamanhoToken={}, statusBackend={}, erro={}, mensagem={}",
@@ -93,7 +96,7 @@ public class DispositivoNotificacaoController {
             return ResponseEntity.status(401).build();
         }
 
-        String matricula = authService.matriculaAutenticada(token);
+        String matricula = matriculaAutenticada(token);
         if (matricula == null) {
             log.warn("Desativacao de dispositivo FCM negada: usuario nao autenticado ou sem matricula");
             return ResponseEntity.status(401).build();
@@ -122,6 +125,35 @@ public class DispositivoNotificacaoController {
 
         String token = authorization.substring(prefixo.length()).trim();
         return token.isEmpty() ? null : token;
+    }
+
+    private String matriculaAutenticada(String token) {
+        String login = loginAutenticadoNoContexto();
+        if (login != null) {
+            String matricula = authService.matriculaPorLogin(login);
+            if (matricula != null && !matricula.isBlank()) {
+                return matricula;
+            }
+            log.warn("Registro de dispositivo FCM sem matricula local para login autenticado: login={}", login);
+            return null;
+        }
+
+        return authService.matriculaAutenticada(token);
+    }
+
+    private String loginAutenticadoNoContexto() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication instanceof TokenAuthentication tokenAuthentication
+                && tokenAuthentication.getUsuario() != null
+                && tokenAuthentication.getUsuario().getLogin() != null
+                && !tokenAuthentication.getUsuario().getLogin().isBlank()) {
+            return tokenAuthentication.getUsuario().getLogin().trim();
+        }
+        Object principal = authentication == null ? null : authentication.getPrincipal();
+        if (principal instanceof String login && !login.isBlank()) {
+            return login.trim();
+        }
+        return null;
     }
 
     private static String safe(String value) {

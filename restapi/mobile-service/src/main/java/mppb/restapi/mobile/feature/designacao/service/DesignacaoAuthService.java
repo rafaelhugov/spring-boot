@@ -22,6 +22,10 @@ public class DesignacaoAuthService {
         if (login == null) {
             return null;
         }
+        return matriculaPorLogin(login);
+    }
+
+    public String matriculaPorLogin(String login) {
         String matricula = identityRepository.getMatriculaByLogin(login);
         return matricula == null || matricula.isBlank() ? null : matricula;
     }
