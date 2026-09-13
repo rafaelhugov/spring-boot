@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -44,13 +45,17 @@ class FcmSenderServiceTest {
         assertEquals("Nova designação", valorCampo(notification, "title"));
         assertEquals("Você possui uma nova designação disponível.", valorCampo(notification, "body"));
 
-        assertAndroidAlertConfig(client.message, "Nova designação", "Você possui uma nova designação disponível.",
-                "NOVAS_DESIGNACOES");
+        String tag = assertAndroidAlertConfig(
+                client.message,
+                "Nova designação",
+                "Você possui uma nova designação disponível.",
+                "NOVAS_DESIGNACOES_");
 
         Map<String, String> data = valorCampo(client.message, "data");
         assertEquals("NOVAS_DESIGNACOES", data.get("tipo_evento"));
         assertEquals("/designacoes", data.get("rota"));
-        assertEquals(2, data.size());
+        assertEquals(tag, data.get("id_evento_notificacao"));
+        assertEquals(3, data.size());
     }
 
     @Test
@@ -70,13 +75,34 @@ class FcmSenderServiceTest {
         assertEquals("Nova notícia", valorCampo(notification, "title"));
         assertEquals("Uma nova notícia está disponível no MPPB+.", valorCampo(notification, "body"));
 
-        assertAndroidAlertConfig(client.message, "Nova notícia", "Uma nova notícia está disponível no MPPB+.",
-                "NOVAS_NOTICIAS");
+        String tag = assertAndroidAlertConfig(
+                client.message,
+                "Nova notícia",
+                "Uma nova notícia está disponível no MPPB+.",
+                "NOVAS_NOTICIAS_");
 
         Map<String, String> data = valorCampo(client.message, "data");
         assertEquals("NOVAS_NOTICIAS", data.get("tipo_evento"));
         assertEquals("/noticias", data.get("rota"));
-        assertEquals(2, data.size());
+        assertEquals(tag, data.get("id_evento_notificacao"));
+        assertEquals(3, data.size());
+    }
+
+    @Test
+    void montaTagEstavelQuandoDesignacaoPossuiId() throws Exception {
+        FakeFcmMessagingClient client = new FakeFcmMessagingClient();
+        FcmSenderService service = new FcmSenderService(client);
+
+        service.enviarNovaDesignacao("token-dispositivo", 1001L);
+
+        assertAndroidAlertConfig(
+                client.message,
+                "Nova designação",
+                "Você possui uma nova designação disponível.",
+                "NOVAS_DESIGNACOES_1001");
+
+        Map<String, String> data = valorCampo(client.message, "data");
+        assertEquals("NOVAS_DESIGNACOES_1001", data.get("id_evento_notificacao"));
     }
 
     @Test
@@ -125,6 +151,7 @@ class FcmSenderServiceTest {
         assertEquals("https://www.mppb.mp.br/noticia/1", data.get("noticia_link"));
         assertEquals("Titulo publico da noticia", data.get("noticia_titulo"));
         assertEquals("https://www.mppb.mp.br/imagem.jpg", data.get("noticia_imagem"));
+        assertEquals("NOVAS_NOTICIAS_chave-1", data.get("id_evento_notificacao"));
         assertFalse(data.containsKey("matricula"));
         assertFalse(data.containsKey("jwt"));
         assertFalse(data.containsKey("credenciais"));
@@ -261,11 +288,11 @@ class FcmSenderServiceTest {
         return (T) field.get(target);
     }
 
-    private static void assertAndroidAlertConfig(
+    private static String assertAndroidAlertConfig(
             Message message,
             String title,
             String body,
-            String tag) throws Exception {
+            String expectedTagOrPrefix) throws Exception {
         AndroidConfig androidConfig = valorCampo(message, "androidConfig");
         assertEquals("high", valorCampo(androidConfig, "priority"));
 
@@ -278,7 +305,14 @@ class FcmSenderServiceTest {
         assertEquals(Boolean.TRUE, valorCampo(androidNotification, "defaultVibrateTimings"));
         assertEquals("PRIORITY_HIGH", valorCampo(androidNotification, "priority"));
         assertEquals("public", valorCampo(androidNotification, "visibility"));
-        assertEquals(tag, valorCampo(androidNotification, "tag"));
+        String tag = valorCampo(androidNotification, "tag");
+        if (expectedTagOrPrefix.endsWith("_")) {
+            assertTrue(tag.startsWith(expectedTagOrPrefix));
+            assertTrue(tag.length() > expectedTagOrPrefix.length());
+        } else {
+            assertEquals(expectedTagOrPrefix, tag);
+        }
+        return tag;
     }
 
     private static class FakeFcmMessagingClient implements FcmSenderService.FcmMessagingClient {
