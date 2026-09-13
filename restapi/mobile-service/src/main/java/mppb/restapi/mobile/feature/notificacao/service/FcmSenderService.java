@@ -16,6 +16,7 @@ import com.google.firebase.messaging.MessagingErrorCode;
 import com.google.firebase.messaging.Notification;
 
 import mppb.restapi.mobile.feature.noticias.model.NoticiaPublicada;
+import mppb.restapi.mobile.feature.notificacao.model.EventoFuncionalNotificacao;
 import mppb.restapi.mobile.feature.notificacao.model.ResultadoEnvioFcm;
 
 @Service
@@ -79,6 +80,22 @@ public class FcmSenderService {
         }
     }
 
+    public ResultadoEnvioFcm enviarEventoFuncional(String tokenFcm, EventoFuncionalNotificacao evento) {
+        String token = obrigatorio(tokenFcm, "tokenFcm");
+        if (evento == null) {
+            throw new IllegalArgumentException("evento e obrigatorio");
+        }
+
+        try {
+            String messageId = messagingClient.send(eventoFuncionalMessage(token, evento));
+            return ResultadoEnvioFcm.aceito(messageId);
+        } catch (FirebaseMessagingException e) {
+            return classificarErro(e);
+        } catch (RuntimeException e) {
+            return ResultadoEnvioFcm.falhaDesconhecida();
+        }
+    }
+
     private Message novaDesignacaoMessage(String tokenFcm, Long designacaoId) {
         String notificationTag = notificationTag(TIPO_EVENTO_NOVAS_DESIGNACOES, designacaoId);
         return Message.builder()
@@ -131,6 +148,24 @@ public class FcmSenderService {
             putDataIfPresent(message, "noticia_imagem", imageUrl);
         }
         return message.build();
+    }
+
+    private Message eventoFuncionalMessage(String tokenFcm, EventoFuncionalNotificacao evento) {
+        String notificationTag = notificationTag(evento.tipoEvento(), evento.chaveEvento());
+        return Message.builder()
+                .setToken(tokenFcm)
+                .setNotification(Notification.builder()
+                        .setTitle(textoOuPadrao(evento.titulo(), "MPPB+", 120))
+                        .setBody(textoOuPadrao(evento.corpo(), "Você possui uma nova atualização disponível.", 180))
+                        .build())
+                .setAndroidConfig(androidConfig(
+                        textoOuPadrao(evento.titulo(), "MPPB+", 120),
+                        textoOuPadrao(evento.corpo(), "Você possui uma nova atualização disponível.", 180),
+                        notificationTag))
+                .putData("tipo_evento", evento.tipoEvento())
+                .putData("rota", evento.rota())
+                .putData(DATA_ID_EVENTO_NOTIFICACAO, notificationTag)
+                .build();
     }
 
     private AndroidConfig androidConfig(String title, String body, String tag) {

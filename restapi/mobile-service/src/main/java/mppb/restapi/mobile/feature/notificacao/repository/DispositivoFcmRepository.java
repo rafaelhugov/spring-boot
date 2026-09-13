@@ -53,6 +53,18 @@ public class DispositivoFcmRepository {
                 .toList();
     }
 
+    public List<String> findMatriculasAtivas() {
+        String sql = """
+                SELECT DISTINCT servidormatricula
+                FROM diariooficial.dispositivofcm
+                WHERE ativo = TRUE
+                  AND servidormatricula IS NOT NULL
+                  AND btrim(servidormatricula) <> ''
+                ORDER BY servidormatricula
+                """;
+        return jdbcTemplate.queryForList(sql, new MapSqlParameterSource(), String.class);
+    }
+
     public DispositivoFcm inserir(
             String identificador,
             String matricula,
