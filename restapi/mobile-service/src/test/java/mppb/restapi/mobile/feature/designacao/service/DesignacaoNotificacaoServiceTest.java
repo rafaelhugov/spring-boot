@@ -178,7 +178,10 @@ class DesignacaoNotificacaoServiceTest {
         assertEquals("Você possui uma nova designação disponível.", valorCampo(notification, "body"));
 
         Map<String, String> data = valorCampo(client.message, "data");
-        assertEquals(Map.of("tipo_evento", "NOVAS_DESIGNACOES", "rota", "/designacoes"), data);
+        assertEquals("NOVAS_DESIGNACOES", data.get("tipo_evento"));
+        assertEquals("/designacoes", data.get("rota"));
+        assertEquals("NOVAS_DESIGNACOES_1001", data.get("id_evento_notificacao"));
+        assertEquals(3, data.size());
         assertFalse(data.toString().contains("Promotoria"));
         assertFalse(data.toString().contains("João Pessoa"));
         assertFalse(data.toString().contains("12345"));
@@ -318,6 +321,11 @@ class DesignacaoNotificacaoServiceTest {
 
         @Override
         public ResultadoEnvioFcm enviarNovaDesignacao(String tokenFcm) {
+            return enviarNovaDesignacao(tokenFcm, null);
+        }
+
+        @Override
+        public ResultadoEnvioFcm enviarNovaDesignacao(String tokenFcm, Long designacaoId) {
             tokensRecebidos.add(tokenFcm);
             return resultados.getOrDefault(tokenFcm, ResultadoEnvioFcm.aceito("message-" + tokenFcm));
         }

@@ -19,6 +19,7 @@ public class CarteiraFuncionalTO {
     private String nomeMae;
     private String cargo;
     private String tipoCargo;
+    private Date dataPosse;
     private String md5;
     private Long idPessoa;
     private Long idServidor;

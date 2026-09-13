@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Date;
 import java.util.UUID;
 
 @Slf4j
@@ -63,9 +64,42 @@ public class CarteiraService {
         } else if (carteira.getLogin() == null && carteira.getMatricula() != null) {
             carteira.setLogin(getLoginByMatricula(carteira.getMatricula()));
         }
+        carteira.setDataPosse(buscarDataPosse(carteira));
         carteira.setNomePgj(getAtualPGJ());
 
         return carteira;
+    }
+
+    private Date buscarDataPosse(CarteiraFuncionalTO carteira) {
+        if (carteira == null) {
+            return null;
+        }
+
+        try {
+            if (carteira.getIdServidor() != null) {
+                List<Date> datas = jdbcTemplate.queryForList(
+                        "select s.dataposse from servidor s where s.excluido = false and s.id = ? order by s.ativo asc limit 1",
+                        Date.class,
+                        carteira.getIdServidor());
+                if (datas != null && !datas.isEmpty()) {
+                    return datas.get(0);
+                }
+            }
+
+            if (carteira.getMatricula() != null && !carteira.getMatricula().isBlank()) {
+                List<Date> datas = jdbcTemplate.queryForList(
+                        "select s.dataposse from servidor s where s.excluido = false and s.matricula = ? order by s.ativo asc limit 1",
+                        Date.class,
+                        carteira.getMatricula());
+                if (datas != null && !datas.isEmpty()) {
+                    return datas.get(0);
+                }
+            }
+        } catch (DataAccessException e) {
+            log.warn("Nao foi possivel buscar data de posse da carteira funcional", e);
+        }
+
+        return null;
     }
 
     public byte[] getBytesFotoServidorPorLogin(String login) {

@@ -53,7 +53,7 @@ public class DesignacaoNotificacaoService {
 
         ContadoresEnvio contadores = new ContadoresEnvio(dispositivos.size());
         for (DispositivoFcm dispositivo : dispositivos) {
-            ResultadoEnvioFcm resultado = enviarParaDispositivo(fcmSender, dispositivo);
+            ResultadoEnvioFcm resultado = enviarParaDispositivo(fcmSender, dispositivo, designacao);
             contadores.registrar(resultado.status());
             if (resultado.status() == StatusEnvioFcm.TOKEN_INVALIDO) {
                 desativarTokenInvalido(dispositivo);
@@ -71,9 +71,12 @@ public class DesignacaoNotificacaoService {
         return resultado;
     }
 
-    private ResultadoEnvioFcm enviarParaDispositivo(FcmSenderService fcmSender, DispositivoFcm dispositivo) {
+    private ResultadoEnvioFcm enviarParaDispositivo(
+            FcmSenderService fcmSender,
+            DispositivoFcm dispositivo,
+            DesignacaoAtivaRow designacao) {
         try {
-            return fcmSender.enviarNovaDesignacao(dispositivo.tokenFcm());
+            return fcmSender.enviarNovaDesignacao(dispositivo.tokenFcm(), designacao.id());
         } catch (RuntimeException e) {
             return ResultadoEnvioFcm.falhaDesconhecida();
         }

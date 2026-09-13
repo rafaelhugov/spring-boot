@@ -1,5 +1,7 @@
 package mppb.restapi.mobile.feature.notificacao.service;
 
+import java.util.UUID;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ public class FcmSenderService {
     static final String ROTA_NOTICIAS = "/noticias";
     static final String CANAL_ANDROID_ALERTAS = "mppb_alertas";
     static final String COR_ANDROID_MPPB = "#D62828";
+    static final String DATA_ID_EVENTO_NOTIFICACAO = "id_evento_notificacao";
 
     private final FcmMessagingClient messagingClient;
 
@@ -43,10 +46,14 @@ public class FcmSenderService {
     }
 
     public ResultadoEnvioFcm enviarNovaDesignacao(String tokenFcm) {
+        return enviarNovaDesignacao(tokenFcm, null);
+    }
+
+    public ResultadoEnvioFcm enviarNovaDesignacao(String tokenFcm, Long designacaoId) {
         String token = obrigatorio(tokenFcm, "tokenFcm");
 
         try {
-            String messageId = messagingClient.send(novaDesignacaoMessage(token));
+            String messageId = messagingClient.send(novaDesignacaoMessage(token, designacaoId));
             return ResultadoEnvioFcm.aceito(messageId);
         } catch (FirebaseMessagingException e) {
             return classificarErro(e);
@@ -72,7 +79,8 @@ public class FcmSenderService {
         }
     }
 
-    private Message novaDesignacaoMessage(String tokenFcm) {
+    private Message novaDesignacaoMessage(String tokenFcm, Long designacaoId) {
+        String notificationTag = notificationTag(TIPO_EVENTO_NOVAS_DESIGNACOES, designacaoId);
         return Message.builder()
                 .setToken(tokenFcm)
                 .setNotification(Notification.builder()
@@ -82,9 +90,10 @@ public class FcmSenderService {
                 .setAndroidConfig(androidConfig(
                         TITULO_NOVA_DESIGNACAO,
                         CORPO_NOVA_DESIGNACAO,
-                        TIPO_EVENTO_NOVAS_DESIGNACOES))
+                        notificationTag))
                 .putData("tipo_evento", TIPO_EVENTO_NOVAS_DESIGNACOES)
                 .putData("rota", ROTA_DESIGNACOES)
+                .putData(DATA_ID_EVENTO_NOTIFICACAO, notificationTag)
                 .build();
     }
 
@@ -92,6 +101,9 @@ public class FcmSenderService {
         String title = textoOuPadrao(noticia == null ? null : noticia.titulo(), TITULO_NOVA_NOTICIA, 120);
         String body = textoOuPadrao(noticia == null ? null : noticia.resumo(), CORPO_NOVA_NOTICIA, 180);
         String imageUrl = urlOuNull(noticia == null ? null : noticia.imagemUrl());
+        String notificationTag = notificationTag(
+                TIPO_EVENTO_NOVAS_NOTICIAS,
+                noticia == null ? null : noticia.chaveExterna());
 
         Notification.Builder notification = Notification.builder()
                 .setTitle(title)
@@ -106,10 +118,11 @@ public class FcmSenderService {
                 .setAndroidConfig(androidConfig(
                         title,
                         body,
-                        TIPO_EVENTO_NOVAS_NOTICIAS,
+                        notificationTag,
                         imageUrl))
                 .putData("tipo_evento", TIPO_EVENTO_NOVAS_NOTICIAS)
-                .putData("rota", ROTA_NOTICIAS);
+                .putData("rota", ROTA_NOTICIAS)
+                .putData(DATA_ID_EVENTO_NOTIFICACAO, notificationTag);
 
         if (noticia != null) {
             putDataIfPresent(message, "noticia_chave", noticia.chaveExterna());
@@ -143,6 +156,18 @@ public class FcmSenderService {
                 .setPriority(AndroidConfig.Priority.HIGH)
                 .setNotification(notification.build())
                 .build();
+    }
+
+    private static String notificationTag(String eventType, Object identifier) {
+        String suffix = identifier == null ? UUID.randomUUID().toString() : identifier.toString();
+        return eventType + "_" + safeTagSegment(suffix);
+    }
+
+    private static String safeTagSegment(String value) {
+        String normalized = value == null || value.isBlank()
+                ? UUID.randomUUID().toString()
+                : value.trim().replaceAll("[^A-Za-z0-9._-]", "_");
+        return normalized.length() <= 80 ? normalized : normalized.substring(0, 80);
     }
 
     private static void putDataIfPresent(Message.Builder message, String key, String value) {
