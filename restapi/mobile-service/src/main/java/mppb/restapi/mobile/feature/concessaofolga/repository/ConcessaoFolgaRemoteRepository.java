@@ -111,7 +111,7 @@ public class ConcessaoFolgaRemoteRepository {
             Long idSolicitacao = longValue(row.get("id_solicitacao"));
             LocalDate inicio = localDateValue(row.get("inicio_solicitado"));
             LocalDate fim = localDateValue(row.get("final_solicitado"));
-            if (idSolicitacao == null || inicio == null || fim == null) {
+            if (idSolicitacao == null) {
                 continue;
             }
 
