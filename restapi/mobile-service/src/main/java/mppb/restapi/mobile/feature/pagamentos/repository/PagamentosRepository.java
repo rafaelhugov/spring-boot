@@ -44,6 +44,26 @@ public class PagamentosRepository {
         }
     }
 
+    public String getCpfByMatricula(String matricula) {
+        String sql = """
+                SELECT cpf
+                FROM consignacao.servidor
+                WHERE matricula::text = ?
+                LIMIT 1
+                """;
+        try {
+            String cpf = jdbcTemplate.queryForObject(sql, String.class, matricula);
+            if (cpf != null) {
+                while (cpf.length() < 11) {
+                    cpf = "0" + cpf;
+                }
+            }
+            return cpf;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public List<Integer> findAnosComPagamentos(String cpf) {
         String sql = 
             "SELECT DISTINCT tt.nu_exercicio " +

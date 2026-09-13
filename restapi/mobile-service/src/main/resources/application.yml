@@ -96,6 +96,13 @@ noticias:
     fcm:
       topic: ${NOTICIAS_FCM_TOPIC:mppb_noticias}
 
+notificacoes-funcionais:
+  enabled: ${NOTIFICACOES_FUNCIONAIS_ENABLED:false}
+  cron: ${NOTIFICACOES_FUNCIONAIS_CRON:0 */15 * * * *}
+  batch-size: ${NOTIFICACOES_FUNCIONAIS_BATCH_SIZE:100}
+  max-tentativas: ${NOTIFICACOES_FUNCIONAIS_MAX_TENTATIVAS:3}
+  max-matriculas-por-ciclo: ${NOTIFICACOES_FUNCIONAIS_MAX_MATRICULAS_POR_CICLO:300}
+
 google:
   wallet:
     issuer-id: ${GOOGLE_WALLET_ISSUER_ID:3388000000023147746}
