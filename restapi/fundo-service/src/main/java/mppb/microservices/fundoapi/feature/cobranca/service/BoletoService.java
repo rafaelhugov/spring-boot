@@ -357,9 +357,18 @@ public class BoletoService extends AbstractService<Boleto, Long> {
         dto.setNumeroVariacaoCarteira(fundo.getVariacaoCarteira());
         dto.setCodigoModalidade(1L);
 
-        DateTimeFormatter formatDdMmYyyy= DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        DateTimeFormatter formatDdMmYyyy = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
-        dto.setDataEmissao(boleto.getSolicitacao().getDataRegistro().format(formatDdMmYyyy));
+        LocalDateTime dataRegistro = boleto.getSolicitacao().getDataRegistro();
+        LocalDateTime limiteUmAno = dataRegistro.plusYears(1);
+
+        // Se a data/hora atual já ultrapassou o limite de 1 ano do registro, evita erro no backend do Banco, que nao aceita valores superiores a um ano.
+        LocalDateTime dataEmissao = LocalDateTime.now().isAfter(limiteUmAno) ?  LocalDateTime.now() : dataRegistro;
+
+        dto.setDataEmissao(dataEmissao.format(formatDdMmYyyy));
+
+        dto.setDataEmissao(dataEmissao.format(formatDdMmYyyy));
+
         dto.setDataVencimento(boleto.getDataVencimento().format(formatDdMmYyyy));
 
         dto.setValorOriginal(boleto.getValor());
