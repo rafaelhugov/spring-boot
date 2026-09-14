@@ -33,17 +33,18 @@ public class PerfilUsuarioRepository {
                     st.sigla as setor_sigla,
                     po.nome as orgao_nome,
                     o.sigla as orgao_sigla,
-                    dq.tipocargo as tipo_cargo,
-                    dq.cargo,
-                    dq.titulocargo as titulo_cargo,
-                    dq.especialidade
+                    tc.tipo as tipo_cargo,
+                    f.nome as cargo,
+                    f.nome as titulo_cargo,
+                    null as especialidade
                 from autorizacao.usuario u
                 join servidor s on s.matricula = u.matricula and s.excluido = false
                 left join pessoa p on p.id = s.id_pessoa and p.excluido = false
+                left join recursoshumanos.funcao f on f.id = s.id_cargo
+                left join recursoshumanos.tipocargo tc on tc.id = f.id_tipocargo
                 left join setor st on st.id = s.id_setor and st.excluido = false
                 left join orgao o on o.id_pessoa = st.id_orgao and o.excluido = false
                 left join pessoa po on po.id = o.id_pessoa and po.excluido = false
-                left join lateral recursoshumanos.dadosqrcode(u.login, null, null) dq on true
                 where u.login = ?
                   and u.excluido = false
                 order by
