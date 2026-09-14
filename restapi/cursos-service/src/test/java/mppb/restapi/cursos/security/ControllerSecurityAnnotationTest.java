@@ -3,6 +3,7 @@ package mppb.restapi.cursos.security;
 import mppb.restapi.cursos.feature.common.controller.ArquivoController;
 import mppb.restapi.cursos.feature.curso.controller.CertificadoController;
 import mppb.restapi.cursos.feature.curso.controller.CursoController;
+import mppb.restapi.cursos.feature.dashboard.controller.DashboardController;
 import mppb.restapi.cursos.feature.documentos.controller.DocumentosController;
 import mppb.restapi.cursos.feature.inscricao.controller.InscricaoInternoController;
 import mppb.restapi.cursos.feature.publico.controller.PublicController;
@@ -28,15 +29,23 @@ class ControllerSecurityAnnotationTest {
     }
 
     @Test
-    void inscricaoInternaDeveExigirPermissaoCursosAcesso() throws Exception {
+    void dashboardControllerDeveExigirPermissaoDashboardEmNivelDeClasse() {
+        PreAuthorize preAuthorize = DashboardController.class.getAnnotation(PreAuthorize.class);
+
+        assertNotNull(preAuthorize);
+        assertEquals("hasAuthority('cursos.dashboard')", preAuthorize.value());
+    }
+
+    @Test
+    void inscricaoInternaDeveExigirPermissaoDeUsuarioInterno() throws Exception {
         assertMethodPreAuthorize(
                 InscricaoInternoController.class,
                 "inscreverInterno",
-                "hasAuthority('cursos.acesso')");
+                "hasAnyAuthority('cursos.meus.cursos', 'cursos.solicitar')");
         assertMethodPreAuthorize(
                 InscricaoInternoController.class,
                 "meusCursos",
-                "hasAuthority('cursos.acesso')");
+                "hasAuthority('cursos.meus.cursos')");
     }
 
     @Test
@@ -68,11 +77,11 @@ class ControllerSecurityAnnotationTest {
         assertMethodPreAuthorize(
                 ArquivoController.class,
                 "upload",
-                "hasAnyAuthority('cursos.acesso', 'cursos.manter.cursos')");
+                "hasAnyAuthority('cursos.solicitar', 'cursos.analisar.solicitacoes', 'cursos.manter.cursos')");
         assertMethodPreAuthorize(
                 ArquivoController.class,
                 "getArquivo",
-                "hasAnyAuthority('cursos.acesso', 'cursos.manter.cursos')");
+                "hasAnyAuthority('cursos.meus.cursos', 'cursos.solicitar', 'cursos.analisar.solicitacoes', 'cursos.manter.cursos')");
     }
 
     @Test

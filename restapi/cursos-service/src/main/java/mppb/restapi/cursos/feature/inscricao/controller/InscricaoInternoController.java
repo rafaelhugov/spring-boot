@@ -34,10 +34,10 @@ public class InscricaoInternoController {
      * @return O DTO da inscrição criada.
      */
     @Operation(summary = "Realiza a inscrição do participante interno logado",
-            description = "Este endpoint requer a permissão 'cursos.acesso' e inscreve o participante autenticado no curso especificado pelo hash.",
+            description = "Este endpoint requer permissão de usuário interno e inscreve o participante autenticado no curso especificado pelo hash.",
             security = @SecurityRequirement(name = "bearerAuth")) // Assume que a sua segurança OpenAPI chama-se 'bearerAuth'
     @PostMapping("/{hash}/interno")
-    @PreAuthorize("hasAuthority('cursos.acesso')") // Protegido pela permissão base
+    @PreAuthorize("hasAnyAuthority('cursos.meus.cursos', 'cursos.solicitar')")
     public ResponseEntity<InscricaoDto> inscreverInterno(
             @PathVariable UUID hash,
             @RequestBody(required = false) InscricaoAcessibilidadeDto dto) {
@@ -49,7 +49,7 @@ public class InscricaoInternoController {
             description = "Retorna todos os cursos em que o usuário atual está inscrito.",
             security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/meus-cursos")
-    @PreAuthorize("hasAuthority('cursos.acesso')")
+    @PreAuthorize("hasAuthority('cursos.meus.cursos')")
     public ResponseEntity<java.util.List<InscricaoDto>> meusCursos() {
         return ResponseEntity.ok(inscricaoService.findMeusCursos());
     }

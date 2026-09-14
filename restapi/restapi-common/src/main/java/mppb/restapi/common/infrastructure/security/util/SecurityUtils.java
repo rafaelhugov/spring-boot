@@ -46,6 +46,7 @@ public class SecurityUtils {
         }
 
         addPermissionIfMissing(funcionalidadesPermitidas, "Dashboard", "cursos.dashboard");
+        addPermissionIfMissing(funcionalidadesPermitidas, "Meus Cursos", "cursos.meus.cursos");
         addPermissionIfMissing(funcionalidadesPermitidas, "Solicitar", "cursos.solicitar");
     }
 

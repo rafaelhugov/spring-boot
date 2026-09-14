@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SecurityUtilsTest {
 
     @Test
-    void addCursosDefaultPermissionsAdicionaDashboardESolicitarParaCursosAcesso() {
+    void addCursosDefaultPermissionsAdicionaPermissoesInternasParaCursosAcesso() {
         AcessoDataResponseDto acessoData = new AcessoDataResponseDto(
                 null,
                 new ArrayList<>(List.of(new FuncionalidadeAutorizadaResponseDto(638L,
@@ -27,9 +27,10 @@ class SecurityUtilsTest {
         List<String> servicos = acessoData.getFuncionalidadesPermitidas().stream()
                 .map(FuncionalidadeAutorizadaResponseDto::getServico)
                 .toList();
-        assertEquals(3, servicos.size());
+        assertEquals(4, servicos.size());
         assertTrue(servicos.contains("cursos.acesso"));
         assertTrue(servicos.contains("cursos.dashboard"));
+        assertTrue(servicos.contains("cursos.meus.cursos"));
         assertTrue(servicos.contains("cursos.solicitar"));
     }
 
