@@ -93,6 +93,7 @@ noticias:
     cron: ${NOTICIAS_NOTIFICACAO_CRON:0 */15 * * * *}
     batch-size: ${NOTICIAS_NOTIFICACAO_BATCH_SIZE:50}
     max-tentativas: ${NOTICIAS_NOTIFICACAO_MAX_TENTATIVAS:3}
+    baseline-notificar-recentes-minutos: ${NOTICIAS_BASELINE_NOTIFICAR_RECENTES_MINUTOS:120}
     fcm:
       topic: ${NOTICIAS_FCM_TOPIC:mppb_noticias}
 

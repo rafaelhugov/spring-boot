@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import mppb.restapi.mobile.feature.noticias.model.NoticiaPublicada;
 import mppb.restapi.mobile.feature.noticias.repository.NoticiaControleRepository;
@@ -23,11 +24,12 @@ class NoticiaDeteccaoServiceTest {
         noticiaService = new FakeNoticiaService();
         repository = new FakeNoticiaControleRepository();
         service = new NoticiaDeteccaoService(noticiaService, repository);
+        ReflectionTestUtils.setField(service, "baselineNotificarRecentesMinutos", 120L);
     }
 
     @Test
-    void primeiraExecucaoRegistraBaselineSemGerarPendencia() {
-        noticiaService.noticias = List.of(noticia("portal:1"), noticia("portal:2"));
+    void primeiraExecucaoRegistraNoticiasAntigasComoBaselineSemGerarPendencia() {
+        noticiaService.noticias = List.of(noticiaAntiga("portal:1"), noticiaAntiga("portal:2"));
 
         int novas = service.detectarNovasNoticias();
 
@@ -37,9 +39,20 @@ class NoticiaDeteccaoServiceTest {
     }
 
     @Test
+    void primeiraExecucaoRegistraNoticiasRecentesComoPendencia() {
+        noticiaService.noticias = List.of(noticiaRecente("portal:1"), noticiaAntiga("portal:2"));
+
+        int novas = service.detectarNovasNoticias();
+
+        assertEquals(1, novas);
+        assertEquals(1, repository.iniciais.size());
+        assertEquals(1, repository.novas.size());
+    }
+
+    @Test
     void noticiaNovaAposBaselineGeraPendenciaUmaUnicaVez() {
         repository.possuiConhecidas = true;
-        noticiaService.noticias = List.of(noticia("portal:1"), noticia("portal:2"));
+        noticiaService.noticias = List.of(noticiaAntiga("portal:1"), noticiaAntiga("portal:2"));
 
         int novas = service.detectarNovasNoticias();
         int repetidas = service.detectarNovasNoticias();
@@ -49,7 +62,7 @@ class NoticiaDeteccaoServiceTest {
         assertEquals(2, repository.novas.size());
     }
 
-    private static NoticiaPublicada noticia(String chave) {
+    private static NoticiaPublicada noticiaAntiga(String chave) {
         return new NoticiaPublicada(
                 chave,
                 "Titulo",
@@ -58,6 +71,18 @@ class NoticiaDeteccaoServiceTest {
                 null,
                 LocalDateTime.of(2026, 9, 4, 10, 0),
                 "04/09/2026 10:00",
+                "Cidadania");
+    }
+
+    private static NoticiaPublicada noticiaRecente(String chave) {
+        return new NoticiaPublicada(
+                chave,
+                "Titulo",
+                "https://www.mppb.mp.br/noticia",
+                "Resumo",
+                null,
+                LocalDateTime.now().minusMinutes(30),
+                "14/09/2026 19:50",
                 "Cidadania");
     }
 
