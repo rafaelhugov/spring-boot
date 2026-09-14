@@ -22,7 +22,7 @@ public class ArquivoController {
     private final ArquivoService arquivoService;
 
     @PostMapping(value = "/upload", consumes = "multipart/form-data")
-    @PreAuthorize("hasAnyAuthority('cursos.acesso', 'cursos.manter.cursos')")
+    @PreAuthorize("hasAnyAuthority('cursos.solicitar', 'cursos.analisar.solicitacoes', 'cursos.manter.cursos')")
     @Operation(summary = "Faz o upload de um arquivo para o GED e retorna o ID")
     public ResponseEntity<Long> upload(@RequestParam("file") MultipartFile file) throws IOException {
         Long id = arquivoService.upload(file);
@@ -30,7 +30,7 @@ public class ArquivoController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('cursos.acesso', 'cursos.manter.cursos')")
+    @PreAuthorize("hasAnyAuthority('cursos.meus.cursos', 'cursos.solicitar', 'cursos.analisar.solicitacoes', 'cursos.manter.cursos')")
     public ResponseEntity<byte[]> getArquivo(@PathVariable Long id) {
         Arquivo arquivo = arquivoService.buscarArquivoPrivadoAutorizado(id);
         return ArquivoSecurityUtils.secureDownloadResponse(arquivo, false);

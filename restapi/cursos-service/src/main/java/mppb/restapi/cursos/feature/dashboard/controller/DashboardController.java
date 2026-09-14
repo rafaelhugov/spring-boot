@@ -11,12 +11,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(Constants.API_PREFIX + "/dashboard")
 @RequiredArgsConstructor
 @Tag(name = "Dashboard", description = "Endpoints para a página inicial (Dashboard) do sistema")
+@PreAuthorize("hasAuthority('cursos.dashboard')")
 public class DashboardController {
 
     private final DashboardService dashboardService;

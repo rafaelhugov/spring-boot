@@ -30,7 +30,7 @@ public class SolicitacaoCursoController {
 
     @Operation(summary = "Criar Solicitação", description = "Cria uma solicitação de curso, gera o PDF (PGA) e inicia o processo no MPVirtual.")
     @PostMapping
-    @PreAuthorize("hasAuthority('cursos.acesso')")
+    @PreAuthorize("hasAuthority('cursos.solicitar')")
     public ResponseEntity<SolicitacaoCursoResponseDto> criarSolicitacao(
             @Valid @RequestBody SolicitacaoCursoRequestDto dto) {
         SolicitacaoCursoResponseDto response = service.solicitarCurso(dto);
@@ -39,7 +39,7 @@ public class SolicitacaoCursoController {
 
     @Operation(summary = "Buscar Solicitação", description = "Buscar uma solicitação específica")
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('cursos.acesso', 'cursos.manter.cursos')")
+    @PreAuthorize("hasAnyAuthority('cursos.solicitar', 'cursos.analisar.solicitacoes', 'cursos.manter.cursos')")
     public ResponseEntity<SolicitacaoCursoResponseDto> buscarSolicitacao(
             @PathVariable Long id) {
         return ResponseEntity.ok(service.buscarPorId(id));
@@ -47,14 +47,14 @@ public class SolicitacaoCursoController {
 
     @Operation(summary = "Gerar PDF", description = "Gera o PDF (PGA) da solicitação")
     @GetMapping(value = "/{id}/pdf", produces = org.springframework.http.MediaType.APPLICATION_PDF_VALUE)
-    @PreAuthorize("hasAnyAuthority('cursos.acesso', 'cursos.manter.cursos')")
+    @PreAuthorize("hasAnyAuthority('cursos.solicitar', 'cursos.analisar.solicitacoes', 'cursos.manter.cursos')")
     public ResponseEntity<byte[]> getPdf(@PathVariable Long id) {
         return ResponseEntity.ok(service.gerarPdf(id));
     }
 
     @Operation(summary = "Listar Todas", description = "Lista as solicitações conforme o papel (Solicitante vê as suas, Admin vê as enviadas)")
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('cursos.acesso', 'cursos.manter.cursos')")
+    @PreAuthorize("hasAnyAuthority('cursos.solicitar', 'cursos.analisar.solicitacoes', 'cursos.manter.cursos')")
     public ResponseEntity<Page<SolicitacaoCursoResponseDto>> listarTodas(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) Long statusId,
@@ -65,7 +65,7 @@ public class SolicitacaoCursoController {
 
     @Operation(summary = "Atualizar Solicitação", description = "Atualiza os dados de uma solicitação ou rascunho")
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('cursos.acesso')")
+    @PreAuthorize("hasAuthority('cursos.solicitar')")
     public ResponseEntity<SolicitacaoCursoResponseDto> atualizarSolicitacao(
             @PathVariable Long id,
             @Valid @RequestBody SolicitacaoCursoRequestDto dto) {
@@ -74,7 +74,7 @@ public class SolicitacaoCursoController {
 
     @Operation(summary = "Excluir Rascunho", description = "Remove uma solicitação de rascunho")
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('cursos.acesso')")
+    @PreAuthorize("hasAuthority('cursos.solicitar')")
     public ResponseEntity<Void> excluirSolicitacao(@PathVariable Long id) {
         service.excluir(id);
         return ResponseEntity.noContent().build();
@@ -82,14 +82,14 @@ public class SolicitacaoCursoController {
 
     @Operation(summary = "Protocolar no MPVirtual", description = "Inicia manualmente o processo no MPVirtual (Ação do CEAF)")
     @PostMapping("/{id}/protocolar")
-    @PreAuthorize("hasAuthority('cursos.manter.cursos')")
+    @PreAuthorize("hasAnyAuthority('cursos.analisar.solicitacoes', 'cursos.manter.cursos')")
     public ResponseEntity<SolicitacaoCursoResponseDto> protocolarSolicitacao(@PathVariable Long id) {
         return ResponseEntity.ok(service.protocolarSolicitacao(id));
     }
 
     @Operation(summary = "Habilitar Edição", description = "Disponibiliza uma solicitação protocolada para ajuste pelo usuário (Ação do CEAF)")
     @PatchMapping("/{id}/habilitar-edicao")
-    @PreAuthorize("hasAuthority('cursos.manter.cursos')")
+    @PreAuthorize("hasAnyAuthority('cursos.analisar.solicitacoes', 'cursos.manter.cursos')")
     public ResponseEntity<SolicitacaoCursoResponseDto> habilitarEdicao(
             @PathVariable Long id,
             @Valid @RequestBody HabilitarEdicaoRequestDto dto) {
@@ -98,14 +98,14 @@ public class SolicitacaoCursoController {
 
     @Operation(summary = "Preview do Protocolo", description = "Obtém os metadados que serão enviados ao MPVirtual para fins de conferência")
     @GetMapping("/{id}/protocolo-preview")
-    @PreAuthorize("hasAuthority('cursos.manter.cursos')")
+    @PreAuthorize("hasAnyAuthority('cursos.analisar.solicitacoes', 'cursos.manter.cursos')")
     public ResponseEntity<mppb.restapi.common.infrastructure.client.mpvirtual.dto.MPVirtualMetadataDto> previewProtocolo(@PathVariable Long id) {
         return ResponseEntity.ok(service.obterMetadataProtocolo(id));
     }
 
     @Operation(summary = "Converter em Curso", description = "Cria um curso oficial a partir de uma solicitação deferida")
     @PostMapping(value = "/{id}/converter", produces = MediaType.APPLICATION_JSON_VALUE)
-    @PreAuthorize("hasAuthority('cursos.manter.cursos')")
+    @PreAuthorize("hasAnyAuthority('cursos.analisar.solicitacoes', 'cursos.manter.cursos')")
     public ResponseEntity<java.util.Map<String, Object>> converterEmCurso(
             @PathVariable Long id,
             @RequestBody(required = false) ConverterSolicitacaoRequestDto request) {

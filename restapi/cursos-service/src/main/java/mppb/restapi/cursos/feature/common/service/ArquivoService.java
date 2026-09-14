@@ -102,7 +102,8 @@ public class ArquivoService {
         return SecurityUtils.getAuthenticationToken()
                 .map(auth -> auth.getAuthorities().stream()
                         .map(GrantedAuthority::getAuthority)
-                        .anyMatch("cursos.manter.cursos"::equals))
+                        .anyMatch(authority -> authority.equals("cursos.analisar.solicitacoes")
+                                || authority.equals("cursos.manter.cursos")))
                 .orElse(false);
     }
 }
