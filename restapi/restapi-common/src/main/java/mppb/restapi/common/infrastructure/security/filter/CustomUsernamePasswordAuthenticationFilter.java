@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import mppb.restapi.common.infrastructure.security.authorization.UsuarioSenhaAuthentication;
 import mppb.restapi.common.infrastructure.security.manager.CustomAuthenticationManager;
+import mppb.restapi.common.infrastructure.util.Constants;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,6 +25,15 @@ public class CustomUsernamePasswordAuthenticationFilter extends OncePerRequestFi
 
     public CustomUsernamePasswordAuthenticationFilter(CustomAuthenticationManager manager) {
         this.manager = manager;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        return uri.equals("/public")
+                || uri.startsWith("/public/")
+                || uri.equals("/" + Constants.API_PREFIX + "/public")
+                || uri.startsWith("/" + Constants.API_PREFIX + "/public/");
     }
 
     @Override
