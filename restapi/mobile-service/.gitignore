@@ -38,6 +38,7 @@ build/
 /src/main/resources/application.properties
 .env.*
 google-credentials.json
+deploy.sh
 
 ### Mac OS ###
 .DS_Store
