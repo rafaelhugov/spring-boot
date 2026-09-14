@@ -19,9 +19,6 @@ import org.springframework.stereotype.Component;
 import feign.FeignException;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.ArrayList;
-import mppb.restapi.common.infrastructure.client.authapi.dto.FuncionalidadeAutorizadaResponseDto;
 
 @Component
 @Slf4j
@@ -56,28 +53,8 @@ public class TokenAuthenticationProvider implements AuthenticationProvider {
                     usuario != null ? usuario.getId() : null,
                     acessoData != null ? acessoData.getFuncionalidadesPermitidas().size() : 0);
 
-            // Injeção dinâmica de permissões para o perfil Servidor
-            if (acessoData != null && acessoData.getPerfis() != null) {
-                boolean isServidor = acessoData.getPerfis().stream()
-                        .anyMatch(p -> "Servidor do Ministério Público".equalsIgnoreCase(p.getNome()));
-                
-                if (isServidor) {
-                    List<FuncionalidadeAutorizadaResponseDto> permitidas = acessoData.getFuncionalidadesPermitidas();
-                    if (permitidas == null) {
-                        permitidas = new ArrayList<>();
-                        acessoData.setFuncionalidadesPermitidas(permitidas);
-                    }
-
-                    boolean hasDashboard = permitidas.stream().anyMatch(f -> "cursos.dashboard".equals(f.getServico()));
-                    boolean hasSolicitar = permitidas.stream().anyMatch(f -> "cursos.solicitar".equals(f.getServico()));
-
-                    if (!hasDashboard) {
-                        permitidas.add(new FuncionalidadeAutorizadaResponseDto(null, "Dashboard", "cursos.dashboard"));
-                    }
-                    if (!hasSolicitar) {
-                        permitidas.add(new FuncionalidadeAutorizadaResponseDto(null, "Solicitar", "cursos.solicitar"));
-                    }
-                }
+            if ("CURSOS".equalsIgnoreCase(siglaSistema)) {
+                SecurityUtils.addCursosDefaultPermissions(acessoData);
             }
 
             return new TokenAuthentication(token, usuario, acessoData, null, SecurityUtils.getAuthorities(acessoData));

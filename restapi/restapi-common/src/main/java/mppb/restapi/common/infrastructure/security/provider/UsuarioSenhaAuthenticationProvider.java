@@ -92,6 +92,10 @@ public class UsuarioSenhaAuthenticationProvider implements AuthenticationProvide
                 }
             }
 
+            if ("CURSOS".equalsIgnoreCase(siglaSistema)) {
+                SecurityUtils.addCursosDefaultPermissions(acessoData);
+            }
+
             return new TokenAuthentication(token, usuario, acessoData, null, SecurityUtils.getAuthorities(acessoData));
         } catch (FeignException exception) {
             throw new BadCredentialsException("security.invalid-credentials");

@@ -4,6 +4,7 @@ package mppb.restapi.common.infrastructure.security.util;
 import java.util.*;
 
 import mppb.restapi.common.infrastructure.client.authapi.dto.AcessoDataResponseDto;
+import mppb.restapi.common.infrastructure.client.authapi.dto.FuncionalidadeAutorizadaResponseDto;
 import mppb.restapi.common.infrastructure.security.authorization.TokenAuthentication;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -12,6 +13,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 
 public class SecurityUtils {
+
+    private static final String CURSOS_ACESSO = "cursos.acesso";
 
     public static Collection<? extends GrantedAuthority> getAuthorities(AcessoDataResponseDto acessoData) {
         if (acessoData == null || acessoData.getFuncionalidadesPermitidas() == null) {
@@ -22,6 +25,38 @@ public class SecurityUtils {
         acessoData.getFuncionalidadesPermitidas().stream().forEach(f -> authorities.add(new SimpleGrantedAuthority(f.getServico())));
 
         return authorities;
+    }
+
+    public static void addCursosDefaultPermissions(AcessoDataResponseDto acessoData) {
+        if (acessoData == null) {
+            return;
+        }
+
+        List<FuncionalidadeAutorizadaResponseDto> permitidas = acessoData.getFuncionalidadesPermitidas();
+        if (permitidas == null) {
+            permitidas = new ArrayList<>();
+            acessoData.setFuncionalidadesPermitidas(permitidas);
+        }
+        List<FuncionalidadeAutorizadaResponseDto> funcionalidadesPermitidas = permitidas;
+
+        boolean hasCursosAccess = funcionalidadesPermitidas.stream()
+                .anyMatch(f -> CURSOS_ACESSO.equals(f.getServico()));
+        if (!hasCursosAccess) {
+            return;
+        }
+
+        addPermissionIfMissing(funcionalidadesPermitidas, "Dashboard", "cursos.dashboard");
+        addPermissionIfMissing(funcionalidadesPermitidas, "Solicitar", "cursos.solicitar");
+    }
+
+    private static void addPermissionIfMissing(List<FuncionalidadeAutorizadaResponseDto> funcionalidadesPermitidas,
+                                               String nome,
+                                               String servico) {
+        boolean alreadyPresent = funcionalidadesPermitidas.stream()
+                .anyMatch(f -> servico.equals(f.getServico()));
+        if (!alreadyPresent) {
+            funcionalidadesPermitidas.add(new FuncionalidadeAutorizadaResponseDto(null, nome, servico));
+        }
     }
 
     /**
