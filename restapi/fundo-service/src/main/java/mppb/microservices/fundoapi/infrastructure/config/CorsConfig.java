@@ -23,15 +23,21 @@ public class CorsConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                if (!corsEnabled) return;
+
+                if (!corsEnabled) {
+                    return;
+                };
 
                 // Se quiser wildcard com padrões, prefira allowedOriginPatterns
                 registry.addMapping("/**")
                         // Se você usa subdomínios/wildcards, troque para allowedOriginPatterns(allowedOrigins)
-                        .allowedOrigins(allowedOrigins)
+                        .allowedOriginPatterns(allowedOrigins)
                         .allowedMethods("GET","POST","PATCH","PUT","DELETE","OPTIONS","HEAD","TRACE","CONNECT")
                         .allowedHeaders("*")
                         .allowCredentials(allowCredentials);
+
+
+
             }
         };
     }
