@@ -7,6 +7,7 @@ import mppb.microservices.common.infrastructure.security.filter.CustomUsernamePa
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -21,7 +22,7 @@ public class SecurityConfig {
 
     private final String PUBLIC_URLS[] = {"/favicon.ico",
             "/public/**",  "/swagger-ui/index.html", "/swagger-ui.html", "/swagger-ui/**",
-            "/v3/api-docs",
+            "/v3/api-docs", "/api/boletos/**"
     };
 
     @Autowired
@@ -36,16 +37,30 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        if(!runtimeEnv.shouldRequireAuthToken()){
-            return http.httpBasic(Customizer.withDefaults()).csrf(csrf -> csrf.disable()).build();
+        http
+                .cors(Customizer.withDefaults())
+                .csrf(csrf -> csrf.disable());
+
+        if (!runtimeEnv.shouldRequireAuthToken()) {
+            return http
+                    .httpBasic(Customizer.withDefaults())
+                    .authorizeHttpRequests(req -> req
+                            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                            .anyRequest().permitAll()
+                    )
+                    .build();
         }
 
-        return http.httpBasic(Customizer.withDefaults()).csrf(csrf -> csrf.disable())
+        return http
+                .httpBasic(Customizer.withDefaults())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(req -> {
+                    req.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
                     req.requestMatchers(PUBLIC_URLS).permitAll();
                     req.anyRequest().authenticated();
-                }).addFilterBefore(customBasicAuthenticationFilter, BasicAuthenticationFilter.class)
+                })
+                // Add filters AFTER CorsFilter has processed preflight headers
+                .addFilterBefore(customBasicAuthenticationFilter, BasicAuthenticationFilter.class)
                 .addFilterBefore(customUsernamePasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

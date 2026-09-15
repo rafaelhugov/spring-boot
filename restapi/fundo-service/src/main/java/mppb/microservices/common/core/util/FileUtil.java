@@ -10,6 +10,8 @@ import java.nio.file.Files;
 
 public final class FileUtil {
 
+
+	
 	private FileUtil() {
 		throw new UnsupportedOperationException("Utility class");
 	}
