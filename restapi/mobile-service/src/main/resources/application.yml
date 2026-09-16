@@ -69,6 +69,7 @@ carteira:
 certidao:
   extrajudicial:
     base-url: ${CERTIDAO_EXTRAJUDICIAL_BASE_URL:https://certservapp.mppb.mp.br}
+    fallback-base-url: ${CERTIDAO_EXTRAJUDICIAL_FALLBACK_BASE_URL:https://certservapp.mppb.mp.br}
 
 mpvirtual:
   recursos-humanos:
