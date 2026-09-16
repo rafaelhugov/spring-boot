@@ -2,6 +2,8 @@ package mppb.restapi.mobile.feature.certidaoextrajudicial.service;
 
 import mppb.restapi.mobile.feature.certidaoextrajudicial.dto.CertidaoExtrajudicialRequestDto;
 import mppb.restapi.mobile.feature.certidaoextrajudicial.dto.CertidaoExtrajudicialResponseDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -14,6 +16,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 public class CertidaoExtrajudicialService {
+
+    private static final Logger log = LoggerFactory.getLogger(CertidaoExtrajudicialService.class);
 
     private final RestTemplate restTemplate = new RestTemplate();
 
@@ -38,6 +42,8 @@ public class CertidaoExtrajudicialService {
             return restTemplate.getForObject(buildUrl(baseUrl, path), CertidaoExtrajudicialResponseDto.class, codigo);
         } catch (RestClientResponseException exception) {
             if (deveTentarFallback(exception)) {
+                log.warn("Consulta de certidao por codigo falhou na base principal: status={}, baseUrl={}, fallbackBaseUrl={}",
+                        exception.getStatusCode().value(), baseUrl, fallbackBaseUrl);
                 return restTemplate.getForObject(buildUrl(fallbackBaseUrl, path), CertidaoExtrajudicialResponseDto.class, codigo);
             }
             throw exception;
@@ -50,6 +56,8 @@ public class CertidaoExtrajudicialService {
             return restTemplate.getForEntity(buildUrl(baseUrl, path), byte[].class, codigo);
         } catch (RestClientResponseException exception) {
             if (deveTentarFallback(exception)) {
+                log.warn("Download de certidao por codigo falhou na base principal: status={}, baseUrl={}, fallbackBaseUrl={}",
+                        exception.getStatusCode().value(), baseUrl, fallbackBaseUrl);
                 return restTemplate.getForEntity(buildUrl(fallbackBaseUrl, path), byte[].class, codigo);
             }
             throw exception;
@@ -67,9 +75,9 @@ public class CertidaoExtrajudicialService {
     }
 
     private boolean deveTentarFallback(RestClientResponseException exception) {
-        return exception.getStatusCode().value() == 404
+        int status = exception.getStatusCode().value();
+        return status >= 400
                 && fallbackBaseUrl != null
-                && !fallbackBaseUrl.isBlank()
-                && !fallbackBaseUrl.equals(baseUrl);
+                && !fallbackBaseUrl.isBlank();
     }
 }
