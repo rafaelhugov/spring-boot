@@ -1,5 +1,8 @@
 package mppb.restapi.mobile.feature.certidaoextrajudicial.service;
 
+import java.net.URI;
+import java.util.List;
+
 import mppb.restapi.mobile.feature.certidaoextrajudicial.dto.CertidaoExtrajudicialRequestDto;
 import mppb.restapi.mobile.feature.certidaoextrajudicial.dto.CertidaoExtrajudicialResponseDto;
 import org.slf4j.Logger;
@@ -7,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -31,34 +35,48 @@ public class CertidaoExtrajudicialService {
         String url = buildUrl("/certidoes-extrajudiciais/pdf");
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setAccept(List.of(MediaType.APPLICATION_PDF));
+        headers.set(HttpHeaders.USER_AGENT, "MPPB-Mobile-Service");
         HttpEntity<CertidaoExtrajudicialRequestDto> entity = new HttpEntity<>(request, headers);
 
         return restTemplate.postForEntity(url, entity, byte[].class);
     }
 
     public CertidaoExtrajudicialResponseDto consultarPorCodigo(String codigo) {
-        String path = "/certidoes-extrajudiciais/codigo/{codigo}";
+        URI uri = buildUri(baseUrl, "certidoes-extrajudiciais", "codigo", codigo);
         try {
-            return restTemplate.getForObject(buildUrl(baseUrl, path), CertidaoExtrajudicialResponseDto.class, codigo);
+            return restTemplate.exchange(
+                    uri,
+                    HttpMethod.GET,
+                    jsonRequestEntity(),
+                    CertidaoExtrajudicialResponseDto.class
+            ).getBody();
         } catch (RestClientResponseException exception) {
             if (deveTentarFallback(exception)) {
-                log.warn("Consulta de certidao por codigo falhou na base principal: status={}, baseUrl={}, fallbackBaseUrl={}",
-                        exception.getStatusCode().value(), baseUrl, fallbackBaseUrl);
-                return restTemplate.getForObject(buildUrl(fallbackBaseUrl, path), CertidaoExtrajudicialResponseDto.class, codigo);
+                URI fallbackUri = buildUri(fallbackBaseUrl, "certidoes-extrajudiciais", "codigo", codigo);
+                log.warn("Consulta de certidao por codigo falhou na base principal: status={}, uri={}, fallbackUri={}",
+                        exception.getStatusCode().value(), safeUri(uri), safeUri(fallbackUri));
+                return restTemplate.exchange(
+                        fallbackUri,
+                        HttpMethod.GET,
+                        jsonRequestEntity(),
+                        CertidaoExtrajudicialResponseDto.class
+                ).getBody();
             }
             throw exception;
         }
     }
 
     public ResponseEntity<byte[]> baixarPdfPorCodigo(String codigo) {
-        String path = "/certidoes-extrajudiciais/codigo/{codigo}/pdf";
+        URI uri = buildUri(baseUrl, "certidoes-extrajudiciais", "codigo", codigo, "pdf");
         try {
-            return restTemplate.getForEntity(buildUrl(baseUrl, path), byte[].class, codigo);
+            return restTemplate.exchange(uri, HttpMethod.GET, pdfRequestEntity(), byte[].class);
         } catch (RestClientResponseException exception) {
             if (deveTentarFallback(exception)) {
-                log.warn("Download de certidao por codigo falhou na base principal: status={}, baseUrl={}, fallbackBaseUrl={}",
-                        exception.getStatusCode().value(), baseUrl, fallbackBaseUrl);
-                return restTemplate.getForEntity(buildUrl(fallbackBaseUrl, path), byte[].class, codigo);
+                URI fallbackUri = buildUri(fallbackBaseUrl, "certidoes-extrajudiciais", "codigo", codigo, "pdf");
+                log.warn("Download de certidao por codigo falhou na base principal: status={}, uri={}, fallbackUri={}",
+                        exception.getStatusCode().value(), safeUri(uri), safeUri(fallbackUri));
+                return restTemplate.exchange(fallbackUri, HttpMethod.GET, pdfRequestEntity(), byte[].class);
             }
             throw exception;
         }
@@ -71,6 +89,34 @@ public class CertidaoExtrajudicialService {
     private String buildUrl(String serviceBaseUrl, String path) {
         return UriComponentsBuilder.fromHttpUrl(serviceBaseUrl)
                 .path(path)
+                .toUriString();
+    }
+
+    private URI buildUri(String serviceBaseUrl, String... pathSegments) {
+        return UriComponentsBuilder.fromHttpUrl(serviceBaseUrl)
+                .pathSegment(pathSegments)
+                .build()
+                .toUri();
+    }
+
+    private HttpEntity<Void> jsonRequestEntity() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        headers.set(HttpHeaders.USER_AGENT, "MPPB-Mobile-Service");
+        return new HttpEntity<>(headers);
+    }
+
+    private HttpEntity<Void> pdfRequestEntity() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(List.of(MediaType.APPLICATION_PDF));
+        headers.set(HttpHeaders.USER_AGENT, "MPPB-Mobile-Service");
+        return new HttpEntity<>(headers);
+    }
+
+    private String safeUri(URI uri) {
+        return UriComponentsBuilder.fromUri(uri)
+                .replacePath("/certidoes-extrajudiciais/codigo/**")
+                .replaceQuery(null)
                 .toUriString();
     }
 
