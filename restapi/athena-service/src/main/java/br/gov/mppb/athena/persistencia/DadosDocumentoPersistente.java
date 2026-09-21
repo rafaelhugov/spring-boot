@@ -13,6 +13,22 @@ public record DadosDocumentoPersistente(
         String finalidade,
         String apresentacao,
         OffsetDateTime dataCriacao,
-        UUID idUsuarioCriacao
+        UUID idUsuarioCriacao,
+        UUID idVersaoAtual
 ) {
+    public DadosDocumentoPersistente(
+            UUID id,
+            String identificador,
+            UUID idProjeto,
+            String titulo,
+            String grupo,
+            String categoria,
+            String finalidade,
+            String apresentacao,
+            OffsetDateTime dataCriacao,
+            UUID idUsuarioCriacao
+    ) {
+        this(id, identificador, idProjeto, titulo, grupo, categoria, finalidade, apresentacao,
+                dataCriacao, idUsuarioCriacao, null);
+    }
 }

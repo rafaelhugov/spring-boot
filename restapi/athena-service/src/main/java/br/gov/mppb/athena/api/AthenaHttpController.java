@@ -45,18 +45,36 @@ import br.gov.mppb.athena.persistencia.TipoInteracaoHumana;
 import br.gov.mppb.athena.seguranca.ContextoAutorizacaoInstitucional;
 import br.gov.mppb.athena.seguranca.OperacaoProjeto;
 import br.gov.mppb.athena.seguranca.PoliticaSegurancaAthena;
+import br.gov.mppb.athena.seguranca.ParticipanteVisivel;
 import br.gov.mppb.athena.seguranca.ResultadoAutorizacao;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -69,12 +87,18 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/projetos")
 public final class AthenaHttpController {
 
+    private static final int LIMITE_RECEBIMENTO_BYTES = 10 * 1024 * 1024;
+    private static final ObjectMapper JSON = new ObjectMapper()
+            .configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true)
+            .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
     private final ServicoAvaliacaoConfirmacao avaliacoes = new ServicoAvaliacaoConfirmacao();
     private final ServicoConsultaParticipantesCorporativos consultaParticipantes;
     private final PersistenciaTransacionalAthena persistencia;
@@ -84,24 +108,35 @@ public final class AthenaHttpController {
     private final Documento documento = documento();
 
     public AthenaHttpController() {
-        this(null, new ServicoConsultaParticipantesCorporativos(FonteCorporativaParticipantesInstitucional.cadastroGovernadoPadrao()));
+        this(null, consultaParticipantesIndisponivel());
+    }
+
+    public AthenaHttpController(PersistenciaTransacionalAthena persistencia) {
+        this(persistencia, consultaParticipantesIndisponivel());
     }
 
     @Autowired
-    public AthenaHttpController(PersistenciaTransacionalAthena persistencia) {
-        this(persistencia, new ServicoConsultaParticipantesCorporativos(FonteCorporativaParticipantesInstitucional.cadastroGovernadoPadrao()));
+    public AthenaHttpController(PersistenciaTransacionalAthena persistencia, JdbcTemplate jdbc) {
+        this(persistencia, new ServicoConsultaParticipantesCorporativos(
+                new FonteCorporativaParticipantesInstitucional(jdbc)));
     }
 
     AthenaHttpController(ServicoConsultaParticipantesCorporativos consultaParticipantes) {
         this(null, consultaParticipantes);
     }
 
-    AthenaHttpController(PersistenciaTransacionalAthena persistencia, ServicoConsultaParticipantesCorporativos consultaParticipantes) {
+    public AthenaHttpController(PersistenciaTransacionalAthena persistencia, ServicoConsultaParticipantesCorporativos consultaParticipantes) {
         if (consultaParticipantes == null) {
             throw new IllegalArgumentException("servico de consulta corporativa deve ser informado.");
         }
         this.persistencia = persistencia;
         this.consultaParticipantes = consultaParticipantes;
+    }
+
+    private static ServicoConsultaParticipantesCorporativos consultaParticipantesIndisponivel() {
+        return new ServicoConsultaParticipantesCorporativos(consulta -> {
+            throw new IllegalStateException("fonte corporativa de participantes indisponivel.");
+        });
     }
 
     @GetMapping
@@ -134,6 +169,29 @@ public final class AthenaHttpController {
         });
         DadosUsuarioPersistente usuario = persistencia.consultarUsuarioPorLogin(contexto.usuario().login())
                 .orElseGet(() -> usuarioPersistente(contexto.usuario(), UUID.randomUUID()));
+        Map<String, Object> responsavelInformado = mapaObrigatorio(corpo, "responsavelTecnico");
+        String loginResponsavel = textoObrigatorio(responsavelInformado, "login");
+        ParticipanteVisivel responsavelCorporativo = consultaParticipantes.pesquisarParaAdministracao(
+                        contexto,
+                        new ConsultaParticipantesCorporativos(loginResponsavel, null, null))
+                .stream()
+                .filter(candidato -> loginResponsavel.equalsIgnoreCase(candidato.login()))
+                .findFirst()
+                .orElseThrow(() -> new RespostaApiException(HttpStatus.UNPROCESSABLE_ENTITY,
+                        "RESPONSAVEL_INSTITUCIONAL_INVALIDO",
+                        "responsavel tecnico deve ser selecionado na pesquisa corporativa."));
+        DadosUsuarioPersistente responsavel = usuario.login().equalsIgnoreCase(responsavelCorporativo.login())
+                ? new DadosUsuarioPersistente(
+                        usuario.id(), usuario.identificador(), responsavelCorporativo.nome(), usuario.login(),
+                        responsavelCorporativo.unidadeOuLotacao())
+                : persistencia.consultarUsuarioPorLogin(responsavelCorporativo.login())
+                        .orElseGet(() -> new DadosUsuarioPersistente(
+                                UUID.randomUUID(),
+                                "usuario-" + responsavelCorporativo.login(),
+                                responsavelCorporativo.nome(),
+                                responsavelCorporativo.login(),
+                                responsavelCorporativo.unidadeOuLotacao()
+                        ));
         DadosProjetoPersistente projetoCriado = new DadosProjetoPersistente(
                 UUID.randomUUID(),
                 identificador,
@@ -146,14 +204,26 @@ public final class AthenaHttpController {
         DadosVinculoProjetoPersistente vinculo = new DadosVinculoProjetoPersistente(
                 UUID.randomUUID(),
                 projetoCriado.id(),
-                usuario.id(),
+                responsavel.id(),
                 PapelProjeto.RESPONSAVEL_TECNICO.name(),
-                textoOpcional(corpo, "unidade") == null ? contexto.usuario().unidade() : textoOpcional(corpo, "unidade"),
+                responsavel.unidade(),
                 agora,
                 usuario.id()
         );
-        persistencia.criarProjetoComResponsavel(usuario, projetoCriado, vinculo, agora, UUID.randomUUID());
+        persistencia.criarProjetoComResponsavel(usuario, responsavel, projetoCriado, vinculo, agora, UUID.randomUUID());
         return ResponseEntity.status(HttpStatus.CREATED).body(respostaProjetoPersistente(projetoCriado));
+    }
+
+    @GetMapping("/participantes/pesquisa")
+    public Map<String, Object> pesquisarParticipantesAntesDoProjeto(
+            @RequestParam(required = false) String termo,
+            @RequestParam(required = false) String matricula,
+            @RequestParam(required = false) String unidadeOuLotacao,
+            @RequestHeader Map<String, String> headers
+    ) {
+        ContextoAutorizacaoInstitucional contexto = exigirAdministradorGlobal();
+        return Map.of("participantes", consultaParticipantes.pesquisarParaAdministracao(
+                contexto, new ConsultaParticipantesCorporativos(termo, matricula, unidadeOuLotacao)));
     }
 
     @PutMapping("/{idProjeto}")
@@ -355,6 +425,95 @@ public final class AthenaHttpController {
         ));
     }
 
+    @PostMapping(
+            value = "/{idProjeto}/documentos/recebimentos",
+            consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<Map<String, Object>> receberDocumento(
+            @PathVariable String idProjeto,
+            @RequestHeader Map<String, String> headers,
+            @RequestPart("arquivo") MultipartFile arquivo,
+            @RequestPart("metadados") String metadadosJson
+    ) throws IOException {
+        if (persistencia == null) {
+            throw new RespostaApiException(HttpStatus.UNPROCESSABLE_ENTITY, "REGRA_FUNCIONAL_VIOLADA",
+                    "recebimento documental exige persistencia transacional configurada.");
+        }
+        ProjetoInstitucional projetoAutorizado = autorizar(idProjeto, OperacaoProjeto.ADMINISTRAR);
+        ContextoAutorizacaoInstitucional contexto = contextoAutenticado(projetoAutorizado);
+        DadosParticipanteProjetoPersistente usuarioPersistente = usuarioPersistenteAtual(projetoAutorizado, contexto);
+        byte[] original = bytesOriginaisValidos(arquivo);
+        String conteudoOriginal = textoUtf8(original);
+        Map<String, Object> metadados = metadadosRecebimento(metadadosJson);
+        FormatoDocumento formato = FormatoDocumento.valueOf(textoObrigatorio(metadados, "formato"));
+        List<DadosItemDocumentalPersistente> itensSemVersao = itensRecebidos(formato, conteudoOriginal, metadados);
+        String hashOriginal = sha256(original);
+        byte[] metadadosCanonicos = metadadosCanonicos(metadados);
+        String hashMetadados = sha256(metadadosCanonicos);
+        String identificadorDocumento = textoObrigatorio(metadados, "identificadorDocumento");
+        int numeroVersao = inteiroObrigatorio(metadados, "versaoDocumento");
+        if (numeroVersao <= 0) {
+            throw new RespostaApiException(HttpStatus.UNPROCESSABLE_ENTITY, "CONTRATO_INVALIDO",
+                    "versaoDocumento deve ser inteiro positivo.");
+        }
+        String chaveIdempotencia = sha256((idProjeto + "\u001f" + identificadorDocumento + "\u001f"
+                + numeroVersao + "\u001f" + hashOriginal + "\u001f" + hashMetadados)
+                .getBytes(StandardCharsets.UTF_8));
+        UUID idProjetoPersistente = uuidProjeto(projetoAutorizado);
+        var versaoIdempotente = persistencia.consultarVersaoPorChaveIdempotencia(chaveIdempotencia);
+        if (versaoIdempotente.isPresent()) {
+            DadosDocumentoPersistente existente = documentoPersistentePorId(versaoIdempotente.get().idDocumento());
+            return ResponseEntity.ok(respostaRecebimento(existente, versaoIdempotente.get(), false, itensDaVersao(versaoIdempotente.get())));
+        }
+        Optional<DadosDocumentoPersistente> documentoExistente =
+                persistencia.consultarDocumento(idProjetoPersistente, identificadorDocumento);
+        boolean documentoNovo = documentoExistente.isEmpty();
+        DadosDocumentoPersistente documentoPersistente = documentoExistente
+                .orElseGet(() -> novoDocumentoRecebido(idProjetoPersistente, usuarioPersistente.id(), OffsetDateTime.now(), metadados));
+        persistencia.consultarVersaoDocumento(documentoPersistente.id(), numeroVersao).ifPresent(versao -> {
+            throw new RespostaApiException(HttpStatus.CONFLICT, "CONFLITO_VERSAO_DOCUMENTAL",
+                    "versao documental ja existe com conteudo ou metadados divergentes.");
+        });
+        OffsetDateTime dataRecebimento = OffsetDateTime.now();
+        UUID idVersao = UUID.randomUUID();
+        DadosVersaoDocumentoPersistente versao = new DadosVersaoDocumentoPersistente(
+                idVersao,
+                documentoPersistente.id(),
+                numeroVersao,
+                formato.name(),
+                conteudoOriginal,
+                hashOriginal,
+                dataRecebimento,
+                usuarioPersistente.id(),
+                nomeFisicoArquivo(arquivo),
+                idVersaoAnterior(documentoPersistente.id(), numeroVersao),
+                false,
+                null,
+                original,
+                (long) original.length,
+                tipoMidia(arquivo),
+                "UTF-8",
+                hashMetadados,
+                chaveIdempotencia
+        );
+        List<DadosItemDocumentalPersistente> itens = itensSemVersao.stream()
+                .map(item -> new DadosItemDocumentalPersistente(
+                        item.id(), idVersao, item.identificador(), item.titulo(), item.conteudo(),
+                        item.ordem(), item.fontesRastreabilidade()))
+                .toList();
+        persistencia.registrarRecebimentoDocumental(
+                idProjetoPersistente,
+                usuarioPersistente.id(),
+                documentoPersistente,
+                documentoNovo,
+                versao,
+                itens,
+                dataRecebimento,
+                UUID.randomUUID()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(respostaRecebimento(documentoPersistente, versao, true, itens));
+    }
+
     @PostMapping("/{idProjeto}/documentos/{idDocumento}/avaliacoes")
     public ResponseEntity<Object> registrarAvaliacao(
             @PathVariable String idProjeto,
@@ -478,6 +637,22 @@ public final class AthenaHttpController {
                 )
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(pedido);
+    }
+
+    @GetMapping("/{idProjeto}/documentos/{idDocumento}/ajustes")
+    public Map<String, Object> listarPedidosAjuste(
+            @PathVariable String idProjeto,
+            @PathVariable String idDocumento,
+            @RequestHeader Map<String, String> headers
+    ) {
+        ProjetoInstitucional projetoAutorizado = autorizar(idProjeto, OperacaoProjeto.CONSULTAR);
+        if (persistencia == null) {
+            return Map.of("pedidos", List.of());
+        }
+        DadosDocumentoPersistente documentoPersistente = documentoPersistente(uuidProjeto(projetoAutorizado), idDocumento);
+        return Map.of("pedidos", persistencia.listarPedidosAjusteDocumento(documentoPersistente.id()).stream()
+                .map(pedido -> respostaPedidoAjuste(pedido, documentoPersistente))
+                .toList());
     }
 
     @PostMapping("/{idProjeto}/documentos/{idDocumento}/ajustes/{pedidoAjusteId}/tratamentos")
@@ -608,6 +783,21 @@ public final class AthenaHttpController {
         int versaoConfirmada = inteiroObrigatorio(corpo, "versaoConfirmada");
         if (persistencia != null) {
             DadosDocumentoPersistente documentoPersistente = documentoPersistente(uuidProjeto(projetoAutorizado), idDocumento);
+            UUID idVersaoAlvo = persistencia.consultarVersaoDocumento(documentoPersistente.id(), versaoConfirmada)
+                    .orElseThrow(() -> new RespostaApiException(HttpStatus.NOT_FOUND, "RECURSO_NAO_ENCONTRADO",
+                            "versao inexistente no contexto autorizado."))
+                    .id();
+            UUID idVersaoAtual = persistencia.consultarReferenciaVersaoAtual(documentoPersistente.id()).idVersaoAtual();
+            if (idVersaoAtual == null || !idVersaoAtual.equals(idVersaoAlvo)) {
+                throw new RespostaApiException(HttpStatus.UNPROCESSABLE_ENTITY, "REGRA_FUNCIONAL_VIOLADA",
+                        "confirmacao formal exige a versao atual do documento.");
+            }
+            boolean possuiAjustePendente = persistencia.listarPedidosAjusteDocumento(documentoPersistente.id()).stream()
+                    .anyMatch(pedido -> "PENDENTE".equals(pedido.situacao()));
+            if (possuiAjustePendente) {
+                throw new RespostaApiException(HttpStatus.UNPROCESSABLE_ENTITY, "REGRA_FUNCIONAL_VIOLADA",
+                        "confirmacao formal exige ausencia de pedidos de ajuste pendentes.");
+            }
             DadosItemDocumentalPersistente itemPersistente = primeiroItemDaVersao(documentoPersistente, versaoConfirmada);
             DadosParticipanteProjetoPersistente usuarioPersistente = usuarioPersistenteAtual(projetoAutorizado, contexto);
             ResponseEntity<Object> resposta = registrarInteracaoPersistente(
@@ -698,6 +888,13 @@ public final class AthenaHttpController {
     @ExceptionHandler(IllegalArgumentException.class)
     ResponseEntity<Map<String, Object>> erroEntrada(IllegalArgumentException exc) {
         return ResponseEntity.badRequest().body(Map.of("codigo", "REQUISICAO_INVALIDA", "mensagem", exc.getMessage()));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    ResponseEntity<Map<String, Object>> erroIntegridade(DataIntegrityViolationException exc) {
+        return ResponseEntity.badRequest().body(Map.of(
+                "codigo", "INTEGRIDADE_PERSISTENCIA",
+                "mensagem", "recebimento rejeitado por violar integridade transacional."));
     }
 
     @ExceptionHandler(IllegalStateException.class)
@@ -946,6 +1143,306 @@ public final class AthenaHttpController {
                 .orElseGet(() -> usuario("usuario-" + login, login, "NAO_INFORMADA"));
     }
 
+    private DadosDocumentoPersistente documentoPersistentePorId(UUID idDocumento) {
+        return persistencia.consultarHistoricoDocumento(idDocumento).documento();
+    }
+
+    private DadosDocumentoPersistente novoDocumentoRecebido(
+            UUID idProjeto,
+            UUID idUsuario,
+            OffsetDateTime dataCriacao,
+            Map<String, Object> metadados
+    ) {
+        return new DadosDocumentoPersistente(
+                UUID.randomUUID(),
+                textoObrigatorio(metadados, "identificadorDocumento"),
+                idProjeto,
+                textoObrigatorio(metadados, "tituloDocumento"),
+                textoObrigatorio(metadados, "grupo"),
+                textoObrigatorio(metadados, "categoria"),
+                textoObrigatorio(metadados, "finalidade"),
+                textoObrigatorio(metadados, "apresentacao"),
+                dataCriacao,
+                idUsuario,
+                null
+        );
+    }
+
+    private static byte[] bytesOriginaisValidos(MultipartFile arquivo) {
+        if (arquivo == null || arquivo.isEmpty()) {
+            throw new RespostaApiException(HttpStatus.UNPROCESSABLE_ENTITY, "CONTRATO_INVALIDO",
+                    "arquivo deve ser informado com conteudo.");
+        }
+        if (arquivo.getSize() > LIMITE_RECEBIMENTO_BYTES) {
+            throw new RespostaApiException(HttpStatus.PAYLOAD_TOO_LARGE, "ARQUIVO_ACIMA_DO_LIMITE",
+                    "arquivo excede o limite de 10 MB.");
+        }
+        try {
+            return arquivo.getBytes();
+        } catch (IOException exc) {
+            throw new RespostaApiException(HttpStatus.UNPROCESSABLE_ENTITY, "CONTRATO_INVALIDO",
+                    "arquivo nao pode ser lido.");
+        }
+    }
+
+    private static String textoUtf8(byte[] original) {
+        try {
+            return StandardCharsets.UTF_8.newDecoder()
+                    .onMalformedInput(CodingErrorAction.REPORT)
+                    .onUnmappableCharacter(CodingErrorAction.REPORT)
+                    .decode(ByteBuffer.wrap(original))
+                    .toString();
+        } catch (CharacterCodingException exc) {
+            throw new RespostaApiException(HttpStatus.UNPROCESSABLE_ENTITY, "CONTEUDO_INVALIDO",
+                    "arquivo deve estar em UTF-8 estrito.");
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> metadadosRecebimento(String metadadosJson) {
+        try {
+            Object valor = JSON.readValue(metadadosJson, Object.class);
+            if (!(valor instanceof Map<?, ?> mapa)) {
+                throw new RespostaApiException(HttpStatus.UNPROCESSABLE_ENTITY, "CONTRATO_INVALIDO",
+                        "metadados deve ser um objeto JSON.");
+            }
+            return (Map<String, Object>) mapa;
+        } catch (JsonProcessingException exc) {
+            throw new RespostaApiException(HttpStatus.UNPROCESSABLE_ENTITY, "CONTRATO_INVALIDO",
+                    "metadados deve ser JSON UTF-8 valido.");
+        }
+    }
+
+    private List<DadosItemDocumentalPersistente> itensRecebidos(
+            FormatoDocumento formato,
+            String conteudoOriginal,
+            Map<String, Object> metadados
+    ) {
+        List<Map<String, Object>> itens = switch (formato) {
+            case JSON -> itensJson(conteudoOriginal);
+            case YAML -> itensYaml(conteudoOriginal);
+            case MARKDOWN -> itensMetadados(metadados);
+        };
+        if (itens.isEmpty()) {
+            throw new RespostaApiException(HttpStatus.UNPROCESSABLE_ENTITY, "CONTEUDO_INVALIDO",
+                    "representacao interna deve conter ao menos um item.");
+        }
+        int[] ordem = {1};
+        return itens.stream()
+                .map(item -> itemRecebido(item, ordem[0]++))
+                .toList();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Map<String, Object>> itensJson(String conteudoOriginal) {
+        try {
+            Object valor = JSON.readValue(conteudoOriginal, Object.class);
+            Object itens = valor instanceof Map<?, ?> mapa ? mapa.get("itens") : null;
+            if (!(itens instanceof Collection<?> colecao)) {
+                return List.of();
+            }
+            return colecao.stream()
+                    .filter(Map.class::isInstance)
+                    .map(item -> (Map<String, Object>) item)
+                    .toList();
+        } catch (JsonProcessingException exc) {
+            throw new RespostaApiException(HttpStatus.UNPROCESSABLE_ENTITY, "CONTEUDO_INVALIDO",
+                    "arquivo JSON deve ser estruturado e valido.");
+        }
+    }
+
+    private static List<Map<String, Object>> itensYaml(String conteudoOriginal) {
+        List<Map<String, Object>> itens = new ArrayList<>();
+        Map<String, Object> atual = null;
+        String chaveMultilinha = null;
+        for (String linha : conteudoOriginal.split("\\R")) {
+            if (linha.startsWith("- id_item:")) {
+                if (atual != null) {
+                    itens.add(atual);
+                }
+                atual = new LinkedHashMap<>();
+                atual.put("id_item", valorYaml(linha.substring("- id_item:".length())));
+                chaveMultilinha = null;
+                continue;
+            }
+            if (atual == null) {
+                continue;
+            }
+            if (linha.startsWith("  - ") && "origem_upstream".equals(chaveMultilinha)) {
+                @SuppressWarnings("unchecked")
+                List<String> fontes = (List<String>) atual.computeIfAbsent("origem_upstream", chave -> new ArrayList<String>());
+                fontes.add(valorYaml(linha.substring(4)));
+                continue;
+            }
+            if (chaveMultilinha != null && linha.startsWith("    ")) {
+                atual.compute(chaveMultilinha, (chave, valor) ->
+                        (valor == null ? "" : valor + " ") + linha.strip());
+                continue;
+            }
+            if (!linha.startsWith("  ") || !linha.contains(":")) {
+                chaveMultilinha = null;
+                continue;
+            }
+            int separador = linha.indexOf(':');
+            String chave = linha.substring(2, separador);
+            String valor = valorYaml(linha.substring(separador + 1));
+            if ("origem_upstream".equals(chave)) {
+                atual.put(chave, new ArrayList<String>());
+                chaveMultilinha = chave;
+            } else {
+                atual.put(chave, valor);
+                chaveMultilinha = valor.isBlank() || "descricao".equals(chave) ? chave : null;
+            }
+        }
+        if (atual != null) {
+            itens.add(atual);
+        }
+        return itens;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Map<String, Object>> itensMetadados(Map<String, Object> metadados) {
+        Object itens = metadados.get("itens");
+        if (!(itens instanceof Collection<?> colecao)) {
+            return List.of();
+        }
+        return colecao.stream()
+                .filter(Map.class::isInstance)
+                .map(item -> (Map<String, Object>) item)
+                .toList();
+    }
+
+    private static DadosItemDocumentalPersistente itemRecebido(Map<String, Object> item, int ordem) {
+        String identificador = textoObrigatorioAlternativo(item, "identificador", "id_item");
+        String titulo = textoObrigatorio(item, "titulo");
+        String conteudo = textoOpcional(item, "conteudo");
+        if (conteudo == null) {
+            conteudo = textoObrigatorioAlternativo(item, "descricao", "texto");
+        }
+        return new DadosItemDocumentalPersistente(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                identificador,
+                titulo,
+                conteudo,
+                ordem,
+                fontesItem(item)
+        );
+    }
+
+    private static List<String> fontesItem(Map<String, Object> item) {
+        Set<String> fontes = new LinkedHashSet<>();
+        adicionarFonte(fontes, item.get("etapa"));
+        adicionarFonte(fontes, item.get("categoria"));
+        adicionarFonte(fontes, item.get("versao_item"));
+        adicionarFontes(fontes, item.get("fontesRastreabilidade"));
+        adicionarFontes(fontes, item.get("rastreabilidade"));
+        adicionarFontes(fontes, item.get("origem_upstream"));
+        if (fontes.isEmpty()) {
+            fontes.add("RECEBIMENTO_DOCUMENTAL");
+        }
+        return fontes.stream().toList();
+    }
+
+    private static void adicionarFontes(Set<String> fontes, Object valor) {
+        if (valor instanceof Collection<?> colecao) {
+            colecao.forEach(item -> adicionarFonte(fontes, item));
+            return;
+        }
+        adicionarFonte(fontes, valor);
+    }
+
+    private static void adicionarFonte(Set<String> fontes, Object valor) {
+        if (valor != null && !valor.toString().isBlank()) {
+            fontes.add(valor.toString());
+        }
+    }
+
+    private static String textoObrigatorioAlternativo(Map<String, Object> corpo, String primeiro, String segundo) {
+        String valor = textoOpcional(corpo, primeiro);
+        return valor == null ? textoObrigatorio(corpo, segundo) : valor;
+    }
+
+    private static String valorYaml(String valor) {
+        String limpo = valor == null ? "" : valor.strip();
+        if ((limpo.startsWith("'") && limpo.endsWith("'")) || (limpo.startsWith("\"") && limpo.endsWith("\""))) {
+            return limpo.substring(1, limpo.length() - 1);
+        }
+        return limpo;
+    }
+
+    private static byte[] metadadosCanonicos(Map<String, Object> metadados) {
+        try {
+            return JSON.writeValueAsBytes(canonico(metadados));
+        } catch (JsonProcessingException exc) {
+            throw new RespostaApiException(HttpStatus.UNPROCESSABLE_ENTITY, "CONTRATO_INVALIDO",
+                    "metadados nao podem ser canonizados.");
+        }
+    }
+
+    private static Object canonico(Object valor) {
+        if (valor instanceof Map<?, ?> mapa) {
+            Map<String, Object> ordenado = new TreeMap<>();
+            mapa.forEach((chave, item) -> ordenado.put(chave.toString(), canonico(item)));
+            return ordenado;
+        }
+        if (valor instanceof Collection<?> colecao) {
+            return colecao.stream().map(AthenaHttpController::canonico).toList();
+        }
+        return valor;
+    }
+
+    private static String sha256(byte[] bytes) {
+        try {
+            byte[] hash = MessageDigest.getInstance("SHA-256").digest(bytes);
+            StringBuilder hexadecimal = new StringBuilder(hash.length * 2);
+            for (byte b : hash) {
+                hexadecimal.append(String.format("%02x", b));
+            }
+            return hexadecimal.toString();
+        } catch (NoSuchAlgorithmException exc) {
+            throw new IllegalStateException("SHA-256 indisponivel.", exc);
+        }
+    }
+
+    private List<DadosItemDocumentalPersistente> itensDaVersao(DadosVersaoDocumentoPersistente versao) {
+        return persistencia.listarItensDocumento(versao.idDocumento()).stream()
+                .filter(item -> item.idVersao().equals(versao.id()))
+                .sorted(Comparator.comparingInt(DadosItemDocumentalPersistente::ordem))
+                .toList();
+    }
+
+    private static String nomeFisicoArquivo(MultipartFile arquivo) {
+        String nome = arquivo.getOriginalFilename();
+        return nome == null || nome.isBlank() ? "arquivo-recebido" : nome;
+    }
+
+    private static String tipoMidia(MultipartFile arquivo) {
+        String tipo = arquivo.getContentType();
+        return tipo == null || tipo.isBlank() ? "application/octet-stream" : tipo;
+    }
+
+    private Map<String, Object> respostaRecebimento(
+            DadosDocumentoPersistente documento,
+            DadosVersaoDocumentoPersistente versao,
+            boolean criado,
+            List<DadosItemDocumentalPersistente> itens
+    ) {
+        Map<String, Object> resposta = new LinkedHashMap<>();
+        resposta.put("documento", documento.identificador());
+        resposta.put("versao", versao.numero());
+        resposta.put("formato", versao.formato());
+        resposta.put("criado", criado);
+        resposta.put("hashConteudo", versao.hashConteudo());
+        resposta.put("hashMetadados", versao.hashMetadados());
+        resposta.put("chaveIdempotencia", versao.chaveIdempotencia());
+        resposta.put("originalTamanho", versao.originalTamanho());
+        resposta.put("originalCodificacao", versao.originalCodificacao());
+        resposta.put("idVersaoAtual", versao.id().toString());
+        resposta.put("itens", itens.stream().map(DadosItemDocumentalPersistente::identificador).toList());
+        return resposta;
+    }
+
     private DadosDocumentoPersistente novoDocumentoPersistente(
             UUID idProjeto,
             UUID idUsuario,
@@ -1156,38 +1653,45 @@ public final class AthenaHttpController {
     }
 
     private Map<String, Object> respostaDocumentoDetalhadoPersistente(DadosDocumentoPersistente documentoPersistente) {
-        return Map.of(
-                "identificador", documentoPersistente.identificador(),
-                "titulo", documentoPersistente.titulo(),
-                "metadados", Map.of(
+        Map<String, Object> resposta = new LinkedHashMap<>();
+        resposta.put("identificador", documentoPersistente.identificador());
+        resposta.put("titulo", documentoPersistente.titulo());
+        UUID idVersaoAtual = persistencia.consultarReferenciaVersaoAtual(documentoPersistente.id()).idVersaoAtual();
+        resposta.put("idVersaoAtual", idVersaoAtual == null ? null : idVersaoAtual.toString());
+        resposta.put("metadados", Map.of(
                         "grupo", documentoPersistente.grupo(),
                         "categoria", documentoPersistente.categoria(),
                         "finalidade", documentoPersistente.finalidade(),
                         "apresentacao", documentoPersistente.apresentacao()
-                ),
-                "versoes", persistencia.listarVersoesDocumento(documentoPersistente.id()).stream()
+                ));
+        resposta.put("versoes", persistencia.listarVersoesDocumento(documentoPersistente.id()).stream()
                         .map(this::respostaVersaoPersistente)
-                        .toList(),
-                "relacoesRecebidas", persistencia.listarRelacoesDocumento(documentoPersistente.id())
-        );
+                        .toList());
+        resposta.put("relacoesRecebidas", persistencia.listarRelacoesDocumento(documentoPersistente.id()));
+        return resposta;
     }
 
     private Map<String, Object> respostaVersaoPersistente(DadosVersaoDocumentoPersistente versao) {
-        return Map.of(
-                "id", versao.id(),
-                "numero", versao.numero(),
-                "formato", versao.formato(),
-                "conteudoOriginal", versao.conteudoOriginal(),
-                "dataRecebimento", versao.dataRecebimento(),
-                "confirmada", versao.confirmada(),
-                "idVersaoAnterior", uuidComoTexto(versao.idVersaoAnterior()),
-                "idPedidoAjusteOrigem", uuidComoTexto(versao.idPedidoAjusteOrigem()),
-                "itens", persistencia.listarItensDocumento(versao.idDocumento()).stream()
-                        .filter(item -> item.idVersao().equals(versao.id()))
-                        .sorted(Comparator.comparingInt(DadosItemDocumentalPersistente::ordem))
-                        .map(this::respostaItemPersistente)
-                        .toList()
-        );
+        Map<String, Object> resposta = new LinkedHashMap<>();
+        resposta.put("id", versao.id());
+        resposta.put("numero", versao.numero());
+        resposta.put("formato", versao.formato());
+        resposta.put("conteudoOriginal", versao.conteudoOriginal());
+        resposta.put("dataRecebimento", versao.dataRecebimento());
+        resposta.put("confirmada", versao.confirmada());
+        resposta.put("idVersaoAnterior", uuidComoTexto(versao.idVersaoAnterior()));
+        resposta.put("idPedidoAjusteOrigem", uuidComoTexto(versao.idPedidoAjusteOrigem()));
+        resposta.put("hashConteudo", versao.hashConteudo());
+        resposta.put("hashMetadados", versao.hashMetadados() == null ? "" : versao.hashMetadados());
+        resposta.put("chaveIdempotencia", versao.chaveIdempotencia() == null ? "" : versao.chaveIdempotencia());
+        resposta.put("originalTamanho", versao.originalTamanho() == null ? 0 : versao.originalTamanho());
+        resposta.put("originalCodificacao", versao.originalCodificacao() == null ? "" : versao.originalCodificacao());
+        resposta.put("itens", persistencia.listarItensDocumento(versao.idDocumento()).stream()
+                .filter(item -> item.idVersao().equals(versao.id()))
+                .sorted(Comparator.comparingInt(DadosItemDocumentalPersistente::ordem))
+                .map(this::respostaItemPersistente)
+                .toList());
+        return resposta;
     }
 
     private Map<String, Object> respostaPedidoAjuste(
@@ -1237,13 +1741,14 @@ public final class AthenaHttpController {
     }
 
     private Map<String, Object> respostaDocumentoDetalhado() {
-        return Map.of(
-                "identificador", documento.identificador(),
-                "titulo", documento.titulo(),
-                "metadados", documento.metadados(),
-                "versoes", documento.versoes(),
-                "relacoesRecebidas", documento.metadados().relacoesRecebidas()
-        );
+        Map<String, Object> resposta = new LinkedHashMap<>();
+        resposta.put("identificador", documento.identificador());
+        resposta.put("titulo", documento.titulo());
+        resposta.put("idVersaoAtual", null);
+        resposta.put("metadados", documento.metadados());
+        resposta.put("versoes", documento.versoes());
+        resposta.put("relacoesRecebidas", documento.metadados().relacoesRecebidas());
+        return resposta;
     }
 
     private static String textoObrigatorio(Map<String, Object> corpo, String campo) {
@@ -1260,6 +1765,15 @@ public final class AthenaHttpController {
             return null;
         }
         return valor.toString();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> mapaObrigatorio(Map<String, Object> corpo, String campo) {
+        Object valor = corpo.get(campo);
+        if (!(valor instanceof Map<?, ?> mapa) || mapa.isEmpty()) {
+            throw new IllegalArgumentException(campo + " deve ser informado.");
+        }
+        return (Map<String, Object>) mapa;
     }
 
     private static IdentificadorUsuario responsavelTecnico(ProjetoInstitucional projeto) {

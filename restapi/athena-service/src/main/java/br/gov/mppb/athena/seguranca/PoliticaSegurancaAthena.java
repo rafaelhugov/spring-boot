@@ -11,7 +11,7 @@ import java.util.Set;
 public final class PoliticaSegurancaAthena {
 
     public static final String LOTACAO_ADMINISTRATIVA = "DITEC";
-    public static final String AUTORIZACAO_ADMINISTRATIVA = "ATHENA_ADMINISTRAR";
+    public static final String AUTORIZACAO_ADMINISTRATIVA = "athena.administrar";
 
     private PoliticaSegurancaAthena() {
     }

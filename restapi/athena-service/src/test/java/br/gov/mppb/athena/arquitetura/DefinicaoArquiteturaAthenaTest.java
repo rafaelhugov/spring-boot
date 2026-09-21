@@ -5,8 +5,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
@@ -66,5 +68,37 @@ class DefinicaoArquiteturaAthenaTest {
         assertThat(Files.exists(raizServico.resolve("package.json"))).isFalse();
         assertThat(Files.exists(raizServico.resolve("vite.config.js"))).isFalse();
         assertThat(Files.exists(raizServico.resolve("vite.config.ts"))).isFalse();
+    }
+
+    @Test
+    void codigoOperacionalNaoDeveConterAutenticacaoArtificial() throws Exception {
+        Path fontesOperacionais = Path.of("src/main");
+        Path provedorLocal = fontesOperacionais.resolve(
+                "java/br/gov/mppb/athena/seguranca/AutenticacaoLocalAthenaProvider.java");
+
+        assertThat(Files.exists(provedorLocal)).isFalse();
+
+        List<String> identificadoresArtificiais = List.of(
+                "mock-athena-admin-token",
+                "mock-athena-participante-token",
+                "admin_teste:senha"
+        );
+        try (Stream<Path> arquivos = Files.walk(fontesOperacionais)) {
+            List<Path> ocorrencias = arquivos
+                    .filter(Files::isRegularFile)
+                    .filter(arquivo -> contemAlgum(arquivo, identificadoresArtificiais))
+                    .toList();
+
+            assertThat(ocorrencias).isEmpty();
+        }
+    }
+
+    private static boolean contemAlgum(Path arquivo, List<String> valores) {
+        try {
+            String conteudo = Files.readString(arquivo);
+            return valores.stream().anyMatch(conteudo::contains);
+        } catch (java.io.IOException erro) {
+            throw new IllegalStateException("nao foi possivel inspecionar " + arquivo, erro);
+        }
     }
 }

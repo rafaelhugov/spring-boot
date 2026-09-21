@@ -1,8 +1,11 @@
 package br.gov.mppb.athena.api;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -17,6 +20,11 @@ import br.gov.mppb.athena.persistencia.DadosVersaoDocumentoPersistente;
 import br.gov.mppb.athena.persistencia.DadosVinculoProjetoPersistente;
 import br.gov.mppb.athena.persistencia.PersistenciaTransacionalAthena;
 import br.gov.mppb.athena.persistencia.RegistroHistoricoDocumental;
+import br.gov.mppb.athena.integracao.ServicoConsultaParticipantesCorporativos;
+import br.gov.mppb.athena.seguranca.DadosParticipanteCorporativo;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -27,6 +35,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -40,7 +49,7 @@ class AthenaHttpControllerTest {
     @BeforeEach
     void prepararMvc() {
         SecurityContextHolder.clearContext();
-        mvc = MockMvcBuilders.standaloneSetup(new AthenaHttpController()).build();
+        mvc = MockMvcBuilders.standaloneSetup(new AthenaHttpController(consultaParticipantesTeste())).build();
     }
 
     @Test
@@ -60,6 +69,7 @@ class AthenaHttpControllerTest {
                         .headers(cabecalhosParticipante()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.identificador").value("DOC-ENTENDIMENTO"))
+                .andExpect(jsonPath("$.idVersaoAtual").value(nullValue()))
                 .andExpect(jsonPath("$.versoes[0].itens[0].identificador").value("ESP.REQ.006"));
     }
 
@@ -87,13 +97,19 @@ class AthenaHttpControllerTest {
                 .standaloneSetup(new AthenaHttpController(new PersistenciaTransacionalAthena(
                         jdbc,
                         new DataSourceTransactionManager(dataSource)
-                )))
+                ), consultaParticipantesTeste()))
                 .build();
 
         mvcPersistente.perform(get("/api/projetos")
                         .headers(cabecalhosAdministrador()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.projetos.length()").value(0));
+
+        mvcPersistente.perform(get("/api/projetos/participantes/pesquisa")
+                        .headers(cabecalhosAdministrador())
+                        .param("termo", "responsavel"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.participantes[1].login").value("responsavel"));
 
         mvcPersistente.perform(post("/api/projetos")
                         .headers(cabecalhosAdministrador())
@@ -104,9 +120,10 @@ class AthenaHttpControllerTest {
                                   "nome": "Athena",
                                   "descricao": "Projeto administrado pelo Athena.",
                                   "unidade": "DITEC",
-                                  "situacao": "ATIVO"
+                                  "situacao": "ATIVO",
+                                  "responsavelTecnico": { "login": "responsavel" }
                                 }
-                                """))
+                """))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.identificador").value("ATHENA"))
                 .andExpect(jsonPath("$.participantes[0].login").value("responsavel"));
@@ -415,9 +432,9 @@ class AthenaHttpControllerTest {
                                   "escopo": "Confirmacao formal da versao persistida."
                                 }
                                 """))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.tipo").value("CONFIRMACAO"))
-                .andExpect(jsonPath("$.decisao").value("CONFIRMADO"));
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.codigo").value("REGRA_FUNCIONAL_VIOLADA"))
+                .andExpect(jsonPath("$.mensagem").value("confirmacao formal exige ausencia de pedidos de ajuste pendentes."));
 
         mvcPersistente.perform(get("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO/historico")
                         .headers(cabecalhosResponsavel()))
@@ -426,15 +443,43 @@ class AthenaHttpControllerTest {
                 .andExpect(jsonPath("$.eventos[1].tipo").value("AVALIACAO"))
                 .andExpect(jsonPath("$.eventos[2].tipo").value("COMENTARIO"))
                 .andExpect(jsonPath("$.eventos[3].tipo").value("PEDIDO_AJUSTE"))
-                .andExpect(jsonPath("$.eventos[4].tipo").value("CONFIRMACAO"))
-                .andExpect(jsonPath("$.eventos[4].usuario.login").value("responsavel"))
                 .andExpect(content().string(not(containsString("cpf"))));
 
         mvcPersistente.perform(get("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO")
                         .headers(cabecalhosResponsavel()))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.idVersaoAtual").isNotEmpty())
                 .andExpect(jsonPath("$.versoes.length()").value(1))
                 .andExpect(jsonPath("$.versoes[0].conteudoOriginal").value("Conteudo original persistido."));
+    }
+
+    @Test
+    void deveExporReferenciaAtualNulaSemInferirVersaoPorHttp() throws Exception {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource(
+                "jdbc:h2:mem:athena-api-versao-nula-" + UUID.randomUUID()
+                        + ";MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
+                        + ";INIT=CREATE SCHEMA IF NOT EXISTS athena",
+                "sa",
+                ""
+        );
+        dataSource.setDriverClassName("org.h2.Driver");
+        JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+        criarEsquemaPersistente(jdbc);
+        PersistenciaTransacionalAthena persistencia = new PersistenciaTransacionalAthena(
+                jdbc,
+                new DataSourceTransactionManager(dataSource)
+        );
+        registrarProjetoDocumentalPersistente(persistencia);
+        jdbc.update("UPDATE athena.documento SET id_versao_atual = NULL WHERE identificador = ?", "DOC-PERSISTIDO");
+        MockMvc mvcPersistente = MockMvcBuilders
+                .standaloneSetup(new AthenaHttpController(persistencia))
+                .build();
+
+        mvcPersistente.perform(get("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO")
+                        .headers(cabecalhosResponsavel()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.idVersaoAtual").value(nullValue()))
+                .andExpect(jsonPath("$.versoes.length()").value(1));
     }
 
     @Test
@@ -483,6 +528,14 @@ class AthenaHttpControllerTest {
                 .andExpect(jsonPath("$.estado").value("PENDENTE"))
                 .andExpect(jsonPath("$.responsavelTecnico").value("usuario-responsavel"))
                 .andExpect(jsonPath("$.dataSolicitacao").isNotEmpty());
+
+        mvcPersistente.perform(get("/api/projetos/ATHENA/documentos/DOC-PERSISTIDO/ajustes")
+                        .headers(cabecalhosResponsavel()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pedidos[0].id").isNotEmpty())
+                .andExpect(jsonPath("$.pedidos[0].estado").value("PENDENTE"))
+                .andExpect(jsonPath("$.pedidos[0].justificativa")
+                        .value("Solicitacao para avaliar consistencia do entendimento."));
 
         UUID pedidoNaoAcolhidoId = jdbc.queryForObject("""
                 SELECT id
@@ -618,15 +671,126 @@ class AthenaHttpControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.versao").value(3));
 
+        UUID idVersaoAtual = jdbc.queryForObject("""
+                SELECT id_versao_atual
+                  FROM athena.documento
+                 WHERE identificador = 'DOC-INGESTAO'
+                """, UUID.class);
+
         mvcPersistente.perform(get("/api/projetos/ATHENA/documentos/DOC-INGESTAO")
                         .headers(cabecalhosResponsavel()))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.idVersaoAtual").value(idVersaoAtual.toString()))
                 .andExpect(jsonPath("$.versoes.length()").value(3))
                 .andExpect(jsonPath("$.versoes[0].formato").value("MARKDOWN"))
                 .andExpect(jsonPath("$.versoes[1].formato").value("JSON"))
                 .andExpect(jsonPath("$.versoes[2].formato").value("YAML"))
                 .andExpect(jsonPath("$.versoes[2].itens[0].identificador").value("REQ-YAML"))
                 .andExpect(jsonPath("$.versoes[2].itens[0].rastreabilidade[0]").value("ENT.ESCOPO.006"));
+    }
+
+    @Test
+    void deveReceberLinhaBase003PorMultipartComIdempotenciaRollbackEAutorizacao() throws Exception {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource(
+                "jdbc:h2:mem:athena-api-recebimento-" + UUID.randomUUID()
+                        + ";MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
+                        + ";INIT=CREATE SCHEMA IF NOT EXISTS athena",
+                "sa",
+                ""
+        );
+        dataSource.setDriverClassName("org.h2.Driver");
+        JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+        criarEsquemaPersistente(jdbc);
+        registrarProjetoPersistenteSemDocumento(jdbc);
+        MockMvc mvcPersistente = MockMvcBuilders
+                .standaloneSetup(new AthenaHttpController(new PersistenciaTransacionalAthena(
+                        jdbc,
+                        new DataSourceTransactionManager(dataSource)
+                )))
+                .build();
+        byte[] linhaBase003 = Files.readAllBytes(Path.of(
+                "../../../ai-first/projetos/athena/especificacao/linha-base-especificacao-003.yaml")
+                .toAbsolutePath().normalize());
+
+        mvcPersistente.perform(multipart("/api/projetos/ATHENA/documentos/recebimentos")
+                        .file(arquivoYaml("linha-base-especificacao-003.yaml", linhaBase003))
+                        .file(metadadosRecebimento(1))
+                        .headers(cabecalhosAdministrador()))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.documento").value("LINHA-BASE-003"))
+                .andExpect(jsonPath("$.versao").value(1))
+                .andExpect(jsonPath("$.hashConteudo").value("45234777b2d17904f07f0251f708e8984cd143b17e411028e413bdba3bf09229"))
+                .andExpect(jsonPath("$.originalTamanho").value(linhaBase003.length))
+                .andExpect(jsonPath("$.itens.length()").value(152));
+        assertThat(contar(jdbc, "athena.documento")).isOne();
+        assertThat(contar(jdbc, "athena.versaodocumento")).isOne();
+        assertThat(contar(jdbc, "athena.itemdocumental")).isEqualTo(152);
+        assertThat(contar(jdbc, "athena.eventoauditoria")).isOne();
+        assertThat(jdbc.queryForObject("""
+                SELECT original_binario FROM athena.versaodocumento WHERE numero = 1
+                """, byte[].class)).isEqualTo(linhaBase003);
+
+        mvcPersistente.perform(multipart("/api/projetos/ATHENA/documentos/recebimentos")
+                        .file(arquivoYaml("linha-base-especificacao-003.yaml", linhaBase003))
+                        .file(metadadosRecebimento(1))
+                        .headers(cabecalhosAdministrador()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.criado").value(false));
+        assertThat(contar(jdbc, "athena.versaodocumento")).isOne();
+
+        mvcPersistente.perform(multipart("/api/projetos/ATHENA/documentos/recebimentos")
+                        .file(arquivoYaml("linha-base-especificacao-003-alterada.yaml",
+                                "itens:\n- id_item: CONFLITO.001\n  titulo: Conflito\n  descricao: Conteudo divergente\n"
+                                        .getBytes(StandardCharsets.UTF_8)))
+                        .file(metadadosRecebimento(1))
+                        .headers(cabecalhosAdministrador()))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.codigo").value("CONFLITO_VERSAO_DOCUMENTAL"));
+
+        mvcPersistente.perform(multipart("/api/projetos/ATHENA/documentos/recebimentos")
+                        .file(arquivoYaml("grande.yaml", new byte[10 * 1024 * 1024 + 1]))
+                        .file(metadadosRecebimento(2))
+                        .headers(cabecalhosAdministrador()))
+                .andExpect(status().isPayloadTooLarge());
+
+        mvcPersistente.perform(multipart("/api/projetos/ATHENA/documentos/recebimentos")
+                        .file(new MockMultipartFile("arquivo", "invalido.yaml", "text/yaml", new byte[] {(byte) 0xC3, 0x28}))
+                        .file(metadadosRecebimento(2))
+                        .headers(cabecalhosAdministrador()))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.codigo").value("CONTEUDO_INVALIDO"));
+
+        confirmarVersaoLinhaBase(mvcPersistente, 1);
+        mvcPersistente.perform(multipart("/api/projetos/ATHENA/documentos/recebimentos")
+                        .file(arquivoYaml("linha-base-especificacao-003.yaml", linhaBase003))
+                        .file(metadadosRecebimento(2))
+                        .headers(cabecalhosAdministrador()))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.versao").value(2))
+                .andExpect(jsonPath("$.itens.length()").value(152));
+
+        long documentosAntesRollback = contar(jdbc, "athena.documento");
+        long versoesAntesRollback = contar(jdbc, "athena.versaodocumento");
+        mvcPersistente.perform(multipart("/api/projetos/ATHENA/documentos/recebimentos")
+                        .file(arquivoYaml("rollback.json", """
+                                {"itens":[
+                                  {"id_item":"DUP", "titulo":"Duplicado", "descricao":"Primeiro"},
+                                  {"id_item":"DUP", "titulo":"Duplicado", "descricao":"Segundo"}
+                                ]}
+                                """.getBytes(StandardCharsets.UTF_8)))
+                        .file(metadadosRecebimento("DOC-ROLLBACK", 1, "JSON"))
+                        .headers(cabecalhosAdministrador()))
+                .andExpect(status().isBadRequest());
+        assertThat(contar(jdbc, "athena.documento")).isEqualTo(documentosAntesRollback);
+        assertThat(contar(jdbc, "athena.versaodocumento")).isEqualTo(versoesAntesRollback);
+
+        mvcPersistente.perform(multipart("/api/projetos/ATHENA/documentos/recebimentos")
+                        .file(arquivoYaml("sem-autorizacao.yaml", linhaBase003))
+                        .file(metadadosRecebimento(3))
+                        .headers(cabecalhosSemVinculo()))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.codigo").value("OPERACAO_NAO_AUTORIZADA"));
+        assertThat(contar(jdbc, "athena.versaodocumento")).isEqualTo(versoesAntesRollback);
     }
 
     private static void confirmarVersaoPersistente(MockMvc mvcPersistente, int versao, String escopo) throws Exception {
@@ -641,6 +805,53 @@ class AthenaHttpControllerTest {
                                 """.formatted(versao, escopo)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.tipo").value("CONFIRMACAO"));
+    }
+
+    private static void confirmarVersaoLinhaBase(MockMvc mvcPersistente, int versao) throws Exception {
+        mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/LINHA-BASE-003/confirmacoes")
+                        .headers(cabecalhosResponsavel())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versaoConfirmada": %d,
+                                  "escopo": "Confirmacao formal da linha de base em ambiente isolado."
+                                }
+                                """.formatted(versao)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.tipo").value("CONFIRMACAO"));
+    }
+
+    private static MockMultipartFile arquivoYaml(String nome, byte[] conteudo) {
+        return new MockMultipartFile("arquivo", nome, "text/yaml", conteudo);
+    }
+
+    private static MockMultipartFile metadadosRecebimento(int versao) {
+        return metadadosRecebimento("LINHA-BASE-003", versao, "YAML");
+    }
+
+    private static MockMultipartFile metadadosRecebimento(String documento, int versao, String formato) {
+        String corpo = """
+                {
+                  "identificadorDocumento": "%s",
+                  "versaoDocumento": %d,
+                  "tituloDocumento": "Linha de base da especificacao 003",
+                  "grupo": "Especificacao",
+                  "categoria": "Linha de base",
+                  "finalidade": "Validacao institucional",
+                  "apresentacao": "Documento estruturado",
+                  "formato": "%s",
+                  "permissoes": [],
+                  "relacoes": [],
+                  "rastreabilidade": []
+                }
+                """.formatted(documento, versao, formato);
+        return new MockMultipartFile("metadados", "", MediaType.APPLICATION_JSON_VALUE,
+                corpo.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static long contar(JdbcTemplate jdbc, String tabela) {
+        Long total = jdbc.queryForObject("SELECT COUNT(*) FROM " + tabela, Long.class);
+        return total == null ? 0L : total;
     }
 
     @Test
@@ -714,11 +925,11 @@ class AthenaHttpControllerTest {
     }
 
     private static org.springframework.http.HttpHeaders cabecalhosAdministrador() {
-        return autenticar("responsavel", "ATHENA_ADMINISTRAR");
+        return autenticar("responsavel", "athena.administrar");
     }
 
     private static org.springframework.http.HttpHeaders cabecalhosAdministradorAvaliador() {
-        return autenticar("avaliador", "ATHENA_ADMINISTRAR");
+        return autenticar("avaliador", "athena.administrar");
     }
 
     private static org.springframework.http.HttpHeaders cabecalhosSemVinculo() {
@@ -875,6 +1086,25 @@ class AthenaHttpControllerTest {
                 """, UUID.randomUUID(), idProjeto, idUsuario, "RESPONSAVEL_TECNICO", "DITEC", agora, idUsuario);
     }
 
+    private static ServicoConsultaParticipantesCorporativos consultaParticipantesTeste() {
+        return new ServicoConsultaParticipantesCorporativos(consulta -> List.of(
+                new DadosParticipanteCorporativo(
+                        "Ana Institucional",
+                        "123456",
+                        "Servidora",
+                        "Analista ministerial",
+                        "ana.institucional@mppb.mp.br",
+                        "ana.institucional",
+                        "DITEC",
+                        null
+                ),
+                new DadosParticipanteCorporativo(
+                        "Responsavel Institucional", "654321", "Servidor", "Responsavel tecnico",
+                        null, "responsavel", "DITEC", null
+                )
+        ));
+    }
+
     private static void criarEsquemaPersistente(JdbcTemplate jdbc) {
         jdbc.execute("""
                 CREATE TABLE athena.usuarioinstitucional (
@@ -921,7 +1151,9 @@ class AthenaHttpControllerTest {
                     finalidade VARCHAR(240) NOT NULL,
                     apresentacao VARCHAR(240) NOT NULL,
                     datacriacao TIMESTAMP WITH TIME ZONE NOT NULL,
-                    id_usuariocriacao UUID NOT NULL
+                    id_usuariocriacao UUID NOT NULL,
+                    id_versao_atual UUID,
+                    versao_controle BIGINT NOT NULL DEFAULT 0
                 )
                 """);
         jdbc.execute("""
@@ -938,6 +1170,12 @@ class AthenaHttpControllerTest {
                     id_versao_anterior UUID,
                     confirmada BOOLEAN NOT NULL DEFAULT FALSE,
                     id_pedido_ajuste_origem UUID,
+                    original_binario BINARY VARYING,
+                    original_tamanho BIGINT,
+                    original_tipo_midia VARCHAR(120),
+                    original_codificacao VARCHAR(20),
+                    hash_metadados VARCHAR(64),
+                    chave_idempotencia VARCHAR(64),
                     CHECK ((numero = 1 AND id_versao_anterior IS NULL) OR (numero > 1 AND id_versao_anterior IS NOT NULL))
                 )
                 """);
@@ -949,7 +1187,8 @@ class AthenaHttpControllerTest {
                     titulo VARCHAR(240) NOT NULL,
                     conteudo CLOB NOT NULL,
                     ordem INTEGER NOT NULL CHECK (ordem > 0),
-                    fontesrastreabilidade VARCHAR ARRAY NOT NULL
+                    fontesrastreabilidade VARCHAR ARRAY NOT NULL,
+                    UNIQUE (id_versao, identificador)
                 )
                 """);
         jdbc.execute("""
