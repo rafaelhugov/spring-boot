@@ -308,6 +308,10 @@ class AthenaFrontendBackendE2ETest {
                     nome VARCHAR(200) NOT NULL,
                     descricao CLOB NOT NULL,
                     situacao VARCHAR(40) NOT NULL,
+                    id_unidade_demandante INTEGER,
+                    nome_unidade_demandante VARCHAR(200),
+                    id_unidade_desenvolvedora INTEGER,
+                    nome_unidade_desenvolvedora VARCHAR(200),
                     datacriacao TIMESTAMP WITH TIME ZONE NOT NULL,
                     id_usuariocriacao UUID NOT NULL,
                     dataalteracao TIMESTAMP WITH TIME ZONE,
@@ -339,6 +343,8 @@ class AthenaFrontendBackendE2ETest {
                     apresentacao VARCHAR(240) NOT NULL,
                     datacriacao TIMESTAMP WITH TIME ZONE NOT NULL,
                     id_usuariocriacao UUID NOT NULL,
+                    id_versao_atual UUID,
+                    versao_controle BIGINT NOT NULL DEFAULT 0,
                     UNIQUE (id_projeto, identificador)
                 )
                 """);
@@ -356,6 +362,12 @@ class AthenaFrontendBackendE2ETest {
                     id_versao_anterior UUID,
                     confirmada BOOLEAN NOT NULL DEFAULT FALSE,
                     id_pedido_ajuste_origem UUID,
+                    original_binario BINARY VARYING,
+                    original_tamanho BIGINT,
+                    original_tipo_midia VARCHAR(120),
+                    original_codificacao VARCHAR(20),
+                    hash_metadados VARCHAR(64),
+                    chave_idempotencia VARCHAR(64),
                     CHECK ((numero = 1 AND id_versao_anterior IS NULL) OR (numero > 1 AND id_versao_anterior IS NOT NULL)),
                     UNIQUE (id_documento, numero)
                 )

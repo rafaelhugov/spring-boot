@@ -64,6 +64,8 @@ public final class ContratosRestAthena {
             contrato(GrupoOperacaoApi.PEDIDO_AJUSTE, MetodoHttp.POST, "/api/projetos/{idProjeto}/documentos/{idDocumento}/ajustes", OperacaoProjeto.AVALIAR,
                     Set.of("idProjeto", "idDocumento", "versao", "idItem", "justificativa"),
                     Set.of("id", "documentoOriginal", "solicitante", "data", "justificativa", "responsavelTecnico", "estado")),
+            contrato(GrupoOperacaoApi.PEDIDO_AJUSTE, MetodoHttp.GET, "/api/projetos/{idProjeto}/documentos/{idDocumento}/ajustes", OperacaoProjeto.CONSULTAR,
+                    Set.of("idProjeto", "idDocumento"), Set.of("pedidos")),
             contrato(GrupoOperacaoApi.PEDIDO_AJUSTE, MetodoHttp.POST, "/api/projetos/{idProjeto}/documentos/{idDocumento}/ajustes/{pedidoAjusteId}/tratamentos", OperacaoProjeto.AVALIAR,
                     Set.of("idProjeto", "idDocumento", "pedidoAjusteId", "decisao", "justificativa"),
                     Set.of("id", "documento", "idItem", "estado", "responsavelTecnico", "dataSolicitacao", "dataTratamento",

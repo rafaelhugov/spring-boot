@@ -11,6 +11,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.gov.mppb.athena.api.AthenaHttpController;
+import br.gov.mppb.athena.integracao.ServicoConsultaParticipantesCorporativos;
+import br.gov.mppb.athena.seguranca.DadosParticipanteCorporativo;
+import br.gov.mppb.athena.integracao.FonteCorporativaUnidades;
+import br.gov.mppb.athena.integracao.UnidadeCorporativa;
 import br.gov.mppb.athena.persistencia.DadosDocumentoPersistente;
 import br.gov.mppb.athena.persistencia.DadosItemDocumentalPersistente;
 import br.gov.mppb.athena.persistencia.DadosProjetoPersistente;
@@ -159,7 +163,11 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
 
     @Test
     void deveCobrirRegressaoDeltaEspecificacao003ComVisibilidadeAjusteVersaoConfirmacaoEAuditoria() throws Exception {
-        mvc = MockMvcBuilders.standaloneSetup(new AthenaHttpController(persistencia)).build();
+        mvc = MockMvcBuilders.standaloneSetup(new AthenaHttpController(
+                persistencia,
+                consultaParticipantesTeste(),
+                consultaUnidadesTeste()
+        )).build();
         UUID idResponsavel = UUID.randomUUID();
         UUID participanteId = UUID.randomUUID();
         UUID idProjeto = UUID.randomUUID();
@@ -320,7 +328,11 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
 
     @Test
     void deveValidarRecuperacaoFuncionalBLAthenaComBootstrapProjetoParticipanteIngestaoEFluxosDocumentais() throws Exception {
-        mvc = MockMvcBuilders.standaloneSetup(new AthenaHttpController(persistencia)).build();
+        mvc = MockMvcBuilders.standaloneSetup(new AthenaHttpController(
+                persistencia,
+                consultaParticipantesTeste(),
+                consultaUnidadesTeste()
+        )).build();
 
         // 1. Bootstrap administrativo e mantencao do projeto institucional (BL.FEATURE.001, BL.US.001)
         mvc.perform(get("/api/projetos")
@@ -337,9 +349,12 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                                   "nome": "Athena Linha de Base",
                                   "descricao": "Projeto governado multiprojeto para validacao BL TT.TST.005.",
                                   "unidade": "DITEC",
-                                  "situacao": "ATIVO"
+                                  "situacao": "ATIVO",
+                                  "unidadeDemandante": { "idPessoa": 101 },
+                                  "unidadeDesenvolvedora": { "idPessoa": 202 },
+                                  "responsavelTecnico": { "login": "responsavel" }
                                 }
-                                """))
+                """))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.identificador").value("ATHENA-BL"))
                 .andExpect(jsonPath("$.participantes[0].login").value("responsavel"));
@@ -351,7 +366,9 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                                 {
                                   "nome": "Athena Linha de Base Recuperado",
                                   "descricao": "Projeto atualizado pelo fluxo administrativo governado.",
-                                  "situacao": "ATIVO"
+                                  "situacao": "ATIVO",
+                                  "unidadeDemandante": { "idPessoa": 101 },
+                                  "unidadeDesenvolvedora": { "idPessoa": 202 }
                                 }
                                 """))
                 .andExpect(status().isOk())
@@ -598,6 +615,26 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
         ));
     }
 
+    private static ServicoConsultaParticipantesCorporativos consultaParticipantesTeste() {
+        return new ServicoConsultaParticipantesCorporativos(consulta -> List.of(
+                new DadosParticipanteCorporativo(
+                        "Ana Institucional", "123456", "Servidora", "Analista ministerial",
+                        null, "ana.institucional", "DITEC", null
+                ),
+                new DadosParticipanteCorporativo(
+                        "Responsavel Institucional", "654321", "Servidor", "Responsavel tecnico",
+                        null, "responsavel", "DITEC", null
+                )
+        ));
+    }
+
+    private static FonteCorporativaUnidades consultaUnidadesTeste() {
+        return termo -> List.of(
+                new UnidadeCorporativa(101, "Unidade Demandante", "UD"),
+                new UnidadeCorporativa(202, "Unidade Desenvolvedora", "DITEC")
+        );
+    }
+
     private static org.springframework.http.HttpHeaders cabecalhosResponsavel() {
         return autenticar("responsavel");
     }
@@ -615,7 +652,7 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
     }
 
     private static org.springframework.http.HttpHeaders cabecalhosAdministrador() {
-        return autenticar("responsavel", "ATHENA_ADMINISTRAR");
+        return autenticar("responsavel", "athena.administrar");
     }
 
     private static org.springframework.http.HttpHeaders autenticar(String login, String... autorizacoes) {
@@ -745,6 +782,10 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                     nome VARCHAR(200) NOT NULL,
                     descricao CLOB NOT NULL,
                     situacao VARCHAR(40) NOT NULL,
+                    id_unidade_demandante INTEGER,
+                    nome_unidade_demandante VARCHAR(200),
+                    id_unidade_desenvolvedora INTEGER,
+                    nome_unidade_desenvolvedora VARCHAR(200),
                     datacriacao TIMESTAMP WITH TIME ZONE NOT NULL,
                     id_usuariocriacao UUID NOT NULL,
                     dataalteracao TIMESTAMP WITH TIME ZONE,
@@ -776,6 +817,8 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                     apresentacao VARCHAR(240) NOT NULL,
                     datacriacao TIMESTAMP WITH TIME ZONE NOT NULL,
                     id_usuariocriacao UUID NOT NULL,
+                    id_versao_atual UUID,
+                    versao_controle BIGINT NOT NULL DEFAULT 0,
                     UNIQUE (id_projeto, identificador)
                 )
                 """);
@@ -793,6 +836,12 @@ class CoberturaIntegradaFuncionalidadeExecutavelTest {
                     id_versao_anterior UUID,
                     confirmada BOOLEAN NOT NULL DEFAULT FALSE,
                     id_pedido_ajuste_origem UUID,
+                    original_binario BINARY VARYING,
+                    original_tamanho BIGINT,
+                    original_tipo_midia VARCHAR(120),
+                    original_codificacao VARCHAR(20),
+                    hash_metadados VARCHAR(64),
+                    chave_idempotencia VARCHAR(64),
                     CHECK ((numero = 1 AND id_versao_anterior IS NULL) OR (numero > 1 AND id_versao_anterior IS NOT NULL)),
                     UNIQUE (id_documento, numero)
                 )

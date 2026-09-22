@@ -109,6 +109,56 @@ class PoliticaSegurancaAthenaTest {
     }
 
     @Test
+    void devePreservarLiteralDoServicoInstitucionalSemAceitarAliasOuOutroSistema() {
+        UsuarioInstitucional usuario = usuario("usuario-1", "dev.autorizado", "DITEC");
+        ProjetoInstitucional projeto = projetoComParticipante(usuario, PapelProjeto.RESPONSAVEL_TECNICO);
+
+        assertThat(PoliticaSegurancaAthena.AUTORIZACAO_ADMINISTRATIVA)
+                .isEqualTo("athena.administrar");
+        assertThat(PoliticaSegurancaAthena.autorizar(
+                projeto,
+                new ContextoAutorizacaoInstitucional(usuario, Set.of("ATHENA_ADMINISTRAR")),
+                OperacaoProjeto.ADMINISTRAR
+        ).permitido()).isFalse();
+        assertThat(PoliticaSegurancaAthena.autorizar(
+                projeto,
+                new ContextoAutorizacaoInstitucional(usuario, Set.of("cursos.administrar")),
+                OperacaoProjeto.ADMINISTRAR
+        ).permitido()).isFalse();
+    }
+
+    @Test
+    void papelPersistidoNaoConcedeAdministracaoGlobal() {
+        UsuarioInstitucional responsavel = usuario("usuario-1", "responsavel", "DITEC");
+        ProjetoInstitucional projeto = projetoComParticipante(responsavel, PapelProjeto.RESPONSAVEL_TECNICO);
+
+        assertThat(PoliticaSegurancaAthena.autorizar(
+                projeto,
+                new ContextoAutorizacaoInstitucional(responsavel, Set.of()),
+                OperacaoProjeto.ADMINISTRAR
+        ).permitido()).isFalse();
+    }
+
+    @Test
+    void deveExigirPapelPersistidoSemConcederVinculoContextualAoAdministradorGlobal() {
+        UsuarioInstitucional responsavel = usuario("usuario-1", "responsavel", "DITEC");
+        UsuarioInstitucional administrador = usuario("usuario-2", "administrador", "DITEC");
+        ProjetoInstitucional projeto = projetoComParticipante(responsavel, PapelProjeto.RESPONSAVEL_TECNICO);
+
+        assertThat(PoliticaSegurancaAthena.autorizarPapelVinculado(
+                projeto,
+                new ContextoAutorizacaoInstitucional(responsavel, Set.of()),
+                PapelProjeto.RESPONSAVEL_TECNICO
+        ).permitido()).isTrue();
+        assertThat(PoliticaSegurancaAthena.autorizarPapelVinculado(
+                projeto,
+                new ContextoAutorizacaoInstitucional(
+                        administrador, Set.of(PoliticaSegurancaAthena.AUTORIZACAO_ADMINISTRATIVA)),
+                PapelProjeto.RESPONSAVEL_TECNICO
+        ).permitido()).isFalse();
+    }
+
+    @Test
     void deveOmitirCpfDaRepresentacaoVisivelDeParticipante() {
         ParticipanteVisivel visivel = ProtecaoDadosPessoais.participanteVisivel(new DadosParticipanteCorporativo(
                 "Usuario Institucional",

@@ -37,4 +37,20 @@ public final class ServicoConsultaParticipantesCorporativos {
                 .map(ProtecaoDadosPessoais::participanteVisivel)
                 .toList();
     }
+
+    public List<ParticipanteVisivel> pesquisarParaAdministracao(
+            ContextoAutorizacaoInstitucional contexto,
+            ConsultaParticipantesCorporativos consulta
+    ) {
+        if (contexto == null || contexto.usuario() == null
+                || !contexto.possuiAutorizacao(PoliticaSegurancaAthena.AUTORIZACAO_ADMINISTRATIVA)) {
+            throw new IllegalStateException("consulta administrativa corporativa nao autorizada.");
+        }
+        if (consulta == null) {
+            throw new IllegalArgumentException("consulta corporativa de participantes deve ser informada.");
+        }
+        return fonteCorporativa.pesquisar(consulta).stream()
+                .map(ProtecaoDadosPessoais::participanteVisivel)
+                .toList();
+    }
 }

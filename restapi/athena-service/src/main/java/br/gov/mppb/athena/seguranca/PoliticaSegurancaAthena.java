@@ -11,7 +11,7 @@ import java.util.Set;
 public final class PoliticaSegurancaAthena {
 
     public static final String LOTACAO_ADMINISTRATIVA = "DITEC";
-    public static final String AUTORIZACAO_ADMINISTRATIVA = "ATHENA_ADMINISTRAR";
+    public static final String AUTORIZACAO_ADMINISTRATIVA = "athena.administrar";
 
     private PoliticaSegurancaAthena() {
     }
@@ -54,6 +54,32 @@ public final class PoliticaSegurancaAthena {
             throw new IllegalArgumentException("operacao deve ser informada.");
         }
         return "ATHENA_PROJETO_" + projeto.identificador().valor() + "_" + operacao.name();
+    }
+
+    public static ResultadoAutorizacao autorizarPapelVinculado(
+            ProjetoInstitucional projeto,
+            ContextoAutorizacaoInstitucional contexto,
+            PapelProjeto papelExigido
+    ) {
+        if (projeto == null) {
+            throw new IllegalArgumentException("projeto deve ser informado.");
+        }
+        if (papelExigido == null) {
+            throw new IllegalArgumentException("papel exigido deve ser informado.");
+        }
+        if (contexto == null || !contexto.autenticado()) {
+            return ResultadoAutorizacao.negar("identidade institucional autenticada deve ser informada.");
+        }
+
+        return projeto.participantes().stream()
+                .filter(participante -> participante.usuario().identificador()
+                        .equals(contexto.usuario().identificador()))
+                .filter(participante -> participante.papel() == papelExigido)
+                .findFirst()
+                .map(participante -> ResultadoAutorizacao.permitir(
+                        "operacao autorizada pelo vinculo " + papelExigido.name().toLowerCase(Locale.ROOT) + "."))
+                .orElseGet(() -> ResultadoAutorizacao.negar(
+                        "operacao exige vinculo ativo como " + papelExigido.name().toLowerCase(Locale.ROOT) + "."));
     }
 
     private static ResultadoAutorizacao autorizarAdministracao(ContextoAutorizacaoInstitucional contexto) {

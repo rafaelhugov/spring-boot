@@ -52,7 +52,7 @@ class ServicoConsultaParticipantesCorporativosTest {
     @Test
     void deveLimitarRetornoAosDadosInstitucionaisPermitidosSemCpf() {
         var servico = new ServicoConsultaParticipantesCorporativos(
-                new FonteCorporativaParticipantesInstitucional(List.of(participanteCorporativo()))
+                new FonteMemoria(List.of(participanteCorporativo()))
         );
 
         List<ParticipanteVisivel> participantes = servico.pesquisarParaVinculacao(
@@ -71,30 +71,24 @@ class ServicoConsultaParticipantesCorporativosTest {
     }
 
     @Test
-    void devePesquisarNaFonteCorporativaInstitucionalComFiltrosControlados() {
-        var fonte = new FonteCorporativaParticipantesInstitucional(List.of(
-                participanteCorporativo(),
-                new DadosParticipanteCorporativo(
-                        "Bruno Institucional",
-                        "654321",
-                        "Servidor",
-                        "Tecnico ministerial",
-                        "bruno.institucional@mppb.mp.br",
-                        "bruno.institucional",
-                        "CGTI",
-                        "111.111.111-11"
-                )
-        ));
+    void devePesquisarNasViewsCorporativasSemSelecionarCpf() {
+        String sql = FonteCorporativaParticipantesInstitucional.consultaSql();
 
-        List<DadosParticipanteCorporativo> participantes = fonte.pesquisar(
-                new ConsultaParticipantesCorporativos(null, null, "DITEC")
-        );
-
-        assertThat(participantes).singleElement().satisfies(participante -> {
-            assertThat(participante.nome()).isEqualTo("Ana Institucional");
-            assertThat(participante.unidadeOuLotacao()).isEqualTo("DITEC");
-            assertThat(participante.cpf()).isNull();
-        });
+        assertThat(sql)
+                .contains("autorizacao.usuarioservidor_vw")
+                .contains("diariooficial.lotacao_vw")
+                .contains("public.setor")
+                .contains("public.orgao")
+                .contains("public.pessoa")
+                .contains("WITH RECURSIVE hierarquia")
+                .contains("atual.id_orgaosuperior")
+                .contains("unidade_hierarquia.sigla")
+                .contains("NULLIF(TRIM(us.login), '') IS NOT NULL")
+                .doesNotContain("diariooficial.orgaos_dos_usuarios_ativos_vw")
+                .contains("WITH usuarios_filtrados AS MATERIALIZED")
+                .contains("FROM usuarios_filtrados us")
+                .contains("CAST(? AS VARCHAR) IS NOT NULL")
+                .doesNotContainIgnoringCase("cpf");
     }
 
     @Test
