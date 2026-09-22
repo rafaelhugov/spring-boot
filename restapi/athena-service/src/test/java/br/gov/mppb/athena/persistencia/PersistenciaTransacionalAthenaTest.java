@@ -374,7 +374,7 @@ class PersistenciaTransacionalAthenaTest {
     }
 
     @Test
-    void deveExigirVersaoAnteriorConfirmadaParaNovaVersaoPersistente() {
+    void deveAceitarNovaVersaoQuandoAnteriorExisteMasAindaNaoFoiConfirmada() {
         UUID idUsuario = UUID.randomUUID();
         UUID idProjeto = UUID.randomUUID();
         UUID idDocumento = UUID.randomUUID();
@@ -395,15 +395,17 @@ class PersistenciaTransacionalAthenaTest {
                 itemDoisId, versaoDoisId, "ITEM-2", "Item versionado", "conteudo revisado", 1, List.of("ESP.REQ.010")
         );
 
-        org.assertj.core.api.Assertions.assertThatThrownBy(() -> persistencia.registrarNovaVersaoDocumental(
+        persistencia.registrarNovaVersaoDocumental(
                 idProjeto, idUsuario, versaoDois, List.of(itemDois), agora.plusHours(1), UUID.randomUUID()
-        ))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("confirmada");
+        );
 
         assertThat(persistencia.consultarHistoricoDocumento(idDocumento).versoes())
                 .extracting(DadosVersaoDocumentoPersistente::numero)
-                .containsExactly(1);
+                .containsExactly(1, 2);
+        assertThat(persistencia.consultarHistoricoDocumento(idDocumento).versoes().get(0).confirmada())
+                .isFalse();
+        assertThat(persistencia.consultarHistoricoDocumento(idDocumento).versoes().get(1).idVersaoAnterior())
+                .isEqualTo(versaoUmId);
     }
 
     @Test
@@ -566,6 +568,10 @@ class PersistenciaTransacionalAthenaTest {
                     nome VARCHAR(200) NOT NULL,
                     descricao CLOB NOT NULL,
                     situacao VARCHAR(40) NOT NULL,
+                    id_unidade_demandante INTEGER,
+                    nome_unidade_demandante VARCHAR(200),
+                    id_unidade_desenvolvedora INTEGER,
+                    nome_unidade_desenvolvedora VARCHAR(200),
                     datacriacao TIMESTAMP WITH TIME ZONE NOT NULL,
                     id_usuariocriacao UUID NOT NULL,
                     dataalteracao TIMESTAMP WITH TIME ZONE,

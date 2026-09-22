@@ -4,6 +4,7 @@ import java.sql.Array;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.UUID;
 
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -25,6 +27,7 @@ public class PersistenciaTransacionalAthena {
 
     private final JdbcTemplate jdbc;
     private final TransactionTemplate transacao;
+    private final boolean postgres;
 
     public PersistenciaTransacionalAthena(JdbcTemplate jdbc, PlatformTransactionManager gerenciadorTransacao) {
         this.jdbc = new JdbcTemplate(Objects.requireNonNull(
@@ -32,6 +35,8 @@ public class PersistenciaTransacionalAthena {
                 "fonte de dados deve ser informada."));
         this.transacao = new TransactionTemplate(Objects.requireNonNull(
                 gerenciadorTransacao, "gerenciador de transacao deve ser informado."));
+        this.postgres = Boolean.TRUE.equals(this.jdbc.execute((ConnectionCallback<Boolean>) conexao ->
+                "PostgreSQL".equalsIgnoreCase(conexao.getMetaData().getDatabaseProductName())));
     }
 
     public void registrarHistoricoDocumental(RegistroHistoricoDocumental registro) {
@@ -66,7 +71,7 @@ public class PersistenciaTransacionalAthena {
                     INSERT INTO athena.eventoauditoria
                         (id, id_projeto, id_usuario, tipo, dados, dataocorrencia, id_usuarioregistro)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
-                    """, eventoAuditoriaId, projeto.id(), criador.id(), "PROJETO_CRIADO", "{}", dataOcorrencia, criador.id());
+                    """, eventoAuditoriaId, projeto.id(), criador.id(), "PROJETO_CRIADO", dadosAuditoria(), dataOcorrencia, criador.id());
         });
         return projeto;
     }
@@ -76,6 +81,10 @@ public class PersistenciaTransacionalAthena {
             String nome,
             String descricao,
             String situacao,
+            Integer idUnidadeDemandante,
+            String nomeUnidadeDemandante,
+            Integer idUnidadeDesenvolvedora,
+            String nomeUnidadeDesenvolvedora,
             UUID idUsuarioAlteracao,
             OffsetDateTime dataAlteracao
     ) {
@@ -84,10 +93,16 @@ public class PersistenciaTransacionalAthena {
                    SET nome = ?,
                        descricao = ?,
                        situacao = ?,
+                       id_unidade_demandante = ?,
+                       nome_unidade_demandante = ?,
+                       id_unidade_desenvolvedora = ?,
+                       nome_unidade_desenvolvedora = ?,
                        id_usuarioalteracao = ?,
                        dataalteracao = ?
                  WHERE identificador = ?
-                """, nome, descricao, situacao, idUsuarioAlteracao, dataAlteracao, identificador));
+                """, nome, descricao, situacao, idUnidadeDemandante, nomeUnidadeDemandante,
+                idUnidadeDesenvolvedora, nomeUnidadeDesenvolvedora,
+                idUsuarioAlteracao, dataAlteracao, identificador));
         return consultarProjetoPorIdentificador(identificador)
                 .orElseThrow(() -> new IllegalArgumentException("projeto deve existir para atualizacao."));
     }
@@ -111,7 +126,7 @@ public class PersistenciaTransacionalAthena {
                     INSERT INTO athena.eventoauditoria
                         (id, id_projeto, id_usuario, tipo, dados, dataocorrencia, id_usuarioregistro)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
-                    """, UUID.randomUUID(), idProjeto, usuario.id(), "PARTICIPANTE_VINCULADO", "{}", dataInicio, idUsuarioRegistro);
+                    """, UUID.randomUUID(), idProjeto, usuario.id(), "PARTICIPANTE_VINCULADO", dadosAuditoria(), dataInicio, idUsuarioRegistro);
         });
         return new DadosParticipanteProjetoPersistente(usuario.id(), usuario.identificador(), usuario.nome(), usuario.login(), unidade, papel);
     }
@@ -138,7 +153,7 @@ public class PersistenciaTransacionalAthena {
                         (id, id_projeto, id_documento, id_versao, id_usuario, tipo, dados, dataocorrencia, id_usuarioregistro)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """, eventoAuditoriaId, idProjeto, versao.idDocumento(), versao.id(), idUsuario,
-                    "NOVA_VERSAO_DOCUMENTAL_REGISTRADA", "{}", dataOcorrencia, idUsuario);
+                    "NOVA_VERSAO_DOCUMENTAL_REGISTRADA", dadosAuditoria(), dataOcorrencia, idUsuario);
             atualizarReferenciaVersaoAtual(
                     versao.idDocumento(), versao.id(), referencia.idVersaoAtual(), referencia.versaoControle()
             );
@@ -164,7 +179,7 @@ public class PersistenciaTransacionalAthena {
                         (id, id_projeto, id_documento, id_versao, id_usuario, tipo, dados, dataocorrencia, id_usuarioregistro)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """, eventoAuditoriaId, idProjeto, documento.id(), versao.id(), idUsuario,
-                    "HISTORICO_DOCUMENTAL_REGISTRADO", "{}", dataOcorrencia, idUsuario);
+                    "HISTORICO_DOCUMENTAL_REGISTRADO", dadosAuditoria(), dataOcorrencia, idUsuario);
         });
     }
 
@@ -202,7 +217,7 @@ public class PersistenciaTransacionalAthena {
                         (id, id_projeto, id_documento, id_versao, id_usuario, tipo, dados, dataocorrencia, id_usuarioregistro)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """, eventoAuditoriaId, idProjeto, documento.id(), versao.id(), idUsuario,
-                    "RECEBIMENTO_DOCUMENTAL_REGISTRADO", "{}", dataOcorrencia, idUsuario);
+                    "RECEBIMENTO_DOCUMENTAL_REGISTRADO", dadosAuditoria(), dataOcorrencia, idUsuario);
         });
     }
 
@@ -242,7 +257,7 @@ public class PersistenciaTransacionalAthena {
                         (id, id_item, id_usuario, tipo, decisao, justificativa, dados, dataocorrencia, id_usuarioregistro)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """, eventoAuditoriaId, pedido.idItem(), idResponsavel, "TRATAMENTO_PEDIDO_AJUSTE",
-                    decisao, justificativaTratamento, "{}", dataTratamento, idResponsavel);
+                    decisao, justificativaTratamento, dadosAuditoria(), dataTratamento, idResponsavel);
         });
     }
 
@@ -274,7 +289,7 @@ public class PersistenciaTransacionalAthena {
                 INSERT INTO athena.eventoauditoria
                     (id, id_projeto, id_documento, id_item, id_usuario, tipo, dados, dataocorrencia, id_usuarioregistro)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, UUID.randomUUID(), idProjeto, idDocumento, idItem, idUsuario, tipo, "{}", dataOcorrencia, idUsuario));
+                """, UUID.randomUUID(), idProjeto, idDocumento, idItem, idUsuario, tipo, dadosAuditoria(), dataOcorrencia, idUsuario));
     }
 
     public void atualizarSituacaoProjeto(UUID idProjeto, String situacao, UUID idUsuarioAlteracao, OffsetDateTime dataAlteracao) {
@@ -293,7 +308,10 @@ public class PersistenciaTransacionalAthena {
                  WHERE id = ?
                 """, this::mapearDocumento, idDocumento);
         DadosProjetoPersistente projeto = jdbc.queryForObject("""
-                SELECT id, identificador, nome, descricao, situacao, datacriacao, id_usuariocriacao
+                SELECT id, identificador, nome, descricao, situacao,
+                       id_unidade_demandante, nome_unidade_demandante,
+                       id_unidade_desenvolvedora, nome_unidade_desenvolvedora,
+                       datacriacao, id_usuariocriacao
                   FROM athena.projeto
                  WHERE id = ?
                 """, this::mapearProjeto, Objects.requireNonNull(documento, "documento deve existir.").idProjeto());
@@ -320,7 +338,10 @@ public class PersistenciaTransacionalAthena {
 
     public Optional<DadosProjetoPersistente> consultarProjetoPorIdentificador(String identificadorProjeto) {
         List<DadosProjetoPersistente> projetos = jdbc.query("""
-                SELECT id, identificador, nome, descricao, situacao, datacriacao, id_usuariocriacao
+                SELECT id, identificador, nome, descricao, situacao,
+                       id_unidade_demandante, nome_unidade_demandante,
+                       id_unidade_desenvolvedora, nome_unidade_desenvolvedora,
+                       datacriacao, id_usuariocriacao
                   FROM athena.projeto
                  WHERE identificador = ?
                 """, this::mapearProjeto, identificadorProjeto);
@@ -329,7 +350,10 @@ public class PersistenciaTransacionalAthena {
 
     public List<DadosProjetoPersistente> listarProjetos() {
         return jdbc.query("""
-                SELECT id, identificador, nome, descricao, situacao, datacriacao, id_usuariocriacao
+                SELECT id, identificador, nome, descricao, situacao,
+                       id_unidade_demandante, nome_unidade_demandante,
+                       id_unidade_desenvolvedora, nome_unidade_desenvolvedora,
+                       datacriacao, id_usuariocriacao
                   FROM athena.projeto
                  ORDER BY nome, identificador
                 """, this::mapearProjeto);
@@ -337,7 +361,10 @@ public class PersistenciaTransacionalAthena {
 
     public List<DadosProjetoPersistente> listarProjetosPorLogin(String login) {
         return jdbc.query("""
-                SELECT DISTINCT p.id, p.identificador, p.nome, p.descricao, p.situacao, p.datacriacao, p.id_usuariocriacao
+                SELECT DISTINCT p.id, p.identificador, p.nome, p.descricao, p.situacao,
+                       p.id_unidade_demandante, p.nome_unidade_demandante,
+                       p.id_unidade_desenvolvedora, p.nome_unidade_desenvolvedora,
+                       p.datacriacao, p.id_usuariocriacao
                   FROM athena.projeto p
                   JOIN athena.vinculoprojeto v ON v.id_projeto = p.id
                   JOIN athena.usuarioinstitucional u ON u.id = v.id_usuario
@@ -459,15 +486,21 @@ public class PersistenciaTransacionalAthena {
             throw new IllegalArgumentException("versao atual deve pertencer ao proprio documento.");
         }
 
+        String condicaoVersaoEsperada = postgres
+                ? "id_versao_atual IS NOT DISTINCT FROM CAST(? AS UUID)"
+                : "((id_versao_atual IS NULL AND ? IS NULL) OR id_versao_atual = ?)";
+        Object[] parametros = postgres
+                ? new Object[]{idVersaoNova, idDocumento, versaoControleEsperada, idVersaoAtualEsperada}
+                : new Object[]{idVersaoNova, idDocumento, versaoControleEsperada,
+                    idVersaoAtualEsperada, idVersaoAtualEsperada};
         int atualizados = jdbc.update("""
                 UPDATE athena.documento
                    SET id_versao_atual = ?,
                        versao_controle = versao_controle + 1
                  WHERE id = ?
                    AND versao_controle = ?
-                   AND ((id_versao_atual IS NULL AND ? IS NULL) OR id_versao_atual = ?)
-                """, idVersaoNova, idDocumento, versaoControleEsperada,
-                idVersaoAtualEsperada, idVersaoAtualEsperada);
+                   AND %s
+                """.formatted(condicaoVersaoEsperada), parametros);
         if (atualizados != 1) {
             throw new IllegalStateException("referencia atual foi alterada por outra operacao.");
         }
@@ -669,10 +702,16 @@ public class PersistenciaTransacionalAthena {
 
     private void inserirProjeto(DadosProjetoPersistente projeto) {
         jdbc.update("""
-                INSERT INTO athena.projeto (id, identificador, nome, descricao, situacao, datacriacao, id_usuariocriacao)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO athena.projeto
+                    (id, identificador, nome, descricao, situacao,
+                     id_unidade_demandante, nome_unidade_demandante,
+                     id_unidade_desenvolvedora, nome_unidade_desenvolvedora,
+                     datacriacao, id_usuariocriacao)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, projeto.id(), projeto.identificador(), projeto.nome(), projeto.descricao(),
-                projeto.situacao(), projeto.dataCriacao(), projeto.idUsuarioCriacao());
+                projeto.situacao(), projeto.idUnidadeDemandante(), projeto.nomeUnidadeDemandante(),
+                projeto.idUnidadeDesenvolvedora(), projeto.nomeUnidadeDesenvolvedora(),
+                projeto.dataCriacao(), projeto.idUsuarioCriacao());
     }
 
     private void inserirVinculo(DadosVinculoProjetoPersistente vinculo) {
@@ -713,7 +752,10 @@ public class PersistenciaTransacionalAthena {
 
     private void inserirItem(DadosItemDocumentalPersistente item) {
         jdbc.execute((ConnectionCallback<Void>) connection -> {
-            Array fontes = connection.createArrayOf("VARCHAR", item.fontesRastreabilidade().toArray());
+            String tipoElemento = "PostgreSQL".equalsIgnoreCase(connection.getMetaData().getDatabaseProductName())
+                    ? "TEXT"
+                    : "VARCHAR";
+            Array fontes = connection.createArrayOf(tipoElemento, item.fontesRastreabilidade().toArray());
             try (PreparedStatement ps = connection.prepareStatement("""
                     INSERT INTO athena.itemdocumental
                         (id, id_versao, identificador, titulo, conteudo, ordem, fontesrastreabilidade)
@@ -797,7 +839,7 @@ public class PersistenciaTransacionalAthena {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, registro.eventoAuditoriaId(), registro.projeto().id(), registro.documento().id(),
                 registro.versao().id(), registro.usuario().id(), "HISTORICO_DOCUMENTAL_REGISTRADO",
-                "{}", registro.dataOcorrencia(), registro.usuario().id());
+                dadosAuditoria(), registro.dataOcorrencia(), registro.usuario().id());
     }
 
     private void inserirAuditoriaInteracao(RegistroInteracaoHumana registro) {
@@ -806,13 +848,20 @@ public class PersistenciaTransacionalAthena {
                     (id, id_item, id_usuario, tipo, decisao, justificativa, dados, dataocorrencia, id_usuarioregistro)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, registro.eventoAuditoriaId(), registro.idItem(), registro.idUsuario(),
-                registro.tipo().name(), registro.decisao(), registro.justificativa(), "{}",
+                registro.tipo().name(), registro.decisao(), registro.justificativa(), dadosAuditoria(),
                 registro.dataRegistro(), registro.idUsuario());
+    }
+
+    private Object dadosAuditoria() {
+        return postgres ? new SqlParameterValue(Types.OTHER, "{}") : "{}";
     }
 
     private DadosProjetoPersistente mapearProjeto(ResultSet rs, int linha) throws SQLException {
         return new DadosProjetoPersistente(uuid(rs, "id"), rs.getString("identificador"), rs.getString("nome"),
-                rs.getString("descricao"), rs.getString("situacao"), horario(rs, "datacriacao"), uuid(rs, "id_usuariocriacao"));
+                rs.getString("descricao"), rs.getString("situacao"),
+                (Integer) rs.getObject("id_unidade_demandante"), rs.getString("nome_unidade_demandante"),
+                (Integer) rs.getObject("id_unidade_desenvolvedora"), rs.getString("nome_unidade_desenvolvedora"),
+                horario(rs, "datacriacao"), uuid(rs, "id_usuariocriacao"));
     }
 
     private DadosUsuarioPersistente mapearUsuario(ResultSet rs, int linha) throws SQLException {
@@ -894,12 +943,11 @@ public class PersistenciaTransacionalAthena {
                      WHERE id = ?
                        AND id_documento = ?
                        AND numero = ?
-                       AND confirmada = TRUE
                 )
                 """, Boolean.class, versao.idVersaoAnterior(), versao.idDocumento(), versao.numero() - 1);
         if (!Boolean.TRUE.equals(existe)) {
             throw new IllegalArgumentException(
-                    "versao anterior da nova versao documental deve existir confirmada no mesmo documento.");
+                    "versao anterior da nova versao documental deve existir no mesmo documento.");
         }
     }
 

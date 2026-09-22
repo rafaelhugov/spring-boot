@@ -140,6 +140,25 @@ class PoliticaSegurancaAthenaTest {
     }
 
     @Test
+    void deveExigirPapelPersistidoSemConcederVinculoContextualAoAdministradorGlobal() {
+        UsuarioInstitucional responsavel = usuario("usuario-1", "responsavel", "DITEC");
+        UsuarioInstitucional administrador = usuario("usuario-2", "administrador", "DITEC");
+        ProjetoInstitucional projeto = projetoComParticipante(responsavel, PapelProjeto.RESPONSAVEL_TECNICO);
+
+        assertThat(PoliticaSegurancaAthena.autorizarPapelVinculado(
+                projeto,
+                new ContextoAutorizacaoInstitucional(responsavel, Set.of()),
+                PapelProjeto.RESPONSAVEL_TECNICO
+        ).permitido()).isTrue();
+        assertThat(PoliticaSegurancaAthena.autorizarPapelVinculado(
+                projeto,
+                new ContextoAutorizacaoInstitucional(
+                        administrador, Set.of(PoliticaSegurancaAthena.AUTORIZACAO_ADMINISTRATIVA)),
+                PapelProjeto.RESPONSAVEL_TECNICO
+        ).permitido()).isFalse();
+    }
+
+    @Test
     void deveOmitirCpfDaRepresentacaoVisivelDeParticipante() {
         ParticipanteVisivel visivel = ProtecaoDadosPessoais.participanteVisivel(new DadosParticipanteCorporativo(
                 "Usuario Institucional",

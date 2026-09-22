@@ -56,6 +56,32 @@ public final class PoliticaSegurancaAthena {
         return "ATHENA_PROJETO_" + projeto.identificador().valor() + "_" + operacao.name();
     }
 
+    public static ResultadoAutorizacao autorizarPapelVinculado(
+            ProjetoInstitucional projeto,
+            ContextoAutorizacaoInstitucional contexto,
+            PapelProjeto papelExigido
+    ) {
+        if (projeto == null) {
+            throw new IllegalArgumentException("projeto deve ser informado.");
+        }
+        if (papelExigido == null) {
+            throw new IllegalArgumentException("papel exigido deve ser informado.");
+        }
+        if (contexto == null || !contexto.autenticado()) {
+            return ResultadoAutorizacao.negar("identidade institucional autenticada deve ser informada.");
+        }
+
+        return projeto.participantes().stream()
+                .filter(participante -> participante.usuario().identificador()
+                        .equals(contexto.usuario().identificador()))
+                .filter(participante -> participante.papel() == papelExigido)
+                .findFirst()
+                .map(participante -> ResultadoAutorizacao.permitir(
+                        "operacao autorizada pelo vinculo " + papelExigido.name().toLowerCase(Locale.ROOT) + "."))
+                .orElseGet(() -> ResultadoAutorizacao.negar(
+                        "operacao exige vinculo ativo como " + papelExigido.name().toLowerCase(Locale.ROOT) + "."));
+    }
+
     private static ResultadoAutorizacao autorizarAdministracao(ContextoAutorizacaoInstitucional contexto) {
         boolean lotadoNaDitec = LOTACAO_ADMINISTRATIVA.equalsIgnoreCase(contexto.usuario().unidade().trim());
         boolean autorizado = contexto.possuiAutorizacao(AUTORIZACAO_ADMINISTRATIVA);

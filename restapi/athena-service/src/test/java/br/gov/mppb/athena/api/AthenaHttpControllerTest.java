@@ -21,6 +21,8 @@ import br.gov.mppb.athena.persistencia.DadosVinculoProjetoPersistente;
 import br.gov.mppb.athena.persistencia.PersistenciaTransacionalAthena;
 import br.gov.mppb.athena.persistencia.RegistroHistoricoDocumental;
 import br.gov.mppb.athena.integracao.ServicoConsultaParticipantesCorporativos;
+import br.gov.mppb.athena.integracao.FonteCorporativaUnidades;
+import br.gov.mppb.athena.integracao.UnidadeCorporativa;
 import br.gov.mppb.athena.seguranca.DadosParticipanteCorporativo;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -97,7 +99,7 @@ class AthenaHttpControllerTest {
                 .standaloneSetup(new AthenaHttpController(new PersistenciaTransacionalAthena(
                         jdbc,
                         new DataSourceTransactionManager(dataSource)
-                ), consultaParticipantesTeste()))
+                ), consultaParticipantesTeste(), consultaUnidadesTeste()))
                 .build();
 
         mvcPersistente.perform(get("/api/projetos")
@@ -116,38 +118,54 @@ class AthenaHttpControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "identificador": "ATHENA",
                                   "nome": "Athena",
                                   "descricao": "Projeto administrado pelo Athena.",
                                   "unidade": "DITEC",
                                   "situacao": "ATIVO",
+                                  "unidadeDemandante": { "idPessoa": 101 },
+                                  "unidadeDesenvolvedora": { "idPessoa": 202 },
                                   "responsavelTecnico": { "login": "responsavel" }
                                 }
                 """))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.identificador").value("ATHENA"))
+                .andExpect(jsonPath("$.identificador").value(org.hamcrest.Matchers.matchesPattern(
+                        "PRJ-[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}")))
+                .andExpect(jsonPath("$.unidadeDemandante.idPessoa").value(101))
+                .andExpect(jsonPath("$.unidadeDesenvolvedora.idPessoa").value(202))
                 .andExpect(jsonPath("$.participantes[0].login").value("responsavel"));
+        String identificadorProjeto = jdbc.queryForObject("SELECT identificador FROM athena.projeto", String.class);
+        assertThat(identificadorProjeto).startsWith("PRJ-");
+        assertThat(jdbc.queryForObject(
+                "SELECT id_unidade_demandante FROM athena.projeto WHERE identificador = ?", Integer.class,
+                identificadorProjeto))
+                .isEqualTo(101);
+        assertThat(jdbc.queryForObject(
+                "SELECT nome_unidade_desenvolvedora FROM athena.projeto WHERE identificador = ?", String.class,
+                identificadorProjeto))
+                .isEqualTo("DITEC - Unidade Desenvolvedora");
 
-        mvcPersistente.perform(put("/api/projetos/ATHENA")
+        mvcPersistente.perform(put("/api/projetos/" + identificadorProjeto)
                         .headers(cabecalhosAdministrador())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
                                   "nome": "Athena Recuperado",
                                   "descricao": "Projeto editado pelo fluxo administrativo.",
-                                  "situacao": "ATIVO"
+                                  "situacao": "ATIVO",
+                                  "unidadeDemandante": { "idPessoa": 101 },
+                                  "unidadeDesenvolvedora": { "idPessoa": 202 }
                                 }
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nome").value("Athena Recuperado"));
 
-        mvcPersistente.perform(get("/api/projetos/ATHENA/participantes/pesquisa")
+        mvcPersistente.perform(get("/api/projetos/" + identificadorProjeto + "/participantes/pesquisa")
                         .headers(cabecalhosAdministrador())
                         .param("termo", "ana"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.participantes[0].login").value("ana.institucional"));
 
-        mvcPersistente.perform(post("/api/projetos/ATHENA/participantes")
+        mvcPersistente.perform(post("/api/projetos/" + identificadorProjeto + "/participantes")
                         .headers(cabecalhosAdministrador())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -162,7 +180,7 @@ class AthenaHttpControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.login").value("ana.institucional"));
 
-        mvcPersistente.perform(get("/api/projetos/ATHENA/participantes")
+        mvcPersistente.perform(get("/api/projetos/" + identificadorProjeto + "/participantes")
                         .headers(cabecalhosAdministrador()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.participantes.length()").value(2))
@@ -170,12 +188,12 @@ class AthenaHttpControllerTest {
                 .andExpect(jsonPath("$.participantes[0].papel").value("PARTICIPANTE"))
                 .andExpect(content().string(not(containsString("cpf"))));
 
-        mvcPersistente.perform(get("/api/projetos/ATHENA/participantes")
+        mvcPersistente.perform(get("/api/projetos/" + identificadorProjeto + "/participantes")
                         .headers(cabecalhosResponsavel()))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.codigo").value("OPERACAO_NAO_AUTORIZADA"));
 
-        mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/ingestoes")
+        mvcPersistente.perform(post("/api/projetos/" + identificadorProjeto + "/documentos/ingestoes")
                         .headers(cabecalhosAdministrador())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(corpoIngestao("MARKDOWN", "# Bootstrap Athena", "BL.US.005", "Documento recebido.")))
@@ -185,7 +203,7 @@ class AthenaHttpControllerTest {
         mvcPersistente.perform(get("/api/projetos")
                         .headers(cabecalhosAdministrador()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.projetos[0].identificador").value("ATHENA"));
+                .andExpect(jsonPath("$.projetos[0].identificador").value(identificadorProjeto));
     }
 
     @Test
@@ -715,7 +733,7 @@ class AthenaHttpControllerTest {
         mvcPersistente.perform(multipart("/api/projetos/ATHENA/documentos/recebimentos")
                         .file(arquivoYaml("linha-base-especificacao-003.yaml", linhaBase003))
                         .file(metadadosRecebimento(1))
-                        .headers(cabecalhosAdministrador()))
+                        .headers(cabecalhosResponsavel()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.documento").value("LINHA-BASE-003"))
                 .andExpect(jsonPath("$.versao").value(1))
@@ -733,7 +751,7 @@ class AthenaHttpControllerTest {
         mvcPersistente.perform(multipart("/api/projetos/ATHENA/documentos/recebimentos")
                         .file(arquivoYaml("linha-base-especificacao-003.yaml", linhaBase003))
                         .file(metadadosRecebimento(1))
-                        .headers(cabecalhosAdministrador()))
+                        .headers(cabecalhosResponsavel()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.criado").value(false));
         assertThat(contar(jdbc, "athena.versaodocumento")).isOne();
@@ -743,20 +761,20 @@ class AthenaHttpControllerTest {
                                 "itens:\n- id_item: CONFLITO.001\n  titulo: Conflito\n  descricao: Conteudo divergente\n"
                                         .getBytes(StandardCharsets.UTF_8)))
                         .file(metadadosRecebimento(1))
-                        .headers(cabecalhosAdministrador()))
+                        .headers(cabecalhosResponsavel()))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.codigo").value("CONFLITO_VERSAO_DOCUMENTAL"));
 
         mvcPersistente.perform(multipart("/api/projetos/ATHENA/documentos/recebimentos")
                         .file(arquivoYaml("grande.yaml", new byte[10 * 1024 * 1024 + 1]))
                         .file(metadadosRecebimento(2))
-                        .headers(cabecalhosAdministrador()))
+                        .headers(cabecalhosResponsavel()))
                 .andExpect(status().isPayloadTooLarge());
 
         mvcPersistente.perform(multipart("/api/projetos/ATHENA/documentos/recebimentos")
                         .file(new MockMultipartFile("arquivo", "invalido.yaml", "text/yaml", new byte[] {(byte) 0xC3, 0x28}))
                         .file(metadadosRecebimento(2))
-                        .headers(cabecalhosAdministrador()))
+                        .headers(cabecalhosResponsavel()))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.codigo").value("CONTEUDO_INVALIDO"));
 
@@ -764,7 +782,7 @@ class AthenaHttpControllerTest {
         mvcPersistente.perform(multipart("/api/projetos/ATHENA/documentos/recebimentos")
                         .file(arquivoYaml("linha-base-especificacao-003.yaml", linhaBase003))
                         .file(metadadosRecebimento(2))
-                        .headers(cabecalhosAdministrador()))
+                        .headers(cabecalhosResponsavel()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.versao").value(2))
                 .andExpect(jsonPath("$.itens.length()").value(152));
@@ -779,7 +797,7 @@ class AthenaHttpControllerTest {
                                 ]}
                                 """.getBytes(StandardCharsets.UTF_8)))
                         .file(metadadosRecebimento("DOC-ROLLBACK", 1, "JSON"))
-                        .headers(cabecalhosAdministrador()))
+                        .headers(cabecalhosResponsavel()))
                 .andExpect(status().isBadRequest());
         assertThat(contar(jdbc, "athena.documento")).isEqualTo(documentosAntesRollback);
         assertThat(contar(jdbc, "athena.versaodocumento")).isEqualTo(versoesAntesRollback);
@@ -791,6 +809,74 @@ class AthenaHttpControllerTest {
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.codigo").value("OPERACAO_NAO_AUTORIZADA"));
         assertThat(contar(jdbc, "athena.versaodocumento")).isEqualTo(versoesAntesRollback);
+
+        mvcPersistente.perform(multipart("/api/projetos/ATHENA/documentos/recebimentos")
+                        .file(arquivoYaml("administrador-sem-vinculo.yaml", linhaBase003))
+                        .file(metadadosRecebimento(3))
+                        .headers(autenticar("administrador", "athena.administrar")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.codigo").value("OPERACAO_NAO_AUTORIZADA"));
+        assertThat(contar(jdbc, "athena.versaodocumento")).isEqualTo(versoesAntesRollback);
+    }
+
+    @Test
+    void deveReceberConsultarEAvaliarEntendimentoCanonicoDoRuntime() throws Exception {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource(
+                "jdbc:h2:mem:athena-runtime-" + UUID.randomUUID()
+                        + ";MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1"
+                        + ";INIT=CREATE SCHEMA IF NOT EXISTS athena",
+                "sa",
+                ""
+        );
+        dataSource.setDriverClassName("org.h2.Driver");
+        JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+        criarEsquemaPersistente(jdbc);
+        registrarProjetoPersistenteSemDocumento(jdbc);
+        MockMvc mvcPersistente = MockMvcBuilders
+                .standaloneSetup(new AthenaHttpController(new PersistenciaTransacionalAthena(
+                        jdbc,
+                        new DataSourceTransactionManager(dataSource)
+                )))
+                .build();
+        byte[] entendimento = Files.readAllBytes(Path.of(
+                "../../../ai-first/projetos/athena/especificacao/entendimento-projeto-v002.yaml")
+                .toAbsolutePath().normalize());
+
+        mvcPersistente.perform(multipart("/api/projetos/ATHENA/documentos/recebimentos")
+                        .file(arquivoYaml("entendimento-projeto-v002.yaml", entendimento))
+                        .file(metadadosRecebimento("ENTENDIMENTO-PROJETO", 1, "YAML"))
+                        .headers(cabecalhosResponsavel()))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.itens.length()").value(47));
+
+        mvcPersistente.perform(get("/api/projetos/ATHENA/documentos/ENTENDIMENTO-PROJETO")
+                        .headers(cabecalhosResponsavel()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.versoes[0].contratoRuntime.tipo").value("ENTENDIMENTO_PROJETO"))
+                .andExpect(jsonPath("$.versoes[0].contratoRuntime.versao").value("1.0"))
+                .andExpect(jsonPath("$.versoes[0].contratoRuntime.metadados.versao_documento").value(2))
+                .andExpect(jsonPath("$.versoes[0].itens.length()").value(47))
+                .andExpect(jsonPath("$.versoes[0].itens[0].identificador").value("ENT.PROBLEMA.001"))
+                .andExpect(jsonPath("$.versoes[0].itens[0].categoria").value("PROBLEMA"))
+                .andExpect(jsonPath("$.versoes[0].itens[0].estadoConhecimento").value("CONFIRMADO"))
+                .andExpect(jsonPath("$.versoes[0].itens[0].estadoGovernanca").value("APROVADO"))
+                .andExpect(jsonPath("$.versoes[0].itens[0].versaoItem").value(1))
+                .andExpect(jsonPath("$.versoes[0].itens[0].fontesUpstream[0]").value("FONTE.001"));
+
+        mvcPersistente.perform(post("/api/projetos/ATHENA/documentos/ENTENDIMENTO-PROJETO/avaliacoes")
+                        .headers(cabecalhosResponsavel())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "versao": 1,
+                                  "idItem": "ENT.PROBLEMA.001",
+                                  "decisao": "APROVAR",
+                                  "justificativa": "Item validado conforme o contrato do runtime."
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.decisao").value("APROVAR"));
+        assertThat(contar(jdbc, "athena.avaliacao")).isOne();
     }
 
     private static void confirmarVersaoPersistente(MockMvc mvcPersistente, int versao, String escopo) throws Exception {
@@ -1101,8 +1187,19 @@ class AthenaHttpControllerTest {
                 new DadosParticipanteCorporativo(
                         "Responsavel Institucional", "654321", "Servidor", "Responsavel tecnico",
                         null, "responsavel", "DITEC", null
+                ),
+                new DadosParticipanteCorporativo(
+                        "Avaliador Institucional", "654322", "Servidor", "Avaliador",
+                        null, "avaliador", "DITEC", null
                 )
         ));
+    }
+
+    private static FonteCorporativaUnidades consultaUnidadesTeste() {
+        return termo -> List.of(
+                new UnidadeCorporativa(101, "Unidade Demandante", "UD"),
+                new UnidadeCorporativa(202, "Unidade Desenvolvedora", "DITEC")
+        );
     }
 
     private static void criarEsquemaPersistente(JdbcTemplate jdbc) {
@@ -1122,6 +1219,10 @@ class AthenaHttpControllerTest {
                     nome VARCHAR(200) NOT NULL,
                     descricao CLOB NOT NULL,
                     situacao VARCHAR(40) NOT NULL,
+                    id_unidade_demandante INTEGER,
+                    nome_unidade_demandante VARCHAR(200),
+                    id_unidade_desenvolvedora INTEGER,
+                    nome_unidade_desenvolvedora VARCHAR(200),
                     datacriacao TIMESTAMP WITH TIME ZONE NOT NULL,
                     id_usuariocriacao UUID NOT NULL,
                     dataalteracao TIMESTAMP WITH TIME ZONE,

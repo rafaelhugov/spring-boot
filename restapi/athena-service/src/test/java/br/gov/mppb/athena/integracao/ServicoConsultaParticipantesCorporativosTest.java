@@ -77,7 +77,17 @@ class ServicoConsultaParticipantesCorporativosTest {
         assertThat(sql)
                 .contains("autorizacao.usuarioservidor_vw")
                 .contains("diariooficial.lotacao_vw")
-                .contains("diariooficial.orgaos_dos_usuarios_ativos_vw")
+                .contains("public.setor")
+                .contains("public.orgao")
+                .contains("public.pessoa")
+                .contains("WITH RECURSIVE hierarquia")
+                .contains("atual.id_orgaosuperior")
+                .contains("unidade_hierarquia.sigla")
+                .contains("NULLIF(TRIM(us.login), '') IS NOT NULL")
+                .doesNotContain("diariooficial.orgaos_dos_usuarios_ativos_vw")
+                .contains("WITH usuarios_filtrados AS MATERIALIZED")
+                .contains("FROM usuarios_filtrados us")
+                .contains("CAST(? AS VARCHAR) IS NOT NULL")
                 .doesNotContainIgnoringCase("cpf");
     }
 
