@@ -11,7 +11,7 @@
   </parent>
 
   <artifactId>mobile-service</artifactId>
-  <version>0.3.23</version>
+  <version>0.3.24</version>
   <name>mobile-service</name>
   <description>API mobile.</description>
 
