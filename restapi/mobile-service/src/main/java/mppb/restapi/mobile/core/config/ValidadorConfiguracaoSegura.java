@@ -18,7 +18,6 @@ public class ValidadorConfiguracaoSegura implements ApplicationRunner {
             "spring.datasource.username",
             "spring.datasource.password",
             "mpvirtual.recursos-humanos.base-url",
-            "google.wallet.public-base-url",
             "jcr.url",
             "jcr.user",
             "jcr.password");
@@ -64,7 +63,6 @@ public class ValidadorConfiguracaoSegura implements ApplicationRunner {
         rejeitarValor("jcr.user", "admin");
         rejeitarValor("jcr.password", "admin");
         rejeitarUrlLocal("spring.datasource.url");
-        rejeitarUrlLocal("google.wallet.public-base-url");
         validarCors();
     }
 

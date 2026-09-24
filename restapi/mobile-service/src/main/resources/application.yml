@@ -105,14 +105,6 @@ notificacoes-funcionais:
   max-tentativas: ${NOTIFICACOES_FUNCIONAIS_MAX_TENTATIVAS:3}
   max-matriculas-por-ciclo: ${NOTIFICACOES_FUNCIONAIS_MAX_MATRICULAS_POR_CICLO:300}
 
-google:
-  wallet:
-    issuer-id: ${GOOGLE_WALLET_ISSUER_ID:3388000000023147746}
-    class-id: ${GOOGLE_WALLET_CLASS_ID:3388000000023147746.CarteiraFuncionalMPPB}
-    credentials-path: ${GOOGLE_WALLET_CREDENTIALS_PATH:google-credentials.json}
-    public-base-url: ${GOOGLE_WALLET_PUBLIC_BASE_URL:}
-    origins: ${GOOGLE_WALLET_ORIGINS:}
-
 jcr:
   url: ${JCR_URL:}
   user: ${JCR_USER:}

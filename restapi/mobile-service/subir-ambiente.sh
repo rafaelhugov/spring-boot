@@ -100,10 +100,8 @@ if [ -n "$CLOUDFLARED_CMD" ]; then
 
     if [ -n "$PUBLIC_URL" ]; then
         echo -e "${COLOR_GREEN}Túnel estabelecido com sucesso! URL: ${PUBLIC_URL}${COLOR_RESET}"
-        export GOOGLE_WALLET_PUBLIC_BASE_URL="$PUBLIC_URL"
-        export GOOGLE_WALLET_ORIGINS="http://localhost:9003,http://localhost:9004,http://localhost:8086,${PUBLIC_URL}"
     else
-        echo -e "${COLOR_RED}Aviso: Não foi possível obter a URL do túnel Cloudflare. As imagens locais não carregarão no Google Wallet.${COLOR_RESET}"
+        echo -e "${COLOR_RED}Aviso: Não foi possível obter a URL do túnel Cloudflare.${COLOR_RESET}"
     fi
 fi
 

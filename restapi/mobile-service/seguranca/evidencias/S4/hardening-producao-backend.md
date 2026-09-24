@@ -17,7 +17,6 @@ Evitar inicialização silenciosa do `mobile-service` com perfil, credenciais ou
   - `spring.datasource.username`
   - `spring.datasource.password`
   - `mpvirtual.recursos-humanos.base-url`
-  - `google.wallet.public-base-url`
   - `jcr.url`
   - `jcr.user`
   - `jcr.password`
@@ -48,7 +47,7 @@ Resultado: aprovado.
 Varredura executada:
 
 ```bash
-rg -n "SPRING_PROFILES_ACTIVE:dev|JPA_SHOW_SQL:true|PG_PASSWORD:senha|JCR_USER:admin|JCR_PASSWORD:admin|GOOGLE_WALLET_PUBLIC_BASE_URL:http://localhost|MPVIRTUAL_RECURSOS_HUMANOS_BASE_URL:http://" src/main/resources/application.yml src/main/java src/test/java
+rg -n "SPRING_PROFILES_ACTIVE:dev|JPA_SHOW_SQL:true|PG_PASSWORD:senha|JCR_USER:admin|JCR_PASSWORD:admin|MPVIRTUAL_RECURSOS_HUMANOS_BASE_URL:http://" src/main/resources/application.yml src/main/java src/test/java
 ```
 
 Resultado: sem ocorrências.
