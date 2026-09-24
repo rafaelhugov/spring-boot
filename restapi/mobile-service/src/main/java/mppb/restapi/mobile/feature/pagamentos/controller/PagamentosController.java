@@ -4,19 +4,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import mppb.restapi.common.infrastructure.client.authapi.AuthServiceClient;
-import mppb.restapi.common.infrastructure.client.authapi.dto.ConsultaAutorizacaoRequestDto;
-import mppb.restapi.common.infrastructure.client.authapi.dto.ConsultaAutorizacaoResponseDto;
 import mppb.restapi.common.infrastructure.util.Constants;
-import mppb.restapi.mobile.core.security.ResolvedorTokenAutenticacao;
-import mppb.restapi.mobile.feature.pagamentos.dto.PagamentoItemDto;
+import mppb.restapi.mobile.core.security.AutenticacaoAtual;
 import mppb.restapi.mobile.feature.pagamentos.dto.PagamentosResponseDto;
 import mppb.restapi.mobile.feature.pagamentos.service.PagamentosService;
 
@@ -28,34 +22,11 @@ import mppb.restapi.mobile.feature.pagamentos.service.PagamentosService;
 public class PagamentosController {
 
     private final PagamentosService pagamentosService;
-    private final AuthServiceClient authServiceClient;
-
-    private String extractLoginFromToken(String token) {
-        ConsultaAutorizacaoRequestDto req = new ConsultaAutorizacaoRequestDto(token, "ANDROID");
-        ConsultaAutorizacaoResponseDto autorizacao = null;
-        try {
-            autorizacao = authServiceClient.consultaAutorizacao(req);
-        } catch (Exception e) {
-            log.error("Erro ao consultar autorizacao no auth-service", e);
-        }
-
-        if (autorizacao == null || autorizacao.getUsuario() == null || autorizacao.getUsuario().getLogin() == null) {
-            return null;
-        }
-
-        return autorizacao.getUsuario().getLogin();
-    }
 
     @GetMapping("/exercicios")
-    public ResponseEntity<java.util.List<Integer>> getExerciciosDisponiveis(
-            @RequestHeader(value = "Authorization", required = false) String authorization,
-            @RequestParam(value = "token", required = false) String tokenLegado) {
+    public ResponseEntity<java.util.List<Integer>> getExerciciosDisponiveis() {
 
-        String token = ResolvedorTokenAutenticacao.resolver(authorization, tokenLegado);
-        if (token == null) {
-            return ResponseEntity.status(401).build();
-        }
-        String login = extractLoginFromToken(token);
+        String login = AutenticacaoAtual.login().orElse(null);
 
         if (login == null) {
             return ResponseEntity.status(401).build();
@@ -86,15 +57,9 @@ public class PagamentosController {
      */
     @GetMapping("/{exercicio}")
     public ResponseEntity<PagamentosResponseDto> getPagamentos(
-            @PathVariable("exercicio") String exercicio,
-            @RequestHeader(value = "Authorization", required = false) String authorization,
-            @RequestParam(value = "token", required = false) String tokenLegado) {
+            @PathVariable("exercicio") String exercicio) {
 
-        String token = ResolvedorTokenAutenticacao.resolver(authorization, tokenLegado);
-        if (token == null) {
-            return ResponseEntity.status(401).build();
-        }
-        String login = extractLoginFromToken(token);
+        String login = AutenticacaoAtual.login().orElse(null);
 
         if (login == null) {
             return ResponseEntity.status(401).build();

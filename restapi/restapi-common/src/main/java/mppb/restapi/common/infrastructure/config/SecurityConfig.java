@@ -26,19 +26,6 @@ public class SecurityConfig {
             "/favicon.ico",
             "/" + Constants.API_PREFIX + "/public/**", // Ex: "/api/public/**"
             "/public/**", // Permitir sem prefixo de API
-            "/" + Constants.API_PREFIX + "/carteiras-funcionais/**",
-            "/carteiras-funcionais/**",
-            "/contracheques/**",
-            "/ferias/**",
-            "/" + Constants.API_PREFIX + "/ferias/**",
-            "/recursos-humanos/**",
-            "/" + Constants.API_PREFIX + "/recursos-humanos/**",
-            "/designacoes/**",
-            "/" + Constants.API_PREFIX + "/designacoes/**",
-            "/notificacoes/dispositivos/**",
-            "/" + Constants.API_PREFIX + "/notificacoes/dispositivos/**",
-            "/pagamentos/**",
-            "/" + Constants.API_PREFIX + "/pagamentos/**",
             "/" + Constants.API_PREFIX + "/manuais/pdf/**", // Permitir download nativo via browser (validação manual)
             "/manuais/pdf/**",
             "/" + Constants.API_PREFIX + "/manuais/pdf/solicitante",
@@ -72,7 +59,7 @@ public class SecurityConfig {
                 .httpBasic(httpBasic -> httpBasic.authenticationEntryPoint((request, response, authException) -> {
                     response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
                     response.setContentType("application/json;charset=UTF-8");
-                    response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"" + authException.getMessage() + "\"}");
+                    response.getWriter().write("{\"error\":\"Unauthorized\"}");
                 }))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
