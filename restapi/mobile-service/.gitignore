@@ -39,6 +39,8 @@ build/
 .env.*
 google-credentials.json
 deploy.sh
+src/main/resources/sql/2026-09-24_mpe_producao_pendencia_noticias_fcm.sql
+src/main/resources/sql/2026-09-24_mpe_producao_pendencias_notificacoes.sql
 
 ### Mac OS ###
 .DS_Store
