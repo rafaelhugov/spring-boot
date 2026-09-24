@@ -38,6 +38,12 @@ build/
 /src/main/resources/application.properties
 .env.*
 google-credentials.json
+*credentials*.json
+*service-account*.json
+*.jks
+*.p12
+*.pem
+*.p8
 deploy.sh
 src/main/resources/sql/2026-09-24_mpe_producao_pendencia_noticias_fcm.sql
 src/main/resources/sql/2026-09-24_mpe_producao_pendencias_notificacoes.sql

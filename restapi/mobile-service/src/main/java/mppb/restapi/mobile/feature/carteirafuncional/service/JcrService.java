@@ -15,13 +15,13 @@ import javax.jcr.SimpleCredentials;
 @Service
 public class JcrService {
 
-    @Value("${jcr.url://10.94.0.15:54272/jackrabbit.repository}")
+    @Value("${jcr.url}")
     private String url;
 
-    @Value("${jcr.user:admin}")
+    @Value("${jcr.user}")
     private String user;
 
-    @Value("${jcr.password:admin}")
+    @Value("${jcr.password}")
     private String password;
 
     protected Session getSession() {
