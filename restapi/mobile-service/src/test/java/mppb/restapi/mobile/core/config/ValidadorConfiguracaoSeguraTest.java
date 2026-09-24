@@ -63,7 +63,6 @@ class ValidadorConfiguracaoSeguraTest {
                 .withProperty("spring.jpa.show-sql", "false")
                 .withProperty("spring.jpa.properties.hibernate.format_sql", "false")
                 .withProperty("mpvirtual.recursos-humanos.base-url", "http://mpvirtual-interno/api")
-                .withProperty("google.wallet.public-base-url", "https://mobile-api.mppb.mp.br")
                 .withProperty("jcr.url", "//jcr-producao:54272/jackrabbit.repository")
                 .withProperty("jcr.user", "mobile_jcr")
                 .withProperty("jcr.password", "senha-jcr")
