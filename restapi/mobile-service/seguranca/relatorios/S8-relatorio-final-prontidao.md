@@ -6,11 +6,34 @@ Escopo: App MPPB+ Flutter e backend `mobile-service`.
 
 ## Decisao tecnica
 
-**Status: GO condicionado para continuidade controlada, NO-GO para declaracao final irrestrita de producao.**
+**Ciclo local S1-S8: ENCERRADO.**
+
+**GO condicionado para continuidade/homologacao.**
+
+**NO-GO para declaracao irrestrita de producao ate fechamento dos gates externos.**
 
 A avaliacao local S1-S8 nao encontrou regressao critica nos controles implementados. Os principais riscos inicialmente identificados foram tratados ou receberam gates/evidencias: token em URL, senha persistida para biometria, endpoints sensiveis fora do Spring Security, defaults inseguros, segredos em repositorio e ausencia de trilha de evidencias.
 
 A declaracao final irrestrita de producao ainda depende de itens externos ao codigo: runner GitLab ativo, DAST autenticado em homologacao, SCA/SBOM formal por release, testes dinamicos mobile em aparelho controlado e validacao iOS.
+
+## Interpretacao correta da biometria
+
+O ciclo S5 **nao implementou o login biometrico seguro final desejado**.
+
+O que foi concluido:
+
+- fluxo biometrico inseguro baseado em senha persistida removido/desativado;
+- impedimento de nova persistencia recuperavel da senha institucional;
+- teste e gate contra regressao de `saved_password`.
+
+O que permanece como **evolucao funcional futura**:
+
+- credencial de dispositivo propria, separada da senha e revogavel;
+- validacao no backend/auth-api;
+- criacao de nova sessao apos autenticacao biometrica local;
+- revogacao/substituicao do vinculo quando outro usuario entra com usuario e senha.
+
+Enquanto esse contrato seguro nao existir, a senha institucional nao pode ser armazenada nem recuperada para login biometrico.
 
 ## Resultado por fase
 
@@ -74,8 +97,10 @@ Resultados detalhados:
 | DAST homologacao | Segurança/QA/DevOps | Ambiente autorizado, usuarios de teste e escopo aprovado |
 | iOS/IPA | Mobile/Infra Apple | Certificado, provisioning e aparelho/simulador controlado |
 | SCA/SBOM formal | Segurança/DevOps | Ferramenta institucional e retencao dos artefatos |
+| SAST dedicado | Segurança/DevOps | Definir ferramenta institucional e integrar ao pipeline |
 | Testes dinamicos mobile | Segurança/Mobile | Laboratorio com aparelho/emulador e autorizacao |
 | Rotacao real de segredos | Owners dos sistemas integrados | Processo/cofre institucional e janela de rotacao |
+| Rate limiting distribuido | Infra/Backend | Confirmar topologia; se houver multiplas instancias, usar gateway/proxy/Redis/solucao institucional |
 
 ## Riscos residuais aceitos temporariamente
 
@@ -84,9 +109,11 @@ Resultados detalhados:
 | BOLA/BFLA multiusuario ainda nao testado em homologacao | Alta | Exige massa e credenciais de usuarios distintos | Antes da promocao final |
 | DAST ativo nao executado | Alta | Nao ha homologacao autorizada neste ciclo | Antes da promocao final |
 | SBOM/SCA formal ausente | Media/Alta | Pipeline local gera inventario, nao triagem CVE formal | Proximo ciclo de release |
+| SAST dedicado ausente | Media/Alta | Scripts locais de regressao nao substituem ferramenta SAST | Antes de gate final de release |
 | iOS sem validacao | Media | Ambiente Apple nao disponivel nesta execucao | Antes de release iOS |
 | Biometria segura futura sem contrato backend | Media | Fluxo inseguro foi desativado; funcionalidade segura futura deve ser desenhada | Antes de reabilitar biometria |
 | Rate limit/captcha em topologia real nao testado | Media | Teste ativo poderia afetar ambiente sem autorizacao | Homologacao com carga controlada |
+| Rate limit distribuido nao comprovado | Media | Estado atual distingue controle local/em memoria de controle distribuido | Revisar com Infra antes de producao |
 
 ## Conclusao
 
