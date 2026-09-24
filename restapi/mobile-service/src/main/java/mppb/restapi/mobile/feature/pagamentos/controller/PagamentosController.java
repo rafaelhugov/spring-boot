@@ -4,17 +4,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.infrastructure.client.authapi.AuthServiceClient;
 import mppb.restapi.common.infrastructure.client.authapi.dto.ConsultaAutorizacaoRequestDto;
 import mppb.restapi.common.infrastructure.client.authapi.dto.ConsultaAutorizacaoResponseDto;
 import mppb.restapi.common.infrastructure.util.Constants;
+import mppb.restapi.mobile.core.security.ResolvedorTokenAutenticacao;
 import mppb.restapi.mobile.feature.pagamentos.dto.PagamentoItemDto;
 import mppb.restapi.mobile.feature.pagamentos.dto.PagamentosResponseDto;
 import mppb.restapi.mobile.feature.pagamentos.service.PagamentosService;
@@ -47,8 +48,13 @@ public class PagamentosController {
 
     @GetMapping("/exercicios")
     public ResponseEntity<java.util.List<Integer>> getExerciciosDisponiveis(
-            @RequestParam("token") @NotNull String token) {
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestParam(value = "token", required = false) String tokenLegado) {
 
+        String token = ResolvedorTokenAutenticacao.resolver(authorization, tokenLegado);
+        if (token == null) {
+            return ResponseEntity.status(401).build();
+        }
         String login = extractLoginFromToken(token);
 
         if (login == null) {
@@ -75,14 +81,19 @@ public class PagamentosController {
     }
 
     /**
-     * GET /pagamentos/{exercicio}?token=XXX
+     * GET /pagamentos/{exercicio}
      * Returns all pagamentos for the authenticated user in the given exercício year.
      */
     @GetMapping("/{exercicio}")
     public ResponseEntity<PagamentosResponseDto> getPagamentos(
             @PathVariable("exercicio") String exercicio,
-            @RequestParam("token") @NotNull String token) {
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestParam(value = "token", required = false) String tokenLegado) {
 
+        String token = ResolvedorTokenAutenticacao.resolver(authorization, tokenLegado);
+        if (token == null) {
+            return ResponseEntity.status(401).build();
+        }
         String login = extractLoginFromToken(token);
 
         if (login == null) {

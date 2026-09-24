@@ -6,18 +6,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.CrossOrigin;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.infrastructure.client.authapi.AuthServiceClient;
 import mppb.restapi.common.infrastructure.client.authapi.dto.ConsultaAutorizacaoRequestDto;
 import mppb.restapi.common.infrastructure.client.authapi.dto.ConsultaAutorizacaoResponseDto;
 import mppb.restapi.common.infrastructure.util.Constants;
+import mppb.restapi.mobile.core.security.ResolvedorTokenAutenticacao;
 import mppb.restapi.mobile.feature.contracheque.dto.CompetenciaDto;
 import mppb.restapi.mobile.feature.contracheque.dto.ContrachequeResponseDto;
 import mppb.restapi.mobile.feature.contracheque.service.ContrachequeService;
@@ -49,7 +50,13 @@ public class ContrachequeController {
     }
 
     @GetMapping("/competencias")
-    public ResponseEntity<List<CompetenciaDto>> getCompetencias(@RequestParam("token") @NotNull String token) {
+    public ResponseEntity<List<CompetenciaDto>> getCompetencias(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestParam(value = "token", required = false) String tokenLegado) {
+        String token = ResolvedorTokenAutenticacao.resolver(authorization, tokenLegado);
+        if (token == null) {
+            return ResponseEntity.status(401).build();
+        }
         String login = extractLoginFromToken(token);
 
         if (login == null) {
@@ -77,8 +84,13 @@ public class ContrachequeController {
     public ResponseEntity<ContrachequeResponseDto> getContracheque(
             @PathVariable("mes") Integer mes,
             @PathVariable("ano") Integer ano,
-            @RequestParam("token") @NotNull String token) {
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestParam(value = "token", required = false) String tokenLegado) {
 
+        String token = ResolvedorTokenAutenticacao.resolver(authorization, tokenLegado);
+        if (token == null) {
+            return ResponseEntity.status(401).build();
+        }
         String login = extractLoginFromToken(token);
 
         if (login == null) {
@@ -110,8 +122,13 @@ public class ContrachequeController {
     public ResponseEntity<byte[]> getContrachequePdf(
             @PathVariable("mes") Integer mes,
             @PathVariable("ano") Integer ano,
-            @RequestParam("token") @NotNull String token) {
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestParam(value = "token", required = false) String tokenLegado) {
 
+        String token = ResolvedorTokenAutenticacao.resolver(authorization, tokenLegado);
+        if (token == null) {
+            return ResponseEntity.status(401).build();
+        }
         String login = extractLoginFromToken(token);
 
         if (login == null) {

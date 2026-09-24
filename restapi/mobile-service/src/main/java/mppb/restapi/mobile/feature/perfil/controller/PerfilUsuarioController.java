@@ -3,14 +3,15 @@ package mppb.restapi.mobile.feature.perfil.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.infrastructure.util.Constants;
+import mppb.restapi.mobile.core.security.ResolvedorTokenAutenticacao;
 import mppb.restapi.mobile.feature.perfil.dto.PerfilUsuarioDto;
 import mppb.restapi.mobile.feature.perfil.service.PerfilUsuarioService;
 
@@ -24,8 +25,14 @@ public class PerfilUsuarioController {
     private final PerfilUsuarioService service;
 
     @GetMapping("/dados")
-    public ResponseEntity<PerfilUsuarioDto> dados(@RequestParam("token") @NotNull String token) {
+    public ResponseEntity<PerfilUsuarioDto> dados(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestParam(value = "token", required = false) String tokenLegado) {
         try {
+            String token = ResolvedorTokenAutenticacao.resolver(authorization, tokenLegado);
+            if (token == null) {
+                return ResponseEntity.status(401).build();
+            }
             PerfilUsuarioDto perfil = service.buscarPerfilAutenticado(token);
             if (perfil == null) {
                 return ResponseEntity.status(401).build();

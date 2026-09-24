@@ -40,7 +40,7 @@ class ConcessaoFolgaControllerTest {
         request.setDataInicial("14/09/2026");
         request.setNumeroDias(15);
 
-        ResponseEntity<String> response = controller.cadastrarSolicitacao("token-auth", 422364L, request);
+        ResponseEntity<String> response = controller.cadastrarSolicitacao("Bearer token-auth", null, 422364L, request);
 
         assertEquals(200, response.getStatusCode().value());
         assertEquals("token-auth", concessaoFolgaService.mpVirtualCredentialRecebida);
@@ -54,7 +54,7 @@ class ConcessaoFolgaControllerTest {
         request.setDataInicial("14/09/2026");
         request.setNumeroDias(15);
 
-        ResponseEntity<String> response = controller.cadastrarSolicitacao("token-auth", 422364L, request);
+        ResponseEntity<String> response = controller.cadastrarSolicitacao("Bearer token-auth", null, 422364L, request);
 
         assertEquals(200, response.getStatusCode().value());
         assertEquals("renata.luz", concessaoFolgaService.mpVirtualCredentialRecebida);
@@ -64,7 +64,7 @@ class ConcessaoFolgaControllerTest {
     void operacoesDaSolicitacaoTambemUsamLoginNoModoHomologacao() {
         ReflectionTestUtils.setField(controller, "mpVirtualAuthMode", "login");
 
-        ResponseEntity<String> response = controller.consultarOperacoesSolicitacao("token-auth", 514825L);
+        ResponseEntity<String> response = controller.consultarOperacoesSolicitacao("Bearer token-auth", null, 514825L);
 
         assertEquals(200, response.getStatusCode().value());
         assertEquals("renata.luz", concessaoFolgaService.mpVirtualCredentialRecebida);
