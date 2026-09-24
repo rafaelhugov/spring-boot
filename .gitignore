@@ -35,6 +35,17 @@ gradlew
 .project
 .factorypath
 restapi.env
+**/.env
+**/.env.*
+**/*.env
+**/.docker/*.env
+**/*credentials*.json
+**/*service-account*.json
+**/google-credentials.json
+**/*.jks
+**/*.p12
+**/*.pem
+**/*.p8
 restapi/cursos-service/.env.dev
 restapi/athena-service/.env.*
 restapi/mobile-service/backend_log.txt
