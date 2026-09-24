@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,6 +24,7 @@ import mppb.restapi.common.infrastructure.client.authapi.AuthServiceClient;
 import mppb.restapi.common.infrastructure.client.authapi.dto.ConsultaAutorizacaoRequestDto;
 import mppb.restapi.common.infrastructure.client.authapi.dto.ConsultaAutorizacaoResponseDto;
 import mppb.restapi.common.infrastructure.util.Constants;
+import mppb.restapi.mobile.core.security.ResolvedorTokenAutenticacao;
 import mppb.restapi.mobile.feature.concessaofolga.dto.AusenciaCalendarioDto;
 import mppb.restapi.mobile.feature.concessaofolga.dto.ConcessaoFolgaDto;
 import mppb.restapi.mobile.feature.concessaofolga.dto.OperacaoSolicitacaoRequestDto;
@@ -45,7 +47,12 @@ public class ConcessaoFolgaController {
 
     @GetMapping("/minhas-concessoes-folga")
     public ResponseEntity<List<ConcessaoFolgaDto>> minhasConcessoes(
-            @RequestParam("token") @NotNull String token) {
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestParam(value = "token", required = false) String tokenLegado) {
+        String token = tokenObrigatorio(authorization, tokenLegado);
+        if (token == null) {
+            return ResponseEntity.status(401).build();
+        }
         UsuarioAutenticado usuario = usuarioAutenticado(token);
         if (usuario == null) {
             log.warn("Concessoes de folga negadas: usuario nao autenticado ou sem matricula");
@@ -67,9 +74,14 @@ public class ConcessaoFolgaController {
 
     @GetMapping("/minhas-ausencias")
     public ResponseEntity<List<AusenciaCalendarioDto>> minhasAusencias(
-            @RequestParam("token") @NotNull String token,
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestParam(value = "token", required = false) String tokenLegado,
             @RequestParam(value = "mes", required = false) Integer mes,
             @RequestParam(value = "ano", required = false) Integer ano) {
+        String token = tokenObrigatorio(authorization, tokenLegado);
+        if (token == null) {
+            return ResponseEntity.status(401).build();
+        }
         UsuarioAutenticado usuario = usuarioAutenticado(token);
         if (usuario == null) {
             log.warn("Ausencias negadas: usuario nao autenticado ou sem matricula");
@@ -93,9 +105,14 @@ public class ConcessaoFolgaController {
 
     @GetMapping(value = "/concessoes/{concessaoId}/sugestoes-datas-finais", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> sugestoesDatasFinais(
-            @RequestParam("token") @NotNull String token,
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestParam(value = "token", required = false) String tokenLegado,
             @PathVariable("concessaoId") Long concessaoId,
             @RequestParam("dataInicial") String dataInicial) {
+        String token = tokenObrigatorio(authorization, tokenLegado);
+        if (token == null) {
+            return ResponseEntity.status(401).build();
+        }
         UsuarioAutenticado usuario = usuarioAutenticado(token);
         if (usuario == null) {
             log.warn("Sugestoes de ferias negadas: usuario nao autenticado ou sem matricula");
@@ -123,9 +140,14 @@ public class ConcessaoFolgaController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> cadastrarSolicitacao(
-            @RequestParam("token") @NotNull String token,
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestParam(value = "token", required = false) String tokenLegado,
             @PathVariable("concessaoId") Long concessaoId,
             @Valid @RequestBody SolicitacaoMarcacaoFeriasRequestDto request) {
+        String token = tokenObrigatorio(authorization, tokenLegado);
+        if (token == null) {
+            return ResponseEntity.status(401).build();
+        }
         UsuarioAutenticado usuario = usuarioAutenticado(token);
         if (usuario == null) {
             log.warn("Marcacao de ferias negada: usuario nao autenticado ou sem matricula");
@@ -150,8 +172,13 @@ public class ConcessaoFolgaController {
 
     @GetMapping(value = "/solicitacoes/{solicitacaoId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> consultarSolicitacao(
-            @RequestParam("token") @NotNull String token,
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestParam(value = "token", required = false) String tokenLegado,
             @PathVariable("solicitacaoId") Long solicitacaoId) {
+        String token = tokenObrigatorio(authorization, tokenLegado);
+        if (token == null) {
+            return ResponseEntity.status(401).build();
+        }
         UsuarioAutenticado usuario = usuarioAutenticado(token);
         if (usuario == null) {
             log.warn("Consulta de solicitacao negada: usuario nao autenticado ou sem matricula");
@@ -166,8 +193,13 @@ public class ConcessaoFolgaController {
 
     @GetMapping(value = "/solicitacoes/{solicitacaoId}/operacoes", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> consultarOperacoesSolicitacao(
-            @RequestParam("token") @NotNull String token,
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestParam(value = "token", required = false) String tokenLegado,
             @PathVariable("solicitacaoId") Long solicitacaoId) {
+        String token = tokenObrigatorio(authorization, tokenLegado);
+        if (token == null) {
+            return ResponseEntity.status(401).build();
+        }
         UsuarioAutenticado usuario = usuarioAutenticado(token);
         if (usuario == null) {
             log.warn("Consulta de operacoes negada: usuario nao autenticado ou sem matricula");
@@ -182,8 +214,13 @@ public class ConcessaoFolgaController {
 
     @PostMapping(value = "/solicitacoes/{solicitacaoId}/cancelamentos", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> cancelarSolicitacao(
-            @RequestParam("token") @NotNull String token,
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestParam(value = "token", required = false) String tokenLegado,
             @PathVariable("solicitacaoId") Long solicitacaoId) {
+        String token = tokenObrigatorio(authorization, tokenLegado);
+        if (token == null) {
+            return ResponseEntity.status(401).build();
+        }
         UsuarioAutenticado usuario = usuarioAutenticado(token);
         if (usuario == null) {
             log.warn("Cancelamento negado: usuario nao autenticado ou sem matricula");
@@ -201,9 +238,14 @@ public class ConcessaoFolgaController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> adiarSolicitacao(
-            @RequestParam("token") @NotNull String token,
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestParam(value = "token", required = false) String tokenLegado,
             @PathVariable("solicitacaoId") Long solicitacaoId,
             @RequestBody OperacaoSolicitacaoRequestDto request) {
+        String token = tokenObrigatorio(authorization, tokenLegado);
+        if (token == null) {
+            return ResponseEntity.status(401).build();
+        }
         UsuarioAutenticado usuario = usuarioAutenticado(token);
         if (usuario == null) {
             log.warn("Adiamento negado: usuario nao autenticado ou sem matricula");
@@ -221,9 +263,14 @@ public class ConcessaoFolgaController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> anteciparSolicitacao(
-            @RequestParam("token") @NotNull String token,
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestParam(value = "token", required = false) String tokenLegado,
             @PathVariable("solicitacaoId") Long solicitacaoId,
             @RequestBody OperacaoSolicitacaoRequestDto request) {
+        String token = tokenObrigatorio(authorization, tokenLegado);
+        if (token == null) {
+            return ResponseEntity.status(401).build();
+        }
         UsuarioAutenticado usuario = usuarioAutenticado(token);
         if (usuario == null) {
             log.warn("Antecipacao negada: usuario nao autenticado ou sem matricula");
@@ -241,9 +288,14 @@ public class ConcessaoFolgaController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> interromperSolicitacao(
-            @RequestParam("token") @NotNull String token,
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestParam(value = "token", required = false) String tokenLegado,
             @PathVariable("solicitacaoId") Long solicitacaoId,
             @RequestBody OperacaoSolicitacaoRequestDto request) {
+        String token = tokenObrigatorio(authorization, tokenLegado);
+        if (token == null) {
+            return ResponseEntity.status(401).build();
+        }
         UsuarioAutenticado usuario = usuarioAutenticado(token);
         if (usuario == null) {
             log.warn("Interrupcao negada: usuario nao autenticado ou sem matricula");
@@ -260,8 +312,13 @@ public class ConcessaoFolgaController {
             value = "/solicitacoes/{solicitacaoId}/suspensoes-integrais",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> suspenderIntegralmenteSolicitacao(
-            @RequestParam("token") @NotNull String token,
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestParam(value = "token", required = false) String tokenLegado,
             @PathVariable("solicitacaoId") Long solicitacaoId) {
+        String token = tokenObrigatorio(authorization, tokenLegado);
+        if (token == null) {
+            return ResponseEntity.status(401).build();
+        }
         UsuarioAutenticado usuario = usuarioAutenticado(token);
         if (usuario == null) {
             log.warn("Suspensao integral negada: usuario nao autenticado ou sem matricula");
@@ -279,9 +336,14 @@ public class ConcessaoFolgaController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> suspenderParcialmenteSolicitacao(
-            @RequestParam("token") @NotNull String token,
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            @RequestParam(value = "token", required = false) String tokenLegado,
             @PathVariable("solicitacaoId") Long solicitacaoId,
             @RequestBody OperacaoSolicitacaoRequestDto request) {
+        String token = tokenObrigatorio(authorization, tokenLegado);
+        if (token == null) {
+            return ResponseEntity.status(401).build();
+        }
         UsuarioAutenticado usuario = usuarioAutenticado(token);
         if (usuario == null) {
             log.warn("Suspensao parcial negada: usuario nao autenticado ou sem matricula");
@@ -304,6 +366,10 @@ public class ConcessaoFolgaController {
             return null;
         }
         return new UsuarioAutenticado(login, matricula);
+    }
+
+    private String tokenObrigatorio(String authorization, String tokenLegado) {
+        return ResolvedorTokenAutenticacao.resolver(authorization, tokenLegado);
     }
 
     private String mpVirtualCredential(String token, UsuarioAutenticado usuario) {
