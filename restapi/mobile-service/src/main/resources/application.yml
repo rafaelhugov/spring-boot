@@ -21,16 +21,16 @@ spring:
     # dev = usar em desenvolvimento (trace)
     # insecure = dispensa exigência de token de autorização nas chamadas.
     # trace = força incluir trace na resposta http de erros em qualquer ambiente (mesmo prod)
-    active: ${SPRING_PROFILES_ACTIVE:dev}
+    active: ${SPRING_PROFILES_ACTIVE:}
   http:
     encoding:
       enabled: true
       charset: UTF-8
       force: true
   datasource:
-    url: jdbc:${PG_URL:postgresql://localhost:5432/local}
-    username: ${PG_USERNAME:postgres}
-    password: ${PG_PASSWORD:senha}
+    url: jdbc:${PG_URL:}
+    username: ${PG_USERNAME:}
+    password: ${PG_PASSWORD:}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: ${POOL_MAX:10}
@@ -42,7 +42,7 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: none
-    show-sql: ${JPA_SHOW_SQL:true}
+    show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
         format_sql: ${JPA_FORMAT_SQL:false}
@@ -74,7 +74,7 @@ certidao:
 mpvirtual:
   recursos-humanos:
     # Producao preservada como default. Desenvolvimento pode sobrescrever via .env.dev.
-    base-url: ${MPVIRTUAL_RECURSOS_HUMANOS_BASE_URL:http://10.94.0.253:8080/api}
+    base-url: ${MPVIRTUAL_RECURSOS_HUMANOS_BASE_URL:}
     orgao-id: ${MPVIRTUAL_RECURSOS_HUMANOS_ORGAO_ID:1464408}
     auth-mode: ${MPVIRTUAL_RECURSOS_HUMANOS_AUTH_MODE:token}
 
@@ -110,10 +110,10 @@ google:
     issuer-id: ${GOOGLE_WALLET_ISSUER_ID:3388000000023147746}
     class-id: ${GOOGLE_WALLET_CLASS_ID:3388000000023147746.CarteiraFuncionalMPPB}
     credentials-path: ${GOOGLE_WALLET_CREDENTIALS_PATH:google-credentials.json}
-    public-base-url: ${GOOGLE_WALLET_PUBLIC_BASE_URL:http://localhost:${PORT:9003}}
+    public-base-url: ${GOOGLE_WALLET_PUBLIC_BASE_URL:}
     origins: ${GOOGLE_WALLET_ORIGINS:}
 
 jcr:
-  url: ${JCR_URL://10.94.0.15:54272/jackrabbit.repository}
-  user: ${JCR_USER:admin}
-  password: ${JCR_PASSWORD:admin}
+  url: ${JCR_URL:}
+  user: ${JCR_USER:}
+  password: ${JCR_PASSWORD:}
