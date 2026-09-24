@@ -61,8 +61,14 @@ public class CustomBasicAuthenticationFilter extends OncePerRequestFilter {
 
     private String recuperarToken(HttpServletRequest request) {
         var authorizationHeader = request.getHeader("Authorization");
-        if (authorizationHeader != null && authorizationHeader.startsWith("Token ")) {
-            return authorizationHeader.replace("Token ", "");
+        if (authorizationHeader == null || authorizationHeader.isBlank()) {
+            return null;
+        }
+        if (authorizationHeader.startsWith("Bearer ")) {
+            return authorizationHeader.substring("Bearer ".length()).trim();
+        }
+        if (authorizationHeader.startsWith("Token ")) {
+            return authorizationHeader.substring("Token ".length()).trim();
         }
 
         return null;

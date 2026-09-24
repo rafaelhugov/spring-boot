@@ -8,18 +8,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.time.LocalDateTime;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import mppb.restapi.common.infrastructure.client.authapi.dto.UsuarioAutorizadoResponseDto;
+import mppb.restapi.common.infrastructure.security.authorization.TokenAuthentication;
 import mppb.restapi.mobile.feature.designacao.service.DesignacaoAuthService;
 import mppb.restapi.mobile.feature.notificacao.dto.DispositivoNotificacaoResponse;
 import mppb.restapi.mobile.feature.notificacao.dto.RegistrarDispositivoRequest;
@@ -41,15 +42,17 @@ class DispositivoNotificacaoControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
     @Test
     void registrarUsaLoginJaAutenticadoNoContexto() {
         authService.matricula = "98765";
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("eduardo.ribas", null,
-                        AuthorityUtils.createAuthorityList("ROLE_USER")));
+        autenticar("token-auth", "eduardo.ribas");
 
         ResponseEntity<DispositivoNotificacaoResponse> response = controller.registrar(
-                "Bearer token-auth",
                 new RegistrarDispositivoRequest(null, "fcm-token", "ANDROID"));
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -63,7 +66,6 @@ class DispositivoNotificacaoControllerTest {
         authService.matricula = null;
 
         ResponseEntity<DispositivoNotificacaoResponse> response = controller.registrar(
-                "Bearer token-auth",
                 new RegistrarDispositivoRequest(null, "fcm-token", "ANDROID"));
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -71,40 +73,34 @@ class DispositivoNotificacaoControllerTest {
     }
 
     @Test
-    void registrarUsaMatriculaObtidaDaAutenticacao() {
+    void registrarUsaMatriculaObtidaDoSecurityContext() {
         authService.matricula = "12345";
+        autenticar("token-auth", "renata.luz");
 
         ResponseEntity<DispositivoNotificacaoResponse> response = controller.registrar(
-                "Bearer token-auth",
                 new RegistrarDispositivoRequest(null, "fcm-token", "ANDROID"));
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("12345", dispositivoService.matriculaRecebida);
-        assertEquals("token-auth", authService.tokenRecebido);
+        assertEquals("renata.luz", authService.loginRecebido);
     }
 
     @Test
-    void registrarIgnoraAnonymousUserEUsaBearerToken() {
+    void registrarSemLoginNoContextoRetornaUnauthorized() {
         authService.matricula = "12345";
-        SecurityContextHolder.getContext().setAuthentication(
-                new AnonymousAuthenticationToken("key", "anonymousUser",
-                        AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")));
 
         ResponseEntity<DispositivoNotificacaoResponse> response = controller.registrar(
-                "Bearer token-auth",
                 new RegistrarDispositivoRequest(null, "fcm-token", "ANDROID"));
 
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("12345", dispositivoService.matriculaRecebida);
-        assertEquals(null, authService.loginRecebido);
-        assertEquals("token-auth", authService.tokenRecebido);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        assertFalse(dispositivoService.registrarChamado);
     }
 
     @Test
     void desativarSemAutenticacaoRetornaUnauthorized() {
         authService.matricula = null;
 
-        ResponseEntity<Void> response = controller.desativar("Bearer token-auth", "device-1");
+        ResponseEntity<Void> response = controller.desativar("device-1");
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertFalse(dispositivoService.desativarChamado);
@@ -113,7 +109,6 @@ class DispositivoNotificacaoControllerTest {
     @Test
     void requestSemAuthorizationRetornaUnauthorized() {
         ResponseEntity<DispositivoNotificacaoResponse> response = controller.registrar(
-                null,
                 new RegistrarDispositivoRequest(null, "fcm-token", "ANDROID"));
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -123,7 +118,6 @@ class DispositivoNotificacaoControllerTest {
     @Test
     void bearerInvalidoRetornaUnauthorized() {
         ResponseEntity<DispositivoNotificacaoResponse> response = controller.registrar(
-                "Token token-auth",
                 new RegistrarDispositivoRequest(null, "fcm-token", "ANDROID"));
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -133,7 +127,6 @@ class DispositivoNotificacaoControllerTest {
     @Test
     void tokenEmQueryParamNaoAutenticaSemHeaderBearer() {
         ResponseEntity<DispositivoNotificacaoResponse> response = controller.registrar(
-                null,
                 new RegistrarDispositivoRequest(null, "fcm-token", "ANDROID"));
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -169,12 +162,22 @@ class DispositivoNotificacaoControllerTest {
     @Test
     void desativarUsaMatriculaAutenticadaMantendoProtecaoIdor() {
         authService.matricula = "12345";
+        autenticar("token-auth", "renata.luz");
 
-        ResponseEntity<Void> response = controller.desativar("Bearer token-auth", "device-1");
+        ResponseEntity<Void> response = controller.desativar("device-1");
 
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         assertEquals("12345", dispositivoService.matriculaRecebida);
         assertEquals("device-1", dispositivoService.identificadorRecebido);
+    }
+
+    private void autenticar(String token, String login) {
+        SecurityContextHolder.getContext().setAuthentication(new TokenAuthentication(
+                token,
+                new UsuarioAutorizadoResponseDto(6L, "Usuario Teste", login),
+                null,
+                null,
+                AuthorityUtils.createAuthorityList("ROLE_USER")));
     }
 
     private static class FakeAuthService extends DesignacaoAuthService {

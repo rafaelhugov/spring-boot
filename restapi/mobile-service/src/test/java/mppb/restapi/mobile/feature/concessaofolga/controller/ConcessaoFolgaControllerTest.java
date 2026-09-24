@@ -4,17 +4,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import mppb.restapi.common.infrastructure.client.authapi.AuthServiceClient;
-import mppb.restapi.common.infrastructure.client.authapi.dto.AutorizaRequestDto;
-import mppb.restapi.common.infrastructure.client.authapi.dto.AutorizaResponseDto;
-import mppb.restapi.common.infrastructure.client.authapi.dto.ConsultaAutorizacaoRequestDto;
-import mppb.restapi.common.infrastructure.client.authapi.dto.ConsultaAutorizacaoResponseDto;
 import mppb.restapi.common.infrastructure.client.authapi.dto.UsuarioAutorizadoResponseDto;
+import mppb.restapi.common.infrastructure.security.authorization.TokenAuthentication;
 import mppb.restapi.mobile.feature.concessaofolga.dto.AusenciaCalendarioDto;
 import mppb.restapi.mobile.feature.concessaofolga.dto.ConcessaoFolgaDto;
 import mppb.restapi.mobile.feature.concessaofolga.dto.OperacaoSolicitacaoRequestDto;
@@ -24,14 +23,19 @@ import mppb.restapi.mobile.feature.concessaofolga.service.ConcessaoFolgaService;
 class ConcessaoFolgaControllerTest {
 
     private FakeConcessaoFolgaService concessaoFolgaService;
-    private FakeAuthServiceClient authServiceClient;
     private ConcessaoFolgaController controller;
 
     @BeforeEach
     void setUp() {
+        SecurityContextHolder.clearContext();
         concessaoFolgaService = new FakeConcessaoFolgaService();
-        authServiceClient = new FakeAuthServiceClient();
-        controller = new ConcessaoFolgaController(concessaoFolgaService, authServiceClient);
+        controller = new ConcessaoFolgaController(concessaoFolgaService);
+        autenticar("token-auth", "renata.luz");
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -40,11 +44,11 @@ class ConcessaoFolgaControllerTest {
         request.setDataInicial("14/09/2026");
         request.setNumeroDias(15);
 
-        ResponseEntity<String> response = controller.cadastrarSolicitacao("Bearer token-auth", null, 422364L, request);
+        ResponseEntity<String> response = controller.cadastrarSolicitacao(422364L, request);
 
         assertEquals(200, response.getStatusCode().value());
         assertEquals("token-auth", concessaoFolgaService.mpVirtualCredentialRecebida);
-        assertEquals("renata.luz", authServiceClient.loginConsultado);
+        assertEquals("renata.luz", concessaoFolgaService.loginConsultado);
     }
 
     @Test
@@ -54,7 +58,7 @@ class ConcessaoFolgaControllerTest {
         request.setDataInicial("14/09/2026");
         request.setNumeroDias(15);
 
-        ResponseEntity<String> response = controller.cadastrarSolicitacao("Bearer token-auth", null, 422364L, request);
+        ResponseEntity<String> response = controller.cadastrarSolicitacao(422364L, request);
 
         assertEquals(200, response.getStatusCode().value());
         assertEquals("renata.luz", concessaoFolgaService.mpVirtualCredentialRecebida);
@@ -64,33 +68,25 @@ class ConcessaoFolgaControllerTest {
     void operacoesDaSolicitacaoTambemUsamLoginNoModoHomologacao() {
         ReflectionTestUtils.setField(controller, "mpVirtualAuthMode", "login");
 
-        ResponseEntity<String> response = controller.consultarOperacoesSolicitacao("Bearer token-auth", null, 514825L);
+        ResponseEntity<String> response = controller.consultarOperacoesSolicitacao(514825L);
 
         assertEquals(200, response.getStatusCode().value());
         assertEquals("renata.luz", concessaoFolgaService.mpVirtualCredentialRecebida);
     }
 
-    private static class FakeAuthServiceClient implements AuthServiceClient {
-
-        private String loginConsultado = "renata.luz";
-
-        @Override
-        public AutorizaResponseDto autoriza(AutorizaRequestDto autorizaRequestTO) {
-            return null;
-        }
-
-        @Override
-        public ConsultaAutorizacaoResponseDto consultaAutorizacao(
-                ConsultaAutorizacaoRequestDto consultaAutorizacaoRequestTO) {
-            return new ConsultaAutorizacaoResponseDto(
-                    null,
-                    new UsuarioAutorizadoResponseDto(6L, "Renata Luz", loginConsultado));
-        }
+    private void autenticar(String token, String login) {
+        SecurityContextHolder.getContext().setAuthentication(new TokenAuthentication(
+                token,
+                new UsuarioAutorizadoResponseDto(6L, "Renata Luz", login),
+                null,
+                null,
+                AuthorityUtils.createAuthorityList("ROLE_USER")));
     }
 
     private static class FakeConcessaoFolgaService extends ConcessaoFolgaService {
 
         private String mpVirtualCredentialRecebida;
+        private String loginConsultado;
 
         FakeConcessaoFolgaService() {
             super(null, null, null);
@@ -98,6 +94,7 @@ class ConcessaoFolgaControllerTest {
 
         @Override
         public String getMatriculaByLogin(String login) {
+            loginConsultado = login;
             return "12345";
         }
 
