@@ -17,9 +17,6 @@ Evitar inicialização silenciosa do `mobile-service` com perfil, credenciais ou
   - `spring.datasource.username`
   - `spring.datasource.password`
   - `mpvirtual.recursos-humanos.base-url`
-  - `jcr.url`
-  - `jcr.user`
-  - `jcr.password`
 - Novo validador `ValidadorConfiguracaoSegura` executa fail-fast no startup.
 
 ## Regras de fail-fast
