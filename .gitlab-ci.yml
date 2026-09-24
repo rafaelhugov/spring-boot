@@ -1,0 +1,75 @@
+stages:
+  - test
+  - security
+  - build
+  - evidence
+
+default:
+  image: maven:3.9.6-eclipse-temurin-21-alpine
+  cache:
+    key: "$CI_COMMIT_REF_SLUG-maven"
+    paths:
+      - .m2/repository
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository"
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: "$CI_COMMIT_BRANCH"
+
+test:mobile-service:
+  stage: test
+  script:
+    - cd restapi
+    - mvn -q -pl restapi-common,mobile-service test
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - restapi/mobile-service/target/surefire-reports/TEST-*.xml
+        - restapi/restapi-common/target/surefire-reports/TEST-*.xml
+    paths:
+      - restapi/mobile-service/target/surefire-reports/
+      - restapi/restapi-common/target/surefire-reports/
+    expire_in: 1 week
+
+security:secrets:
+  stage: security
+  script:
+    - bash restapi/mobile-service/scripts/security/secret_scan.sh
+
+security:regression:
+  stage: security
+  script:
+    - bash restapi/mobile-service/scripts/security/security_regression.sh
+
+build:mobile-service:
+  stage: build
+  needs:
+    - test:mobile-service
+    - security:secrets
+    - security:regression
+  script:
+    - cd restapi
+    - mvn -q -pl restapi-common,mobile-service -DskipTests package
+  artifacts:
+    name: "mobile-service-$CI_COMMIT_REF_SLUG"
+    paths:
+      - restapi/mobile-service/target/*.jar
+    expire_in: 1 week
+
+evidence:dependencies:
+  stage: evidence
+  needs:
+    - build:mobile-service
+  script:
+    - mkdir -p restapi/mobile-service/target/security
+    - cd restapi
+    - mvn -q -pl mobile-service -DskipTests dependency:tree -DoutputFile=mobile-service/target/security/maven-dependency-tree.txt
+  artifacts:
+    when: always
+    paths:
+      - restapi/mobile-service/target/security/maven-dependency-tree.txt
+    expire_in: 1 month
