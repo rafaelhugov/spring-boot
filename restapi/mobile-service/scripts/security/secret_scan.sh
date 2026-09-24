@@ -19,7 +19,7 @@ while IFS= read -r file; do
   esac
 done < <(git ls-files restapi/mobile-service restapi/restapi-common .gitlab-ci.yml)
 
-if git grep -I -n -E -e '-----BEGIN (RSA |EC |DSA |OPENSSH |PRIVATE )?KEY-----|private_key|client_email.*gserviceaccount|storePassword[[:space:]]*=[[:space:]]*["'\''][^"'\'']+["'\'']|keyPassword[[:space:]]*=[[:space:]]*["'\''][^"'\'']+["'\'']' -- restapi/mobile-service restapi/restapi-common ':!restapi/mobile-service/seguranca/**'; then
+if git grep -I -n -E -e '-----BEGIN (RSA |EC |DSA |OPENSSH |PRIVATE )?KEY-----|private_key|client_email.*gserviceaccount|storePassword[[:space:]]*=[[:space:]]*["'\''][^"'\'']+["'\'']|keyPassword[[:space:]]*=[[:space:]]*["'\''][^"'\'']+["'\'']' -- restapi/mobile-service restapi/restapi-common ':!restapi/mobile-service/seguranca/**' ':!restapi/mobile-service/scripts/security/**'; then
   report "padrao de segredo encontrado em arquivo versionado"
 fi
 
