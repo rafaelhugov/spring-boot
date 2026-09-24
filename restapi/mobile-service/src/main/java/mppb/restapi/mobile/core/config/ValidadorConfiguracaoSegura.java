@@ -17,10 +17,7 @@ public class ValidadorConfiguracaoSegura implements ApplicationRunner {
             "spring.datasource.url",
             "spring.datasource.username",
             "spring.datasource.password",
-            "mpvirtual.recursos-humanos.base-url",
-            "jcr.url",
-            "jcr.user",
-            "jcr.password");
+            "mpvirtual.recursos-humanos.base-url");
 
     private final Environment environment;
 
