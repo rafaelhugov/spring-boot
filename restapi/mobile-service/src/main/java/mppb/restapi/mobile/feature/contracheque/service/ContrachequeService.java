@@ -12,28 +12,46 @@ import mppb.restapi.mobile.feature.contracheque.dto.LancamentoDto;
 import mppb.restapi.mobile.feature.contracheque.repository.ContrachequeRepository;
 import lombok.extern.slf4j.Slf4j;
 
+import mppb.restapi.mobile.feature.synthetic.dataset.SyntheticDataService;
+
 @Slf4j
 @Service
 public class ContrachequeService {
 
     private final ContrachequeRepository contrachequeRepository;
 
-    @Autowired
+    private SyntheticDataService syntheticDataService;
+
     public ContrachequeService(ContrachequeRepository contrachequeRepository) {
         this.contrachequeRepository = contrachequeRepository;
     }
 
+    @Autowired
+    public ContrachequeService(ContrachequeRepository contrachequeRepository, @Autowired(required = false) SyntheticDataService syntheticDataService) {
+        this.contrachequeRepository = contrachequeRepository;
+        this.syntheticDataService = syntheticDataService;
+    }
+
     public Integer getMatriculaByLogin(String login) {
+        if (syntheticDataService != null && syntheticDataService.isSyntheticLogin(login)) {
+            return syntheticDataService.getMatriculaNumerica(login);
+        }
         return contrachequeRepository.getMatriculaByLogin(login);
     }
 
     public List<CompetenciaDto> listarCompetenciasDisponiveis(Integer matricula) {
+        if (syntheticDataService != null && syntheticDataService.isSyntheticMatricula(matricula)) {
+            return syntheticDataService.getCompetencias(matricula);
+        }
         List<CompetenciaDto> competencias = contrachequeRepository.findCompetenciasByMatricula(matricula);
 
         return competencias;
     }
 
     public ContrachequeResponseDto detalharContracheque(Integer matricula, Integer mes, Integer ano) {
+        if (syntheticDataService != null && syntheticDataService.isSyntheticMatricula(matricula)) {
+            return syntheticDataService.getContracheque(matricula, mes, ano);
+        }
         ContrachequeResponseDto contracheque = contrachequeRepository.findContracheque(matricula, mes, ano);
         
 

@@ -15,24 +15,46 @@ import java.util.List;
 import java.util.Date;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import mppb.restapi.mobile.feature.synthetic.dataset.SyntheticDataService;
+
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class CarteiraService {
 
     private final JdbcTemplate jdbcTemplate;
     private final JcrService jcrService;
+
+    private SyntheticDataService syntheticDataService;
 
     @Value("${carteira.pgj-fallback:ANTONIO HORTÊNCIO ROCHA NETO}")
     private String nomePgjFallback;
 
     private boolean avisoPgjFallbackRegistrado;
 
+    public CarteiraService(JdbcTemplate jdbcTemplate, JcrService jcrService) {
+        this.jdbcTemplate = jdbcTemplate;
+        this.jcrService = jcrService;
+    }
+
+    @Autowired
+    public CarteiraService(JdbcTemplate jdbcTemplate, JcrService jcrService, @Autowired(required = false) SyntheticDataService syntheticDataService) {
+        this.jdbcTemplate = jdbcTemplate;
+        this.jcrService = jcrService;
+        this.syntheticDataService = syntheticDataService;
+    }
+
     public CarteiraFuncionalTO recuperaCarteiraFuncionalByLogin(String login) {
+        if (syntheticDataService != null && syntheticDataService.isSyntheticLogin(login)) {
+            return syntheticDataService.getCarteiraByLogin(login);
+        }
         return recuperaCarteiraFuncionalByMd5OrLogin(login, null);
     }
 
     public CarteiraFuncionalTO recuperaCarteiraFuncionalByHash(String hash) {
+        if (syntheticDataService != null && syntheticDataService.isSyntheticHash(hash)) {
+            return syntheticDataService.getCarteiraByHash(hash);
+        }
         return recuperaCarteiraFuncionalByMd5OrLogin(null, hash);
     }
 
@@ -106,6 +128,9 @@ public class CarteiraService {
         if (login == null || login.isBlank()) {
             return null;
         }
+        if (syntheticDataService != null && syntheticDataService.isSyntheticLogin(login)) {
+            return syntheticDataService.getFotoByLogin(login);
+        }
 
         StringBuilder query = new StringBuilder();
         byte[] bytes = null;
@@ -150,6 +175,9 @@ public class CarteiraService {
     public byte[] getBytesFotoServidorPorCarteira(CarteiraFuncionalTO carteira) {
         if (carteira == null) {
             return null;
+        }
+        if (syntheticDataService != null && syntheticDataService.isSyntheticCarteira(carteira)) {
+            return syntheticDataService.getFotoByLogin(carteira.getLogin());
         }
 
         byte[] bytes = getBytesFotoServidorPorLogin(carteira.getLogin());

@@ -17,17 +17,39 @@ import mppb.restapi.mobile.feature.notificacao.dto.RegistrarDispositivoRequest;
 import mppb.restapi.mobile.feature.notificacao.model.DispositivoFcm;
 import mppb.restapi.mobile.feature.notificacao.repository.DispositivoFcmRepository;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import mppb.restapi.mobile.feature.synthetic.dataset.SyntheticDataService;
+import mppb.restapi.mobile.feature.synthetic.sandbox.SyntheticSandboxStorage;
+
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class DispositivoFcmService {
 
     private final DispositivoFcmRepository repository;
 
-    @Transactional
+    private SyntheticDataService syntheticDataService;
+    private SyntheticSandboxStorage sandboxStorage;
+
+    public DispositivoFcmService(DispositivoFcmRepository repository) {
+        this.repository = repository;
+    }
+
+    @Autowired
+    public DispositivoFcmService(
+            DispositivoFcmRepository repository,
+            @Autowired(required = false) SyntheticDataService syntheticDataService,
+            @Autowired(required = false) SyntheticSandboxStorage sandboxStorage) {
+        this.repository = repository;
+        this.syntheticDataService = syntheticDataService;
+        this.sandboxStorage = sandboxStorage;
+    }
+
     public DispositivoNotificacaoResponse registrar(String matricula, RegistrarDispositivoRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("request obrigatorio");
+        }
+        if (syntheticDataService != null && syntheticDataService.isSyntheticMatricula(matricula) && sandboxStorage != null) {
+            return sandboxStorage.registrarDispositivo(matricula, request);
         }
         String matriculaNormalizada = obrigatorio(matricula, "matricula");
         String tokenFcm = obrigatorio(request.tokenFcm(), "tokenFcm");
@@ -35,50 +57,54 @@ public class DispositivoFcmService {
         String tokenHash = sha256(tokenFcm);
         String identificador = normalizarIdentificador(request.identificador());
 
-        Optional<DispositivoFcm> existentePorToken = repository.findByTokenHash(tokenHash);
-        if (existentePorToken.isPresent()) {
-            DispositivoFcm atualizado = repository.atualizar(
-                    existentePorToken.get().id(),
-                    matriculaNormalizada,
-                    tokenFcm,
-                    tokenHash,
-                    plataforma);
-            log.info("Dispositivo FCM registrado/reativado: identificador={}, plataforma={}",
-                    atualizado.identificador(), atualizado.plataforma());
-            return toResponse(atualizado);
-        }
-
-        boolean identificadorPertenceOutroUsuario = false;
-        if (identificador != null) {
-            Optional<DispositivoFcm> existentePorIdentificador = repository.findByIdentificador(identificador);
-            if (existentePorIdentificador.isPresent()
-                    && matriculaNormalizada.equals(existentePorIdentificador.get().servidorMatricula())) {
+        synchronized (repository) {
+            Optional<DispositivoFcm> existentePorToken = repository.findByTokenHash(tokenHash);
+            if (existentePorToken.isPresent()) {
                 DispositivoFcm atualizado = repository.atualizar(
-                        existentePorIdentificador.get().id(),
+                        existentePorToken.get().id(),
                         matriculaNormalizada,
                         tokenFcm,
                         tokenHash,
                         plataforma);
-                log.info("Dispositivo FCM atualizado por identificador: identificador={}, plataforma={}",
+                log.info("Dispositivo FCM registrado/reativado: identificador={}, plataforma={}",
                         atualizado.identificador(), atualizado.plataforma());
                 return toResponse(atualizado);
             }
-            identificadorPertenceOutroUsuario = existentePorIdentificador.isPresent();
-        }
 
-        DispositivoFcm novo = repository.inserir(
-                identificador == null || identificadorPertenceOutroUsuario ? UUID.randomUUID().toString() : identificador,
-                matriculaNormalizada,
-                tokenFcm,
-                tokenHash,
-                plataforma);
-        log.info("Dispositivo FCM registrado: identificador={}, plataforma={}",
-                novo.identificador(), novo.plataforma());
-        return toResponse(novo);
+            boolean identificadorPertenceOutroUsuario = false;
+            if (identificador != null) {
+                Optional<DispositivoFcm> existentePorIdentificador = repository.findByIdentificador(identificador);
+                if (existentePorIdentificador.isPresent()
+                        && matriculaNormalizada.equals(existentePorIdentificador.get().servidorMatricula())) {
+                    DispositivoFcm atualizado = repository.atualizar(
+                            existentePorIdentificador.get().id(),
+                            matriculaNormalizada,
+                            tokenFcm,
+                            tokenHash,
+                            plataforma);
+                    log.info("Dispositivo FCM atualizado por identificador: identificador={}, plataforma={}",
+                            atualizado.identificador(), atualizado.plataforma());
+                    return toResponse(atualizado);
+                }
+                identificadorPertenceOutroUsuario = existentePorIdentificador.isPresent();
+            }
+
+            DispositivoFcm novo = repository.inserir(
+                    identificador == null || identificadorPertenceOutroUsuario ? UUID.randomUUID().toString() : identificador,
+                    matriculaNormalizada,
+                    tokenFcm,
+                    tokenHash,
+                    plataforma);
+            log.info("Dispositivo FCM registrado: identificador={}, plataforma={}",
+                    novo.identificador(), novo.plataforma());
+            return toResponse(novo);
+        }
     }
 
-    @Transactional
     public boolean desativar(String matricula, String identificador) {
+        if (syntheticDataService != null && syntheticDataService.isSyntheticMatricula(matricula) && sandboxStorage != null) {
+            return sandboxStorage.desativarDispositivo(matricula, identificador);
+        }
         String matriculaNormalizada = obrigatorio(matricula, "matricula");
         String identificadorNormalizado = obrigatorio(identificador, "identificador");
         boolean desativou = repository.desativar(matriculaNormalizada, identificadorNormalizado);

@@ -35,12 +35,16 @@ public class ValidadorConfiguracaoSegura implements ApplicationRunner {
         if (perfis.isEmpty()) {
             throw new IllegalStateException("SPRING_PROFILES_ACTIVE deve ser definido explicitamente.");
         }
-        if (perfis.contains("prod")) {
+        if (perfis.stream().anyMatch(p -> p.equals("prod") || p.equals("production") || p.equals("prd"))) {
             validarProducao(perfis);
         }
+        validarUsuariosSinteticos(perfis);
     }
 
     private void validarProducao(List<String> perfis) {
+        if (Boolean.parseBoolean(valor("uat.synthetic-users.enabled"))) {
+            throw new IllegalStateException("Usuarios sinteticos UAT/Review nao podem ser habilitados em perfis de producao (prod, production, prd).");
+        }
         if (perfis.contains("insecure")) {
             throw new IllegalStateException("Perfil insecure nao pode ser combinado com prod.");
         }
@@ -61,6 +65,43 @@ public class ValidadorConfiguracaoSegura implements ApplicationRunner {
         rejeitarValor("jcr.password", "admin");
         rejeitarUrlLocal("spring.datasource.url");
         validarCors();
+    }
+
+    private void validarUsuariosSinteticos(List<String> perfis) {
+        if (!Boolean.parseBoolean(valor("uat.synthetic-users.enabled"))) {
+            return;
+        }
+
+        boolean isProd = perfis.stream().anyMatch(p -> p.equals("prod") || p.equals("production") || p.equals("prd"));
+        if (isProd) {
+            throw new IllegalStateException("Usuarios sinteticos UAT/Review nao podem ser habilitados em perfis de producao (prod, production, prd).");
+        }
+
+        List<String> allowlist = List.of("homolog", "uat", "review", "test", "dev", "local");
+        boolean allowlisted = perfis.stream().anyMatch(allowlist::contains);
+        if (!allowlisted) {
+            throw new IllegalStateException("Usuarios sinteticos UAT/Review somente podem ser ativados em profiles homolog, uat, review, test, dev, local.");
+        }
+
+        String jwtSecret = valor("uat.synthetic-users.jwt-secret");
+        if (jwtSecret == null || jwtSecret.isBlank()) {
+            throw new IllegalStateException("uat.synthetic-users.jwt-secret obrigatorio quando usuarios sinteticos estao habilitados.");
+        }
+
+        List<String> chavesSenhas = List.of(
+                "uat.synthetic-users.passwords.uat-membro",
+                "uat.synthetic-users.passwords.uat-servidor",
+                "uat.synthetic-users.passwords.google-review-membro",
+                "uat.synthetic-users.passwords.google-review-servidor",
+                "uat.synthetic-users.passwords.apple-review-membro",
+                "uat.synthetic-users.passwords.apple-review-servidor");
+
+        for (String chave : chavesSenhas) {
+            String senha = valor(chave);
+            if (senha == null || senha.isBlank()) {
+                throw new IllegalStateException("Senha obrigatoria ausente para usuarios sinteticos: " + chave);
+            }
+        }
     }
 
     private List<String> perfisAtivos() {

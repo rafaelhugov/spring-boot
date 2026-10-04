@@ -10,18 +10,38 @@ import mppb.restapi.common.infrastructure.client.authapi.dto.ConsultaAutorizacao
 import mppb.restapi.common.infrastructure.client.authapi.dto.ConsultaAutorizacaoResponseDto;
 import mppb.restapi.mobile.feature.designacao.repository.DesignacaoIdentityRepository;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import mppb.restapi.mobile.feature.synthetic.dataset.SyntheticDataService;
+
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class DesignacaoAuthService {
 
     private final AuthServiceClient authServiceClient;
     private final DesignacaoIdentityRepository identityRepository;
 
+    private SyntheticDataService syntheticDataService;
+
     @Value("${sistema.sigla:MPVIRTUAL}")
     private String siglaSistema;
 
+    public DesignacaoAuthService(AuthServiceClient authServiceClient, DesignacaoIdentityRepository identityRepository) {
+        this.authServiceClient = authServiceClient;
+        this.identityRepository = identityRepository;
+    }
+
+    @Autowired
+    public DesignacaoAuthService(AuthServiceClient authServiceClient, DesignacaoIdentityRepository identityRepository,
+                                 @Autowired(required = false) SyntheticDataService syntheticDataService) {
+        this.authServiceClient = authServiceClient;
+        this.identityRepository = identityRepository;
+        this.syntheticDataService = syntheticDataService;
+    }
+
     public String matriculaAutenticada(String token) {
+        if (syntheticDataService != null && syntheticDataService.isSyntheticToken(token)) {
+            return syntheticDataService.getMatriculaByToken(token);
+        }
         String login = loginAutenticado(token);
         if (login == null) {
             return null;
@@ -30,6 +50,9 @@ public class DesignacaoAuthService {
     }
 
     public String matriculaPorLogin(String login) {
+        if (syntheticDataService != null && syntheticDataService.isSyntheticLogin(login)) {
+            return syntheticDataService.getMatriculaByLogin(login);
+        }
         String matricula = identityRepository.getMatriculaByLogin(login);
         return matricula == null || matricula.isBlank() ? null : matricula;
     }

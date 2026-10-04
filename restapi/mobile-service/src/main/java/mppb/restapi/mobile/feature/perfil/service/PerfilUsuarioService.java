@@ -11,18 +11,38 @@ import mppb.restapi.common.infrastructure.client.authapi.dto.ConsultaAutorizacao
 import mppb.restapi.mobile.feature.perfil.dto.PerfilUsuarioDto;
 import mppb.restapi.mobile.feature.perfil.repository.PerfilUsuarioRepository;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import mppb.restapi.mobile.feature.synthetic.dataset.SyntheticDataService;
+
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class PerfilUsuarioService {
 
     private final AuthServiceClient authServiceClient;
     private final PerfilUsuarioRepository repository;
 
+    private SyntheticDataService syntheticDataService;
+
     @Value("${sistema.sigla:MPVIRTUAL}")
     private String siglaSistema;
 
+    public PerfilUsuarioService(AuthServiceClient authServiceClient, PerfilUsuarioRepository repository) {
+        this.authServiceClient = authServiceClient;
+        this.repository = repository;
+    }
+
+    @Autowired
+    public PerfilUsuarioService(AuthServiceClient authServiceClient, PerfilUsuarioRepository repository,
+                                @Autowired(required = false) SyntheticDataService syntheticDataService) {
+        this.authServiceClient = authServiceClient;
+        this.repository = repository;
+        this.syntheticDataService = syntheticDataService;
+    }
+
     public PerfilUsuarioDto buscarPerfilAutenticado(String token) {
+        if (syntheticDataService != null && syntheticDataService.isSyntheticToken(token)) {
+            return syntheticDataService.getPerfilByToken(token);
+        }
         String login = loginAutenticado(token);
         if (login == null) {
             return null;
