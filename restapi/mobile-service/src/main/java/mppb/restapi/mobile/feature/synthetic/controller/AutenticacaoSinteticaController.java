@@ -65,10 +65,10 @@ public class AutenticacaoSinteticaController {
         }
 
         String login = request.getLogin().trim();
-        boolean isReviewProfile = isReviewProfile();
+        boolean isReviewAtivo = isReviewProfile() || (reviewProperties != null && reviewProperties.isEnabled());
 
-        // No ambiente exclusivo de Store Review (SPRING_PROFILES_ACTIVE=review):
-        if (isReviewProfile) {
+        // No ambiente exclusivo de Store Review (SPRING_PROFILES_ACTIVE=review ou STORE_REVIEW_ENABLED=true):
+        if (isReviewAtivo) {
             // Apenas as 4 identidades exatas de Store Review são admitidas
             if (IdentidadeSintetica.isLoginReviewExato(login) && autenticadorStoreReview != null) {
                 Optional<String> token = autenticadorStoreReview.autenticarReview(login, request.getSenha());
@@ -80,18 +80,6 @@ public class AutenticacaoSinteticaController {
             }
             // uat.membro, uat.servidor, institucional, desconhecido, senha incorreta -> 401 controlado
             log.warn("Tentativa de acesso rejeitada no ambiente isolado de Store Review: login={}", login);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(java.util.Collections.singletonMap("error", "security.invalid-credentials"));
-        }
-
-        // Se Store Review estiver explicitamente habilitado e for uma identidade Review:
-        if (reviewProperties != null && reviewProperties.isEnabled() && IdentidadeSintetica.isLoginReviewExato(login) && autenticadorStoreReview != null) {
-            Optional<String> token = autenticadorStoreReview.autenticarReview(login, request.getSenha());
-            if (token.isPresent()) {
-                AutorizaResponseDto response = new AutorizaResponseDto();
-                response.setToken(token.get());
-                return ResponseEntity.ok(response);
-            }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(java.util.Collections.singletonMap("error", "security.invalid-credentials"));
         }

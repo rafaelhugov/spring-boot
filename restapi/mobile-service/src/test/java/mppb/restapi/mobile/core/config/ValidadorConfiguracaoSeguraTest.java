@@ -61,6 +61,53 @@ class ValidadorConfiguracaoSeguraTest {
         assertDoesNotThrow(validador::validar);
     }
 
+    @Test
+    void aceitaProdComHomologEnvironmentEStoreReview() {
+        MockEnvironment environment = ambienteProducaoValido()
+                .withProperty("mppb.environment", "homolog")
+                .withProperty("STORE_REVIEW_ENABLED", "true")
+                .withProperty("STORE_REVIEW_JWT_SECRET", "segredo-de-review-exclusivo-32-chars-456")
+                .withProperty("GOOGLE_REVIEW_MEMBER_PASSWORD", "senha1")
+                .withProperty("GOOGLE_REVIEW_SERVER_PASSWORD", "senha2")
+                .withProperty("APPLE_REVIEW_MEMBER_PASSWORD", "senha3")
+                .withProperty("APPLE_REVIEW_SERVER_PASSWORD", "senha4");
+
+        ValidadorConfiguracaoSegura validador = new ValidadorConfiguracaoSegura(environment);
+
+        assertDoesNotThrow(validador::validar);
+    }
+
+    @Test
+    void falhaQuandoProdComProdEnvironmentEStoreReview() {
+        MockEnvironment environment = ambienteProducaoValido()
+                .withProperty("mppb.environment", "prod")
+                .withProperty("STORE_REVIEW_ENABLED", "true")
+                .withProperty("STORE_REVIEW_JWT_SECRET", "segredo-de-review-exclusivo-32-chars-456")
+                .withProperty("GOOGLE_REVIEW_MEMBER_PASSWORD", "senha1")
+                .withProperty("GOOGLE_REVIEW_SERVER_PASSWORD", "senha2")
+                .withProperty("APPLE_REVIEW_MEMBER_PASSWORD", "senha3")
+                .withProperty("APPLE_REVIEW_SERVER_PASSWORD", "senha4");
+
+        ValidadorConfiguracaoSegura validador = new ValidadorConfiguracaoSegura(environment);
+
+        assertThrows(IllegalStateException.class, validador::validar);
+    }
+
+    @Test
+    void falhaQuandoProdComStoreReviewSemHomologEnvironment() {
+        MockEnvironment environment = ambienteProducaoValido()
+                .withProperty("STORE_REVIEW_ENABLED", "true")
+                .withProperty("STORE_REVIEW_JWT_SECRET", "segredo-de-review-exclusivo-32-chars-456")
+                .withProperty("GOOGLE_REVIEW_MEMBER_PASSWORD", "senha1")
+                .withProperty("GOOGLE_REVIEW_SERVER_PASSWORD", "senha2")
+                .withProperty("APPLE_REVIEW_MEMBER_PASSWORD", "senha3")
+                .withProperty("APPLE_REVIEW_SERVER_PASSWORD", "senha4");
+
+        ValidadorConfiguracaoSegura validador = new ValidadorConfiguracaoSegura(environment);
+
+        assertThrows(IllegalStateException.class, validador::validar);
+    }
+
     private MockEnvironment ambienteProducaoValido() {
         MockEnvironment environment = new MockEnvironment();
         environment.setActiveProfiles("prod");

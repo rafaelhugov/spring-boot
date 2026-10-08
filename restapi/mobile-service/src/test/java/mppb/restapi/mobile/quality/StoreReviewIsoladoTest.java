@@ -611,6 +611,208 @@ public class StoreReviewIsoladoTest {
         assertFalse(propFuturo.isExpirado());
     }
 
+    @Test
+    @DisplayName("26. R03 - Cenário A: SPRING_PROFILES_ACTIVE=prod + MPPB_ENVIRONMENT=homolog + STORE_REVIEW_ENABLED=true = PERMITIDO")
+    void test26_r03_cenarioA_prodProfileComHomologEnvironment_permitido() {
+        MockEnvironment env = ambienteProducaoValido()
+                .withProperty("MPPB_ENVIRONMENT", "homolog")
+                .withProperty("STORE_REVIEW_ENABLED", "true")
+                .withProperty("STORE_REVIEW_JWT_SECRET", REVIEW_SECRET)
+                .withProperty("GOOGLE_REVIEW_MEMBER_PASSWORD", "senha1")
+                .withProperty("GOOGLE_REVIEW_SERVER_PASSWORD", "senha2")
+                .withProperty("APPLE_REVIEW_MEMBER_PASSWORD", "senha3")
+                .withProperty("APPLE_REVIEW_SERVER_PASSWORD", "senha4");
+
+        ValidadorConfiguracaoSegura validador = new ValidadorConfiguracaoSegura(env);
+        assertDoesNotThrow(validador::validar);
+    }
+
+    @Test
+    @DisplayName("27. R03 - Cenário B: SPRING_PROFILES_ACTIVE=prod + MPPB_ENVIRONMENT=prod + STORE_REVIEW_ENABLED=true = STARTUP RECUSADO")
+    void test27_r03_cenarioB_prodProfileComProdEnvironment_startupRecusado() {
+        MockEnvironment env = ambienteProducaoValido()
+                .withProperty("MPPB_ENVIRONMENT", "prod")
+                .withProperty("STORE_REVIEW_ENABLED", "true")
+                .withProperty("STORE_REVIEW_JWT_SECRET", REVIEW_SECRET)
+                .withProperty("GOOGLE_REVIEW_MEMBER_PASSWORD", "senha1")
+                .withProperty("GOOGLE_REVIEW_SERVER_PASSWORD", "senha2")
+                .withProperty("APPLE_REVIEW_MEMBER_PASSWORD", "senha3")
+                .withProperty("APPLE_REVIEW_SERVER_PASSWORD", "senha4");
+
+        ValidadorConfiguracaoSegura validador = new ValidadorConfiguracaoSegura(env);
+        IllegalStateException ex = assertThrows(IllegalStateException.class, validador::validar);
+        assertTrue(ex.getMessage().contains("Store Review nao pode ser habilitado no ambiente operacional de producao"));
+    }
+
+    @Test
+    @DisplayName("28. R03 - Cenário C: SPRING_PROFILES_ACTIVE=prod + MPPB_ENVIRONMENT ausente + STORE_REVIEW_ENABLED=true = STARTUP RECUSADO")
+    void test28_r03_cenarioC_prodProfileComEnvironmentAusente_startupRecusado() {
+        MockEnvironment env = ambienteProducaoValido()
+                .withProperty("STORE_REVIEW_ENABLED", "true")
+                .withProperty("STORE_REVIEW_JWT_SECRET", REVIEW_SECRET)
+                .withProperty("GOOGLE_REVIEW_MEMBER_PASSWORD", "senha1")
+                .withProperty("GOOGLE_REVIEW_SERVER_PASSWORD", "senha2")
+                .withProperty("APPLE_REVIEW_MEMBER_PASSWORD", "senha3")
+                .withProperty("APPLE_REVIEW_SERVER_PASSWORD", "senha4");
+
+        ValidadorConfiguracaoSegura validador = new ValidadorConfiguracaoSegura(env);
+        IllegalStateException ex = assertThrows(IllegalStateException.class, validador::validar);
+        assertTrue(ex.getMessage().contains("Store Review nao pode ser habilitado em perfis de producao"));
+    }
+
+    @Test
+    @DisplayName("29. R03 - Cenário D: MPPB_ENVIRONMENT inválido + STORE_REVIEW_ENABLED=true = STARTUP RECUSADO")
+    void test29_r03_cenarioD_environmentInvalido_startupRecusado() {
+        MockEnvironment envProd = ambienteProducaoValido()
+                .withProperty("MPPB_ENVIRONMENT", "ambiente_desconhecido")
+                .withProperty("STORE_REVIEW_ENABLED", "true")
+                .withProperty("STORE_REVIEW_JWT_SECRET", REVIEW_SECRET)
+                .withProperty("GOOGLE_REVIEW_MEMBER_PASSWORD", "senha1")
+                .withProperty("GOOGLE_REVIEW_SERVER_PASSWORD", "senha2")
+                .withProperty("APPLE_REVIEW_MEMBER_PASSWORD", "senha3")
+                .withProperty("APPLE_REVIEW_SERVER_PASSWORD", "senha4");
+
+        ValidadorConfiguracaoSegura validadorProd = new ValidadorConfiguracaoSegura(envProd);
+        IllegalStateException exProd = assertThrows(IllegalStateException.class, validadorProd::validar);
+        assertTrue(exProd.getMessage().contains("Store Review nao pode ser habilitado em perfis de producao"));
+
+        MockEnvironment envHomolog = new MockEnvironment();
+        envHomolog.setActiveProfiles("homolog");
+        envHomolog.setProperty("MPPB_ENVIRONMENT", "staging_invalido");
+        envHomolog.setProperty("STORE_REVIEW_ENABLED", "true");
+        envHomolog.setProperty("STORE_REVIEW_JWT_SECRET", REVIEW_SECRET);
+        envHomolog.setProperty("uat.synthetic-users.passwords.google-review-membro", "senha1");
+        envHomolog.setProperty("uat.synthetic-users.passwords.google-review-servidor", "senha2");
+        envHomolog.setProperty("uat.synthetic-users.passwords.apple-review-membro", "senha3");
+        envHomolog.setProperty("uat.synthetic-users.passwords.apple-review-servidor", "senha4");
+        envHomolog.setProperty("uat.synthetic-users.jwt-secret", UAT_SECRET);
+        envHomolog.setProperty("uat.synthetic-users.passwords.uat-membro", "senhaUat1");
+        envHomolog.setProperty("uat.synthetic-users.passwords.uat-servidor", "senhaUat2");
+
+        ValidadorConfiguracaoSegura validadorHomolog = new ValidadorConfiguracaoSegura(envHomolog);
+        IllegalStateException exHomolog = assertThrows(IllegalStateException.class, validadorHomolog::validar);
+        assertTrue(exHomolog.getMessage().contains("Store Review nao pode ser habilitado em ambiente operacional desconhecido ou invalido"));
+    }
+
+    @Test
+    @DisplayName("30. R03 - Cenário E: MPPB_ENVIRONMENT=homolog + STORE_REVIEW_ENABLED=false = funcionamento normal preservado")
+    void test30_r03_cenarioE_homologEnvironmentSemStoreReview_funcionamentoNormal() {
+        MockEnvironment env = ambienteProducaoValido()
+                .withProperty("MPPB_ENVIRONMENT", "homolog")
+                .withProperty("STORE_REVIEW_ENABLED", "false");
+
+        ValidadorConfiguracaoSegura validador = new ValidadorConfiguracaoSegura(env);
+        assertDoesNotThrow(validador::validar);
+    }
+
+    @Test
+    @DisplayName("31. R03 - Cenários F, G, H, I: 4 identidades Review permitidas, UAT e institucional rejeitados com 401, AuthServiceClient=0")
+    void test31_r03_cenariosFGHI_identidadesReviewPermitidasEUatInstitucionalRejeitados() throws Exception {
+        MockEnvironment envHomolog = new MockEnvironment();
+        envHomolog.setActiveProfiles("prod");
+        envHomolog.setProperty("MPPB_ENVIRONMENT", "homolog");
+        envHomolog.setProperty("STORE_REVIEW_ENABLED", "true");
+
+        AutenticacaoSinteticaController controller = new AutenticacaoSinteticaController(
+                autenticadorUat, autenticadorReview, reviewProperties, envHomolog);
+
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(controller)
+                .setMessageConverters(new MappingJackson2HttpMessageConverter())
+                .build();
+
+        // F: 4 identidades review = PERMITIDAS
+        String[][] identidadesReview = {
+                {"review.google.membro", "SenhaGoogleMembro456!"},
+                {"review.google.servidor", "SenhaGoogleServidor456!"},
+                {"review.apple.membro", "SenhaAppleMembro789!"},
+                {"review.apple.servidor", "SenhaAppleServidor789!"}
+        };
+
+        for (String[] id : identidadesReview) {
+            AutorizaRequestDto request = new AutorizaRequestDto(id[0], id[1], "appmppb");
+
+            mvc.perform(post("/acesso/autoriza")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.token").isNotEmpty());
+        }
+
+        // G: uat.membro e uat.servidor = REJEITADOS
+        String[][] uatUsers = {
+                {"uat.membro", "SenhaUatMembro123!"},
+                {"uat.servidor", "SenhaUatServidor123!"}
+        };
+        for (String[] uat : uatUsers) {
+            AutorizaRequestDto request = new AutorizaRequestDto(uat[0], uat[1], "appmppb");
+
+            mvc.perform(post("/acesso/autoriza")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.error").value("security.invalid-credentials"));
+        }
+
+        // H: usuário institucional no fluxo Review = REJEITADO
+        String[] usuariosInstitucionais = {"joao.silva", "maria.souza@mppb.mp.br", "12345678900"};
+        for (String loginInst : usuariosInstitucionais) {
+            AutorizaRequestDto request = new AutorizaRequestDto(loginInst, "senhaQualquer123", "appmppb");
+
+            mvc.perform(post("/acesso/autoriza")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.error").value("security.invalid-credentials"));
+        }
+
+        // I: AuthServiceClient interactions = 0
+        assertEquals(0, fakeAuthClient.getChamadasAutoriza(), "AuthServiceClient interactions autoriza deve ser 0");
+        assertEquals(0, fakeAuthClient.getChamadasConsulta(), "AuthServiceClient interactions consulta deve ser 0");
+    }
+
+    @Test
+    @DisplayName("32. R03 - Cenário J: STORE_REVIEW_VALID_UNTIL vazio = permitido (sem expiração automática)")
+    void test32_r03_cenarioJ_validUntilVazioPermitido() {
+        MockEnvironment env = ambienteProducaoValido()
+                .withProperty("MPPB_ENVIRONMENT", "homolog")
+                .withProperty("STORE_REVIEW_ENABLED", "true")
+                .withProperty("STORE_REVIEW_JWT_SECRET", REVIEW_SECRET)
+                .withProperty("STORE_REVIEW_VALID_UNTIL", "")
+                .withProperty("GOOGLE_REVIEW_MEMBER_PASSWORD", "senha1")
+                .withProperty("GOOGLE_REVIEW_SERVER_PASSWORD", "senha2")
+                .withProperty("APPLE_REVIEW_MEMBER_PASSWORD", "senha3")
+                .withProperty("APPLE_REVIEW_SERVER_PASSWORD", "senha4");
+
+        ValidadorConfiguracaoSegura validador = new ValidadorConfiguracaoSegura(env);
+        assertDoesNotThrow(validador::validar);
+
+        StoreReviewProperties props = new StoreReviewProperties();
+        props.setEnabled(true);
+        props.setValidUntil("");
+        assertFalse(props.isExpirado(), "STORE_REVIEW_VALID_UNTIL vazio nao deve expirar");
+
+        props.setValidUntil(null);
+        assertFalse(props.isExpirado(), "STORE_REVIEW_VALID_UNTIL nulo nao deve expirar");
+    }
+
+    private MockEnvironment ambienteProducaoValido() {
+        MockEnvironment environment = new MockEnvironment();
+        environment.setActiveProfiles("prod");
+        return environment
+                .withProperty("api.auth.url", "https://auth-api.mppb.mp.br")
+                .withProperty("spring.datasource.url", "jdbc:postgresql://db-producao:5432/mobile")
+                .withProperty("spring.datasource.username", "mobile_app")
+                .withProperty("spring.datasource.password", "senha-forte")
+                .withProperty("spring.jpa.show-sql", "false")
+                .withProperty("spring.jpa.properties.hibernate.format_sql", "false")
+                .withProperty("mpvirtual.recursos-humanos.base-url", "http://mpvirtual-interno/api")
+                .withProperty("jcr.user", "mobile_jcr")
+                .withProperty("jcr.password", "senha-jcr")
+                .withProperty("cors.enabled", "false")
+                .withProperty("cors.access-control-headers.allow-credentials", "false")
+                .withProperty("cors.access-control-headers.allow-origin", "*");
+    }
+
     private static class FakeAuthServiceClient implements AuthServiceClient {
         private int chamadasAutoriza = 0;
         private int chamadasConsulta = 0;

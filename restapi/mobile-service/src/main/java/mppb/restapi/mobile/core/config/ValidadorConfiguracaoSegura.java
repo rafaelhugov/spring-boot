@@ -48,12 +48,25 @@ public class ValidadorConfiguracaoSegura implements ApplicationRunner {
         if (perfis.contains("review")) {
             throw new IllegalStateException("Perfil review nao pode ser combinado com perfis de producao (prod, production, prd).");
         }
-        if (Boolean.parseBoolean(valor("review.enabled"))) {
-            throw new IllegalStateException("Store Review nao pode ser habilitado em perfis de producao (prod, production, prd).");
+
+        String ambiente = ambienteOperacional();
+        boolean reviewEnabled = Boolean.parseBoolean(valor("review.enabled"));
+        boolean isHomologOperacional = "homolog".equalsIgnoreCase(ambiente);
+
+        if (reviewEnabled) {
+            if ("prod".equalsIgnoreCase(ambiente) || "production".equalsIgnoreCase(ambiente) || "prd".equalsIgnoreCase(ambiente)) {
+                throw new IllegalStateException("Store Review nao pode ser habilitado no ambiente operacional de producao (MPPB_ENVIRONMENT=" + ambiente + ").");
+            }
+            if (!isHomologOperacional) {
+                throw new IllegalStateException("Store Review nao pode ser habilitado em perfis de producao (prod, production, prd) sem MPPB_ENVIRONMENT=homolog (ambiente atual: " + ambiente + ").");
+            }
         }
-        if (Boolean.parseBoolean(valor("uat.synthetic-users.enabled"))) {
+
+        boolean syntheticEnabled = Boolean.parseBoolean(valor("uat.synthetic-users.enabled"));
+        if (syntheticEnabled && !(isHomologOperacional && reviewEnabled)) {
             throw new IllegalStateException("Usuarios sinteticos UAT/Review nao podem ser habilitados em perfis de producao (prod, production, prd).");
         }
+
         if (perfis.contains("insecure")) {
             throw new IllegalStateException("Perfil insecure nao pode ser combinado com prod.");
         }
@@ -84,14 +97,29 @@ public class ValidadorConfiguracaoSegura implements ApplicationRunner {
             return;
         }
 
-        if (isProd) {
+        String ambiente = ambienteOperacional();
+        boolean isHomologOperacional = "homolog".equalsIgnoreCase(ambiente);
+
+        if (reviewEnabled) {
+            if ("prod".equalsIgnoreCase(ambiente) || "production".equalsIgnoreCase(ambiente) || "prd".equalsIgnoreCase(ambiente)) {
+                throw new IllegalStateException("Store Review nao pode ser habilitado no ambiente operacional de producao (MPPB_ENVIRONMENT=" + ambiente + ").");
+            }
+            if (isProd && !isHomologOperacional) {
+                throw new IllegalStateException("Store Review em perfil prod exige definicao explicita de MPPB_ENVIRONMENT=homolog.");
+            }
+            if (ambiente != null && !isHomologOperacional) {
+                throw new IllegalStateException("Store Review nao pode ser habilitado em ambiente operacional desconhecido ou invalido: " + ambiente + ". Apenas MPPB_ENVIRONMENT=homolog e permitido.");
+            }
+        }
+
+        if (isProd && !isHomologOperacional) {
             throw new IllegalStateException("Store Review nao pode ser habilitado em perfis de producao (prod, production, prd).");
         }
 
-        List<String> allowlist = List.of("review", "test", "dev", "local", "homolog", "uat");
+        List<String> allowlist = List.of("review", "test", "dev", "local", "homolog", "uat", "prod");
         boolean allowlisted = perfis.stream().anyMatch(allowlist::contains);
         if (!allowlisted) {
-            throw new IllegalStateException("Store Review somente pode ser ativado em profiles review, test, dev, local, homolog, uat.");
+            throw new IllegalStateException("Store Review somente pode ser ativado em profiles review, test, dev, local, homolog, uat, prod.");
         }
 
         String jwtSecretReview = valor("review.jwt-secret");
@@ -125,17 +153,22 @@ public class ValidadorConfiguracaoSegura implements ApplicationRunner {
             return;
         }
 
-        if (isProd) {
+        String ambiente = ambienteOperacional();
+        boolean isHomologOperacional = "homolog".equalsIgnoreCase(ambiente);
+        boolean reviewEnabled = Boolean.parseBoolean(valor("review.enabled"));
+
+        if (isProd && !(isHomologOperacional && reviewEnabled)) {
             throw new IllegalStateException("Usuarios sinteticos UAT/Review nao podem ser habilitados em perfis de producao (prod, production, prd).");
         }
 
-        List<String> allowlist = List.of("homolog", "uat", "review", "test", "dev", "local");
+        List<String> allowlist = List.of("homolog", "uat", "review", "test", "dev", "local", "prod");
         boolean allowlisted = perfis.stream().anyMatch(allowlist::contains);
         if (!allowlisted) {
-            throw new IllegalStateException("Usuarios sinteticos UAT/Review somente podem ser ativados em profiles homolog, uat, review, test, dev, local.");
+            throw new IllegalStateException("Usuarios sinteticos UAT/Review somente podem ser ativados em profiles homolog, uat, review, test, dev, local, prod.");
         }
 
-        boolean apenasReview = perfis.contains("review") && !perfis.contains("uat") && !perfis.contains("homolog");
+        boolean apenasReview = (perfis.contains("review") || (isHomologOperacional && reviewEnabled))
+                && !perfis.contains("uat") && !perfis.contains("homolog");
         if (!apenasReview) {
             String jwtSecret = valor("uat.synthetic-users.jwt-secret");
             if (jwtSecret == null || jwtSecret.isBlank()) {
@@ -228,7 +261,19 @@ public class ValidadorConfiguracaoSegura implements ApplicationRunner {
                 }
                 yield environment.getProperty("STORE_REVIEW_ENABLED");
             }
+            case "mppb.environment" -> environment.getProperty("MPPB_ENVIRONMENT");
             default -> null;
         };
+    }
+
+    private String ambienteOperacional() {
+        String env = valor("mppb.environment");
+        if (env == null || env.isBlank()) {
+            env = environment.getProperty("MPPB_ENVIRONMENT");
+        }
+        if (env == null || env.isBlank()) {
+            return null;
+        }
+        return env.trim().toLowerCase(Locale.ROOT);
     }
 }

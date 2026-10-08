@@ -130,3 +130,7 @@ review:
   issuer: ${REVIEW_TOKEN_ISSUER:mppb-store-review}
   audience: ${REVIEW_TOKEN_AUDIENCE:mppb-mobile-review}
 
+mppb:
+  environment: ${MPPB_ENVIRONMENT:}
+
+
