@@ -75,15 +75,22 @@ public class CarteiraFuncionalController {
     }
 
     @GetMapping(value = "/foto", produces = MediaType.IMAGE_JPEG_VALUE)
-    public ResponseEntity<byte[]> fotoServidor() {
+    public ResponseEntity<byte[]> fotoServidor(@org.springframework.web.bind.annotation.RequestParam(value = "token", required = false) String token) {
         try {
             String login = AutenticacaoAtual.login().orElse(null);
+            if (login == null && token != null && !token.isBlank()) {
+                login = carteiraService.getLoginPorTokenSintetico(token);
+            }
             if (login == null) {
                 return ResponseEntity.status(401).build();
             }
 
             byte[] bytes = carteiraService.getBytesFotoServidorPorLogin(login);
             if (bytes == null || bytes.length == 0) {
+                if (mppb.restapi.mobile.feature.synthetic.model.IdentidadeSintetica.isLoginReviewExato(login)) {
+                    log.warn("Foto Store Review nao encontrada para login: {}", login);
+                    return ResponseEntity.notFound().build();
+                }
                 bytes = getBytesArquivoClasspath("reports/carteira-funcional/img/nofoto.jpg");
                 if (bytes == null) {
                     return ResponseEntity.notFound().build();

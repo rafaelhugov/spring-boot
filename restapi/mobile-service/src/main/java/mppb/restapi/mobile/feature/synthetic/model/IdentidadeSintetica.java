@@ -170,6 +170,28 @@ public enum IdentidadeSintetica {
         return chaveSenha;
     }
 
+    public boolean isReview() {
+        return origem == OrigemConta.REVIEW_GOOGLE || origem == OrigemConta.REVIEW_APPLE;
+    }
+
+    public boolean isUat() {
+        return origem == OrigemConta.UAT;
+    }
+
+    public static final java.util.Set<String> LOGINS_REVIEW_EXATOS = java.util.Set.of(
+            "review.google.membro",
+            "review.google.servidor",
+            "review.apple.membro",
+            "review.apple.servidor"
+    );
+
+    public static boolean isLoginReviewExato(String login) {
+        if (login == null) {
+            return false;
+        }
+        return LOGINS_REVIEW_EXATOS.contains(login.trim().toLowerCase(java.util.Locale.ROOT));
+    }
+
     public static Optional<IdentidadeSintetica> porLogin(String login) {
         if (login == null || login.isBlank()) {
             return Optional.empty();

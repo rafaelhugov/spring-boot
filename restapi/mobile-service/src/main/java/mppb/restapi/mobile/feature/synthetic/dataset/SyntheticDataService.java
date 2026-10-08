@@ -6,17 +6,21 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.imageio.ImageIO;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -31,6 +35,7 @@ import mppb.restapi.mobile.feature.pagamentos.dto.PagamentoItemDto;
 import mppb.restapi.mobile.feature.pagamentos.dto.PagamentosResponseDto;
 import mppb.restapi.mobile.feature.perfil.dto.PerfilUsuarioDto;
 import mppb.restapi.mobile.feature.synthetic.audit.AuditoriaUsuarioSintetico;
+import mppb.restapi.mobile.feature.synthetic.auth.AutenticadorStoreReview;
 import mppb.restapi.mobile.feature.synthetic.auth.AutenticadorUsuarioSintetico;
 import mppb.restapi.mobile.feature.synthetic.model.IdentidadeSintetica;
 import mppb.restapi.mobile.feature.synthetic.model.OrigemConta;
@@ -39,7 +44,6 @@ import mppb.restapi.mobile.feature.synthetic.model.PerfilFuncional;
 @Slf4j
 @Service
 @ConditionalOnProperty(name = "uat.synthetic-users.enabled", havingValue = "true")
-@RequiredArgsConstructor
 public class SyntheticDataService {
 
     public static final String HASH_MD5_MEMBRO = "a1b2c3d4e5f600112233445566778899";
@@ -47,20 +51,38 @@ public class SyntheticDataService {
 
     private final AutenticadorUsuarioSintetico autenticador;
     private final AuditoriaUsuarioSintetico auditoria;
+    private AutenticadorStoreReview autenticadorStoreReview;
+
+    public SyntheticDataService(AutenticadorUsuarioSintetico autenticador, AuditoriaUsuarioSintetico auditoria) {
+        this.autenticador = autenticador;
+        this.auditoria = auditoria;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public SyntheticDataService(
+            AutenticadorUsuarioSintetico autenticador,
+            AuditoriaUsuarioSintetico auditoria,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) AutenticadorStoreReview autenticadorStoreReview) {
+        this.autenticador = autenticador;
+        this.auditoria = auditoria;
+        this.autenticadorStoreReview = autenticadorStoreReview;
+    }
 
     private byte[] fotoMembroBytes;
     private byte[] fotoServidorBytes;
 
     public boolean isHabilitado() {
-        return autenticador.isHabilitado();
+        return autenticador.isHabilitado() || (autenticadorStoreReview != null && autenticadorStoreReview.isHabilitado());
     }
 
     public boolean isSyntheticToken(String token) {
-        return autenticador.isTokenSintetico(token);
+        if (token == null) return false;
+        if (autenticador.isTokenSintetico(token)) return true;
+        return autenticadorStoreReview != null && autenticadorStoreReview.isTokenReview(token);
     }
 
     public boolean isSyntheticLogin(String login) {
-        return autenticador.isLoginSintetico(login);
+        return autenticador.isLoginSintetico(login) || IdentidadeSintetica.isLoginReviewExato(login);
     }
 
     public boolean isSyntheticMatricula(String matricula) {
@@ -105,9 +127,20 @@ public class SyntheticDataService {
     }
 
     public String getMatriculaByToken(String token) {
-        return autenticador.validarToken(token)
-                .map(IdentidadeSintetica::getMatricula)
-                .orElse(null);
+        Optional<IdentidadeSintetica> id = autenticador.validarToken(token);
+        if (id.isEmpty() && autenticadorStoreReview != null) {
+            id = autenticadorStoreReview.validarTokenReview(token);
+        }
+        return id.map(IdentidadeSintetica::getMatricula).orElse(null);
+    }
+
+    public String getLoginByToken(String token) {
+        if (token == null || token.isBlank()) return null;
+        Optional<IdentidadeSintetica> id = autenticador.validarToken(token);
+        if (id.isEmpty() && autenticadorStoreReview != null) {
+            id = autenticadorStoreReview.validarTokenReview(token);
+        }
+        return id.map(IdentidadeSintetica::getLogin).orElse(null);
     }
 
     public String getMatriculaByLogin(String login) {
@@ -130,6 +163,9 @@ public class SyntheticDataService {
 
     public PerfilUsuarioDto getPerfilByToken(String token) {
         Optional<IdentidadeSintetica> optIdentidade = autenticador.validarToken(token);
+        if (optIdentidade.isEmpty() && autenticadorStoreReview != null) {
+            optIdentidade = autenticadorStoreReview.validarTokenReview(token);
+        }
         if (optIdentidade.isEmpty()) return null;
         IdentidadeSintetica identidade = optIdentidade.get();
         auditoria.registrar(identidade, "CONSULTA_PERFIL");
@@ -165,9 +201,14 @@ public class SyntheticDataService {
 
     public byte[] getFotoByLogin(String login) {
         Optional<IdentidadeSintetica> optIdentidade = IdentidadeSintetica.porLogin(login);
-        if (optIdentidade.isEmpty()) return getFotoMembro();
+        if (optIdentidade.isEmpty()) return null;
         IdentidadeSintetica identidade = optIdentidade.get();
         auditoria.registrar(identidade, "CONSULTA_FOTO");
+        if (identidade.isReview()) {
+            return identidade.getPerfil() == PerfilFuncional.MEMBRO
+                    ? getFotoReviewMembro()
+                    : getFotoReviewServidor();
+        }
         return identidade.getPerfil() == PerfilFuncional.MEMBRO ? getFotoMembro() : getFotoServidor();
     }
 
@@ -421,16 +462,73 @@ public class SyntheticDataService {
         return p;
     }
 
+    private static final String CLASSPATH_PHOTOS_DIR = "synthetic/photos/";
+    private static final String CLASSPATH_FOTO_REVIEW_MEMBRO = "synthetic/review/persona-membro.jpg";
+    private static final String CLASSPATH_FOTO_REVIEW_SERVIDOR = "synthetic/review/persona-servidor.jpg";
+    private static final String CLASSPATH_FOTO_PERSONA_MEMBRO = "synthetic/photos/persona-membro.jpg";
+    private static final String CLASSPATH_FOTO_PERSONA_SERVIDOR = "synthetic/photos/persona-servidor.jpg";
+
+    private final Map<String, byte[]> fotosPorLoginCache = new ConcurrentHashMap<>();
+    private byte[] fotoReviewMembroBytes;
+    private byte[] fotoReviewServidorBytes;
+
+    public synchronized byte[] getFotoReviewMembro() {
+        if (fotoReviewMembroBytes == null) {
+            fotoReviewMembroBytes = carregarFotoClasspath(CLASSPATH_FOTO_REVIEW_MEMBRO);
+            if (fotoReviewMembroBytes == null) {
+                fotoReviewMembroBytes = carregarFotoClasspath(CLASSPATH_FOTO_PERSONA_MEMBRO);
+            }
+        }
+        return fotoReviewMembroBytes;
+    }
+
+    public synchronized byte[] getFotoReviewServidor() {
+        if (fotoReviewServidorBytes == null) {
+            fotoReviewServidorBytes = carregarFotoClasspath(CLASSPATH_FOTO_REVIEW_SERVIDOR);
+            if (fotoReviewServidorBytes == null) {
+                fotoReviewServidorBytes = carregarFotoClasspath(CLASSPATH_FOTO_PERSONA_SERVIDOR);
+            }
+        }
+        return fotoReviewServidorBytes;
+    }
+
+    private byte[] carregarFotoClasspath(String path) {
+        try {
+            ClassPathResource resource = new ClassPathResource(path);
+            if (resource.exists()) {
+                try (InputStream is = resource.getInputStream()) {
+                    return is.readAllBytes();
+                }
+            }
+            log.warn("Foto sintetica nao encontrada no classpath: {}", path);
+        } catch (Exception e) {
+            log.error("Erro ao carregar foto sintetica do classpath: {}", path, e);
+        }
+        return null;
+    }
+
     public synchronized byte[] getFotoMembro() {
         if (fotoMembroBytes == null) {
-            fotoMembroBytes = gerarFotoSintetica("LM", "Lucas Monteiro", new Color(30, 58, 138));
+            fotoMembroBytes = carregarFotoClasspath(CLASSPATH_FOTO_PERSONA_MEMBRO);
+            if (fotoMembroBytes == null) {
+                fotoMembroBytes = carregarFotoClasspath(CLASSPATH_FOTO_REVIEW_MEMBRO);
+            }
+            if (fotoMembroBytes == null) {
+                fotoMembroBytes = gerarFotoSintetica("LM", "Lucas Monteiro", new Color(30, 58, 138));
+            }
         }
         return fotoMembroBytes;
     }
 
     public synchronized byte[] getFotoServidor() {
         if (fotoServidorBytes == null) {
-            fotoServidorBytes = gerarFotoSintetica("MR", "Mariana Ribeiro", new Color(15, 118, 110));
+            fotoServidorBytes = carregarFotoClasspath(CLASSPATH_FOTO_PERSONA_SERVIDOR);
+            if (fotoServidorBytes == null) {
+                fotoServidorBytes = carregarFotoClasspath(CLASSPATH_FOTO_REVIEW_SERVIDOR);
+            }
+            if (fotoServidorBytes == null) {
+                fotoServidorBytes = gerarFotoSintetica("MR", "Mariana Ribeiro", new Color(15, 118, 110));
+            }
         }
         return fotoServidorBytes;
     }

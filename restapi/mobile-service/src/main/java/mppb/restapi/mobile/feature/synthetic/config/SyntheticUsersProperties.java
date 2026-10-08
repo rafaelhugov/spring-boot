@@ -36,6 +36,18 @@ public class SyntheticUsersProperties {
         if (chave == null) {
             return null;
         }
-        return passwords.get(chave);
+        String senha = passwords.get(chave);
+        if (senha != null && !senha.isBlank()) {
+            return senha;
+        }
+        return switch (chave) {
+            case "google-review-membro" -> System.getenv("GOOGLE_REVIEW_MEMBER_PASSWORD");
+            case "google-review-servidor" -> System.getenv("GOOGLE_REVIEW_SERVER_PASSWORD");
+            case "apple-review-membro" -> System.getenv("APPLE_REVIEW_MEMBER_PASSWORD");
+            case "apple-review-servidor" -> System.getenv("APPLE_REVIEW_SERVER_PASSWORD");
+            case "uat-membro" -> System.getenv("UAT_MEMBER_PASSWORD");
+            case "uat-servidor" -> System.getenv("UAT_SERVER_PASSWORD");
+            default -> null;
+        };
     }
 }

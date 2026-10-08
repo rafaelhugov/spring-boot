@@ -131,6 +131,10 @@ public class CarteiraService {
         if (syntheticDataService != null && syntheticDataService.isSyntheticLogin(login)) {
             return syntheticDataService.getFotoByLogin(login);
         }
+        if (mppb.restapi.mobile.feature.synthetic.model.IdentidadeSintetica.isLoginReviewExato(login)) {
+            log.warn("Identidade Store Review sem dados sinteticos disponiveis para foto: {}", login);
+            return null;
+        }
 
         StringBuilder query = new StringBuilder();
         byte[] bytes = null;
@@ -178,6 +182,10 @@ public class CarteiraService {
         }
         if (syntheticDataService != null && syntheticDataService.isSyntheticCarteira(carteira)) {
             return syntheticDataService.getFotoByLogin(carteira.getLogin());
+        }
+        if (carteira.getLogin() != null && mppb.restapi.mobile.feature.synthetic.model.IdentidadeSintetica.isLoginReviewExato(carteira.getLogin())) {
+            log.warn("Identidade Store Review sem dados sinteticos disponiveis para foto de carteira: {}", carteira.getLogin());
+            return null;
         }
 
         byte[] bytes = getBytesFotoServidorPorLogin(carteira.getLogin());
@@ -280,5 +288,12 @@ public class CarteiraService {
             log.error("Erro ao buscar login por matricula: " + matricula, e);
             return null;
         }
+    }
+
+    public String getLoginPorTokenSintetico(String token) {
+        if (syntheticDataService != null) {
+            return syntheticDataService.getLoginByToken(token);
+        }
+        return null;
     }
 }

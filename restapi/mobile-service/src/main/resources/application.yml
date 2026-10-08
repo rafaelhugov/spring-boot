@@ -112,7 +112,7 @@ jcr:
 
 uat:
   synthetic-users:
-    enabled: ${UAT_SYNTHETIC_USERS_ENABLED:false}
+    enabled: ${UAT_SYNTHETIC_USERS_ENABLED:${STORE_REVIEW_ENABLED:false}}
     jwt-secret: ${UAT_SYNTHETIC_JWT_SECRET:}
     passwords:
       uat-membro: ${UAT_MEMBER_PASSWORD:}
@@ -121,4 +121,12 @@ uat:
       google-review-servidor: ${GOOGLE_REVIEW_SERVER_PASSWORD:}
       apple-review-membro: ${APPLE_REVIEW_MEMBER_PASSWORD:}
       apple-review-servidor: ${APPLE_REVIEW_SERVER_PASSWORD:}
+
+review:
+  enabled: ${STORE_REVIEW_ENABLED:false}
+  jwt-secret: ${STORE_REVIEW_JWT_SECRET:}
+  valid-until: ${STORE_REVIEW_VALID_UNTIL:}
+  token-ttl-seconds: ${REVIEW_TOKEN_TTL_SECONDS:86400}
+  issuer: ${REVIEW_TOKEN_ISSUER:mppb-store-review}
+  audience: ${REVIEW_TOKEN_AUDIENCE:mppb-mobile-review}
 

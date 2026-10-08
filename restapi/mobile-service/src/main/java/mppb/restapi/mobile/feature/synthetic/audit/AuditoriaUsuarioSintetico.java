@@ -35,4 +35,24 @@ public class AuditoriaUsuarioSintetico {
                 loginTentado != null ? loginTentado : "N/A",
                 motivo != null ? motivo : "N/A");
     }
+
+    public void registrarStoreReview(IdentidadeSintetica identidade, String operacao) {
+        String origem = "DESCONHECIDA";
+        String perfil = "DESCONHECIDO";
+        if (identidade != null) {
+            origem = switch (identidade.getOrigem()) {
+                case REVIEW_GOOGLE -> "GOOGLE";
+                case REVIEW_APPLE -> "APPLE";
+                default -> identidade.getOrigem().name();
+            };
+            perfil = identidade.getPerfil() != null ? identidade.getPerfil().name() : "DESCONHECIDO";
+        }
+        log.info("storeReview=true origem={} perfil={} operacao={}", origem, perfil, operacao);
+    }
+
+    public void registrarFalhaStoreReview(String loginTentado, String motivo) {
+        log.warn("storeReview=true loginTentado={} resultado=REJEITADO motivo={}",
+                loginTentado != null ? loginTentado : "N/A",
+                motivo != null ? motivo : "N/A");
+    }
 }
