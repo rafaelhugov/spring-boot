@@ -445,7 +445,9 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
 
     private void aplicarDadosAcessibilidade(Inscricao inscricao, Boolean pcd, String necessidadeEspecial) {
         if (pcd == null) {
-            throw new BusinessRuleException("Informe se o participante é Pessoa com Deficiência (PcD).");
+            inscricao.setPcd(false);
+            inscricao.setNecessidadeEspecial(null);
+            return;
         }
 
         if (Boolean.TRUE.equals(pcd) && (necessidadeEspecial == null || necessidadeEspecial.isBlank())) {
