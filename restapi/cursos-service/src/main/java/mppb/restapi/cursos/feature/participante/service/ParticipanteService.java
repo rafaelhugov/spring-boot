@@ -150,9 +150,8 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
      */
     public Participante findOrCreateParticipanteExterno(InscricaoPublicaDto dto) {
         String cpfLimpo = dto.getCpf() != null ? dto.getCpf().replaceAll("\\D", "") : null;
-
-        if (!StringUtils.hasText(dto.getEmail()) || !StringUtils.hasText(dto.getTelefone())) {
-            throw new BusinessRuleException("E-mail e telefone são obrigatórios para participantes externos.");
+        if (!StringUtils.hasText(cpfLimpo)) {
+            cpfLimpo = null;
         }
 
         // 1. Reutilizar participante se o ID foi fornecido
@@ -168,17 +167,15 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
         }
 
         // 2. Validar e converter o DTO
-        if (!StringUtils.hasText(dto.getNome()) || !StringUtils.hasText(dto.getEmail())) {
-            throw new BusinessRuleException("Nome e E-mail são obrigatórios para um novo cadastro.");
+        if (!StringUtils.hasText(dto.getNome())) {
+            throw new BusinessRuleException("Nome é obrigatório para um novo cadastro.");
         }
 
-        if (!StringUtils.hasText(cpfLimpo)) {
-            throw new BusinessRuleException("O CPF é obrigatório para participantes externos.");
-        }
-
-        Optional<Participante> participanteExistente = participanteRepository.findByCpf(cpfLimpo);
-        if (participanteExistente.isPresent()) {
-            return reutilizarParticipanteExternoExistente(participanteExistente.get(), dto, cpfLimpo);
+        if (cpfLimpo != null) {
+            Optional<Participante> participanteExistente = participanteRepository.findByCpf(cpfLimpo);
+            if (participanteExistente.isPresent()) {
+                return reutilizarParticipanteExternoExistente(participanteExistente.get(), dto, cpfLimpo);
+            }
         }
 
         CriarInscricaoDto payload = new CriarInscricaoDto();
@@ -208,17 +205,18 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
     }
 
     private Participante createAndSaveExterno(CriarInscricaoDto dto) {
-        if (dto.getCpf() == null || dto.getCpf().isBlank()) {
-            throw new BusinessRuleException("O CPF é obrigatório para participantes externos.");
+        String cpfLimpo = dto.getCpf() != null ? dto.getCpf().replaceAll("\\D", "") : null;
+        if (!StringUtils.hasText(cpfLimpo)) {
+            cpfLimpo = null;
         }
 
-        if (participanteRepository.existsByCpf(dto.getCpf())) {
+        if (cpfLimpo != null && participanteRepository.existsByCpf(cpfLimpo)) {
             throw new BusinessRuleException("Já existe um participante cadastrado com este CPF.");
         }
 
         Participante p = new Participante();
         p.setNome(dto.getNome());
-        p.setCpf(dto.getCpf());
+        p.setCpf(cpfLimpo);
         p.setEmail(dto.getEmail());
         p.setTelefone(dto.getTelefone());
         p.setTipo(TipoParticipanteEnum.EXTERNO);

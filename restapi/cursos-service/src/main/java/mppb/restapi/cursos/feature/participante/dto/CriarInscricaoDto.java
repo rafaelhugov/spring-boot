@@ -2,7 +2,7 @@ package mppb.restapi.cursos.feature.participante.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 
 /**
@@ -24,7 +24,7 @@ public class CriarInscricaoDto {
     // --- Campos para CRIAR um novo participante EXTERNO ---
     private String nome;
 
-    @Size(min = 11, max = 11, message = "CPF deve conter 11 dígitos.")
+    @Pattern(regexp = "^$|\\d{11}", message = "CPF deve conter 11 dígitos.")
     private String cpf;
 
     @Email(message = "Formato de e-mail inválido.")
