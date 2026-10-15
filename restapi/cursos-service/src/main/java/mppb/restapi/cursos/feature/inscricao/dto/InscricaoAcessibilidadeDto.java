@@ -7,4 +7,5 @@ public class InscricaoAcessibilidadeDto {
 
     private Boolean pcd;
     private String necessidadeEspecial;
+    private Boolean declaracaoCriteriosPublicoAlvo;
 }

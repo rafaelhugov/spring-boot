@@ -29,6 +29,7 @@ public class CursoPublicoDto {
     private String modalidade;
     private String municipio;
     private List<String> publicosAlvo;
+    private String criteriosEspecificosPublicoAlvo;
 
     /**
      * Campo que informa ao frontend se o curso está aberto a inscrições de internos.

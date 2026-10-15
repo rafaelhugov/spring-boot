@@ -169,6 +169,8 @@ public class SolicitacaoCursoService {
 
         solicitacao.setNomeCurso(dto.getNomeCurso());
         solicitacao.setEstimativaParticipantes(dto.getEstimativaParticipantes());
+        solicitacao.setCriteriosEspecificosPublicoAlvo(
+                normalizarCriteriosEspecificos(dto.getCriteriosEspecificosPublicoAlvo()));
 
         // Lookups
         if (dto.getIdModalidade() != null) {
@@ -301,6 +303,7 @@ public class SolicitacaoCursoService {
             dto.setIdsPublicoAlvo(entity.getPublicosAlvo().stream().map(PublicoAlvo::getId).toList());
             dto.setPublicosAlvoDescricao(entity.getPublicosAlvo().stream().map(PublicoAlvo::getDescricao).toList());
         }
+        dto.setCriteriosEspecificosPublicoAlvo(entity.getCriteriosEspecificosPublicoAlvo());
         if (entity.getLocalEvento() != null) {
             dto.setIdLocalEvento(entity.getLocalEvento().getId());
             dto.setLocalEventoDescricao(entity.getLocalEvento().getNome());
@@ -505,6 +508,21 @@ public class SolicitacaoCursoService {
             log.error("[Habilitar Edição] Erro fatal ao salvar solicitação ID: {}", id, e);
             throw new AppException("Erro ao salvar alteração de status: " + e.getMessage());
         }
+    }
+
+    @Transactional
+    public SolicitacaoCursoResponseDto atualizarCriteriosEspecificosPublicoAlvo(Long id, String criterios) {
+        SolicitacaoCurso solicitacao = solicitacaoRepository.findByIdWithDetails(id)
+                .orElseThrow(() -> new NotFoundException("Solicitação não encontrada"));
+
+        Long statusId = solicitacao.getStatus() != null ? solicitacao.getStatus().getId() : null;
+        if (statusId == null || (statusId != 2L && statusId != 3L && statusId != 8L)) {
+            throw new BusinessRuleException(
+                    "Os critérios específicos só podem ser alterados pelo CEAF durante a análise da solicitação.");
+        }
+
+        solicitacao.setCriteriosEspecificosPublicoAlvo(normalizarCriteriosEspecificos(criterios));
+        return mapToResponseDto(solicitacaoRepository.save(solicitacao));
     }
 
     @Transactional
@@ -714,6 +732,7 @@ public class SolicitacaoCursoService {
         novoCurso.setLinkProgramacao(null); // Poderia vir do GED depois
         novoCurso.setDescricao("Curso gerado a partir da solicitação #" + solicitacao.getId() + " ("
                 + solicitacao.getNumeroPgaMpVirtual() + ")");
+        novoCurso.setCriteriosEspecificosPublicoAlvo(solicitacao.getCriteriosEspecificosPublicoAlvo());
 
         // Mapeamento das datas e cálculo da carga horária real
         if (!solicitacao.getAgendas().isEmpty()) {
@@ -893,6 +912,8 @@ public class SolicitacaoCursoService {
     private void updateEntityFromDto(SolicitacaoCurso solicitacao, SolicitacaoCursoRequestDto dto) {
         solicitacao.setNomeCurso(dto.getNomeCurso());
         solicitacao.setEstimativaParticipantes(dto.getEstimativaParticipantes());
+        solicitacao.setCriteriosEspecificosPublicoAlvo(
+                normalizarCriteriosEspecificos(dto.getCriteriosEspecificosPublicoAlvo()));
 
         // Lookups
         solicitacao.setModalidade(modalidadeRepository.findById(dto.getIdModalidade())
@@ -1022,5 +1043,9 @@ public class SolicitacaoCursoService {
                         "É necessário anexar a programação do evento (PDF) para enviar a solicitação.");
             }
         }
+    }
+
+    private String normalizarCriteriosEspecificos(String criterios) {
+        return StringUtils.hasText(criterios) ? criterios.trim() : null;
     }
 }

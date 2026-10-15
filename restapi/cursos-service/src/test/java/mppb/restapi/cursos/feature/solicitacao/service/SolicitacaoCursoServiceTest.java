@@ -77,6 +77,7 @@ public class SolicitacaoCursoServiceTest {
         solicitacao.setStatus(statusProtocolado);
         solicitacao.setNumeroPgaMpVirtual("2026.001.001");
         solicitacao.setPublicosAlvo(new ArrayList<>());
+        solicitacao.setCriteriosEspecificosPublicoAlvo("Atuação funcional na área da infância.");
         
         Modalidade modalidade = new Modalidade();
         modalidade.setId(1L);
@@ -127,7 +128,8 @@ public class SolicitacaoCursoServiceTest {
         // Verificar se a carga horária foi calculada como 04:00:00 (8h às 12h = 4h)
         verify(cursoService).save(argThat(curso -> 
             "04:00:00".equals(curso.getCargaHoraria()) &&
-            "Curso de Teste".equals(curso.getTitulo())
+            "Curso de Teste".equals(curso.getTitulo()) &&
+            "Atuação funcional na área da infância.".equals(curso.getCriteriosEspecificosPublicoAlvo())
         ));
     }
 
@@ -147,6 +149,30 @@ public class SolicitacaoCursoServiceTest {
 
         assertTrue(exception.getMessage().contains("Apenas solicitações PROTOCOLADAS"));
         verify(cursoService, never()).save(any());
+    }
+
+    @Test
+    void ceafAtualizaSomenteCriteriosDuranteAnalise() {
+        when(solicitacaoRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(solicitacao));
+        when(solicitacaoRepository.save(solicitacao)).thenReturn(solicitacao);
+
+        solicitacaoCursoService.atualizarCriteriosEspecificosPublicoAlvo(
+                1L, "  Atuação funcional em infância e juventude.  ");
+
+        assertEquals("Atuação funcional em infância e juventude.",
+                solicitacao.getCriteriosEspecificosPublicoAlvo());
+        verify(solicitacaoRepository).save(solicitacao);
+    }
+
+    @Test
+    void ceafNaoAlteraCriteriosDepoisDaConversao() {
+        solicitacao.setStatus(statusConvertido);
+        when(solicitacaoRepository.findByIdWithDetails(1L)).thenReturn(Optional.of(solicitacao));
+
+        assertThrows(BusinessRuleException.class, () ->
+                solicitacaoCursoService.atualizarCriteriosEspecificosPublicoAlvo(1L, "Novo critério"));
+
+        verify(solicitacaoRepository, never()).save(any());
     }
 
     @Test
@@ -182,6 +208,8 @@ public class SolicitacaoCursoServiceTest {
         verify(cursoService, times(2)).save(any(Curso.class));
         verify(cursoService).save(argThat(curso -> joaoPessoa.equals(curso.getMunicipio())));
         verify(cursoService).save(argThat(curso -> cajazeiras.equals(curso.getMunicipio())));
+        verify(cursoService, times(2)).save(argThat(curso ->
+                "Atuação funcional na área da infância.".equals(curso.getCriteriosEspecificosPublicoAlvo())));
         verify(solicitacaoRepository).save(solicitacao);
     }
 }

@@ -90,6 +90,9 @@ public class Curso extends AbstractEntity<Long> {
     )
     private Set<PublicoAlvo> publicosAlvo ;
 
+    @Column(name = "criteriosespecificospublicoalvo", columnDefinition = "text")
+    private String criteriosEspecificosPublicoAlvo;
+
     @Column(name = "datamodificacao")
     private LocalDateTime dataModificacao;
 

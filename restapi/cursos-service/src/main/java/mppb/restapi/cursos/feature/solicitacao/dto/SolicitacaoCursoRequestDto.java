@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
@@ -26,6 +27,9 @@ public class SolicitacaoCursoRequestDto {
 
     @NotNull(message = "O público-alvo é obrigatório")
     private List<Long> idsPublicoAlvo;
+
+    @Size(max = 4000, message = "Os critérios específicos do público-alvo devem ter no máximo 4000 caracteres")
+    private String criteriosEspecificosPublicoAlvo;
 
     private Boolean temOrgaoExterno;
     private String nomeOrgaoExterno;

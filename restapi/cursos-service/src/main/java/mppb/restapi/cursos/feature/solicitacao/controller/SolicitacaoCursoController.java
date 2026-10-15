@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import mppb.restapi.cursos.feature.solicitacao.dto.ConverterSolicitacaoRequestDto;
+import mppb.restapi.cursos.feature.solicitacao.dto.AtualizarCriteriosEspecificosRequestDto;
 import mppb.restapi.cursos.feature.solicitacao.dto.HabilitarEdicaoRequestDto;
 import mppb.restapi.cursos.feature.solicitacao.dto.SolicitacaoCursoRequestDto;
 import mppb.restapi.cursos.feature.solicitacao.dto.SolicitacaoCursoResponseDto;
@@ -94,6 +95,16 @@ public class SolicitacaoCursoController {
             @PathVariable Long id,
             @Valid @RequestBody HabilitarEdicaoRequestDto dto) {
         return ResponseEntity.ok(service.habilitarEdicao(id, dto.getDescricaoAjustes()));
+    }
+
+    @Operation(summary = "Atualizar critérios específicos", description = "Permite ao CEAF alterar exclusivamente os critérios específicos de público-alvo durante a análise.")
+    @PatchMapping("/{id}/criterios-especificos-publico-alvo")
+    @PreAuthorize("hasAnyAuthority('cursos.analisar.solicitacoes', 'cursos.manter.cursos')")
+    public ResponseEntity<SolicitacaoCursoResponseDto> atualizarCriteriosEspecificos(
+            @PathVariable Long id,
+            @Valid @RequestBody AtualizarCriteriosEspecificosRequestDto dto) {
+        return ResponseEntity.ok(service.atualizarCriteriosEspecificosPublicoAlvo(
+                id, dto.getCriteriosEspecificosPublicoAlvo()));
     }
 
     @Operation(summary = "Preview do Protocolo", description = "Obtém os metadados que serão enviados ao MPVirtual para fins de conferência")

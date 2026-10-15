@@ -252,6 +252,30 @@ class CursoApiIntegrationTest {
     }
 
     @Test
+    void criarCursoAceitaCriteriosEspecificosCom4000Caracteres() throws Exception {
+        String criterios = "a".repeat(4000);
+
+        mockMvc.perform(post("/api/cursos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cursoPayload(null, "Curso com critérios", campoCriterios(criterios)))
+                        .with(admin()))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.criteriosEspecificosPublicoAlvo").value(criterios));
+    }
+
+    @Test
+    void criarCursoRejeitaCriteriosEspecificosCom4001Caracteres() throws Exception {
+        mockMvc.perform(post("/api/cursos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cursoPayload(null, "Curso com critérios inválidos", campoCriterios("a".repeat(4001))))
+                        .with(admin()))
+                .andExpect(status().isBadRequest());
+
+        Integer cursos = jdbcTemplate.queryForObject("select count(*) from curso.curso", Integer.class);
+        assertThat(cursos).isZero();
+    }
+
+    @Test
     void criarCursoComCargaHorariaOuPercentualInvalidosRetorna400() throws Exception {
         mockMvc.perform(post("/api/cursos")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -338,6 +362,72 @@ class CursoApiIntegrationTest {
         assertThat(status).isEqualTo("P");
         assertThat(hashDepois).isEqualTo(hashAntes);
         assertThat(dataCriacaoDepois).isEqualTo(dataCriacaoAntes);
+    }
+
+    @Test
+    void atualizarCursoAceitaCriteriosEspecificosCom4000Caracteres() throws Exception {
+        inserirCurso(101L, "Curso Original", "P");
+        String criterios = "a".repeat(4000);
+
+        mockMvc.perform(put("/api/cursos/101")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cursoPayload(101L, "Curso Atualizado", campoCriterios(criterios)))
+                        .with(admin()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.criteriosEspecificosPublicoAlvo").value(criterios));
+
+        String criteriosPersistidos = jdbcTemplate.queryForObject(
+                "select criteriosespecificospublicoalvo from curso.curso where id = 101",
+                String.class);
+        assertThat(criteriosPersistidos).isEqualTo(criterios);
+    }
+
+    @Test
+    void atualizarCursoRejeitaCriteriosEspecificosCom4001CaracteresSemAlterarBanco() throws Exception {
+        inserirCurso(101L, "Curso Original", "P");
+        jdbcTemplate.update(
+                "update curso.curso set criteriosespecificospublicoalvo = ? where id = 101",
+                "Critério original");
+
+        mockMvc.perform(put("/api/cursos/101")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cursoPayload(101L, "Curso Indevido", campoCriterios("a".repeat(4001))))
+                        .with(admin()))
+                .andExpect(status().isBadRequest());
+
+        String titulo = jdbcTemplate.queryForObject("select titulo from curso.curso where id = 101", String.class);
+        String criterios = jdbcTemplate.queryForObject(
+                "select criteriosespecificospublicoalvo from curso.curso where id = 101",
+                String.class);
+        assertThat(titulo).isEqualTo("Curso Original");
+        assertThat(criterios).isEqualTo("Critério original");
+    }
+
+    @Test
+    void atualizarCursoAceitaCriteriosEspecificosNulosEVazios() throws Exception {
+        inserirCurso(101L, "Curso com critério nulo", "P");
+        inserirCurso(102L, "Curso com critério vazio", "P");
+        jdbcTemplate.update(
+                "update curso.curso set criteriosespecificospublicoalvo = 'Critério anterior' where id in (101, 102)");
+
+        mockMvc.perform(put("/api/cursos/101")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cursoPayload(101L, "Curso sem critério", campoCriterios(null)))
+                        .with(admin()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.criteriosEspecificosPublicoAlvo").doesNotExist());
+
+        mockMvc.perform(put("/api/cursos/102")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cursoPayload(102L, "Curso com critério vazio", campoCriterios("")))
+                        .with(admin()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.criteriosEspecificosPublicoAlvo").doesNotExist());
+
+        Integer criteriosNulos = jdbcTemplate.queryForObject(
+                "select count(*) from curso.curso where id in (101, 102) and criteriosespecificospublicoalvo is null",
+                Integer.class);
+        assertThat(criteriosNulos).isEqualTo(2);
     }
 
     @Test
@@ -557,6 +647,12 @@ class CursoApiIntegrationTest {
                   "percentualChAprovacao": 75
                 }
                 """.formatted(idField, extras, titulo);
+    }
+
+    private String campoCriterios(String criterios) {
+        return criterios == null
+                ? "\"criteriosEspecificosPublicoAlvo\": null,"
+                : "\"criteriosEspecificosPublicoAlvo\": \"" + criterios + "\",";
     }
 
     private org.springframework.test.web.servlet.request.RequestPostProcessor admin() {

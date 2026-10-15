@@ -8,6 +8,7 @@
 	<parameter name="ESTIMATIVA_PARTICIPANTES" class="java.lang.Integer"/>
 	<parameter name="MODALIDADE" class="java.lang.String"/>
 	<parameter name="PUBLICO_ALVO" class="java.lang.String"/>
+	<parameter name="CRITERIOS_ESPECIFICOS_PUBLICO_ALVO" class="java.lang.String"/>
 	<parameter name="TEM_ORGAO_EXTERNO" class="java.lang.String"/>
 	<parameter name="NOME_ORGAO_EXTERNO" class="java.lang.String"/>
 	<parameter name="LOCAL_EVENTO" class="java.lang.String"/>
@@ -17,7 +18,7 @@
 	<parameter name="LISTA_AGENDAS" class="java.lang.String"/>
 	<parameter name="LISTA_MINISTRANTES" class="java.lang.String"/>
 	<background splitType="Stretch"/>
-	<title height="700" splitType="Stretch">
+	<title height="740" splitType="Stretch">
 		<element kind="image" uuid="1c890cc1-789a-4c2f-8da7-4e08c3127814" x="0" y="0" width="70" height="70">
 			<expression><![CDATA[$P{LOGO_MPPB}]]></expression>
 		</element>
@@ -61,45 +62,51 @@
 		<element kind="textField" uuid="c2234567-c123-c123-c123-c12345678905" positionType="Float" x="100" y="205" width="455" height="20" textAdjust="StretchHeight" vTextAlign="Middle">
 			<expression><![CDATA[$P{PUBLICO_ALVO}]]></expression>
 		</element>
-		<element kind="textField" uuid="d2234567-d123-d123-d123-d22345678906" positionType="Float" x="0" y="225" width="100" height="20" bold="true" vTextAlign="Middle">
+		<element kind="textField" uuid="a3234567-a123-a123-a123-a12345678910" positionType="Float" x="0" y="225" width="100" height="40" bold="true" vTextAlign="Top">
+			<expression><![CDATA["Critérios Específicos:"]]></expression>
+		</element>
+		<element kind="textField" uuid="b3234567-b123-b123-b123-b12345678911" positionType="Float" x="100" y="225" width="455" height="40" textAdjust="StretchHeight" vTextAlign="Top">
+			<expression><![CDATA[$P{CRITERIOS_ESPECIFICOS_PUBLICO_ALVO}]]></expression>
+		</element>
+		<element kind="textField" uuid="d2234567-d123-d123-d123-d22345678906" positionType="Float" x="0" y="265" width="100" height="20" bold="true" vTextAlign="Middle">
 			<expression><![CDATA["Local Evento:"]]></expression>
 		</element>
-		<element kind="textField" uuid="e2234567-e123-e123-e123-e22345678907" positionType="Float" x="100" y="225" width="455" height="20" textAdjust="StretchHeight" vTextAlign="Middle">
+		<element kind="textField" uuid="e2234567-e123-e123-e123-e22345678907" positionType="Float" x="100" y="265" width="455" height="20" textAdjust="StretchHeight" vTextAlign="Middle">
 			<expression><![CDATA[$P{LOCAL_EVENTO}]]></expression>
 		</element>
 
 		<!-- 2. APOIO LOGÍSTICO -->
-		<element kind="textField" uuid="69d0092c-55c9-4625-9988-8797b5e43ae6" positionType="Float" mode="Opaque" x="0" y="255" width="555" height="20" backcolor="#E0E0E0" bold="true" vTextAlign="Middle">
+		<element kind="textField" uuid="69d0092c-55c9-4625-9988-8797b5e43ae6" positionType="Float" mode="Opaque" x="0" y="295" width="555" height="20" backcolor="#E0E0E0" bold="true" vTextAlign="Middle">
 			<expression><![CDATA["2. APOIO LOGÍSTICO"]]></expression>
 		</element>
-		<element kind="textField" uuid="f2234567-f123-f123-f123-f12345678908" positionType="Float" x="0" y="280" width="555" height="30" textAdjust="StretchHeight" vTextAlign="Top">
+		<element kind="textField" uuid="f2234567-f123-f123-f123-f12345678908" positionType="Float" x="0" y="320" width="555" height="30" textAdjust="StretchHeight" vTextAlign="Top">
 			<expression><![CDATA[$P{APOIO_LOGISTICO}.isEmpty() ? "Nenhum item solicitado" : $P{APOIO_LOGISTICO}]]></expression>
 		</element>
 
 		<!-- 3. FINANCEIRO -->
-		<element kind="textField" uuid="b9d0092c-55c9-4625-9988-8797b5e43ae6" positionType="Float" mode="Opaque" x="0" y="320" width="555" height="20" backcolor="#E0E0E0" bold="true" vTextAlign="Middle">
+		<element kind="textField" uuid="b9d0092c-55c9-4625-9988-8797b5e43ae6" positionType="Float" mode="Opaque" x="0" y="360" width="555" height="20" backcolor="#E0E0E0" bold="true" vTextAlign="Middle">
 			<expression><![CDATA["3. FINANCEIRO"]]></expression>
 		</element>
-		<element kind="textField" uuid="c1234567-c123-c123-c123-c12345678920" positionType="Float" x="0" y="345" width="555" height="30" textAdjust="StretchHeight" vTextAlign="Top">
+		<element kind="textField" uuid="c1234567-c123-c123-c123-c12345678920" positionType="Float" x="0" y="385" width="555" height="30" textAdjust="StretchHeight" vTextAlign="Top">
 			<expression><![CDATA[$P{FINANCEIRO}.isEmpty() ? "Nenhum item solicitado" : $P{FINANCEIRO}]]></expression>
 		</element>
 
-		<element kind="textField" uuid="c9d0092c-55c9-4625-9988-8797b5e43ae6" positionType="Float" mode="Opaque" x="0" y="385" width="555" height="20" backcolor="#E0E0E0" bold="true" vTextAlign="Middle">
+		<element kind="textField" uuid="c9d0092c-55c9-4625-9988-8797b5e43ae6" positionType="Float" mode="Opaque" x="0" y="425" width="555" height="20" backcolor="#E0E0E0" bold="true" vTextAlign="Middle">
 			<expression><![CDATA["4. AGENDAS (DATAS E HORÁRIOS)"]]></expression>
 		</element>
-		<element kind="textField" uuid="21234567-2123-2123-2123-212345678926" positionType="Float" x="0" y="410" width="555" height="40" textAdjust="StretchHeight">
+		<element kind="textField" uuid="21234567-2123-2123-2123-212345678926" positionType="Float" x="0" y="450" width="555" height="40" textAdjust="StretchHeight">
 			<expression><![CDATA[$P{LISTA_AGENDAS}]]></expression>
 		</element>
-		<element kind="textField" uuid="d9d0092c-55c9-4625-9988-8797b5e43ae6" positionType="Float" mode="Opaque" x="0" y="460" width="555" height="20" backcolor="#E0E0E0" bold="true" vTextAlign="Middle">
+		<element kind="textField" uuid="d9d0092c-55c9-4625-9988-8797b5e43ae6" positionType="Float" mode="Opaque" x="0" y="500" width="555" height="20" backcolor="#E0E0E0" bold="true" vTextAlign="Middle">
 			<expression><![CDATA["5. MINISTRANTES"]]></expression>
 		</element>
-		<element kind="textField" uuid="31234567-3123-3123-3123-312345678927" positionType="Float" x="0" y="485" width="555" height="60" textAdjust="StretchHeight">
+		<element kind="textField" uuid="31234567-3123-3123-3123-312345678927" positionType="Float" x="0" y="525" width="555" height="60" textAdjust="StretchHeight">
 			<expression><![CDATA[$P{LISTA_MINISTRANTES}]]></expression>
 		</element>
-		<element kind="textField" uuid="e9d0092c-55c9-4625-9988-8797b5e43ae6" positionType="Float" mode="Opaque" x="0" y="555" width="555" height="20" backcolor="#E0E0E0" bold="true" vTextAlign="Middle">
+		<element kind="textField" uuid="e9d0092c-55c9-4625-9988-8797b5e43ae6" positionType="Float" mode="Opaque" x="0" y="595" width="555" height="20" backcolor="#E0E0E0" bold="true" vTextAlign="Middle">
 			<expression><![CDATA["6. OBSERVAÇÕES GERAIS"]]></expression>
 		</element>
-		<element kind="textField" uuid="41234567-4123-4123-4123-412345678928" positionType="Float" x="0" y="580" width="555" height="40" textAdjust="StretchHeight">
+		<element kind="textField" uuid="41234567-4123-4123-4123-412345678928" positionType="Float" x="0" y="620" width="555" height="40" textAdjust="StretchHeight">
 			<expression><![CDATA[$P{OBSERVACOES_GERAIS}]]></expression>
 		</element>
 	</title>

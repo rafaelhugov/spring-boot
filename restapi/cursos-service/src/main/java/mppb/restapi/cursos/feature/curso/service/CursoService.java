@@ -31,6 +31,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -196,6 +197,8 @@ public class CursoService extends AbstractService<Curso, Long> {
         if (curso.getHashInscricao() == null) {
             curso.setHashInscricao(UUID.randomUUID());
         }
+        curso.setCriteriosEspecificosPublicoAlvo(
+                normalizarCriteriosEspecificos(curso.getCriteriosEspecificosPublicoAlvo()));
         validarDatasCurso(curso);
         // A lógica de gerenciamento de ministrantes foi removida daqui, pois agora é tratada em endpoints específicos.
         return cursoRepository.saveAndFlush(curso);
@@ -222,6 +225,8 @@ public class CursoService extends AbstractService<Curso, Long> {
         curso.setEntidadeTutora(getRequiredReference(EntidadeTutora.class, dto.getEntidadeTutora().getId(), "Entidade tutora"));
         curso.setModalidade(getRequiredReference(Modalidade.class, dto.getModalidade().getId(), "Modalidade"));
         curso.setPublicosAlvo(toPublicosAlvoReferences(dto));
+        curso.setCriteriosEspecificosPublicoAlvo(
+                normalizarCriteriosEspecificos(dto.getCriteriosEspecificosPublicoAlvo()));
         
         if (dto.getMunicipio() != null && dto.getMunicipio().getId() != null) {
             curso.setMunicipio(entityManager.getReference(Municipio.class, dto.getMunicipio().getId()));
@@ -400,6 +405,7 @@ public class CursoService extends AbstractService<Curso, Long> {
                         .filter(Objects::nonNull)
                         .sorted()
                         .toList());
+        dto.setCriteriosEspecificosPublicoAlvo(curso.getCriteriosEspecificosPublicoAlvo());
         dto.setAceitaInscricaoInterna(aceitaInscricaoInterna(curso));
         dto.setAceitaInscricaoExterna(aceitaInscricaoExterna(curso));
 
@@ -443,6 +449,10 @@ public class CursoService extends AbstractService<Curso, Long> {
 
     private String normalizarTexto(String valor) {
         return valor == null ? "" : valor.toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizarCriteriosEspecificos(String criterios) {
+        return StringUtils.hasText(criterios) ? criterios.trim() : null;
     }
 
 
