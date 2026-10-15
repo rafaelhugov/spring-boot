@@ -68,10 +68,10 @@ public class StoreReviewFotografiaTest {
         syntheticProperties.setEnabled(true);
         syntheticProperties.setJwtSecret("SecretParaUatInterno123456789012345678901234567890!");
         syntheticProperties.setPasswords(Map.of(
-                "review.google.membro", "SenhaGoogleMembro456!",
-                "review.google.servidor", "SenhaGoogleServidor456!",
-                "review.apple.membro", "SenhaAppleMembro789!",
-                "review.apple.servidor", "SenhaAppleServidor789!"
+                "membro.google", "SenhaGoogleMembro456!",
+                "servidor.google", "SenhaGoogleServidor456!",
+                "membro.apple", "SenhaAppleMembro789!",
+                "servidor.apple", "SenhaAppleServidor789!"
         ));
 
         auditoria = new AuditoriaUsuarioSintetico();
@@ -103,23 +103,23 @@ public class StoreReviewFotografiaTest {
     }
 
     @Test
-    @DisplayName("1. review.google.membro retorna FOTO_MEMBRO")
+    @DisplayName("1. membro.google retorna FOTO_MEMBRO")
     void test01_reviewGoogleMembro_retornaFotoMembro() {
-        byte[] foto = dataService.getFotoByLogin("review.google.membro");
+        byte[] foto = dataService.getFotoByLogin("membro.google");
         assertNotNull(foto);
         byte[] fotoEsperada = dataService.getFotoReviewMembro();
         assertArrayEquals(fotoEsperada, foto);
 
         // Teste via CarteiraService
-        byte[] fotoService = carteiraService.getBytesFotoServidorPorLogin("review.google.membro");
+        byte[] fotoService = carteiraService.getBytesFotoServidorPorLogin("membro.google");
         assertArrayEquals(fotoEsperada, fotoService);
     }
 
     @Test
-    @DisplayName("2. review.apple.membro retorna exatamente FOTO_MEMBRO")
+    @DisplayName("2. membro.apple retorna exatamente FOTO_MEMBRO")
     void test02_reviewAppleMembro_retornaExatamenteFotoMembro() {
-        byte[] fotoGoogle = dataService.getFotoByLogin("review.google.membro");
-        byte[] fotoApple = dataService.getFotoByLogin("review.apple.membro");
+        byte[] fotoGoogle = dataService.getFotoByLogin("membro.google");
+        byte[] fotoApple = dataService.getFotoByLogin("membro.apple");
 
         assertNotNull(fotoApple);
         assertArrayEquals(fotoGoogle, fotoApple);
@@ -127,23 +127,23 @@ public class StoreReviewFotografiaTest {
     }
 
     @Test
-    @DisplayName("3. review.google.servidor retorna FOTO_SERVIDOR")
+    @DisplayName("3. servidor.google retorna FOTO_SERVIDOR")
     void test03_reviewGoogleServidor_retornaFotoServidor() {
-        byte[] foto = dataService.getFotoByLogin("review.google.servidor");
+        byte[] foto = dataService.getFotoByLogin("servidor.google");
         assertNotNull(foto);
         byte[] fotoEsperada = dataService.getFotoReviewServidor();
         assertArrayEquals(fotoEsperada, foto);
 
         // Teste via CarteiraService
-        byte[] fotoService = carteiraService.getBytesFotoServidorPorLogin("review.google.servidor");
+        byte[] fotoService = carteiraService.getBytesFotoServidorPorLogin("servidor.google");
         assertArrayEquals(fotoEsperada, fotoService);
     }
 
     @Test
-    @DisplayName("4. review.apple.servidor retorna exatamente FOTO_SERVIDOR")
+    @DisplayName("4. servidor.apple retorna exatamente FOTO_SERVIDOR")
     void test04_reviewAppleServidor_retornaExatamenteFotoServidor() {
-        byte[] fotoGoogle = dataService.getFotoByLogin("review.google.servidor");
-        byte[] fotoApple = dataService.getFotoByLogin("review.apple.servidor");
+        byte[] fotoGoogle = dataService.getFotoByLogin("servidor.google");
+        byte[] fotoApple = dataService.getFotoByLogin("servidor.apple");
 
         assertNotNull(fotoApple);
         assertArrayEquals(fotoGoogle, fotoApple);
@@ -170,7 +170,7 @@ public class StoreReviewFotografiaTest {
     @DisplayName("7. MIME type correto (image/jpeg)")
     void test07_mimeTypeCorreto() {
         String tokenMembro = autenticadorReview.gerarTokenReview(IdentidadeSintetica.REVIEW_GOOGLE_MEMBRO);
-        autenticarComo("review.google.membro", tokenMembro);
+        autenticarComo("membro.google", tokenMembro);
 
         ResponseEntity<byte[]> response = carteiraController.fotoServidor(null);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -199,7 +199,7 @@ public class StoreReviewFotografiaTest {
     void test09_nenhumaConsultaARepositorioInstitucionalParaFotoReview() {
         countingJdbcTemplate.queriesCount = 0;
 
-        for (String login : List.of("review.google.membro", "review.apple.membro", "review.google.servidor", "review.apple.servidor")) {
+        for (String login : List.of("membro.google", "membro.apple", "servidor.google", "servidor.apple")) {
             byte[] foto = carteiraService.getBytesFotoServidorPorLogin(login);
             assertNotNull(foto);
         }
@@ -211,10 +211,10 @@ public class StoreReviewFotografiaTest {
     @DisplayName("10. nenhum acesso a servico externo")
     void test10_nenhumAcessoAServicoExterno() {
         // CarteiraService instanciado sem jcrService (null); chamadas nao lancam NPE pois jcr nunca e tocado
-        byte[] fotoMembro = carteiraService.getBytesFotoServidorPorLogin("review.google.membro");
+        byte[] fotoMembro = carteiraService.getBytesFotoServidorPorLogin("membro.google");
         assertNotNull(fotoMembro);
 
-        byte[] fotoServidor = carteiraService.getBytesFotoServidorPorLogin("review.apple.servidor");
+        byte[] fotoServidor = carteiraService.getBytesFotoServidorPorLogin("servidor.apple");
         assertNotNull(fotoServidor);
     }
 
@@ -244,7 +244,7 @@ public class StoreReviewFotografiaTest {
     @DisplayName("13. cross-profile nao permite trocar arbitrariamente a foto")
     void test13_crossProfile_naoPermiteTrocarArbitrariamenteAFoto() {
         String tokenMembro = autenticadorReview.gerarTokenReview(IdentidadeSintetica.REVIEW_GOOGLE_MEMBRO);
-        autenticarComo("review.google.membro", tokenMembro);
+        autenticarComo("membro.google", tokenMembro);
 
         ResponseEntity<byte[]> responseMembro = carteiraController.fotoServidor(null);
         assertEquals(HttpStatus.OK, responseMembro.getStatusCode());
@@ -252,7 +252,7 @@ public class StoreReviewFotografiaTest {
         assertFalse(Arrays.equals(dataService.getFotoReviewServidor(), responseMembro.getBody()));
 
         String tokenServidor = autenticadorReview.gerarTokenReview(IdentidadeSintetica.REVIEW_APPLE_SERVIDOR);
-        autenticarComo("review.apple.servidor", tokenServidor);
+        autenticarComo("servidor.apple", tokenServidor);
 
         ResponseEntity<byte[]> responseServidor = carteiraController.fotoServidor(null);
         assertEquals(HttpStatus.OK, responseServidor.getStatusCode());
@@ -273,7 +273,7 @@ public class StoreReviewFotografiaTest {
 
         countingJdbcTemplate.queriesCount = 0;
         CarteiraService serviceSemImagem = new CarteiraService(countingJdbcTemplate, null, dataServiceSemImagem);
-        byte[] foto = serviceSemImagem.getBytesFotoServidorPorLogin("review.google.membro");
+        byte[] foto = serviceSemImagem.getBytesFotoServidorPorLogin("membro.google");
 
         assertNull(foto, "Ausência da foto sintética deve retornar null controlado");
         assertEquals(0, countingJdbcTemplate.queriesCount, "Nenhuma consulta JDBC para buscar foto institucional real");
@@ -281,7 +281,7 @@ public class StoreReviewFotografiaTest {
         // Controller deve retornar 404 Not Found, nunca imagem institucional
         CarteiraFuncionalController controllerSemImagem = new CarteiraFuncionalController(serviceSemImagem);
         String tokenMembro = autenticadorReview.gerarTokenReview(IdentidadeSintetica.REVIEW_GOOGLE_MEMBRO);
-        autenticarComo("review.google.membro", tokenMembro);
+        autenticarComo("membro.google", tokenMembro);
 
         ResponseEntity<byte[]> response = controllerSemImagem.fotoServidor(null);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -309,10 +309,10 @@ public class StoreReviewFotografiaTest {
     @DisplayName("16. todas as 6 identidades sintéticas cobertas com fotos válidas")
     void test16_todasAsSeisIdentidadesSinteticas_cobertasComFotosValidas() {
         List<String> logins = List.of(
-                "review.google.membro",
-                "review.google.servidor",
-                "review.apple.membro",
-                "review.apple.servidor",
+                "membro.google",
+                "servidor.google",
+                "membro.apple",
+                "servidor.apple",
                 "uat.membro",
                 "uat.servidor"
         );
@@ -331,7 +331,7 @@ public class StoreReviewFotografiaTest {
     void test17_controllerRetornaHttp200ComContentTypeJpegERawContentLength() {
         // Teste para Membro Review
         String tokenMembro = autenticadorReview.gerarTokenReview(IdentidadeSintetica.REVIEW_GOOGLE_MEMBRO);
-        autenticarComo("review.google.membro", tokenMembro);
+        autenticarComo("membro.google", tokenMembro);
 
         ResponseEntity<byte[]> respMembro = carteiraController.fotoServidor(null);
         assertEquals(HttpStatus.OK, respMembro.getStatusCode());
@@ -340,7 +340,7 @@ public class StoreReviewFotografiaTest {
 
         // Teste para Servidor Review
         String tokenServidor = autenticadorReview.gerarTokenReview(IdentidadeSintetica.REVIEW_GOOGLE_SERVIDOR);
-        autenticarComo("review.google.servidor", tokenServidor);
+        autenticarComo("servidor.google", tokenServidor);
 
         ResponseEntity<byte[]> respServidor = carteiraController.fotoServidor(null);
         assertEquals(HttpStatus.OK, respServidor.getStatusCode());
