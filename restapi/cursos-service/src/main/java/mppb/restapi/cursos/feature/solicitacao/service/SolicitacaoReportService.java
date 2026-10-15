@@ -69,6 +69,10 @@ public class SolicitacaoReportService {
                                         .collect(java.util.stream.Collectors.joining(", "));
                 }
                 parametros.put("PUBLICO_ALVO", publicoAlvoStr);
+                parametros.put("CRITERIOS_ESPECIFICOS_PUBLICO_ALVO",
+                                solicitacao.getCriteriosEspecificosPublicoAlvo() != null
+                                                ? solicitacao.getCriteriosEspecificosPublicoAlvo()
+                                                : "Não informado");
 
                 parametros.put("TEM_ORGAO_EXTERNO",
                                 Boolean.TRUE.equals(solicitacao.getTemOrgaoExterno()) ? "SIM" : "NÃO");

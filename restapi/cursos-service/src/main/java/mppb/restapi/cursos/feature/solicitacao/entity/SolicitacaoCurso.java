@@ -81,6 +81,9 @@ public class SolicitacaoCurso {
     @JoinTable(name = "solicitacaopublicoalvo", schema = "curso", joinColumns = @JoinColumn(name = "id_solicitacao"), inverseJoinColumns = @JoinColumn(name = "id_publicoalvo"))
     private List<PublicoAlvo> publicosAlvo = new ArrayList<>();
 
+    @Column(name = "criteriosespecificospublicoalvo", columnDefinition = "text")
+    private String criteriosEspecificosPublicoAlvo;
+
     @Column(name = "temorgaoexterno")
     private Boolean temOrgaoExterno = false;
 

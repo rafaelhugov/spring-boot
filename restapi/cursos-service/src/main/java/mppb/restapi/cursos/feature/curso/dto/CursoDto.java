@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import jakarta.validation.groups.ConvertGroup;
+import jakarta.validation.groups.Default;
 import lombok.*;
 import mppb.restapi.common.core.validation.groups.Create;
 import mppb.restapi.common.core.validation.groups.Update;
@@ -88,6 +89,9 @@ public class CursoDto {
     @JsonView(CursoView.Listagem.class)
     @NotEmpty(message = "Ao menos um público-alvo deve ser selecionado.")
     private List<PublicoAlvoDto> publicosAlvo;
+
+    @Size(max = 4000, groups = {Default.class, Update.class}, message = "Os critérios específicos do público-alvo devem ter no máximo 4000 caracteres.")
+    private String criteriosEspecificosPublicoAlvo;
 
     private List<CursoMinistranteDto> ministrantes;
 

@@ -176,6 +176,8 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         novaInscricao.setDataInscricao(LocalDateTime.now());
         novaInscricao.setSituacao(SituacaoInscricaoEnum.INSCRITO); // Efetivado imediatamente
         aplicarDadosAcessibilidade(novaInscricao, dto.getPcd(), dto.getNecessidadeEspecial());
+        aplicarDeclaracaoCriteriosPublicoAlvo(
+                novaInscricao, curso, dto.getDeclaracaoCriteriosPublicoAlvo());
 
         Inscricao inscricaoSalva = inscricaoRepository.save(novaInscricao);
 
@@ -216,6 +218,7 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         if (dto != null) {
             inscricaoPayload.setPcd(dto.getPcd());
             inscricaoPayload.setNecessidadeEspecial(dto.getNecessidadeEspecial());
+            inscricaoPayload.setDeclaracaoCriteriosPublicoAlvo(dto.getDeclaracaoCriteriosPublicoAlvo());
         }
 
         // 6. Reutiliza o método 'inscrever' que já trata a duplicidade
@@ -244,6 +247,8 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
         novaInscricao.setDataInscricao(LocalDateTime.now());
         novaInscricao.setSituacao(SituacaoInscricaoEnum.INSCRITO); // Efetivado imediatamente
         aplicarDadosAcessibilidade(novaInscricao, dto.getPcd(), dto.getNecessidadeEspecial());
+        aplicarDeclaracaoCriteriosPublicoAlvo(
+                novaInscricao, curso, dto.getDeclaracaoCriteriosPublicoAlvo());
 
         Inscricao inscricaoSalva = inscricaoRepository.save(novaInscricao);
 
@@ -456,6 +461,26 @@ public class InscricaoService extends AbstractService<Inscricao, Long> {
 
         inscricao.setPcd(pcd);
         inscricao.setNecessidadeEspecial(Boolean.TRUE.equals(pcd) ? necessidadeEspecial.trim() : null);
+    }
+
+    private void aplicarDeclaracaoCriteriosPublicoAlvo(
+            Inscricao inscricao, Curso curso, Boolean declaracao) {
+        String criteriosPersistidos = curso.getCriteriosEspecificosPublicoAlvo();
+        if (criteriosPersistidos == null || criteriosPersistidos.isBlank()) {
+            inscricao.setCienciaCriteriosPublicoAlvo(false);
+            inscricao.setDataCienciaCriteriosPublicoAlvo(null);
+            inscricao.setCriteriosPublicoAlvoDeclarados(null);
+            return;
+        }
+
+        if (!Boolean.TRUE.equals(declaracao)) {
+            throw new BusinessRuleException(
+                    "É obrigatório declarar ciência e atendimento aos critérios específicos de participação deste curso.");
+        }
+
+        inscricao.setCienciaCriteriosPublicoAlvo(true);
+        inscricao.setDataCienciaCriteriosPublicoAlvo(LocalDateTime.now());
+        inscricao.setCriteriosPublicoAlvoDeclarados(criteriosPersistidos.trim());
     }
 
     /**

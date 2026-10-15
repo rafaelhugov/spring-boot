@@ -16,6 +16,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.HtmlUtils;
 
 import java.io.UnsupportedEncodingException; // Importado
 import java.time.LocalDateTime;
@@ -52,6 +53,8 @@ public class EmailService {
             String nomeDestinatario = inscricao.getParticipante().getNome();
             String tituloCurso = inscricao.getCurso().getTitulo();
             String tokenString = token.getToken();
+            String criteriosEspecificos = formatarCriteriosEspecificos(
+                    inscricao.getCriteriosPublicoAlvoDeclarados());
 
             String urlConfirmacao = frontendBaseUrl + "/inscricao/confirmar-email/" + tokenString;
 
@@ -64,10 +67,12 @@ public class EmailService {
                             +
                             "    Confirmar Minha Inscrição\n" +
                             "</a></p>\n" +
+                            "%s" +
                             "<p>Se você não solicitou esta inscrição, por favor, ignore este e-mail.</p>",
-                    tituloCurso,
+                    escapar(tituloCurso),
                     validadeMinutos,
-                    urlConfirmacao);
+                    escapar(urlConfirmacao),
+                    criteriosEspecificos);
 
             // 2. Constrói o e-mail final usando o template
             String mensagemHtml = buildEmailTemplate(nomeDestinatario, conteudoPrincipal);
@@ -93,6 +98,8 @@ public class EmailService {
         String emailDestinatario = participante.getEmail();
         String nomeDestinatario = participante.getNome();
         String tituloCurso = inscricao.getCurso().getTitulo();
+        String criteriosEspecificos = formatarCriteriosEspecificos(
+                inscricao.getCriteriosPublicoAlvoDeclarados());
 
         String dataRealizacao = formatarPeriodo(
                 inscricao.getCurso().getRealizacaoDataInicial(),
@@ -113,13 +120,15 @@ public class EmailService {
                             "    <li><strong>Carga Horária:</strong> %s</li>\n" +
                             "    %s\n" +
                             "</ul>\n" +
+                            "%s" +
                             "<p>Enviaremos e-mail em caso de novas informações ou mudanças na programação.</p>",
-                    tituloCurso,
+                    escapar(tituloCurso),
                     dataRealizacao,
                     cargaHoraria,
                     linkProgramacao.isBlank() ? ""
                             : String.format("<li><strong>Link da videochamada:</strong> <a href=\"%1$s\">%1$s</a></li>",
-                                    linkProgramacao));
+                                    escapar(linkProgramacao)),
+                    criteriosEspecificos);
 
             // 2. Constrói o e-mail final usando o template
             String mensagemHtml = buildEmailTemplate(nomeDestinatario, conteudoPrincipal);
@@ -174,7 +183,7 @@ public class EmailService {
     private String buildEmailTemplate(String nomeDestinatario, String conteudoPrincipal) {
         String nome = (nomeDestinatario != null && !nomeDestinatario.isBlank()) ? nomeDestinatario : "Participante";
 
-        String header = String.format("<p>Olá, %s!</p>", nome);
+        String header = String.format("<p>Olá, %s!</p>", escapar(nome));
 
         String footer = "<br>\n<p>Atenciosamente,<br>Equipe CEAF/MPPB</p>\n";
 
@@ -213,5 +222,25 @@ public class EmailService {
             return "A definir";
         }
         return String.format("%s até %s", inicio.format(DATE_FORMATTER), fim.format(DATE_FORMATTER));
+    }
+
+    private String formatarCriteriosEspecificos(String criterios) {
+        if (criterios == null || criterios.isBlank()) {
+            return "";
+        }
+
+        String textoSeguro = escapar(criterios.trim())
+                .replace("\r\n", "<br>")
+                .replace("\n", "<br>")
+                .replace("\r", "<br>");
+        return "<div style=\"margin: 18px 0; padding: 14px; border-left: 4px solid #a01d1e; background-color: #fff7f0;\">"
+                + "<p><strong>Critérios específicos de participação:</strong></p>"
+                + "<p>" + textoSeguro + "</p>"
+                + "<p><em>Você declarou ciência e atendimento a esses critérios no momento da inscrição.</em></p>"
+                + "</div>";
+    }
+
+    private String escapar(String valor) {
+        return HtmlUtils.htmlEscape(Objects.toString(valor, ""));
     }
 }

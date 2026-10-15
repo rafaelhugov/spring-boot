@@ -18,6 +18,9 @@ public class InscricaoDto {
     private Integer frequencia;
     private Boolean pcd;
     private String necessidadeEspecial;
+    private Boolean cienciaCriteriosPublicoAlvo;
+    private LocalDateTime dataCienciaCriteriosPublicoAlvo;
+    private String criteriosPublicoAlvoDeclarados;
     private ParticipanteDto participante;
     private Boolean possuiFrequenciaManual;
 

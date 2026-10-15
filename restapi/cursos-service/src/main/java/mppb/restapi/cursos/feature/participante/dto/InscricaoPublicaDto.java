@@ -34,4 +34,6 @@ public class InscricaoPublicaDto {
     private Boolean pcd;
 
     private String necessidadeEspecial;
+
+    private Boolean declaracaoCriteriosPublicoAlvo;
 }

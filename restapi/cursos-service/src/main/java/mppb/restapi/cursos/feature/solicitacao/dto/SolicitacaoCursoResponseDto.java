@@ -42,6 +42,7 @@ public class SolicitacaoCursoResponseDto {
 
     private List<Long> idsPublicoAlvo;
     private List<String> publicosAlvoDescricao;
+    private String criteriosEspecificosPublicoAlvo;
 
     private Long idLocalEvento;
     private String localEventoDescricao;

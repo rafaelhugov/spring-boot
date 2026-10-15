@@ -48,6 +48,15 @@ public class Inscricao extends AbstractEntity<Long> {
     @Column(name = "necessidadeespecial", length = 500)
     private String necessidadeEspecial;
 
+    @Column(name = "cienciacriteriospublicoalvo", nullable = false, columnDefinition = "boolean default false")
+    private Boolean cienciaCriteriosPublicoAlvo;
+
+    @Column(name = "datacienciacriteriospublicoalvo")
+    private LocalDateTime dataCienciaCriteriosPublicoAlvo;
+
+    @Column(name = "criteriospublicoalvodeclarados", columnDefinition = "text")
+    private String criteriosPublicoAlvoDeclarados;
+
     @PrePersist
     private void onPrePersist() {
         if (this.situacao == null) {
@@ -58,6 +67,9 @@ public class Inscricao extends AbstractEntity<Long> {
         }
         if (this.pcd == null) {
             this.pcd = false;
+        }
+        if (this.cienciaCriteriosPublicoAlvo == null) {
+            this.cienciaCriteriosPublicoAlvo = false;
         }
     }
 }
