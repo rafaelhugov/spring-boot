@@ -51,8 +51,7 @@ public class ValidadorConfiguracaoSegura implements ApplicationRunner {
 
         String ambiente = ambienteOperacional();
         boolean reviewEnabled = Boolean.parseBoolean(valor("review.enabled"));
-        boolean hybridEnabled = Boolean.parseBoolean(valor("review.hybrid-enabled"));
-        boolean appleHybridEnabled = Boolean.parseBoolean(valor("review.apple-hybrid-enabled"));
+        boolean modoHibridoAtivo = modoReviewHibridoAtivo();
         boolean isHomologOperacional = "homolog".equalsIgnoreCase(ambiente);
 
         if (reviewEnabled) {
@@ -65,7 +64,7 @@ public class ValidadorConfiguracaoSegura implements ApplicationRunner {
         }
 
         boolean syntheticEnabled = Boolean.parseBoolean(valor("uat.synthetic-users.enabled"));
-        if (syntheticEnabled && !(isHomologOperacional && reviewEnabled) && !hybridEnabled && !appleHybridEnabled) {
+        if (syntheticEnabled && !(isHomologOperacional && reviewEnabled) && !modoHibridoAtivo) {
             throw new IllegalStateException("Usuarios sinteticos UAT/Review nao podem ser habilitados em perfis de producao (prod, production, prd).");
         }
 
@@ -160,8 +159,9 @@ public class ValidadorConfiguracaoSegura implements ApplicationRunner {
         boolean reviewEnabled = Boolean.parseBoolean(valor("review.enabled"));
         boolean hybridEnabled = Boolean.parseBoolean(valor("review.hybrid-enabled"));
         boolean appleHybridEnabled = Boolean.parseBoolean(valor("review.apple-hybrid-enabled"));
+        boolean modoHibridoAtivo = hybridEnabled || appleHybridEnabled;
 
-        if (isProd && !(isHomologOperacional && reviewEnabled) && !hybridEnabled && !appleHybridEnabled) {
+        if (isProd && !(isHomologOperacional && reviewEnabled) && !modoHibridoAtivo) {
             throw new IllegalStateException("Usuarios sinteticos UAT/Review nao podem ser habilitados em perfis de producao (prod, production, prd).");
         }
 
@@ -219,6 +219,11 @@ public class ValidadorConfiguracaoSegura implements ApplicationRunner {
                 .map(perfil -> perfil == null ? "" : perfil.trim().toLowerCase(Locale.ROOT))
                 .filter(perfil -> !perfil.isBlank())
                 .toList();
+    }
+
+    private boolean modoReviewHibridoAtivo() {
+        return Boolean.parseBoolean(valor("review.hybrid-enabled"))
+                || Boolean.parseBoolean(valor("review.apple-hybrid-enabled"));
     }
 
     private void exigirConfiguracaoExplicita(String propriedade) {

@@ -62,6 +62,40 @@ class ValidadorConfiguracaoSeguraTest {
     }
 
     @Test
+    void aceitaModoHibridoCompletoNaConfiguracaoExataDeProducao() {
+        MockEnvironment environment = ambienteProducaoValido()
+                .withProperty("MPPB_ENVIRONMENT", "prod")
+                .withProperty("STORE_REVIEW_ENABLED", "false")
+                .withProperty("STORE_REVIEW_HYBRID_ENABLED", "true")
+                .withProperty("APPLE_REVIEW_HYBRID_ENABLED", "false")
+                .withProperty("UAT_SYNTHETIC_USERS_ENABLED", "true")
+                .withProperty("STORE_REVIEW_JWT_SECRET", "segredo-review-producao-32-caracteres")
+                .withProperty("GOOGLE_REVIEW_MEMBER_PASSWORD", "senha1")
+                .withProperty("GOOGLE_REVIEW_SERVER_PASSWORD", "senha2")
+                .withProperty("APPLE_REVIEW_MEMBER_PASSWORD", "senha3")
+                .withProperty("APPLE_REVIEW_SERVER_PASSWORD", "senha4");
+
+        assertDoesNotThrow(new ValidadorConfiguracaoSegura(environment)::validar);
+    }
+
+    @Test
+    void aceitaModoHibridoCompletoNaConfiguracaoExataDeHomologacao() {
+        MockEnvironment environment = ambienteProducaoValido()
+                .withProperty("MPPB_ENVIRONMENT", "homolog")
+                .withProperty("STORE_REVIEW_ENABLED", "false")
+                .withProperty("STORE_REVIEW_HYBRID_ENABLED", "true")
+                .withProperty("APPLE_REVIEW_HYBRID_ENABLED", "false")
+                .withProperty("UAT_SYNTHETIC_USERS_ENABLED", "true")
+                .withProperty("STORE_REVIEW_JWT_SECRET", "segredo-review-homolog-32-caracteres")
+                .withProperty("GOOGLE_REVIEW_MEMBER_PASSWORD", "senha1")
+                .withProperty("GOOGLE_REVIEW_SERVER_PASSWORD", "senha2")
+                .withProperty("APPLE_REVIEW_MEMBER_PASSWORD", "senha3")
+                .withProperty("APPLE_REVIEW_SERVER_PASSWORD", "senha4");
+
+        assertDoesNotThrow(new ValidadorConfiguracaoSegura(environment)::validar);
+    }
+
+    @Test
     void aceitaProdComHomologEnvironmentEStoreReview() {
         MockEnvironment environment = ambienteProducaoValido()
                 .withProperty("mppb.environment", "homolog")
