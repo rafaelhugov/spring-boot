@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import mppb.restapi.common.infrastructure.client.authapi.AuthServiceClient;
 import mppb.restapi.common.infrastructure.client.authapi.dto.AutorizaRequestDto;
 import mppb.restapi.common.infrastructure.client.authapi.dto.AutorizaResponseDto;
 import mppb.restapi.common.infrastructure.util.Constants;
@@ -37,9 +38,10 @@ public class AutenticacaoSinteticaController {
     private final AutenticadorStoreReview autenticadorStoreReview;
     private final StoreReviewProperties reviewProperties;
     private final Environment environment;
+    private final AuthServiceClient authServiceClient;
 
     public AutenticacaoSinteticaController(AutenticadorUsuarioSintetico autenticador) {
-        this(autenticador, null, null, null);
+        this(autenticador, null, null, null, null);
     }
 
     @Autowired
@@ -47,11 +49,21 @@ public class AutenticacaoSinteticaController {
             AutenticadorUsuarioSintetico autenticador,
             @Autowired(required = false) AutenticadorStoreReview autenticadorStoreReview,
             @Autowired(required = false) StoreReviewProperties reviewProperties,
-            @Autowired(required = false) Environment environment) {
+            @Autowired(required = false) Environment environment,
+            @Autowired(required = false) AuthServiceClient authServiceClient) {
         this.autenticador = autenticador;
         this.autenticadorStoreReview = autenticadorStoreReview;
         this.reviewProperties = reviewProperties;
         this.environment = environment;
+        this.authServiceClient = authServiceClient;
+    }
+
+    public AutenticacaoSinteticaController(
+            AutenticadorUsuarioSintetico autenticador,
+            AutenticadorStoreReview autenticadorStoreReview,
+            StoreReviewProperties reviewProperties,
+            Environment environment) {
+        this(autenticador, autenticadorStoreReview, reviewProperties, environment, null);
     }
 
     @PostMapping(
@@ -66,6 +78,13 @@ public class AutenticacaoSinteticaController {
 
         String login = request.getLogin().trim();
         boolean isReviewAtivo = isReviewProfile() || (reviewProperties != null && reviewProperties.isEnabled());
+        boolean isHybridAtivo = !isReviewAtivo
+                && reviewProperties != null
+                && reviewProperties.isHybridEnabled();
+        boolean isAppleHybridAtivo = !isReviewAtivo
+                && !isHybridAtivo
+                && reviewProperties != null
+                && reviewProperties.isAppleHybridEnabled();
 
         // No ambiente exclusivo de Store Review (SPRING_PROFILES_ACTIVE=review ou STORE_REVIEW_ENABLED=true):
         if (isReviewAtivo) {
@@ -84,6 +103,34 @@ public class AutenticacaoSinteticaController {
                     .body(java.util.Collections.singletonMap("error", "security.invalid-credentials"));
         }
 
+        if (isHybridAtivo && IdentidadeSintetica.isLoginReviewExato(login) && autenticadorStoreReview != null) {
+            Optional<String> token = autenticadorStoreReview.autenticarReview(login, request.getSenha());
+            if (token.isPresent()) {
+                AutorizaResponseDto response = new AutorizaResponseDto();
+                response.setToken(token.get());
+                return ResponseEntity.ok(response);
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(java.util.Collections.singletonMap("error", "security.invalid-credentials"));
+        }
+
+        if (isAppleHybridAtivo && IdentidadeSintetica.isLoginReviewAppleExato(login) && autenticadorStoreReview != null) {
+            Optional<String> token = autenticadorStoreReview.autenticarReview(login, request.getSenha());
+            if (token.isPresent()) {
+                AutorizaResponseDto response = new AutorizaResponseDto();
+                response.setToken(token.get());
+                return ResponseEntity.ok(response);
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(java.util.Collections.singletonMap("error", "security.invalid-credentials"));
+        }
+
+        if (isAppleHybridAtivo && IdentidadeSintetica.isLoginReviewExato(login)) {
+            log.warn("Identidade Store Review nao permitida no modo hibrido Apple: login={}", login);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(java.util.Collections.singletonMap("error", "security.invalid-credentials"));
+        }
+
         // Ambiente UAT interno / testes sinteticos padrao:
         if (autenticador.isLoginSintetico(login)) {
             Optional<String> token = autenticador.autenticar(login, request.getSenha());
@@ -96,8 +143,30 @@ public class AutenticacaoSinteticaController {
                     .body(java.util.Collections.singletonMap("error", "security.invalid-credentials"));
         }
 
+        if (isHybridAtivo || isAppleHybridAtivo) {
+            return autorizaInstitucional(request);
+        }
+
         // Zero proxy institucional: qualquer usuário não sintético é rejeitado com 401 controlado
         log.warn("Tentativa de acesso com usuario nao sintetico em endpoint de teste UAT/Review: {}", login);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(java.util.Collections.singletonMap("error", "security.invalid-credentials"));
+    }
+
+    private ResponseEntity<?> autorizaInstitucional(AutorizaRequestDto request) {
+        if (authServiceClient == null) {
+            log.warn("AuthServiceClient indisponivel no modo hibrido Store Review.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(java.util.Collections.singletonMap("error", "security.invalid-credentials"));
+        }
+        try {
+            AutorizaResponseDto response = authServiceClient.autoriza(request);
+            if (response != null && response.getToken() != null && !response.getToken().isBlank()) {
+                return ResponseEntity.ok(response);
+            }
+        } catch (Exception e) {
+            log.warn("Falha ao autenticar usuario institucional no modo hibrido Store Review: {}", request.getLogin());
+        }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(java.util.Collections.singletonMap("error", "security.invalid-credentials"));
     }

@@ -22,6 +22,17 @@ public class StoreReviewProperties {
     private boolean enabled = false;
 
     /**
+     * Modo híbrido para revisão das lojas: aceita identidades sintéticas de review
+     * e preserva autenticação institucional para os demais usuários.
+     */
+    private boolean hybridEnabled = false;
+
+    /**
+     * Modo híbrido legado para App Store: aceita somente as identidades sintéticas Apple.
+     */
+    private boolean appleHybridEnabled = false;
+
+    /**
      * Chave de assinatura exclusiva para tokens Store Review.
      * Obrigatória via segredo externo (REVIEW_JWT_SECRET) quando a feature for ativada.
      * Deve ser diferente da chave UAT e nunca versionada.
@@ -55,6 +66,22 @@ public class StoreReviewProperties {
             return true;
         }
         String env = System.getenv("STORE_REVIEW_ENABLED");
+        return "true".equalsIgnoreCase(env);
+    }
+
+    public boolean isAppleHybridEnabled() {
+        if (appleHybridEnabled) {
+            return true;
+        }
+        String env = System.getenv("APPLE_REVIEW_HYBRID_ENABLED");
+        return "true".equalsIgnoreCase(env);
+    }
+
+    public boolean isHybridEnabled() {
+        if (hybridEnabled) {
+            return true;
+        }
+        String env = System.getenv("STORE_REVIEW_HYBRID_ENABLED");
         return "true".equalsIgnoreCase(env);
     }
 

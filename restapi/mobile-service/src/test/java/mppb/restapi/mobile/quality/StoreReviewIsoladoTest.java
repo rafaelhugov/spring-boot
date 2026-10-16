@@ -189,10 +189,10 @@ public class StoreReviewIsoladoTest {
     @DisplayName("03. quatro identidades review validas autenticam com sucesso e recebem token review")
     void test03_quatroIdentidadesValidas_autenticamComSucesso() throws Exception {
         String[] logins = {
-                "review.google.membro",
-                "review.google.servidor",
-                "review.apple.membro",
-                "review.apple.servidor"
+                "membro.google",
+                "servidor.google",
+                "membro.apple",
+                "servidor.apple"
         };
         String[] senhas = {
                 "SenhaGoogleMembro456!",
@@ -220,7 +220,7 @@ public class StoreReviewIsoladoTest {
     @Test
     @DisplayName("04. senha errada = 401")
     void test04_senhaErrada_retorna401() throws Exception {
-        AutorizaRequestDto request = new AutorizaRequestDto("review.google.membro", "SenhaIncorreta!", "appmppb");
+        AutorizaRequestDto request = new AutorizaRequestDto("membro.google", "SenhaIncorreta!", "appmppb");
 
         mockMvc.perform(post("/acesso/autoriza")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -283,7 +283,7 @@ public class StoreReviewIsoladoTest {
     @Test
     @DisplayName("09. issuer correto (mppb-store-review)")
     void test09_issuerCorreto() throws Exception {
-        Optional<String> tokenOpt = autenticadorReview.autenticarReview("review.google.membro", "SenhaGoogleMembro456!");
+        Optional<String> tokenOpt = autenticadorReview.autenticarReview("membro.google", "SenhaGoogleMembro456!");
         assertTrue(tokenOpt.isPresent());
 
         String token = tokenOpt.get();
@@ -297,7 +297,7 @@ public class StoreReviewIsoladoTest {
     @Test
     @DisplayName("10. audience correto (mppb-mobile-review)")
     void test10_audienceCorreto() throws Exception {
-        Optional<String> tokenOpt = autenticadorReview.autenticarReview("review.apple.servidor", "SenhaAppleServidor789!");
+        Optional<String> tokenOpt = autenticadorReview.autenticarReview("servidor.apple", "SenhaAppleServidor789!");
         assertTrue(tokenOpt.isPresent());
 
         String token = tokenOpt.get();
@@ -311,7 +311,7 @@ public class StoreReviewIsoladoTest {
     @Test
     @DisplayName("11. token adulterado rejeitado")
     void test11_tokenAdulteradoRejeitado() {
-        Optional<String> tokenOpt = autenticadorReview.autenticarReview("review.google.membro", "SenhaGoogleMembro456!");
+        Optional<String> tokenOpt = autenticadorReview.autenticarReview("membro.google", "SenhaGoogleMembro456!");
         assertTrue(tokenOpt.isPresent());
 
         String tokenValido = tokenOpt.get();
@@ -364,10 +364,10 @@ public class StoreReviewIsoladoTest {
     @DisplayName("14. review.enabled=false bloqueia contas")
     void test14_reviewEnabledFalse_bloqueiaContas() {
         reviewProperties.setEnabled(false);
-        Optional<String> tokenOpt = autenticadorReview.autenticarReview("review.google.membro", "SenhaGoogleMembro456!");
+        Optional<String> tokenOpt = autenticadorReview.autenticarReview("membro.google", "SenhaGoogleMembro456!");
         assertFalse(tokenOpt.isPresent());
 
-        AutorizaRequestDto request = new AutorizaRequestDto("review.google.membro", "SenhaGoogleMembro456!", "appmppb");
+        AutorizaRequestDto request = new AutorizaRequestDto("membro.google", "SenhaGoogleMembro456!", "appmppb");
 
         ResponseEntity<?> response = authController.autoriza(request);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -379,10 +379,10 @@ public class StoreReviewIsoladoTest {
         reviewProperties.setValidUntil("2020-01-01T00:00:00Z");
         assertTrue(reviewProperties.isExpirado());
 
-        Optional<String> tokenOpt = autenticadorReview.autenticarReview("review.apple.membro", "SenhaAppleMembro789!");
+        Optional<String> tokenOpt = autenticadorReview.autenticarReview("membro.apple", "SenhaAppleMembro789!");
         assertFalse(tokenOpt.isPresent());
 
-        AutorizaRequestDto request = new AutorizaRequestDto("review.apple.membro", "SenhaAppleMembro789!", "appmppb");
+        AutorizaRequestDto request = new AutorizaRequestDto("membro.apple", "SenhaAppleMembro789!", "appmppb");
 
         ResponseEntity<?> response = authController.autoriza(request);
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
@@ -391,8 +391,8 @@ public class StoreReviewIsoladoTest {
     @Test
     @DisplayName("16. datasets membro/servidor corretamente segregados")
     void test16_datasetsMembroEServidor_corretamenteSegregados() {
-        // Validação Membro: review.google.membro e review.apple.membro
-        for (String loginMembro : List.of("review.google.membro", "review.apple.membro")) {
+        // Validação Membro: membro.google e membro.apple
+        for (String loginMembro : List.of("membro.google", "membro.apple")) {
             CarteiraFuncionalTO carteira = dataService.getCarteiraByLogin(loginMembro);
             assertEquals("Lucas Almeida Monteiro", carteira.getNome());
             assertEquals("Promotor de Justiça", carteira.getCargo());
@@ -407,8 +407,8 @@ public class StoreReviewIsoladoTest {
             assertEquals("Ato PGJ nº 101/2025", desig.getDesignacoes().get(0).getAto());
         }
 
-        // Validação Servidor: review.google.servidor e review.apple.servidor
-        for (String loginServidor : List.of("review.google.servidor", "review.apple.servidor")) {
+        // Validação Servidor: servidor.google e servidor.apple
+        for (String loginServidor : List.of("servidor.google", "servidor.apple")) {
             CarteiraFuncionalTO carteira = dataService.getCarteiraByLogin(loginServidor);
             assertEquals("Mariana Costa Ribeiro", carteira.getNome());
             assertEquals("Analista Ministerial", carteira.getCargo());
@@ -427,7 +427,7 @@ public class StoreReviewIsoladoTest {
     @DisplayName("17. nenhum repository real acionado")
     void test17_nenhumRepositoryRealAcionado() {
         CarteiraService carteiraService = new CarteiraService(null, null, dataService);
-        CarteiraFuncionalTO carteira = carteiraService.recuperaCarteiraFuncionalByLogin("review.google.membro");
+        CarteiraFuncionalTO carteira = carteiraService.recuperaCarteiraFuncionalByLogin("membro.google");
         assertNotNull(carteira);
         assertEquals("900001", carteira.getMatricula());
 
@@ -722,10 +722,10 @@ public class StoreReviewIsoladoTest {
 
         // F: 4 identidades review = PERMITIDAS
         String[][] identidadesReview = {
-                {"review.google.membro", "SenhaGoogleMembro456!"},
-                {"review.google.servidor", "SenhaGoogleServidor456!"},
-                {"review.apple.membro", "SenhaAppleMembro789!"},
-                {"review.apple.servidor", "SenhaAppleServidor789!"}
+                {"membro.google", "SenhaGoogleMembro456!"},
+                {"servidor.google", "SenhaGoogleServidor456!"},
+                {"membro.apple", "SenhaAppleMembro789!"},
+                {"servidor.apple", "SenhaAppleServidor789!"}
         };
 
         for (String[] id : identidadesReview) {
@@ -795,6 +795,111 @@ public class StoreReviewIsoladoTest {
         assertFalse(props.isExpirado(), "STORE_REVIEW_VALID_UNTIL nulo nao deve expirar");
     }
 
+    @Test
+    @DisplayName("33. Store Review hibrido em prod aceita Google, Apple e preserva login real")
+    void test33_storeReviewHibridoProd_aceitaGoogleAppleEPreservaLoginReal() throws Exception {
+        MockEnvironment env = ambienteProducaoValido()
+                .withProperty("STORE_REVIEW_HYBRID_ENABLED", "true")
+                .withProperty("STORE_REVIEW_JWT_SECRET", REVIEW_SECRET)
+                .withProperty("GOOGLE_REVIEW_MEMBER_PASSWORD", "SenhaGoogleMembro456!")
+                .withProperty("GOOGLE_REVIEW_SERVER_PASSWORD", "SenhaGoogleServidor456!")
+                .withProperty("APPLE_REVIEW_MEMBER_PASSWORD", "SenhaAppleMembro789!")
+                .withProperty("APPLE_REVIEW_SERVER_PASSWORD", "SenhaAppleServidor789!");
+
+        ValidadorConfiguracaoSegura validador = new ValidadorConfiguracaoSegura(env);
+        assertDoesNotThrow(validador::validar);
+
+        StoreReviewProperties props = new StoreReviewProperties();
+        props.setHybridEnabled(true);
+        props.setJwtSecret(REVIEW_SECRET);
+        props.setTokenTtlSeconds(86400);
+        props.setIssuer("mppb-store-review");
+        props.setAudience("mppb-mobile-review");
+
+        AutenticadorStoreReview autenticadorReview = new AutenticadorStoreReview(props, syntheticProperties, auditoria);
+        FakeAuthServiceClient authClient = new FakeAuthServiceClient();
+        authClient.setTokenAutoriza("TOKEN-INSTITUCIONAL-REAL");
+
+        AutenticacaoSinteticaController controller = new AutenticacaoSinteticaController(
+                autenticadorUat,
+                autenticadorReview,
+                props,
+                env,
+                authClient);
+
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(controller)
+                .setMessageConverters(new MappingJackson2HttpMessageConverter())
+                .build();
+
+        mvc.perform(post("/acesso/autoriza")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(
+                        new AutorizaRequestDto("membro.google", "SenhaGoogleMembro456!", "appmppb"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").exists());
+
+        mvc.perform(post("/acesso/autoriza")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(
+                        new AutorizaRequestDto("servidor.apple", "SenhaAppleServidor789!", "appmppb"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").exists());
+
+        assertEquals(0, authClient.getChamadasAutoriza(), "Review sintetico nao deve chamar Auth API real");
+
+        mvc.perform(post("/acesso/autoriza")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(
+                        new AutorizaRequestDto("rafael.vasconcelos", "SenhaReal", "appmppb"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.token").value("TOKEN-INSTITUCIONAL-REAL"));
+
+        assertEquals(1, authClient.getChamadasAutoriza(), "Login real deve ser repassado para Auth API");
+        assertEquals("rafael.vasconcelos", authClient.getUltimoLoginAutoriza());
+    }
+
+    @Test
+    @DisplayName("34. Store Review hibrido em prod rejeita senha errada sem chamar Auth API")
+    void test34_storeReviewHibridoProd_rejeitaSenhaSinteticaErrada() throws Exception {
+        MockEnvironment env = ambienteProducaoValido()
+                .withProperty("STORE_REVIEW_HYBRID_ENABLED", "true")
+                .withProperty("STORE_REVIEW_JWT_SECRET", REVIEW_SECRET)
+                .withProperty("GOOGLE_REVIEW_MEMBER_PASSWORD", "SenhaGoogleMembro456!")
+                .withProperty("GOOGLE_REVIEW_SERVER_PASSWORD", "SenhaGoogleServidor456!")
+                .withProperty("APPLE_REVIEW_MEMBER_PASSWORD", "SenhaAppleMembro789!")
+                .withProperty("APPLE_REVIEW_SERVER_PASSWORD", "SenhaAppleServidor789!");
+
+        StoreReviewProperties props = new StoreReviewProperties();
+        props.setHybridEnabled(true);
+        props.setJwtSecret(REVIEW_SECRET);
+        props.setTokenTtlSeconds(86400);
+        props.setIssuer("mppb-store-review");
+        props.setAudience("mppb-mobile-review");
+
+        AutenticadorStoreReview autenticadorReview = new AutenticadorStoreReview(props, syntheticProperties, auditoria);
+        FakeAuthServiceClient authClient = new FakeAuthServiceClient();
+
+        AutenticacaoSinteticaController controller = new AutenticacaoSinteticaController(
+                autenticadorUat,
+                autenticadorReview,
+                props,
+                env,
+                authClient);
+
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(controller)
+                .setMessageConverters(new MappingJackson2HttpMessageConverter())
+                .build();
+
+        mvc.perform(post("/acesso/autoriza")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(
+                        new AutorizaRequestDto("membro.google", "SenhaIncorreta!", "appmppb"))))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("security.invalid-credentials"));
+
+        assertEquals(0, authClient.getChamadasAutoriza(), "Senha sintetica errada nao deve ser encaminhada para Auth API");
+    }
+
     private MockEnvironment ambienteProducaoValido() {
         MockEnvironment environment = new MockEnvironment();
         environment.setActiveProfiles("prod");
@@ -816,11 +921,16 @@ public class StoreReviewIsoladoTest {
     private static class FakeAuthServiceClient implements AuthServiceClient {
         private int chamadasAutoriza = 0;
         private int chamadasConsulta = 0;
+        private String tokenAutoriza;
+        private String ultimoLoginAutoriza;
 
         @Override
         public AutorizaResponseDto autoriza(AutorizaRequestDto request) {
             chamadasAutoriza++;
-            return new AutorizaResponseDto();
+            ultimoLoginAutoriza = request != null ? request.getLogin() : null;
+            AutorizaResponseDto response = new AutorizaResponseDto();
+            response.setToken(tokenAutoriza);
+            return response;
         }
 
         @Override
@@ -835,6 +945,14 @@ public class StoreReviewIsoladoTest {
 
         public int getChamadasConsulta() {
             return chamadasConsulta;
+        }
+
+        public void setTokenAutoriza(String tokenAutoriza) {
+            this.tokenAutoriza = tokenAutoriza;
+        }
+
+        public String getUltimoLoginAutoriza() {
+            return ultimoLoginAutoriza;
         }
     }
 }

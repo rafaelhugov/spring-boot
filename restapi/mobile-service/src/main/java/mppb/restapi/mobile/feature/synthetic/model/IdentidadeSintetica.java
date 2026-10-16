@@ -34,7 +34,7 @@ public enum IdentidadeSintetica {
     ),
 
     REVIEW_GOOGLE_MEMBRO(
-            "review.google.membro",
+            "membro.google",
             OrigemConta.REVIEW_GOOGLE,
             PerfilFuncional.MEMBRO,
             "UAT-MEMBRO-001",
@@ -48,7 +48,7 @@ public enum IdentidadeSintetica {
     ),
 
     REVIEW_GOOGLE_SERVIDOR(
-            "review.google.servidor",
+            "servidor.google",
             OrigemConta.REVIEW_GOOGLE,
             PerfilFuncional.SERVIDOR,
             "UAT-SERVIDOR-001",
@@ -62,7 +62,7 @@ public enum IdentidadeSintetica {
     ),
 
     REVIEW_APPLE_MEMBRO(
-            "review.apple.membro",
+            "membro.apple",
             OrigemConta.REVIEW_APPLE,
             PerfilFuncional.MEMBRO,
             "UAT-MEMBRO-001",
@@ -76,7 +76,7 @@ public enum IdentidadeSintetica {
     ),
 
     REVIEW_APPLE_SERVIDOR(
-            "review.apple.servidor",
+            "servidor.apple",
             OrigemConta.REVIEW_APPLE,
             PerfilFuncional.SERVIDOR,
             "UAT-SERVIDOR-001",
@@ -179,10 +179,10 @@ public enum IdentidadeSintetica {
     }
 
     public static final java.util.Set<String> LOGINS_REVIEW_EXATOS = java.util.Set.of(
-            "review.google.membro",
-            "review.google.servidor",
-            "review.apple.membro",
-            "review.apple.servidor"
+            "membro.google",
+            "servidor.google",
+            "membro.apple",
+            "servidor.apple"
     );
 
     public static boolean isLoginReviewExato(String login) {
@@ -190,6 +190,12 @@ public enum IdentidadeSintetica {
             return false;
         }
         return LOGINS_REVIEW_EXATOS.contains(login.trim().toLowerCase(java.util.Locale.ROOT));
+    }
+
+    public static boolean isLoginReviewAppleExato(String login) {
+        return porLogin(login)
+                .map(id -> id.getOrigem() == OrigemConta.REVIEW_APPLE)
+                .orElse(false);
     }
 
     public static Optional<IdentidadeSintetica> porLogin(String login) {

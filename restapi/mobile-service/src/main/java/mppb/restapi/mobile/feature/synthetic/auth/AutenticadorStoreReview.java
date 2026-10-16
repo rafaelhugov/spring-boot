@@ -40,7 +40,8 @@ public class AutenticadorStoreReview {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public boolean isHabilitado() {
-        return reviewProperties.isEnabled() && !reviewProperties.isExpirado();
+        return (reviewProperties.isEnabled() || reviewProperties.isHybridEnabled() || reviewProperties.isAppleHybridEnabled())
+                && !reviewProperties.isExpirado();
     }
 
     public boolean isTokenReview(String token) {
@@ -48,7 +49,7 @@ public class AutenticadorStoreReview {
     }
 
     public Optional<String> autenticarReview(String login, String senha) {
-        if (!reviewProperties.isEnabled()) {
+        if (!reviewProperties.isEnabled() && !reviewProperties.isHybridEnabled() && !reviewProperties.isAppleHybridEnabled()) {
             auditoria.registrarFalhaStoreReview(login, "STORE_REVIEW_DESABILITADO");
             return Optional.empty();
         }
@@ -63,8 +64,8 @@ public class AutenticadorStoreReview {
             return Optional.empty();
         }
 
-        // Allowlist estrita: aceita apenas as 4 identidades exatas de Store Review
-        if (!IdentidadeSintetica.isLoginReviewExato(login)) {
+        // Allowlist estrita: review isolado aceita as 4; modo híbrido aceita só Apple.
+        if (!isLoginPermitido(login)) {
             auditoria.registrarFalhaStoreReview(login, "LOGIN_NAO_PERMITIDO_EM_STORE_REVIEW");
             return Optional.empty();
         }
@@ -136,7 +137,7 @@ public class AutenticadorStoreReview {
     }
 
     public Optional<IdentidadeSintetica> validarTokenReview(String token) {
-        if (!reviewProperties.isEnabled() || reviewProperties.isExpirado() || token == null || !token.startsWith(REVIEW_TOKEN_PREFIX)) {
+        if (!isHabilitado() || token == null || !token.startsWith(REVIEW_TOKEN_PREFIX)) {
             return Optional.empty();
         }
 
@@ -187,7 +188,7 @@ public class AutenticadorStoreReview {
             }
 
             String sub = payload.path("sub").asText();
-            if (!IdentidadeSintetica.isLoginReviewExato(sub)) {
+            if (!isLoginPermitido(sub)) {
                 auditoria.registrarFalhaStoreReview(sub, "LOGIN_NAO_PERMITIDO_EM_STORE_REVIEW");
                 return Optional.empty();
             }
@@ -214,6 +215,17 @@ public class AutenticadorStoreReview {
             auditoria.registrarFalhaStoreReview("N/A", "TOKEN_ERRO_VALIDACAO");
             return Optional.empty();
         }
+    }
+
+    private boolean isLoginPermitido(String login) {
+        if (reviewProperties.isEnabled()) {
+            return IdentidadeSintetica.isLoginReviewExato(login);
+        }
+        if (reviewProperties.isHybridEnabled()) {
+            return IdentidadeSintetica.isLoginReviewExato(login);
+        }
+        return reviewProperties.isAppleHybridEnabled()
+                && IdentidadeSintetica.isLoginReviewAppleExato(login);
     }
 
     private String assinar(String content, String secret) throws Exception {

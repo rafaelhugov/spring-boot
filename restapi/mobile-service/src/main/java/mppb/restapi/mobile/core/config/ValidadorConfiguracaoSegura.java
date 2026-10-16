@@ -51,6 +51,8 @@ public class ValidadorConfiguracaoSegura implements ApplicationRunner {
 
         String ambiente = ambienteOperacional();
         boolean reviewEnabled = Boolean.parseBoolean(valor("review.enabled"));
+        boolean hybridEnabled = Boolean.parseBoolean(valor("review.hybrid-enabled"));
+        boolean appleHybridEnabled = Boolean.parseBoolean(valor("review.apple-hybrid-enabled"));
         boolean isHomologOperacional = "homolog".equalsIgnoreCase(ambiente);
 
         if (reviewEnabled) {
@@ -63,7 +65,7 @@ public class ValidadorConfiguracaoSegura implements ApplicationRunner {
         }
 
         boolean syntheticEnabled = Boolean.parseBoolean(valor("uat.synthetic-users.enabled"));
-        if (syntheticEnabled && !(isHomologOperacional && reviewEnabled)) {
+        if (syntheticEnabled && !(isHomologOperacional && reviewEnabled) && !hybridEnabled && !appleHybridEnabled) {
             throw new IllegalStateException("Usuarios sinteticos UAT/Review nao podem ser habilitados em perfis de producao (prod, production, prd).");
         }
 
@@ -156,8 +158,10 @@ public class ValidadorConfiguracaoSegura implements ApplicationRunner {
         String ambiente = ambienteOperacional();
         boolean isHomologOperacional = "homolog".equalsIgnoreCase(ambiente);
         boolean reviewEnabled = Boolean.parseBoolean(valor("review.enabled"));
+        boolean hybridEnabled = Boolean.parseBoolean(valor("review.hybrid-enabled"));
+        boolean appleHybridEnabled = Boolean.parseBoolean(valor("review.apple-hybrid-enabled"));
 
-        if (isProd && !(isHomologOperacional && reviewEnabled)) {
+        if (isProd && !(isHomologOperacional && reviewEnabled) && !hybridEnabled && !appleHybridEnabled) {
             throw new IllegalStateException("Usuarios sinteticos UAT/Review nao podem ser habilitados em perfis de producao (prod, production, prd).");
         }
 
@@ -167,7 +171,7 @@ public class ValidadorConfiguracaoSegura implements ApplicationRunner {
             throw new IllegalStateException("Usuarios sinteticos UAT/Review somente podem ser ativados em profiles homolog, uat, review, test, dev, local, prod.");
         }
 
-        boolean apenasReview = (perfis.contains("review") || (isHomologOperacional && reviewEnabled))
+        boolean apenasReview = (perfis.contains("review") || (isHomologOperacional && reviewEnabled) || hybridEnabled || appleHybridEnabled)
                 && !perfis.contains("uat") && !perfis.contains("homolog");
         if (!apenasReview) {
             String jwtSecret = valor("uat.synthetic-users.jwt-secret");
@@ -183,6 +187,28 @@ public class ValidadorConfiguracaoSegura implements ApplicationRunner {
                 String senha = valor(chave);
                 if (senha == null || senha.isBlank()) {
                     throw new IllegalStateException("Senha obrigatoria ausente para usuarios sinteticos: " + chave);
+                }
+            }
+        }
+
+        if (hybridEnabled || appleHybridEnabled) {
+            String jwtSecretReview = valor("review.jwt-secret");
+            if (jwtSecretReview == null || jwtSecretReview.isBlank()) {
+                throw new IllegalStateException("review.jwt-secret obrigatorio quando Store Review hibrido esta habilitado (STORE_REVIEW_JWT_SECRET ausente).");
+            }
+            List<String> chavesSenhasReview = hybridEnabled
+                    ? List.of(
+                            "uat.synthetic-users.passwords.google-review-membro",
+                            "uat.synthetic-users.passwords.google-review-servidor",
+                            "uat.synthetic-users.passwords.apple-review-membro",
+                            "uat.synthetic-users.passwords.apple-review-servidor")
+                    : List.of(
+                            "uat.synthetic-users.passwords.apple-review-membro",
+                            "uat.synthetic-users.passwords.apple-review-servidor");
+            for (String chave : chavesSenhasReview) {
+                String senha = valor(chave);
+                if (senha == null || senha.isBlank()) {
+                    throw new IllegalStateException("Senha obrigatoria ausente para Store Review hibrido: " + chave);
                 }
             }
         }
@@ -239,6 +265,14 @@ public class ValidadorConfiguracaoSegura implements ApplicationRunner {
                 String envVal = environment.getProperty("STORE_REVIEW_ENABLED");
                 yield (envVal != null && !envVal.isBlank()) ? envVal : environment.getProperty("REVIEW_ENABLED");
             }
+            case "review.hybrid-enabled" -> {
+                String envVal = environment.getProperty("STORE_REVIEW_HYBRID_ENABLED");
+                yield (envVal != null && !envVal.isBlank()) ? envVal : environment.getProperty("REVIEW_HYBRID_ENABLED");
+            }
+            case "review.apple-hybrid-enabled" -> {
+                String envVal = environment.getProperty("APPLE_REVIEW_HYBRID_ENABLED");
+                yield (envVal != null && !envVal.isBlank()) ? envVal : environment.getProperty("REVIEW_APPLE_HYBRID_ENABLED");
+            }
             case "review.jwt-secret" -> {
                 String envVal = environment.getProperty("STORE_REVIEW_JWT_SECRET");
                 yield (envVal != null && !envVal.isBlank()) ? envVal : environment.getProperty("REVIEW_JWT_SECRET");
@@ -259,7 +293,15 @@ public class ValidadorConfiguracaoSegura implements ApplicationRunner {
                 if (uat != null && !uat.isBlank()) {
                     yield uat;
                 }
-                yield environment.getProperty("STORE_REVIEW_ENABLED");
+                String storeReview = environment.getProperty("STORE_REVIEW_ENABLED");
+                if (storeReview != null && !storeReview.isBlank()) {
+                    yield storeReview;
+                }
+                String hybrid = environment.getProperty("STORE_REVIEW_HYBRID_ENABLED");
+                if (hybrid != null && !hybrid.isBlank()) {
+                    yield hybrid;
+                }
+                yield environment.getProperty("APPLE_REVIEW_HYBRID_ENABLED");
             }
             case "mppb.environment" -> environment.getProperty("MPPB_ENVIRONMENT");
             default -> null;

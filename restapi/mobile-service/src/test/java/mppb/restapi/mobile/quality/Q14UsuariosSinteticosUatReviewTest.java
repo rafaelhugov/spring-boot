@@ -222,7 +222,7 @@ class Q14UsuariosSinteticosUatReviewTest {
     @Test
     @DisplayName("04. Google membro autentica com sucesso")
     void test04_googleMembro() {
-        Optional<String> tokenOpt = autenticador.autenticar("review.google.membro", "SenhaSeguraGoogleMembro123!");
+        Optional<String> tokenOpt = autenticador.autenticar("membro.google", "SenhaSeguraGoogleMembro123!");
         assertTrue(tokenOpt.isPresent());
         String token = tokenOpt.get();
 
@@ -236,7 +236,7 @@ class Q14UsuariosSinteticosUatReviewTest {
     @Test
     @DisplayName("05. Google servidor autentica com sucesso")
     void test05_googleServidor() {
-        Optional<String> tokenOpt = autenticador.autenticar("review.google.servidor", "SenhaSeguraGoogleServidor123!");
+        Optional<String> tokenOpt = autenticador.autenticar("servidor.google", "SenhaSeguraGoogleServidor123!");
         assertTrue(tokenOpt.isPresent());
         String token = tokenOpt.get();
 
@@ -250,7 +250,7 @@ class Q14UsuariosSinteticosUatReviewTest {
     @Test
     @DisplayName("06. Apple membro autentica com sucesso")
     void test06_appleMembro() {
-        Optional<String> tokenOpt = autenticador.autenticar("review.apple.membro", "SenhaSeguraAppleMembro123!");
+        Optional<String> tokenOpt = autenticador.autenticar("membro.apple", "SenhaSeguraAppleMembro123!");
         assertTrue(tokenOpt.isPresent());
         String token = tokenOpt.get();
 
@@ -264,7 +264,7 @@ class Q14UsuariosSinteticosUatReviewTest {
     @Test
     @DisplayName("07. Apple servidor autentica com sucesso")
     void test07_appleServidor() {
-        Optional<String> tokenOpt = autenticador.autenticar("review.apple.servidor", "SenhaSeguraAppleServidor123!");
+        Optional<String> tokenOpt = autenticador.autenticar("servidor.apple", "SenhaSeguraAppleServidor123!");
         assertTrue(tokenOpt.isPresent());
         String token = tokenOpt.get();
 
@@ -289,13 +289,13 @@ class Q14UsuariosSinteticosUatReviewTest {
     @Test
     @DisplayName("09. Origem e perfil são registrados na auditoria e token aceito pelo provider")
     void test09_origemAuditoria() {
-        Optional<String> tokenOpt = autenticador.autenticar("review.google.membro", "SenhaSeguraGoogleMembro123!");
+        Optional<String> tokenOpt = autenticador.autenticar("membro.google", "SenhaSeguraGoogleMembro123!");
         assertTrue(tokenOpt.isPresent());
 
         Authentication auth = authProvider.authenticate(new TokenAuthentication(tokenOpt.get()));
         assertNotNull(auth);
         assertTrue(auth.isAuthenticated());
-        assertEquals("review.google.membro", auth.getName());
+        assertEquals("membro.google", auth.getName());
     }
 
     @Test
