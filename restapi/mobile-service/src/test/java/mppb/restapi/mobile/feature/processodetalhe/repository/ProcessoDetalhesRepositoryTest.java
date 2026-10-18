@@ -27,11 +27,36 @@ class ProcessoDetalhesRepositoryTest {
         repository.findDetalhesProcesso(123L);
 
         String sql = jdbcTemplate.sql;
+        assertProtecaoDoProcesso(sql, "detalhe");
+    }
+
+    @Test
+    void interessadosTambemValidamSigiloDoProcesso() {
+        repository.findInteressadosPorProcesso(123L);
+
+        assertProtecaoDoProcesso(jdbcTemplate.sql, "interessado");
+        assertTrue(jdbcTemplate.sql.contains("i.sigiloso = false"));
+        assertTrue(jdbcTemplate.sql.contains("i.dataexclusao IS NULL"));
+    }
+
+    @Test
+    void movimentosBloqueiamProcessoEDocumentoSigilososERegistrosExcluidos() {
+        repository.findMovimentosPorProcesso(123L);
+
+        String sql = jdbcTemplate.sql;
+        assertProtecaoDoProcesso(sql, "movimento");
+        assertTrue(sql.contains("pm.dataexclusao IS NULL"));
+        assertTrue(sql.contains("pm.id_protocolomovimento IS NULL"));
+        assertTrue(sql.contains("pdoc.id IS NULL OR (pdoc.id_ultimomovimentosigilosidade IS NULL"));
+        assertTrue(sql.contains("mov_sigilo_documento.cod_movimento = 920360"));
+    }
+
+    private void assertProtecaoDoProcesso(String sql, String sufixo) {
         assertTrue(sql.contains("p.tipoprotocolo = 'P'"));
         assertTrue(sql.contains("p.id_pasta IS NULL"));
         assertTrue(sql.contains("p.dataexclusao IS NULL"));
         assertTrue(sql.contains("p.id_ultimomovimentosigilosidade IS NULL"));
-        assertTrue(sql.contains("mov_sigilo.cod_movimento = 920360"));
+        assertTrue(sql.contains("mov_sigilo_" + sufixo + ".cod_movimento = 920360"));
     }
 
     private static class CapturingJdbcTemplate extends JdbcTemplate {

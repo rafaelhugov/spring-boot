@@ -1,5 +1,6 @@
 package mppb.restapi.mobile.feature.processodetalhe.repository;
 
+import mppb.restapi.mobile.core.security.ProcessoPublicoSql;
 import mppb.restapi.mobile.feature.processodetalhe.dto.InteressadoDTO;
 import mppb.restapi.mobile.feature.processodetalhe.dto.MovimentoDTO;
 import mppb.restapi.mobile.feature.processodetalhe.dto.ProcessoDetalheDTO;
@@ -11,16 +12,6 @@ import java.util.List;
 
 @Repository
 public class ProcessoDetalhesRepository {
-
-    private static final String PROCESSO_SEM_SIGILO_ATIVO =
-            "  AND (p.id_ultimomovimentosigilosidade IS NULL " +
-            "       OR EXISTS ( " +
-            "           SELECT 1 " +
-            "           FROM protocolo.protocolomovimento pm_sigilo " +
-            "           JOIN taxonomia.movimentos mov_sigilo ON mov_sigilo.id_item = pm_sigilo.id_movimento " +
-            "           WHERE pm_sigilo.id = p.id_ultimomovimentosigilosidade " +
-            "             AND mov_sigilo.cod_movimento = 920360 " +
-            "       ))";
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -36,10 +27,7 @@ public class ProcessoDetalhesRepository {
                      "LEFT JOIN orgao orgao_info ON p.id_orgaocriador = orgao_info.id_pessoa " +
                      "LEFT JOIN pessoa org ON orgao_info.id_pessoa = org.id " +
                      "WHERE p.id = ? " +
-                     "  AND p.tipoprotocolo = 'P' " +
-                     "  AND p.id_pasta IS NULL " +
-                     "  AND p.dataexclusao IS NULL " +
-                     PROCESSO_SEM_SIGILO_ATIVO;
+                     "  AND " + ProcessoPublicoSql.processoPublico("p", "detalhe");
 
         List<ProcessoDetalheDTO> processos = jdbcTemplate.query(sql, new Object[]{idProcesso}, (rs, rowNum) -> {
             ProcessoDetalheDTO dto = new ProcessoDetalheDTO();
@@ -63,12 +51,14 @@ public class ProcessoDetalhesRepository {
                      "       NULL AS nomesocial, " +
                      "       COALESCE(i.cpfcnpj, pf.cpf, pj.cnpj) AS documento " +
                      "FROM protocolo.pasta pasta " +
+                     "JOIN protocolo.protocolo p ON p.id = pasta.id_protocolo " +
                      "JOIN protocolo.pastadocumento pd ON pd.id_protocolomovimento = pasta.id_pastadocumentopecainicial " +
                      "JOIN protocolo.interessado i ON i.id_protocolo = pd.id_documento " +
                      "LEFT JOIN pessoa pes ON pes.id = i.id_pessoa " +
                      "LEFT JOIN pessoafisica pf ON pf.id_pessoa = i.id_pessoa " +
                      "LEFT JOIN pessoajuridica pj ON pj.id_pessoa = i.id_pessoa " +
                      "WHERE pasta.id_protocolo = ? " +
+                     "  AND " + ProcessoPublicoSql.processoPublico("p", "interessado") + " " +
                      "  AND i.sigiloso = false " +
                      "  AND i.dataexclusao IS NULL " +
                      "ORDER BY COALESCE(i.nome, pes.nome) ASC";
@@ -96,10 +86,15 @@ public class ProcessoDetalhesRepository {
         String sql = "SELECT pm.dataregistro AS data, i.nome AS tipo, " +
                      "pdoc.resumo AS complemento " +
                      "FROM protocolo.protocolomovimento pm " +
+                     "JOIN protocolo.protocolo p ON p.id = pm.id_protocolo " +
                      "LEFT JOIN taxonomia.itens i ON i.id = pm.id_movimento " +
                      "LEFT JOIN protocolo.pastadocumento pd ON pd.id_protocolomovimento = pm.id " +
                      "LEFT JOIN protocolo.protocolo pdoc ON pdoc.id = pd.id_documento " +
                      "WHERE pm.id_protocolo = ? " +
+                     "  AND " + ProcessoPublicoSql.processoPublico("p", "movimento") + " " +
+                     "  AND pm.dataexclusao IS NULL " +
+                     "  AND pm.id_protocolomovimento IS NULL " +
+                     "  AND (pdoc.id IS NULL OR " + ProcessoPublicoSql.semSigiloAtivo("pdoc", "documento") + ") " +
                      "ORDER BY pm.dataregistro DESC";
 
         return jdbcTemplate.query(sql, new Object[]{idProcesso}, (rs, rowNum) -> {

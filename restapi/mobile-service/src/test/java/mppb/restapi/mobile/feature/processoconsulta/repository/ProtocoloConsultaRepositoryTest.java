@@ -1,7 +1,9 @@
 package mppb.restapi.mobile.feature.processoconsulta.repository;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -31,17 +33,56 @@ class ProtocoloConsultaRepositoryTest {
 
         repository.consultarProcessos(filtro);
 
-        assertTrue(jdbcTemplate.sql.contains("p.id_ultimomovimentosigilosidade IS NULL"));
-        assertTrue(jdbcTemplate.sql.contains("mov_sigilo.cod_movimento = 920360"));
+        assertProtecaoSigilo(jdbcTemplate.sql, "consulta");
+    }
+
+    @Test
+    void filtroDeComarcasNaoUsaProcessosSigilososComoFonte() {
+        repository.listarComarcas();
+
+        assertProtecaoSigilo(jdbcTemplate.sql, "comarca");
+    }
+
+    @Test
+    void payloadsDeInjecaoPermanecemParametrosEProtecaoDeSigiloContinuaAtiva() {
+        String payload = "' OR 1=1; SELECT pg_sleep(10); --";
+        ConsultaProcessoFilterDTO filtro = new ConsultaProcessoFilterDTO();
+        filtro.setNumeroProcesso(payload);
+        filtro.setNumeroOrigem(payload);
+        filtro.setNumeroCnmp(payload);
+        filtro.setInteressado(payload);
+        filtro.setNomePromotor(payload);
+
+        repository.consultarProcessos(filtro);
+
+        assertFalse(jdbcTemplate.sql.contains(payload));
+        assertTrue(Arrays.stream(jdbcTemplate.args).anyMatch(("%" + payload + "%")::equals));
+        assertProtecaoSigilo(jdbcTemplate.sql, "consulta");
+    }
+
+    private void assertProtecaoSigilo(String sql, String sufixo) {
+        assertTrue(sql.contains("p.id_ultimomovimentosigilosidade IS NULL"));
+        assertTrue(sql.contains("mov_sigilo_" + sufixo + ".cod_movimento = 920360"));
+        assertTrue(sql.contains("p.tipoprotocolo = 'P'"));
+        assertTrue(sql.contains("p.id_pasta IS NULL"));
+        assertTrue(sql.contains("p.dataexclusao IS NULL"));
     }
 
     private static class CapturingJdbcTemplate extends JdbcTemplate {
 
         private String sql;
+        private Object[] args = new Object[0];
+
+        @Override
+        public <T> List<T> query(String sql, RowMapper<T> rowMapper) {
+            this.sql = sql;
+            return List.of();
+        }
 
         @Override
         public <T> List<T> query(String sql, Object[] args, RowMapper<T> rowMapper) {
             this.sql = sql;
+            this.args = args;
             return List.of();
         }
     }

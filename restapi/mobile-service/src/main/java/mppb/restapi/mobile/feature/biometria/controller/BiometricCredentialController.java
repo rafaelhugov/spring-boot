@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import mppb.restapi.common.infrastructure.security.authorization.TokenAuthentication;
 import mppb.restapi.mobile.feature.biometria.dto.AtivarBiometriaRequest;
 import mppb.restapi.mobile.feature.biometria.dto.AtivarBiometriaResponse;
@@ -24,6 +25,7 @@ import mppb.restapi.mobile.feature.biometria.service.BiometricCredentialService.
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 @ConditionalOnProperty(prefix = "biometria", name = "enabled", havingValue = "true")
 public class BiometricCredentialController {
 
@@ -37,14 +39,20 @@ public class BiometricCredentialController {
             @Valid @RequestBody AtivarBiometriaRequest request) {
         TokenAuthentication authentication = autenticacaoAtual();
         if (authentication == null || authentication.getUsuario() == null) {
+            log.warn("Ativacao biometrica recusada: autenticacao ausente");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         try {
-            return ResponseEntity.ok(service.ativar(
+            AtivarBiometriaResponse response = service.ativar(
                     authentication.getUsuario().getLogin(),
                     authentication.getToken(),
-                    request));
+                    request);
+            log.info("Credencial biometrica emitida: usuarioId={}, plataforma={}",
+                    authentication.getUsuario().getId(), request.plataforma());
+            return ResponseEntity.ok(response);
         } catch (CredencialBiometricaInvalidaException e) {
+            log.warn("Ativacao biometrica recusada: usuarioId={}, motivo=credencial-invalida",
+                    authentication.getUsuario().getId());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
