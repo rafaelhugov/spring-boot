@@ -28,6 +28,7 @@ public class NotificacaoFuncionalProcessamentoService {
     private final List<NotificacaoDominioControleRepository> controleRepositories;
     private final DispositivoFcmRepository dispositivoRepository;
     private final ObjectProvider<FcmSenderService> fcmSenderProvider;
+    private final PreferenciasNotificacaoService preferenciasService;
 
     @Value("${notificacoes-funcionais.batch-size:100}")
     private int batchSize;
@@ -59,6 +60,12 @@ public class NotificacaoFuncionalProcessamentoService {
             FcmSenderService sender,
             EventoFuncionalPendenteNotificacao pendente) {
         EventoFuncionalNotificacao evento = pendente.evento();
+        if (!preferenciasService.permiteEventoFuncional(evento.matricula(), evento.tipoEvento())) {
+            pendente.controleRepository().marcarNotificacaoEnviada(pendente.id(), pendente.identificadorReserva());
+            log.info("Notificacao funcional ignorada conforme preferencia do usuario: tipo={}, resultado=EN",
+                    evento.tipoEvento());
+            return resultado(pendente, "EN", null, ResultadoEnvioFcm.aceito("PREFERENCIA_USUARIO"));
+        }
         List<DispositivoFcm> dispositivos = dispositivoRepository.findAtivosByMatricula(evento.matricula());
         if (dispositivos.isEmpty()) {
             pendente.controleRepository().marcarNotificacaoErro(

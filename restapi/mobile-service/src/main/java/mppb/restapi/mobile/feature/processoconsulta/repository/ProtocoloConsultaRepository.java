@@ -1,5 +1,6 @@
 package mppb.restapi.mobile.feature.processoconsulta.repository;
 
+import mppb.restapi.mobile.core.security.ProcessoPublicoSql;
 import mppb.restapi.mobile.feature.processoconsulta.dto.ConsultaProcessoFilterDTO;
 import mppb.restapi.mobile.feature.processoconsulta.dto.ConsultaProcessoResponseDTO;
 import mppb.restapi.mobile.feature.processoconsulta.dto.ProcessoFiltroOptionDTO;
@@ -16,16 +17,6 @@ import java.util.concurrent.TimeUnit;
 
 @Repository
 public class ProtocoloConsultaRepository {
-
-    private static final String PROCESSO_SEM_SIGILO_ATIVO =
-            "      AND (p.id_ultimomovimentosigilosidade IS NULL " +
-            "           OR EXISTS ( " +
-            "               SELECT 1 " +
-            "               FROM protocolo.protocolomovimento pm_sigilo " +
-            "               JOIN taxonomia.movimentos mov_sigilo ON mov_sigilo.id_item = pm_sigilo.id_movimento " +
-            "               WHERE pm_sigilo.id = p.id_ultimomovimentosigilosidade " +
-            "                 AND mov_sigilo.cod_movimento = 920360 " +
-            "           )) ";
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -59,9 +50,7 @@ public class ProtocoloConsultaRepository {
                 "JOIN protocolo.pasta pasta ON pasta.id_protocolo = p.id " +
                 "LEFT JOIN orgao orgao_info ON orgao_info.id_pessoa = p.id_orgaocriador " +
                 "LEFT JOIN pessoa o ON o.id = orgao_info.id_pessoa " +
-                "WHERE p.tipoprotocolo = 'P' " +
-                "  AND p.id_pasta IS NULL " +
-                "  AND p.dataexclusao IS NULL " +
+                "WHERE " + ProcessoPublicoSql.processoPublico("p", "comarca") + " " +
                 "  AND p.id_orgaocriador IS NOT NULL " +
                 "  AND o.nome IS NOT NULL " +
                 "ORDER BY o.nome ASC";
@@ -149,17 +138,13 @@ public class ProtocoloConsultaRepository {
             }
         }
 
-        sql.append("    WHERE p.tipoprotocolo = 'P' ");
-        sql.append("      AND p.id_pasta IS NULL ");
-        sql.append("      AND p.dataexclusao IS NULL ");
+        sql.append("    WHERE ").append(ProcessoPublicoSql.processoPublico("p", "consulta")).append(" ");
 
         if (temTipoAtividade) {
             sql.append("      AND pm_atividade.dataexclusao IS NULL ");
             sql.append("      AND pm_atividade.id_protocolomovimento IS NULL ");
             sql.append("      AND p.id_ultimomovimento IS NOT NULL ");
         }
-
-        sql.append(PROCESSO_SEM_SIGILO_ATIVO);
 
         if (temNumeroProcesso) {
             sql.append("      AND num.numero LIKE ? ");

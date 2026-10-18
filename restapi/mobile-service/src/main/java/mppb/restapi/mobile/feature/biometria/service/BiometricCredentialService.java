@@ -7,10 +7,13 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.lang.Nullable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +28,9 @@ import mppb.restapi.mobile.feature.biometria.dto.AutenticarBiometriaResponse;
 import mppb.restapi.mobile.feature.biometria.model.CredencialBiometrica;
 import mppb.restapi.mobile.feature.biometria.repository.CredencialBiometricaRepository;
 import mppb.restapi.mobile.feature.biometria.security.BiometricCredentialCipher;
+import mppb.restapi.mobile.feature.synthetic.auth.AutenticadorStoreReview;
+import mppb.restapi.mobile.feature.synthetic.auth.AutenticadorUsuarioSintetico;
+import mppb.restapi.mobile.feature.synthetic.model.IdentidadeSintetica;
 
 @Service
 @ConditionalOnProperty(prefix = "biometria", name = "enabled", havingValue = "true")
@@ -36,13 +42,18 @@ public class BiometricCredentialService {
     private final CredencialBiometricaRepository repository;
     private final BiometricCredentialCipher cipher;
     private final AuthServiceClient authServiceClient;
+    private final AutenticadorStoreReview autenticadorStoreReview;
+    private final AutenticadorUsuarioSintetico autenticadorUsuarioSintetico;
     private final int ttlDays;
     private final String siglaSistema;
 
+    @Autowired
     public BiometricCredentialService(
             CredencialBiometricaRepository repository,
             BiometricCredentialCipher cipher,
             AuthServiceClient authServiceClient,
+            @Nullable AutenticadorStoreReview autenticadorStoreReview,
+            @Nullable AutenticadorUsuarioSintetico autenticadorUsuarioSintetico,
             @Value("${biometria.credential.ttl-days:30}") int ttlDays,
             @Value("${sistema.sigla:ANDROID}") String siglaSistema) {
         if (ttlDays < 1 || ttlDays > 90) {
@@ -51,8 +62,19 @@ public class BiometricCredentialService {
         this.repository = repository;
         this.cipher = cipher;
         this.authServiceClient = authServiceClient;
+        this.autenticadorStoreReview = autenticadorStoreReview;
+        this.autenticadorUsuarioSintetico = autenticadorUsuarioSintetico;
         this.ttlDays = ttlDays;
         this.siglaSistema = siglaSistema;
+    }
+
+    BiometricCredentialService(
+            CredencialBiometricaRepository repository,
+            BiometricCredentialCipher cipher,
+            AuthServiceClient authServiceClient,
+            int ttlDays,
+            String siglaSistema) {
+        this(repository, cipher, authServiceClient, null, null, ttlDays, siglaSistema);
     }
 
     @Transactional
@@ -64,7 +86,11 @@ public class BiometricCredentialService {
         String token = obrigatorio(tokenInstitucional, "token");
         String dispositivoId = obrigatorio(request.dispositivoId(), "dispositivoId");
         String plataforma = obrigatorio(request.plataforma(), "plataforma").toUpperCase(Locale.ROOT);
-        validarTokenInstitucional(token, login);
+
+        // O TokenAuthenticationProvider ja validou este token e associou o
+        // usuario ao SecurityContext antes de o controller ser executado.
+        // A nova consulta aqui era redundante e podia recusar a emissao por
+        // uma falha transitoria imediatamente apos um login valido.
 
         String seletor = UUID.randomUUID().toString();
         String segredo = novoSegredo();
@@ -98,7 +124,7 @@ public class BiometricCredentialService {
 
         try {
             String token = cipher.decifrar(credencial.tokenInstitucionalCifrado());
-            validarTokenInstitucional(token, credencial.login());
+            validarTokenParaLogin(token, credencial.login());
             repository.registrarUso(credencial.id());
             return new AutenticarBiometriaResponse(token, credencial.expiraEm());
         } catch (CredencialBiometricaInvalidaException | IllegalStateException e) {
@@ -122,6 +148,41 @@ public class BiometricCredentialService {
     @Transactional
     public void desativarExpiradas() {
         repository.desativarExpiradas();
+    }
+
+    private void validarTokenParaLogin(String token, String loginEsperado) {
+        if (token.startsWith(AutenticadorStoreReview.REVIEW_TOKEN_PREFIX)) {
+            validarTokenStoreReview(token, loginEsperado);
+            return;
+        }
+        if (token.startsWith(AutenticadorUsuarioSintetico.TOKEN_PREFIX)) {
+            validarTokenUat(token, loginEsperado);
+            return;
+        }
+        validarTokenInstitucional(token, loginEsperado);
+    }
+
+    private void validarTokenStoreReview(String token, String loginEsperado) {
+        Optional<IdentidadeSintetica> identidade = autenticadorStoreReview == null
+                ? Optional.empty()
+                : autenticadorStoreReview.validarTokenReview(token);
+        validarIdentidadeSintetica(identidade, loginEsperado);
+    }
+
+    private void validarTokenUat(String token, String loginEsperado) {
+        Optional<IdentidadeSintetica> identidade = autenticadorUsuarioSintetico == null
+                ? Optional.empty()
+                : autenticadorUsuarioSintetico.validarToken(token);
+        validarIdentidadeSintetica(identidade, loginEsperado);
+    }
+
+    private static void validarIdentidadeSintetica(
+            Optional<IdentidadeSintetica> identidade,
+            String loginEsperado) {
+        String loginRetornado = identidade.map(IdentidadeSintetica::getLogin).orElse(null);
+        if (loginRetornado == null || !loginEsperado.equalsIgnoreCase(loginRetornado.trim())) {
+            throw new CredencialBiometricaInvalidaException();
+        }
     }
 
     private void validarTokenInstitucional(String token, String loginEsperado) {

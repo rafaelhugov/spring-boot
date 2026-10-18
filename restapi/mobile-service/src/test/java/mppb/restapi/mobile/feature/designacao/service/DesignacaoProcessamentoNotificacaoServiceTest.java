@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,9 @@ import mppb.restapi.mobile.feature.designacao.model.DesignacaoControlePendenteNo
 import mppb.restapi.mobile.feature.designacao.model.ResultadoNotificacaoDesignacao;
 import mppb.restapi.mobile.feature.designacao.model.ResultadoProcessamentoNotificacaoDesignacao;
 import mppb.restapi.mobile.feature.designacao.repository.DesignacaoControleRepository;
+import mppb.restapi.mobile.feature.notificacao.model.PreferenciasNotificacao;
+import mppb.restapi.mobile.feature.notificacao.repository.PreferenciasNotificacaoRepository;
+import mppb.restapi.mobile.feature.notificacao.service.PreferenciasNotificacaoService;
 
 class DesignacaoProcessamentoNotificacaoServiceTest {
 
@@ -32,7 +36,10 @@ class DesignacaoProcessamentoNotificacaoServiceTest {
     void setUp() {
         repository = new FakeDesignacaoControleRepository();
         notificacaoService = new FakeDesignacaoNotificacaoService();
-        service = new DesignacaoProcessamentoNotificacaoService(repository, notificacaoService);
+        service = new DesignacaoProcessamentoNotificacaoService(
+                repository,
+                notificacaoService,
+                preferenciasService(true));
         ReflectionTestUtils.setField(service, "batchSize", 100);
         ReflectionTestUtils.setField(service, "maxTentativas", 3);
     }
@@ -50,6 +57,28 @@ class DesignacaoProcessamentoNotificacaoServiceTest {
         assertEquals(1, repository.enviados.size());
         assertEquals(0, repository.erros.size());
         assertTrue(repository.rows.get(1L).reservaEncerrada());
+    }
+
+    @Test
+    void encerraSemEnviarQuandoUsuarioDesabilitouDesignacoes() {
+        repository.add(pendente(1L, "PE", 0));
+        service = new DesignacaoProcessamentoNotificacaoService(
+                repository,
+                notificacaoService,
+                preferenciasService(false));
+        ReflectionTestUtils.setField(service, "batchSize", 100);
+        ReflectionTestUtils.setField(service, "maxTentativas", 3);
+
+        ResultadoProcessamentoNotificacaoDesignacao resultado = service.processarPendentes().get(0);
+
+        assertEquals("EN", resultado.statusFinal());
+        assertTrue(notificacaoService.designacoes.isEmpty());
+        assertEquals(1, repository.enviados.size());
+        assertEquals(0, repository.erros.size());
+    }
+
+    private static PreferenciasNotificacaoService preferenciasService(boolean designacoes) {
+        return new PreferenciasNotificacaoService(new FakePreferenciasRepository(designacoes));
     }
 
     @Test
@@ -399,6 +428,20 @@ class DesignacaoProcessamentoNotificacaoServiceTest {
             }
             designacoes.add(designacao);
             return resultados.getOrDefault(designacao.id(), resultado(1, 1, 0, 0, 0, 0, false));
+        }
+    }
+
+    private static class FakePreferenciasRepository extends PreferenciasNotificacaoRepository {
+        private final boolean designacoes;
+
+        FakePreferenciasRepository(boolean designacoes) {
+            super(null);
+            this.designacoes = designacoes;
+        }
+
+        @Override
+        public Optional<PreferenciasNotificacao> buscar(String matricula) {
+            return Optional.of(new PreferenciasNotificacao(true, designacoes, true, true, true));
         }
     }
 

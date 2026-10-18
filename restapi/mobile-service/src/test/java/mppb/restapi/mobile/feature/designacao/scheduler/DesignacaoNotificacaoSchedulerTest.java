@@ -135,7 +135,7 @@ class DesignacaoNotificacaoSchedulerTest {
         private final List<String> eventos = new ArrayList<>();
 
         FakeDesignacaoProcessamentoNotificacaoService() {
-            super(null, null);
+            super(null, null, null);
         }
 
         @Override
