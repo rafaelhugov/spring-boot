@@ -42,18 +42,47 @@ class ProcessoConsultaServiceTest {
     }
 
     @Test
-    void aceitaCadaCampoVisivelComoFiltroMinimo() {
-        assertFiltroValido(f -> f.setNumeroProcesso("001"));
+    void aceitaSomenteCriteriosSeletivosComoFiltroMinimo() {
+        assertFiltroValido(f -> f.setNumeroProcesso("0012"));
         assertFiltroValido(f -> f.setNumeroOrigem("0800000"));
-        assertFiltroValido(f -> f.setNumeroCnmp("1.24"));
-        assertFiltroValido(f -> f.setCpf("12345678901"));
-        assertFiltroValido(f -> f.setCnpj("12345678000199"));
+        assertFiltroValido(f -> f.setNumeroCnmp("1.24.0000"));
+        assertFiltroValido(f -> f.setCpf("529.982.247-25"));
+        assertFiltroValido(f -> f.setCnpj("11.222.333/0001-81"));
         assertFiltroValido(f -> f.setInteressado("Maria"));
-        assertFiltroValido(f -> f.setIdComarca(10L));
-        assertFiltroValido(f -> f.setIdClasse(200910004L));
         assertFiltroValido(f -> f.setNomePromotor("Maria"));
-        assertFiltroValido(f -> f.setIdTipoAtividade("T"));
-        assertFiltroValido(f -> f.setStatus("A"));
+    }
+
+    @Test
+    void rejeitaFiltrosAuxiliaresIsoladosQuePermitiamEnumeracao() {
+        assertFiltroInvalido(f -> f.setIdComarca(10L));
+        assertFiltroInvalido(f -> f.setIdClasse(200910004L));
+        assertFiltroInvalido(f -> f.setIdTipoAtividade("T"));
+        assertFiltroInvalido(f -> f.setStatus("A"));
+    }
+
+    @Test
+    void rejeitaValoresInvalidosEConsultasAmplificadas() {
+        assertFiltroInvalido(f -> f.setStatus("X"));
+        assertFiltroInvalido(f -> f.setIdClasse(0L));
+        assertFiltroInvalido(f -> f.setNumeroProcesso("%"));
+        assertFiltroInvalido(f -> f.setNumeroProcesso("001"));
+        assertFiltroInvalido(f -> f.setCpf("12345678901"));
+        assertFiltroInvalido(f -> f.setCnpj("12345678000199"));
+        assertFiltroInvalido(f -> f.setInteressado("__"));
+    }
+
+    @Test
+    void aceitaFiltrosAuxiliaresQuandoAcompanhadosDeCriterioSeletivo() {
+        ConsultaProcessoFilterDTO filtro = new ConsultaProcessoFilterDTO();
+        filtro.setInteressado("Maria");
+        filtro.setStatus("a");
+        filtro.setIdClasse(-1L);
+        filtro.setIdComarca(10L);
+        filtro.setIdTipoAtividade("r");
+
+        assertDoesNotThrow(() -> service.consultarProcessos(filtro));
+        assertEquals("A", filtro.getStatus());
+        assertEquals("R", filtro.getIdTipoAtividade());
     }
 
     @Test
@@ -67,6 +96,12 @@ class ProcessoConsultaServiceTest {
         ConsultaProcessoFilterDTO filtro = new ConsultaProcessoFilterDTO();
         setup.accept(filtro);
         assertDoesNotThrow(() -> service.consultarProcessos(filtro));
+    }
+
+    private void assertFiltroInvalido(java.util.function.Consumer<ConsultaProcessoFilterDTO> setup) {
+        ConsultaProcessoFilterDTO filtro = new ConsultaProcessoFilterDTO();
+        setup.accept(filtro);
+        assertThrows(IllegalArgumentException.class, () -> service.consultarProcessos(filtro));
     }
 
     private static class FakeProtocoloConsultaRepository extends ProtocoloConsultaRepository {

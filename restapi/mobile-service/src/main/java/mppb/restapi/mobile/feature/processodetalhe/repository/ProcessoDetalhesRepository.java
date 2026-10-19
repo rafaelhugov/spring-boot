@@ -49,7 +49,8 @@ public class ProcessoDetalhesRepository {
         String sql = "SELECT NULL AS tipoParte, " +
                      "       COALESCE(i.nome, pes.nome) AS nome, " +
                      "       NULL AS nomesocial, " +
-                     "       COALESCE(i.cpfcnpj, pf.cpf, pj.cnpj) AS documento " +
+                     "       LENGTH(REGEXP_REPLACE(COALESCE(i.cpfcnpj, pf.cpf, pj.cnpj, ''), '[^0-9]', '', 'g')) AS documento_tamanho, " +
+                     "       RIGHT(REGEXP_REPLACE(COALESCE(i.cpfcnpj, pf.cpf, pj.cnpj, ''), '[^0-9]', '', 'g'), 2) AS documento_final " +
                      "FROM protocolo.pasta pasta " +
                      "JOIN protocolo.protocolo p ON p.id = pasta.id_protocolo " +
                      "JOIN protocolo.pastadocumento pd ON pd.id_protocolomovimento = pasta.id_pastadocumentopecainicial " +
@@ -68,18 +69,31 @@ public class ProcessoDetalhesRepository {
             dto.setTipoParte(rs.getString("tipoParte"));
             dto.setNome(rs.getString("nome"));
             dto.setNomeSocial(rs.getString("nomesocial"));
-            dto.setDocumento(rs.getString("documento"));
-            // Definir Pessoa Física ou Jurídica com base no tamanho do documento (se aplicável, mas vou simplificar)
-            String doc = rs.getString("documento");
-            if (doc != null && doc.length() > 14) {
+            int tamanhoDocumento = rs.getInt("documento_tamanho");
+            String finalDocumento = rs.getString("documento_final");
+            dto.setDocumento(documentoMascarado(tamanhoDocumento, finalDocumento));
+            if (tamanhoDocumento == 14) {
                 dto.setTipoPessoa("Jurídica");
-            } else if (doc != null && doc.length() > 0) {
+            } else if (tamanhoDocumento == 11) {
                 dto.setTipoPessoa("Física");
             } else {
                 dto.setTipoPessoa("N/D");
             }
             return dto;
         });
+    }
+
+    private String documentoMascarado(int tamanho, String ultimosDigitos) {
+        if (ultimosDigitos == null || ultimosDigitos.length() != 2) {
+            return null;
+        }
+        if (tamanho == 11) {
+            return "***.***.***-" + ultimosDigitos;
+        }
+        if (tamanho == 14) {
+            return "**.***.***/****-" + ultimosDigitos;
+        }
+        return null;
     }
 
     public List<MovimentoDTO> findMovimentosPorProcesso(Long idProcesso) {

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 import mppb.restapi.mobile.feature.processoconsulta.dto.ConsultaProcessoFilterDTO;
 
@@ -56,8 +57,20 @@ class ProtocoloConsultaRepositoryTest {
         repository.consultarProcessos(filtro);
 
         assertFalse(jdbcTemplate.sql.contains(payload));
-        assertTrue(Arrays.stream(jdbcTemplate.args).anyMatch(("%" + payload + "%")::equals));
+        String escapedPayload = "%" + payload.replace("_", "\\_") + "%";
+        assertTrue(Arrays.stream(jdbcTemplate.args).anyMatch(escapedPayload::equals));
+        assertTrue(jdbcTemplate.sql.contains("ESCAPE '\\'"));
         assertProtecaoSigilo(jdbcTemplate.sql, "consulta");
+    }
+
+    @Test
+    void consultaTemTimeoutTransacionalContraEsgotamento() throws Exception {
+        Transactional transactional = ProtocoloConsultaRepository.class
+                .getMethod("consultarProcessos", ConsultaProcessoFilterDTO.class)
+                .getAnnotation(Transactional.class);
+
+        assertTrue(transactional.readOnly());
+        assertTrue(transactional.timeout() <= 15);
     }
 
     private void assertProtecaoSigilo(String sql, String sufixo) {

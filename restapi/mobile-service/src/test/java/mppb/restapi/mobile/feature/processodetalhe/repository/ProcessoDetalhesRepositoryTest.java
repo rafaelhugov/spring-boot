@@ -1,6 +1,8 @@
 package mppb.restapi.mobile.feature.processodetalhe.repository;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 
@@ -37,6 +39,17 @@ class ProcessoDetalhesRepositoryTest {
         assertProtecaoDoProcesso(jdbcTemplate.sql, "interessado");
         assertTrue(jdbcTemplate.sql.contains("i.sigiloso = false"));
         assertTrue(jdbcTemplate.sql.contains("i.dataexclusao IS NULL"));
+        assertTrue(jdbcTemplate.sql.contains("AS documento_tamanho"));
+        assertTrue(jdbcTemplate.sql.contains("AS documento_final"));
+    }
+
+    @Test
+    void documentoPublicoNuncaEDevolvidoCompleto() {
+        assertEquals("***.***.***-25",
+                ReflectionTestUtils.invokeMethod(repository, "documentoMascarado", 11, "25"));
+        assertEquals("**.***.***/****-81",
+                ReflectionTestUtils.invokeMethod(repository, "documentoMascarado", 14, "81"));
+        assertNull(ReflectionTestUtils.invokeMethod(repository, "documentoMascarado", 9, "12"));
     }
 
     @Test
