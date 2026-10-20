@@ -28,6 +28,14 @@ public class DesignacaoNotificacaoService {
     private boolean fcmEnabled;
 
     public ResultadoNotificacaoDesignacao notificarNovaDesignacao(DesignacaoAtivaRow designacao) {
+        return notificarNovaDesignacaoInterno(designacao, true);
+    }
+
+    public ResultadoNotificacaoDesignacao notificarNovaDesignacao(DesignacaoAtivaRow designacao, boolean exibirPush) {
+        return exibirPush ? notificarNovaDesignacao(designacao) : notificarNovaDesignacaoInterno(designacao, false);
+    }
+
+    private ResultadoNotificacaoDesignacao notificarNovaDesignacaoInterno(DesignacaoAtivaRow designacao, boolean exibirPush) {
         if (!fcmEnabled) {
             log.debug("Notificacao FCM de designacoes desabilitada por configuracao");
             return ResultadoNotificacaoDesignacao.desligado();
@@ -53,7 +61,7 @@ public class DesignacaoNotificacaoService {
 
         ContadoresEnvio contadores = new ContadoresEnvio(dispositivos.size());
         for (DispositivoFcm dispositivo : dispositivos) {
-            ResultadoEnvioFcm resultado = enviarParaDispositivo(fcmSender, dispositivo, designacao);
+            ResultadoEnvioFcm resultado = enviarParaDispositivo(fcmSender, dispositivo, designacao, exibirPush);
             contadores.registrar(resultado.status());
             if (resultado.status() == StatusEnvioFcm.TOKEN_INVALIDO) {
                 desativarTokenInvalido(dispositivo);
@@ -74,9 +82,9 @@ public class DesignacaoNotificacaoService {
     private ResultadoEnvioFcm enviarParaDispositivo(
             FcmSenderService fcmSender,
             DispositivoFcm dispositivo,
-            DesignacaoAtivaRow designacao) {
+            DesignacaoAtivaRow designacao, boolean exibirPush) {
         try {
-            return fcmSender.enviarNovaDesignacao(dispositivo.tokenFcm(), designacao.id());
+            return fcmSender.enviarNovaDesignacao(dispositivo.tokenFcm(), designacao.id(), exibirPush);
         } catch (RuntimeException e) {
             return ResultadoEnvioFcm.falhaDesconhecida();
         }

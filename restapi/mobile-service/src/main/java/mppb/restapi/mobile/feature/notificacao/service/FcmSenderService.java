@@ -51,10 +51,14 @@ public class FcmSenderService {
     }
 
     public ResultadoEnvioFcm enviarNovaDesignacao(String tokenFcm, Long designacaoId) {
+        return enviarNovaDesignacao(tokenFcm, designacaoId, true);
+    }
+
+    public ResultadoEnvioFcm enviarNovaDesignacao(String tokenFcm, Long designacaoId, boolean exibirPush) {
         String token = obrigatorio(tokenFcm, "tokenFcm");
 
         try {
-            String messageId = messagingClient.send(novaDesignacaoMessage(token, designacaoId));
+            String messageId = messagingClient.send(novaDesignacaoMessage(token, designacaoId, exibirPush));
             return ResultadoEnvioFcm.aceito(messageId);
         } catch (FirebaseMessagingException e) {
             return classificarErro(e);
@@ -81,13 +85,17 @@ public class FcmSenderService {
     }
 
     public ResultadoEnvioFcm enviarEventoFuncional(String tokenFcm, EventoFuncionalNotificacao evento) {
+        return enviarEventoFuncional(tokenFcm, evento, true);
+    }
+
+    public ResultadoEnvioFcm enviarEventoFuncional(String tokenFcm, EventoFuncionalNotificacao evento, boolean exibirPush) {
         String token = obrigatorio(tokenFcm, "tokenFcm");
         if (evento == null) {
             throw new IllegalArgumentException("evento e obrigatorio");
         }
 
         try {
-            String messageId = messagingClient.send(eventoFuncionalMessage(token, evento));
+            String messageId = messagingClient.send(eventoFuncionalMessage(token, evento, exibirPush));
             return ResultadoEnvioFcm.aceito(messageId);
         } catch (FirebaseMessagingException e) {
             return classificarErro(e);
@@ -96,22 +104,19 @@ public class FcmSenderService {
         }
     }
 
-    private Message novaDesignacaoMessage(String tokenFcm, Long designacaoId) {
+    private Message novaDesignacaoMessage(String tokenFcm, Long designacaoId, boolean exibirPush) {
         String notificationTag = notificationTag(TIPO_EVENTO_NOVAS_DESIGNACOES, designacaoId);
-        return Message.builder()
-                .setToken(tokenFcm)
-                .setNotification(Notification.builder()
-                        .setTitle(TITULO_NOVA_DESIGNACAO)
-                        .setBody(CORPO_NOVA_DESIGNACAO)
-                        .build())
-                .setAndroidConfig(androidConfig(
-                        TITULO_NOVA_DESIGNACAO,
-                        CORPO_NOVA_DESIGNACAO,
-                        notificationTag))
+        Message.Builder message = Message.builder().setToken(tokenFcm)
                 .putData("tipo_evento", TIPO_EVENTO_NOVAS_DESIGNACOES)
                 .putData("rota", ROTA_DESIGNACOES)
-                .putData(DATA_ID_EVENTO_NOTIFICACAO, notificationTag)
-                .build();
+                .putData(DATA_ID_EVENTO_NOTIFICACAO, notificationTag);
+        if (exibirPush) {
+            message.setNotification(Notification.builder().setTitle(TITULO_NOVA_DESIGNACAO).setBody(CORPO_NOVA_DESIGNACAO).build())
+                    .setAndroidConfig(androidConfig(TITULO_NOVA_DESIGNACAO, CORPO_NOVA_DESIGNACAO, notificationTag));
+        } else {
+            message.setAndroidConfig(AndroidConfig.builder().setPriority(AndroidConfig.Priority.HIGH).build());
+        }
+        return message.build();
     }
 
     private Message novaNoticiaTopicMessage(String topic, NoticiaPublicada noticia) {
@@ -150,22 +155,21 @@ public class FcmSenderService {
         return message.build();
     }
 
-    private Message eventoFuncionalMessage(String tokenFcm, EventoFuncionalNotificacao evento) {
+    private Message eventoFuncionalMessage(String tokenFcm, EventoFuncionalNotificacao evento, boolean exibirPush) {
         String notificationTag = notificationTag(evento.tipoEvento(), evento.chaveEvento());
-        return Message.builder()
-                .setToken(tokenFcm)
-                .setNotification(Notification.builder()
-                        .setTitle(textoOuPadrao(evento.titulo(), "MPPB+", 120))
-                        .setBody(textoOuPadrao(evento.corpo(), "Você possui uma nova atualização disponível.", 180))
-                        .build())
-                .setAndroidConfig(androidConfig(
-                        textoOuPadrao(evento.titulo(), "MPPB+", 120),
-                        textoOuPadrao(evento.corpo(), "Você possui uma nova atualização disponível.", 180),
-                        notificationTag))
+        String title = textoOuPadrao(evento.titulo(), "MPPB+", 120);
+        String body = textoOuPadrao(evento.corpo(), "Você possui uma nova atualização disponível.", 180);
+        Message.Builder message = Message.builder().setToken(tokenFcm)
                 .putData("tipo_evento", evento.tipoEvento())
                 .putData("rota", evento.rota())
-                .putData(DATA_ID_EVENTO_NOTIFICACAO, notificationTag)
-                .build();
+                .putData(DATA_ID_EVENTO_NOTIFICACAO, notificationTag);
+        if (exibirPush) {
+            message.setNotification(Notification.builder().setTitle(title).setBody(body).build())
+                    .setAndroidConfig(androidConfig(title, body, notificationTag));
+        } else {
+            message.setAndroidConfig(AndroidConfig.builder().setPriority(AndroidConfig.Priority.HIGH).build());
+        }
+        return message.build();
     }
 
     private AndroidConfig androidConfig(String title, String body, String tag) {

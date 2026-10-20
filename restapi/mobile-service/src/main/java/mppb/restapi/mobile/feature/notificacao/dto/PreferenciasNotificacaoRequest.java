@@ -1,11 +1,14 @@
 package mppb.restapi.mobile.feature.notificacao.dto;
 
-import jakarta.validation.constraints.NotNull;
-
 public record PreferenciasNotificacaoRequest(
-        @NotNull Boolean noticias,
-        @NotNull Boolean designacoes,
-        @NotNull Boolean contracheques,
-        @NotNull Boolean pagamentos,
-        @NotNull Boolean afastamentos) {
+        Boolean pushNoticias,
+        Boolean pushDesignacoes,
+        Boolean pushContracheques,
+        Boolean pushPagamentos,
+        Boolean pushAfastamentos,
+        Boolean centralNoticias,
+        Boolean centralDesignacoes,
+        Boolean centralContracheques,
+        Boolean centralPagamentos,
+        Boolean centralAfastamentos) {
 }
