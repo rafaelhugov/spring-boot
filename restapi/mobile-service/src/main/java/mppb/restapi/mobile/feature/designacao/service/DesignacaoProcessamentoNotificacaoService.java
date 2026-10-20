@@ -13,6 +13,7 @@ import mppb.restapi.mobile.feature.designacao.model.ResultadoNotificacaoDesignac
 import mppb.restapi.mobile.feature.designacao.model.ResultadoProcessamentoNotificacaoDesignacao;
 import mppb.restapi.mobile.feature.designacao.repository.DesignacaoControleRepository;
 import mppb.restapi.mobile.feature.notificacao.service.PreferenciasNotificacaoService;
+import mppb.restapi.mobile.feature.notificacao.model.CanaisEntregaNotificacao;
 
 @Slf4j
 @Service
@@ -43,7 +44,8 @@ public class DesignacaoProcessamentoNotificacaoService {
     }
 
     private ResultadoProcessamentoNotificacaoDesignacao processar(DesignacaoControlePendenteNotificacao pendente) {
-        if (!preferenciasService.permiteDesignacoes(pendente.designacao().servidorMatricula())) {
+        CanaisEntregaNotificacao canais = preferenciasService.canaisDesignacoes(pendente.designacao().servidorMatricula());
+        if (!canais.algumAtivo()) {
             controleRepository.marcarNotificacaoEnviada(pendente.id(), pendente.identificadorReserva());
             log.info("Notificacao de designacao ignorada conforme preferencia do usuario: resultado=EN");
             return new ResultadoProcessamentoNotificacaoDesignacao(
@@ -54,7 +56,7 @@ public class DesignacaoProcessamentoNotificacaoService {
                     null,
                     ResultadoNotificacaoDesignacao.semDispositivos());
         }
-        ResultadoNotificacaoDesignacao resultado = notificacaoService.notificarNovaDesignacao(pendente.designacao());
+        ResultadoNotificacaoDesignacao resultado = notificacaoService.notificarNovaDesignacao(pendente.designacao(), canais.push());
         if (resultado.algumEnvioAceito()) {
             controleRepository.marcarNotificacaoEnviada(pendente.id(), pendente.identificadorReserva());
             log.info("Controle de notificacao de designacao marcado como enviado: resultado=EN");

@@ -42,11 +42,11 @@ public class PreferenciasNotificacaoController {
             return ResponseEntity.status(401).build();
         }
         PreferenciasNotificacao preferencias = new PreferenciasNotificacao(
-                request.noticias(),
-                request.designacoes(),
-                request.contracheques(),
-                request.pagamentos(),
-                request.afastamentos());
+                obrigatorio(request.pushNoticias()), obrigatorio(request.pushDesignacoes()),
+                obrigatorio(request.pushContracheques()), obrigatorio(request.pushPagamentos()),
+                obrigatorio(request.pushAfastamentos()), obrigatorio(request.centralNoticias()),
+                obrigatorio(request.centralDesignacoes()), obrigatorio(request.centralContracheques()),
+                obrigatorio(request.centralPagamentos()), obrigatorio(request.centralAfastamentos()));
         return ResponseEntity.ok(service.salvar(matricula, preferencias));
     }
 
@@ -55,5 +55,12 @@ public class PreferenciasNotificacaoController {
                 .map(authService::matriculaPorLogin)
                 .filter(matricula -> !matricula.isBlank())
                 .orElse(null);
+    }
+
+    private static boolean obrigatorio(Boolean valor) {
+        if (valor == null) {
+            throw new IllegalArgumentException("Todas as preferências de notificação são obrigatórias");
+        }
+        return valor;
     }
 }
