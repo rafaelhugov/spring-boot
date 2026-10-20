@@ -6,6 +6,9 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -150,21 +153,20 @@ public class ContrachequePdfService {
                 
                 DecimalFormat df = new DecimalFormat("#,##0.00", new DecimalFormatSymbols(new Locale("pt", "BR")));
                 
-                // List items
-                if (dto.getLancamentos() != null) {
-                    for (LancamentoDto l : dto.getLancamentos()) {
-                        drawText(content, fontRegular, 10, margin + 2, yCurrent, l.getCodigo());
-                        drawText(content, fontRegular, 10, colDesc, yCurrent, l.getDescricao());
-                        
-                        String valorStr = df.format(l.getValor());
-                        if ("V".equals(l.getTipo())) {
-                            drawTextRightAligned(content, fontRegular, 10, colVant + 65, yCurrent, valorStr);
-                        } else {
-                            drawTextRightAligned(content, fontRegular, 10, colDescValor + 65, yCurrent, valorStr);
-                        }
-                        
-                        yCurrent -= 15;
+                // List items (vantagens primeiro, depois descontos)
+                List<LancamentoDto> lancamentosOrdenados = ordenarLancamentos(dto.getLancamentos());
+                for (LancamentoDto l : lancamentosOrdenados) {
+                    drawText(content, fontRegular, 10, margin + 2, yCurrent, l.getCodigo());
+                    drawText(content, fontRegular, 10, colDesc, yCurrent, l.getDescricao());
+                    
+                    String valorStr = df.format(l.getValor() != null ? l.getValor() : BigDecimal.ZERO);
+                    if ("V".equalsIgnoreCase(l.getTipo())) {
+                        drawTextRightAligned(content, fontRegular, 10, colVant + 65, yCurrent, valorStr);
+                    } else {
+                        drawTextRightAligned(content, fontRegular, 10, colDescValor + 65, yCurrent, valorStr);
                     }
+                    
+                    yCurrent -= 15;
                 }
                 
                 // Totais Row
@@ -242,5 +244,14 @@ public class ContrachequePdfService {
             return mesStr + " de " + p[1];
         }
         return mesAno;
+    }
+
+    public List<LancamentoDto> ordenarLancamentos(List<LancamentoDto> lancamentos) {
+        if (lancamentos == null || lancamentos.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return lancamentos.stream()
+                .sorted(Comparator.comparing((LancamentoDto l) -> !"V".equalsIgnoreCase(l.getTipo())))
+                .toList();
     }
 }
