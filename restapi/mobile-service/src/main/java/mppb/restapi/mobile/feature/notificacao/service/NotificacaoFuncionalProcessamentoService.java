@@ -15,6 +15,7 @@ import mppb.restapi.mobile.feature.notificacao.model.ResultadoEnvioFcm;
 import mppb.restapi.mobile.feature.notificacao.model.ResultadoProcessamentoNotificacaoFuncional;
 import mppb.restapi.mobile.feature.notificacao.model.StatusEnvioFcm;
 import mppb.restapi.mobile.feature.notificacao.model.DispositivoFcm;
+import mppb.restapi.mobile.feature.notificacao.model.CanaisEntregaNotificacao;
 import mppb.restapi.mobile.feature.notificacao.repository.DispositivoFcmRepository;
 import mppb.restapi.mobile.feature.notificacao.repository.NotificacaoDominioControleRepository;
 
@@ -60,7 +61,8 @@ public class NotificacaoFuncionalProcessamentoService {
             FcmSenderService sender,
             EventoFuncionalPendenteNotificacao pendente) {
         EventoFuncionalNotificacao evento = pendente.evento();
-        if (!preferenciasService.permiteEventoFuncional(evento.matricula(), evento.tipoEvento())) {
+        CanaisEntregaNotificacao canais = preferenciasService.canaisEventoFuncional(evento.matricula(), evento.tipoEvento());
+        if (!canais.algumAtivo()) {
             pendente.controleRepository().marcarNotificacaoEnviada(pendente.id(), pendente.identificadorReserva());
             log.info("Notificacao funcional ignorada conforme preferencia do usuario: tipo={}, resultado=EN",
                     evento.tipoEvento());
@@ -78,7 +80,7 @@ public class NotificacaoFuncionalProcessamentoService {
         int aceitos = 0;
         StatusEnvioFcm piorStatus = StatusEnvioFcm.FALHA_DESCONHECIDA;
         for (DispositivoFcm dispositivo : dispositivos) {
-            ResultadoEnvioFcm envio = sender.enviarEventoFuncional(dispositivo.tokenFcm(), evento);
+            ResultadoEnvioFcm envio = sender.enviarEventoFuncional(dispositivo.tokenFcm(), evento, canais.push());
             if (envio.status() == StatusEnvioFcm.ACEITO) {
                 aceitos++;
             } else {

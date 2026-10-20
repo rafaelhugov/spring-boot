@@ -3,6 +3,7 @@ package mppb.restapi.mobile.feature.concessaofolga.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -108,7 +109,7 @@ public class ConcessaoFolgaController {
             return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
         } catch (RestClientResponseException e) {
             log.warn("MPVirtual recusou sugestao de datas finais: status={}", e.getStatusCode().value());
-            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+            return tratarErroMpVirtual(e, "buscar sugestoes de datas finais");
         } catch (Exception e) {
             log.error("Erro ao buscar sugestoes de datas finais", e);
             return ResponseEntity.status(502).build();
@@ -141,7 +142,7 @@ public class ConcessaoFolgaController {
             return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
         } catch (RestClientResponseException e) {
             log.warn("MPVirtual recusou marcacao de ferias: status={}", e.getStatusCode().value());
-            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+            return tratarErroMpVirtual(e, "cadastrar marcacao de ferias");
         } catch (Exception e) {
             log.error("Erro ao cadastrar marcacao de ferias", e);
             return ResponseEntity.status(502).build();
@@ -350,7 +351,7 @@ public class ConcessaoFolgaController {
                     action,
                     e.getStatusCode().value(),
                     truncateLogBody(e.getResponseBodyAsString()));
-            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+            return tratarErroMpVirtual(e, action);
         } catch (Exception e) {
             log.error("Erro ao {}", action, e);
             return ResponseEntity.status(502).build();
@@ -367,6 +368,44 @@ public class ConcessaoFolgaController {
             return normalized;
         }
         return normalized.substring(0, maxLength) + "...";
+    }
+
+    private ResponseEntity<String> tratarErroMpVirtual(RestClientResponseException e, String action) {
+        String body = e.getResponseBodyAsString();
+        String bodyLower = body != null ? body.toLowerCase() : "";
+
+        if (bodyLower.contains("menos de 1 minuto")
+                || bodyLower.contains("fragmentofla_prevent_fntg")
+                || bodyLower.contains("mais uma etapa em uma concess")) {
+            String jsonError = """
+                {"message":"Não é possível inserir mais uma etapa em uma concessão em menos de 1 minuto desde a última. Por favor, aguarde 1 minuto antes de tentar novamente."}
+                """.trim();
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(jsonError);
+        }
+
+        if (body != null && !body.isBlank()) {
+            String trimmed = body.trim();
+            if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+                return ResponseEntity.status(e.getStatusCode())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(trimmed);
+            }
+            if (trimmed.startsWith("<") || trimmed.contains("<html") || trimmed.contains("<HTML")) {
+                String jsonError = "{\"message\":\"Falha no serviço de Recursos Humanos ao " + action + ".\"}";
+                return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(jsonError);
+            }
+            String escaped = trimmed.replace("\\", "\\\\").replace("\"", "\\\"").replaceAll("[\\r\\n]+", " ");
+            String jsonError = "{\"message\":\"" + escaped + "\"}";
+            return ResponseEntity.status(e.getStatusCode())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(jsonError);
+        }
+
+        return ResponseEntity.status(e.getStatusCode()).build();
     }
 
     @FunctionalInterface
