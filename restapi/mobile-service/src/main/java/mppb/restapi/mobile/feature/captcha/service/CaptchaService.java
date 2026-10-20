@@ -9,12 +9,16 @@ import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 public class CaptchaService {
@@ -34,17 +38,23 @@ public class CaptchaService {
     }
 
     // Armazena captchas na memória, expira em 5 minutos.
-    private final Map<String, CaptchaInfo> captchaStore = new ConcurrentHashMap<>();
+    private final Map<String, CaptchaInfo> captchaStore = new LinkedHashMap<>();
     private static final long CAPTCHA_EXPIRATION_MS = 5 * 60 * 1000;
-    private final Random random = new Random();
+    private final SecureRandom random = new SecureRandom();
 
-    public CaptchaResponseDTO generateCaptcha() {
+    @Value("${security.public-api.captcha.max-pending:5000}")
+    private int maxPendingCaptchas = 5000;
+
+    public synchronized CaptchaResponseDTO generateCaptcha() {
         String token = UUID.randomUUID().toString();
         String text = generateRandomText(6);
 
-        // Limpar captchas expirados ocasionalmente
-        if (random.nextInt(10) == 0) {
-            cleanUpExpired();
+        cleanUpExpired();
+        int capacidade = Math.max(1, maxPendingCaptchas);
+        while (captchaStore.size() >= capacidade && !captchaStore.isEmpty()) {
+            Iterator<String> oldest = captchaStore.keySet().iterator();
+            oldest.next();
+            oldest.remove();
         }
 
         captchaStore.put(token, new CaptchaInfo(text, System.currentTimeMillis() + CAPTCHA_EXPIRATION_MS));
@@ -53,7 +63,7 @@ public class CaptchaService {
         return new CaptchaResponseDTO(token, "data:image/png;base64," + base64Image);
     }
 
-    public boolean validateCaptcha(String token, String text) {
+    public synchronized boolean validateCaptcha(String token, String text) {
         if (token == null || text == null) return false;
         
         CaptchaInfo info = captchaStore.get(token);
@@ -66,7 +76,9 @@ public class CaptchaService {
             return false;
         }
 
-        return info.text.equalsIgnoreCase(text.trim());
+        byte[] expected = info.text.toLowerCase(java.util.Locale.ROOT).getBytes(StandardCharsets.UTF_8);
+        byte[] actual = text.trim().toLowerCase(java.util.Locale.ROOT).getBytes(StandardCharsets.UTF_8);
+        return MessageDigest.isEqual(expected, actual);
     }
 
     private void cleanUpExpired() {

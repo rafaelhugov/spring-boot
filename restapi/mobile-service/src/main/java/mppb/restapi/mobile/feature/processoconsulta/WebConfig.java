@@ -14,6 +14,9 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(rateLimitInterceptor).addPathPatterns("/api/public/v1/processos/consulta");
+        registry.addInterceptor(rateLimitInterceptor).addPathPatterns(
+                "/api/public/v1/processos/consulta",
+                "/api/public/v1/processos/*/detalhes",
+                "/api/public/v1/captcha");
     }
 }

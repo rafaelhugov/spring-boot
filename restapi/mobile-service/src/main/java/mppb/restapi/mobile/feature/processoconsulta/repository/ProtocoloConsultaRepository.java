@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -64,6 +65,7 @@ public class ProtocoloConsultaRepository {
         return comarcas;
     }
 
+    @Transactional(readOnly = true, timeout = 15)
     public List<ConsultaProcessoResponseDTO> consultarProcessos(ConsultaProcessoFilterDTO filtro) {
         StringBuilder sql = new StringBuilder();
         List<Object> params = new ArrayList<>();
@@ -147,16 +149,16 @@ public class ProtocoloConsultaRepository {
         }
 
         if (temNumeroProcesso) {
-            sql.append("      AND num.numero LIKE ? ");
-            params.add("%" + filtro.getNumeroProcesso() + "%");
+            sql.append("      AND num.numero LIKE ? ESCAPE '\\' ");
+            params.add(likeContains(filtro.getNumeroProcesso()));
         }
         if (filtro.getNumeroOrigem() != null && !filtro.getNumeroOrigem().isEmpty()) {
-            sql.append("      AND p.numeroorigem LIKE ? ");
-            params.add("%" + filtro.getNumeroOrigem() + "%");
+            sql.append("      AND p.numeroorigem LIKE ? ESCAPE '\\' ");
+            params.add(likeContains(filtro.getNumeroOrigem()));
         }
         if (temNumeroCnmp) {
-            sql.append("      AND num.numeroCNMP LIKE ? ");
-            params.add("%" + filtro.getNumeroCnmp() + "%");
+            sql.append("      AND num.numeroCNMP LIKE ? ESCAPE '\\' ");
+            params.add(likeContains(filtro.getNumeroCnmp()));
         }
         if (filtro.getIdClasse() != null && filtro.getIdClasse() > 0) {
             sql.append("      AND p.id_classe = ? ");
@@ -172,8 +174,8 @@ public class ProtocoloConsultaRepository {
             sql.append("      AND m.arquivamentomppb = true ");
         }
         if (temNome) {
-            sql.append("      AND (CASE WHEN pi.id_pessoa IS NULL THEN UPPER(pi.nome) ELSE UPPER(pes.nome) END) LIKE UPPER(?) ");
-            params.add("%" + filtro.getInteressado().trim() + "%");
+            sql.append("      AND (CASE WHEN pi.id_pessoa IS NULL THEN UPPER(pi.nome) ELSE UPPER(pes.nome) END) LIKE UPPER(?) ESCAPE '\\' ");
+            params.add(likeContains(filtro.getInteressado().trim()));
         }
         if (temCpf) {
             sql.append("      AND (CASE WHEN pi.id_pessoa IS NULL THEN pi.cpfcnpj ELSE pf.cpf END) = ? ");
@@ -192,9 +194,9 @@ public class ProtocoloConsultaRepository {
             sql.append("          JOIN pessoafisica pf_promotor ON pf_promotor.id_pessoa = ser.id_pessoa ");
             sql.append("          JOIN pessoa pessoa_promotor ON pessoa_promotor.id = pf_promotor.id_pessoa ");
             sql.append("          WHERE dist.id_protocolo = p.id ");
-            sql.append("            AND UPPER(pessoa_promotor.nome) LIKE UPPER(?) ");
+            sql.append("            AND UPPER(pessoa_promotor.nome) LIKE UPPER(?) ESCAPE '\\' ");
             sql.append("      ) ");
-            params.add("%" + filtro.getNomePromotor().trim() + "%");
+            params.add(likeContains(filtro.getNomePromotor().trim()));
         }
         sql.append("    ORDER BY p.dataregistro DESC ");
         sql.append("    LIMIT 50 ");
@@ -240,5 +242,13 @@ public class ProtocoloConsultaRepository {
                 return dto;
             }
         });
+    }
+
+    private String likeContains(String valor) {
+        String escapado = valor
+                .replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_");
+        return "%" + escapado + "%";
     }
 }
