@@ -7,13 +7,20 @@ COLOR_YELLOW="\e[33m"
 COLOR_RED="\e[31m"
 COLOR_CYAN="\e[36m"
 
-# Tenta configurar o Java 21 (SDKMAN ou JVM local)
-if [ -d "$HOME/.sdkman/candidates/java/21.0.11-tem" ]; then
+# Tenta configurar o Java 21 (SDKMAN, Homebrew no macOS ou JVM local)
+if [ -d "/opt/homebrew/opt/openjdk@21" ]; then
+    export JAVA_HOME="/opt/homebrew/opt/openjdk@21"
+    export PATH=$JAVA_HOME/bin:$PATH
+elif [ -d "$HOME/.sdkman/candidates/java/21.0.11-tem" ]; then
     export JAVA_HOME="$HOME/.sdkman/candidates/java/21.0.11-tem"
     export PATH=$JAVA_HOME/bin:$PATH
 elif [ -d "/usr/lib/jvm/java-21-openjdk-amd64" ]; then
     export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
     export PATH=$JAVA_HOME/bin:$PATH
+fi
+
+if [ -d "$HOME/development/tools/apache-maven-3.9.9/bin" ]; then
+    export PATH="$HOME/development/tools/apache-maven-3.9.9/bin:$PATH"
 fi
 
 # Tenta configurar o NVM para carregar o Node.js e NPM
