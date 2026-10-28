@@ -10,6 +10,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.StringReader;
@@ -22,10 +25,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,6 +35,8 @@ public class VideoService {
 
     private static final String CHANNEL_ID = "UCuJdx9nS7yyth_Cu0Kd8lMw";
     private static final String RSS_URL = "https://www.youtube.com/feeds/videos.xml?channel_id=" + CHANNEL_ID;
+    private static final String CHANNEL_VIDEOS_URL = "https://www.youtube.com/@CanalMPPB/videos";
+    private static final String CHANNEL_STREAMS_URL = "https://www.youtube.com/@CanalMPPB/streams";
     private static final String LIVE_CHECK_URL = "https://www.youtube.com/@CanalMPPB/live";
     private static final Duration CACHE_TTL = Duration.ofMinutes(3);
     private static final DateTimeFormatter HUMAN_DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -49,6 +51,7 @@ public class VideoService {
     );
 
     private final HttpClient httpClient;
+    private final ObjectMapper objectMapper;
     private VideosResponseDto cache;
     private Instant lastFetchTime = Instant.EPOCH;
 
@@ -56,11 +59,16 @@ public class VideoService {
         this(HttpClient.newBuilder()
                 .followRedirects(HttpClient.Redirect.ALWAYS)
                 .connectTimeout(Duration.ofSeconds(10))
-                .build());
+                .build(), new ObjectMapper());
     }
 
     public VideoService(HttpClient httpClient) {
+        this(httpClient, new ObjectMapper());
+    }
+
+    public VideoService(HttpClient httpClient, ObjectMapper objectMapper) {
         this.httpClient = httpClient;
+        this.objectMapper = objectMapper != null ? objectMapper : new ObjectMapper();
     }
 
     public synchronized VideosResponseDto getVideos() {
@@ -92,17 +100,48 @@ public class VideoService {
     }
 
     private VideosResponseDto carregarVideosDoYouTube() throws Exception {
-        String xml = buscarUrl(RSS_URL, "application/atom+xml, application/xml, text/xml, */*");
-        if (xml == null || xml.isBlank()) {
-            return null;
+        Map<String, VideoDto> videosMap = new LinkedHashMap<>();
+
+        // 1. Tentar buscar da aba /streams (sessões e transmissões ao vivo gravadas)
+        try {
+            String streamsHtml = buscarUrl(CHANNEL_STREAMS_URL, "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+            List<VideoDto> streams = parseYtInitialData(streamsHtml, TipoVideo.SESSAO_LIVE);
+            for (VideoDto v : streams) {
+                videosMap.put(v.getId(), v);
+            }
+        } catch (Exception e) {
+            log.warn("Aviso ao carregar aba de streams: {}", e.getMessage());
         }
 
-        List<VideoDto> videos = parseRssXml(xml);
+        // 2. Tentar buscar da aba /videos (vídeos institucionais e gravados)
+        try {
+            String videosHtml = buscarUrl(CHANNEL_VIDEOS_URL, "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+            List<VideoDto> videos = parseYtInitialData(videosHtml, null);
+            for (VideoDto v : videos) {
+                videosMap.putIfAbsent(v.getId(), v);
+            }
+        } catch (Exception e) {
+            log.warn("Aviso ao carregar aba de vídeos: {}", e.getMessage());
+        }
+
+        // 3. Se por alguma razão as abas retornarem vazias (ex: mudança do YouTube), recorrer ao feed RSS
+        if (videosMap.isEmpty()) {
+            log.info("Recorrendo ao feed RSS Atom do canal...");
+            String xml = buscarUrl(RSS_URL, "application/atom+xml, application/xml, text/xml, */*");
+            if (xml != null && !xml.isBlank()) {
+                List<VideoDto> rssVideos = parseRssXml(xml);
+                for (VideoDto v : rssVideos) {
+                    videosMap.put(v.getId(), v);
+                }
+            }
+        }
+
+        List<VideoDto> todosVideos = new ArrayList<>(videosMap.values());
         String liveVideoId = detectarLiveAtiva();
 
         VideoDto liveAtiva = null;
         if (liveVideoId != null) {
-            for (VideoDto v : videos) {
+            for (VideoDto v : todosVideos) {
                 if (liveVideoId.equals(v.getId())) {
                     v.setAoVivo(true);
                     v.setTipo(TipoVideo.AO_VIVO);
@@ -126,9 +165,108 @@ public class VideoService {
 
         return VideosResponseDto.builder()
                 .liveAtiva(liveAtiva)
-                .videos(videos)
-                .total(videos.size())
+                .videos(todosVideos)
+                .total(todosVideos.size())
                 .build();
+    }
+
+    public List<VideoDto> parseYtInitialData(String html, TipoVideo tipoFixo) {
+        List<VideoDto> videos = new ArrayList<>();
+        if (html == null || html.isBlank()) return videos;
+
+        int idx = html.indexOf("ytInitialData = {");
+        if (idx == -1) {
+            idx = html.indexOf("var ytInitialData = {");
+            if (idx != -1) {
+                idx += "var ".length();
+            }
+        }
+        if (idx == -1) return videos;
+
+        int start = idx + "ytInitialData = ".length();
+        int end = html.indexOf(";</script>", start);
+        if (end == -1) return videos;
+
+        try {
+            String jsonStr = html.substring(start, end);
+            JsonNode root = objectMapper.readTree(jsonStr);
+            JsonNode tabs = root.path("contents").path("twoColumnBrowseResultsRenderer").path("tabs");
+            if (tabs.isArray()) {
+                for (JsonNode tab : tabs) {
+                    JsonNode contents = tab.path("tabRenderer").path("content").path("richGridRenderer").path("contents");
+                    if (contents.isArray()) {
+                        for (JsonNode item : contents) {
+                            JsonNode lockup = item.path("richItemRenderer").path("content").path("lockupViewModel");
+                            if (lockup.isMissingNode()) continue;
+
+                            JsonNode meta = lockup.path("metadata").path("lockupMetadataViewModel");
+                            String title = meta.path("title").path("content").asText("");
+
+                            JsonNode overlays = lockup.path("contentImage").path("thumbnailViewModel").path("overlays");
+                            String duration = "";
+                            String videoId = "";
+                            if (overlays.isArray() && overlays.size() > 0) {
+                                JsonNode badges = overlays.get(0).path("thumbnailBottomOverlayViewModel").path("badges");
+                                if (badges.isArray() && badges.size() > 0) {
+                                    JsonNode badgeVm = badges.get(0).path("thumbnailBadgeViewModel");
+                                    duration = badgeVm.path("text").asText("");
+                                    videoId = badgeVm.path("animationActivationTargetId").asText("");
+                                }
+                            }
+
+                            if (videoId == null || videoId.isBlank()) {
+                                videoId = lockup.path("rendererContext").path("commandContext").path("onTap")
+                                        .path("innertubeCommand").path("watchEndpoint").path("videoId").asText("");
+                            }
+
+                            if (videoId.isBlank() || title.isBlank()) continue;
+
+                            String views = "";
+                            String published = "";
+                            JsonNode rows = meta.path("metadata").path("contentMetadataViewModel").path("metadataRows");
+                            if (rows.isArray()) {
+                                for (JsonNode r : rows) {
+                                    JsonNode parts = r.path("metadataParts");
+                                    if (parts.isArray()) {
+                                        for (JsonNode p : parts) {
+                                            String text = p.path("text").path("content").asText("").trim();
+                                            if (text.isBlank()) continue;
+                                            String textLower = text.toLowerCase();
+                                            if (textLower.contains("visualizaç") || text.matches("\\d+") || textLower.contains("mil")) {
+                                                views = text;
+                                            } else if (textLower.contains("há ") || textLower.contains("transmiss") || textLower.contains("ao vivo")
+                                                    || textLower.contains("ontem") || textLower.contains("ano") || textLower.contains("mês")
+                                                    || textLower.contains("meses") || textLower.contains("sem") || textLower.contains("dia")
+                                                    || textLower.contains("hora")) {
+                                                published = text;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            TipoVideo tipo = tipoFixo != null ? tipoFixo : classificarVideo(title);
+
+                            videos.add(VideoDto.builder()
+                                    .id(videoId)
+                                    .titulo(title)
+                                    .descricao("")
+                                    .link("https://www.youtube.com/watch?v=" + videoId)
+                                    .thumbnailUrl("https://i.ytimg.com/vi/" + videoId + "/hqdefault.jpg")
+                                    .dataPublicacao(published)
+                                    .duracao(duration)
+                                    .visualizacoes(views)
+                                    .tipo(tipo)
+                                    .isAoVivo(false)
+                                    .build());
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Falha ao fazer parse de ytInitialData: {}", e.getMessage());
+        }
+        return videos;
     }
 
     public List<VideoDto> parseRssXml(String xmlResult) throws Exception {

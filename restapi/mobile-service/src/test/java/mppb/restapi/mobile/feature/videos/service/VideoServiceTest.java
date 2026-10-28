@@ -90,4 +90,86 @@ class VideoServiceTest {
         assertEquals("26/10/2026", videoInst.getDataPublicacao());
         assertFalse(videoInst.isAoVivo());
     }
+
+    @Test
+    void deveFazerParseDeYtInitialDataCorretamente() {
+        String htmlExemplo = """
+                <html>
+                <script>
+                var ytInitialData = {
+                  "contents": {
+                    "twoColumnBrowseResultsRenderer": {
+                      "tabs": [
+                        {
+                          "tabRenderer": {
+                            "content": {
+                              "richGridRenderer": {
+                                "contents": [
+                                  {
+                                    "richItemRenderer": {
+                                      "content": {
+                                        "lockupViewModel": {
+                                          "contentImage": {
+                                            "thumbnailViewModel": {
+                                              "overlays": [
+                                                {
+                                                  "thumbnailBottomOverlayViewModel": {
+                                                    "badges": [
+                                                      {
+                                                        "thumbnailBadgeViewModel": {
+                                                          "text": "1:15:30",
+                                                          "animationActivationTargetId": "sessao999"
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          },
+                                          "metadata": {
+                                            "lockupMetadataViewModel": {
+                                              "title": { "content": "17ª Sessão Ordinária do CSMP" },
+                                              "metadata": {
+                                                "contentMetadataViewModel": {
+                                                  "metadataRows": [
+                                                    {
+                                                      "metadataParts": [
+                                                        { "text": { "content": "240 visualizações" } },
+                                                        { "text": { "content": "Transmitido há 3 dias" } }
+                                                      ]
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                };</script></html>
+                """;
+
+        List<VideoDto> videos = videoService.parseYtInitialData(htmlExemplo, TipoVideo.SESSAO_LIVE);
+
+        assertNotNull(videos);
+        assertEquals(1, videos.size());
+        VideoDto v = videos.get(0);
+        assertEquals("sessao999", v.getId());
+        assertEquals("17ª Sessão Ordinária do CSMP", v.getTitulo());
+        assertEquals("1:15:30", v.getDuracao());
+        assertEquals("240 visualizações", v.getVisualizacoes());
+        assertEquals("Transmitido há 3 dias", v.getDataPublicacao());
+        assertEquals(TipoVideo.SESSAO_LIVE, v.getTipo());
+        assertFalse(v.isAoVivo());
+    }
 }
