@@ -18,6 +18,7 @@ import com.google.firebase.messaging.Notification;
 import mppb.restapi.mobile.feature.noticias.model.NoticiaPublicada;
 import mppb.restapi.mobile.feature.notificacao.model.EventoFuncionalNotificacao;
 import mppb.restapi.mobile.feature.notificacao.model.ResultadoEnvioFcm;
+import mppb.restapi.mobile.feature.videos.dto.VideoDto;
 
 @Service
 @ConditionalOnBean(FirebaseMessaging.class)
@@ -31,6 +32,10 @@ public class FcmSenderService {
     static final String CORPO_NOVA_NOTICIA = "Uma nova notícia está disponível no MPPB+.";
     static final String TIPO_EVENTO_NOVAS_NOTICIAS = "NOVAS_NOTICIAS";
     static final String ROTA_NOTICIAS = "/noticias";
+    static final String TITULO_NOVA_LIVE = "Transmissão ao vivo iniciada";
+    static final String CORPO_NOVA_LIVE = "O MPPB está transmitindo ao vivo agora. Toque para acompanhar.";
+    static final String TIPO_EVENTO_NOVA_LIVE = "NOVA_LIVE";
+    static final String ROTA_VIDEOS = "/videos";
     static final String CANAL_ANDROID_ALERTAS = "mppb_alertas";
     static final String COR_ANDROID_MPPB = "#D62828";
     static final String DATA_ID_EVENTO_NOTIFICACAO = "id_evento_notificacao";
@@ -76,6 +81,19 @@ public class FcmSenderService {
 
         try {
             String messageId = messagingClient.send(novaNoticiaTopicMessage(nomeTopico, noticia));
+            return ResultadoEnvioFcm.aceito(messageId);
+        } catch (FirebaseMessagingException e) {
+            return classificarErro(e);
+        } catch (RuntimeException e) {
+            return ResultadoEnvioFcm.falhaDesconhecida();
+        }
+    }
+
+    public ResultadoEnvioFcm enviarNovaLiveTopico(String topic, VideoDto video) {
+        String nomeTopico = obrigatorio(topic, "topic");
+
+        try {
+            String messageId = messagingClient.send(novaLiveTopicMessage(nomeTopico, video));
             return ResultadoEnvioFcm.aceito(messageId);
         } catch (FirebaseMessagingException e) {
             return classificarErro(e);
@@ -151,6 +169,42 @@ public class FcmSenderService {
             putDataIfPresent(message, "noticia_link", noticia.link());
             putDataIfPresent(message, "noticia_titulo", title);
             putDataIfPresent(message, "noticia_imagem", imageUrl);
+        }
+        return message.build();
+    }
+
+    private Message novaLiveTopicMessage(String topic, VideoDto video) {
+        String title = textoOuPadrao(video == null ? null : video.getTitulo(), TITULO_NOVA_LIVE, 120);
+        String body = CORPO_NOVA_LIVE;
+        String imageUrl = urlOuNull(video == null ? null : video.getThumbnailUrl());
+        String notificationTag = notificationTag(
+                TIPO_EVENTO_NOVA_LIVE,
+                video == null ? null : video.getId());
+
+        Notification.Builder notification = Notification.builder()
+                .setTitle(title)
+                .setBody(body);
+        if (imageUrl != null) {
+            notification.setImage(imageUrl);
+        }
+
+        Message.Builder message = Message.builder()
+                .setTopic(topic)
+                .setNotification(notification.build())
+                .setAndroidConfig(androidConfig(
+                        title,
+                        body,
+                        notificationTag,
+                        imageUrl))
+                .putData("tipo_evento", TIPO_EVENTO_NOVA_LIVE)
+                .putData("rota", ROTA_VIDEOS)
+                .putData(DATA_ID_EVENTO_NOTIFICACAO, notificationTag);
+
+        if (video != null) {
+            putDataIfPresent(message, "video_id", video.getId());
+            putDataIfPresent(message, "video_link", video.getLink());
+            putDataIfPresent(message, "video_titulo", title);
+            putDataIfPresent(message, "video_imagem", imageUrl);
         }
         return message.build();
     }

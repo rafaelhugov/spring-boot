@@ -108,6 +108,13 @@ noticias:
     fcm:
       topic: ${NOTICIAS_FCM_TOPIC:mppb_noticias}
 
+lives:
+  notificacao:
+    enabled: ${LIVES_NOTIFICACAO_ENABLED:true}
+    cron: ${LIVES_NOTIFICACAO_CRON:0 */3 * * * *}
+    fcm:
+      topic: ${LIVES_FCM_TOPIC:mppb_lives}
+
 notificacoes-funcionais:
   enabled: ${NOTIFICACOES_FUNCIONAIS_ENABLED:false}
   cron: ${NOTIFICACOES_FUNCIONAIS_CRON:0 */15 * * * *}
