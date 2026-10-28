@@ -116,7 +116,7 @@ public class VideoService {
         // 2. Tentar buscar da aba /videos (vídeos institucionais e gravados)
         try {
             String videosHtml = buscarUrl(CHANNEL_VIDEOS_URL, "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
-            List<VideoDto> videos = parseYtInitialData(videosHtml, null);
+            List<VideoDto> videos = parseYtInitialData(videosHtml, TipoVideo.INSTITUCIONAL);
             for (VideoDto v : videos) {
                 videosMap.putIfAbsent(v.getId(), v);
             }
@@ -202,19 +202,22 @@ public class VideoService {
                             JsonNode meta = lockup.path("metadata").path("lockupMetadataViewModel");
                             String title = meta.path("title").path("content").asText("");
 
-                            JsonNode overlays = lockup.path("contentImage").path("thumbnailViewModel").path("overlays");
                             String duration = "";
-                            String videoId = "";
+                            String videoId = lockup.path("contentId").asText("");
+
+                            JsonNode overlays = lockup.path("contentImage").path("thumbnailViewModel").path("overlays");
                             if (overlays.isArray() && overlays.size() > 0) {
                                 JsonNode badges = overlays.get(0).path("thumbnailBottomOverlayViewModel").path("badges");
                                 if (badges.isArray() && badges.size() > 0) {
                                     JsonNode badgeVm = badges.get(0).path("thumbnailBadgeViewModel");
                                     duration = badgeVm.path("text").asText("");
-                                    videoId = badgeVm.path("animationActivationTargetId").asText("");
+                                    if (videoId.isBlank()) {
+                                        videoId = badgeVm.path("animationActivationTargetId").asText("");
+                                    }
                                 }
                             }
 
-                            if (videoId == null || videoId.isBlank()) {
+                            if (videoId.isBlank()) {
                                 videoId = lockup.path("rendererContext").path("commandContext").path("onTap")
                                         .path("innertubeCommand").path("watchEndpoint").path("videoId").asText("");
                             }
