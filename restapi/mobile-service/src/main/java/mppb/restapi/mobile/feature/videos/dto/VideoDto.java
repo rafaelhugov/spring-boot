@@ -20,4 +20,6 @@ public class VideoDto {
     private String dataPublicacaoIso;
     private TipoVideo tipo;
     private boolean isAoVivo;
+    private String duracao;
+    private String visualizacoes;
 }
