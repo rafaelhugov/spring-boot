@@ -11,6 +11,8 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.AndroidConfig;
 import com.google.firebase.messaging.AndroidNotification;
+import com.google.firebase.messaging.ApnsConfig;
+import com.google.firebase.messaging.Aps;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.MessagingErrorCode;
 import com.google.firebase.messaging.Notification;
@@ -130,9 +132,11 @@ public class FcmSenderService {
                 .putData(DATA_ID_EVENTO_NOTIFICACAO, notificationTag);
         if (exibirPush) {
             message.setNotification(Notification.builder().setTitle(TITULO_NOVA_DESIGNACAO).setBody(CORPO_NOVA_DESIGNACAO).build())
-                    .setAndroidConfig(androidConfig(TITULO_NOVA_DESIGNACAO, CORPO_NOVA_DESIGNACAO, notificationTag));
+                    .setAndroidConfig(androidConfig(TITULO_NOVA_DESIGNACAO, CORPO_NOVA_DESIGNACAO, notificationTag))
+                    .setApnsConfig(apnsConfig(notificationTag, true));
         } else {
-            message.setAndroidConfig(AndroidConfig.builder().setPriority(AndroidConfig.Priority.HIGH).build());
+            message.setAndroidConfig(AndroidConfig.builder().setPriority(AndroidConfig.Priority.HIGH).build())
+                    .setApnsConfig(apnsConfig(notificationTag, false));
         }
         return message.build();
     }
@@ -160,6 +164,7 @@ public class FcmSenderService {
                         body,
                         notificationTag,
                         imageUrl))
+                .setApnsConfig(apnsConfig(notificationTag, true))
                 .putData("tipo_evento", TIPO_EVENTO_NOVAS_NOTICIAS)
                 .putData("rota", ROTA_NOTICIAS)
                 .putData(DATA_ID_EVENTO_NOTIFICACAO, notificationTag);
@@ -196,6 +201,7 @@ public class FcmSenderService {
                         body,
                         notificationTag,
                         imageUrl))
+                .setApnsConfig(apnsConfig(notificationTag, true))
                 .putData("tipo_evento", TIPO_EVENTO_NOVA_LIVE)
                 .putData("rota", ROTA_VIDEOS)
                 .putData(DATA_ID_EVENTO_NOTIFICACAO, notificationTag);
@@ -219,9 +225,11 @@ public class FcmSenderService {
                 .putData(DATA_ID_EVENTO_NOTIFICACAO, notificationTag);
         if (exibirPush) {
             message.setNotification(Notification.builder().setTitle(title).setBody(body).build())
-                    .setAndroidConfig(androidConfig(title, body, notificationTag));
+                    .setAndroidConfig(androidConfig(title, body, notificationTag))
+                    .setApnsConfig(apnsConfig(notificationTag, true));
         } else {
-            message.setAndroidConfig(AndroidConfig.builder().setPriority(AndroidConfig.Priority.HIGH).build());
+            message.setAndroidConfig(AndroidConfig.builder().setPriority(AndroidConfig.Priority.HIGH).build())
+                    .setApnsConfig(apnsConfig(notificationTag, false));
         }
         return message.build();
     }
@@ -249,6 +257,19 @@ public class FcmSenderService {
                 .setPriority(AndroidConfig.Priority.HIGH)
                 .setNotification(notification.build())
                 .build();
+    }
+
+    private ApnsConfig apnsConfig(String collapseId, boolean alert) {
+        ApnsConfig.Builder builder = ApnsConfig.builder();
+        if (collapseId != null && !collapseId.isBlank()) {
+            builder.putHeader("apns-collapse-id", collapseId);
+        }
+        if (alert) {
+            builder.setAps(Aps.builder().setSound("default").build());
+        } else {
+            builder.setAps(Aps.builder().setContentAvailable(true).build());
+        }
+        return builder.build();
     }
 
     private static String notificationTag(String eventType, Object identifier) {

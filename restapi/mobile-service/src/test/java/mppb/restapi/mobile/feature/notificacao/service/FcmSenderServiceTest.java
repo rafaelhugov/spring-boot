@@ -18,6 +18,7 @@ import com.google.firebase.ErrorCode;
 import com.google.firebase.FirebaseException;
 import com.google.firebase.messaging.AndroidConfig;
 import com.google.firebase.messaging.AndroidNotification;
+import com.google.firebase.messaging.ApnsConfig;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.MessagingErrorCode;
@@ -312,6 +313,9 @@ class FcmSenderServiceTest {
         } else {
             assertEquals(expectedTagOrPrefix, tag);
         }
+        ApnsConfig apnsConfig = valorCampo(message, "apnsConfig");
+        Map<String, String> headers = valorCampo(apnsConfig, "headers");
+        assertEquals(tag, headers.get("apns-collapse-id"));
         return tag;
     }
 
