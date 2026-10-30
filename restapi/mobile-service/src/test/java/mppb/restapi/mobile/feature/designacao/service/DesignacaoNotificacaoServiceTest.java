@@ -326,6 +326,11 @@ class DesignacaoNotificacaoServiceTest {
 
         @Override
         public ResultadoEnvioFcm enviarNovaDesignacao(String tokenFcm, Long designacaoId) {
+            return enviarNovaDesignacao(tokenFcm, designacaoId, true);
+        }
+
+        @Override
+        public ResultadoEnvioFcm enviarNovaDesignacao(String tokenFcm, Long designacaoId, boolean exibirPush) {
             tokensRecebidos.add(tokenFcm);
             return resultados.getOrDefault(tokenFcm, ResultadoEnvioFcm.aceito("message-" + tokenFcm));
         }
