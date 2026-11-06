@@ -34,10 +34,16 @@ public class DesignacaoViewRepository {
                     ELSE FALSE
                 END AS documento_inicial,
                 m.tipocargo,
-                m.tipocargo_nome
+                m.tipocargo_nome,
+                nat.id AS natureza_ato_id,
+                nat.nome AS natureza_ato_nome
             FROM diariooficial.mapa_por_membro_vw m
             LEFT JOIN ged.arquivo arq
                 ON arq.id = m.diario_oficial_documento_id
+            LEFT JOIN diariooficial.ato a
+                ON a.id = m.ato_id
+            LEFT JOIN diariooficial.naturezaato nat
+                ON nat.id = a.id_naturezaato
             WHERE m.ativo = 'A'
               AND m.servidor_matricula::text = :matricula
             ORDER BY
@@ -78,10 +84,16 @@ public class DesignacaoViewRepository {
                         ELSE FALSE
                     END AS documento_inicial,
                     m.tipocargo,
-                    m.tipocargo_nome
+                    m.tipocargo_nome,
+                    nat.id AS natureza_ato_id,
+                    nat.nome AS natureza_ato_nome
                 FROM diariooficial.mapa_por_membro_vw m
                 LEFT JOIN ged.arquivo arq
                     ON arq.id = m.diario_oficial_documento_id
+                LEFT JOIN diariooficial.ato a
+                    ON a.id = m.ato_id
+                LEFT JOIN diariooficial.naturezaato nat
+                    ON nat.id = a.id_naturezaato
                 INNER JOIN diariooficial.designacaousuariocontrole c
                     ON c.servidor_matricula = m.servidor_matricula::text
                 WHERE m.ativo = 'A'
@@ -123,7 +135,9 @@ public class DesignacaoViewRepository {
                 stringValue(row.get("ato_numero")),
                 booleanValue(row.get("documento_inicial")),
                 stringValue(row.get("tipocargo")),
-                stringValue(row.get("tipocargo_nome")));
+                stringValue(row.get("tipocargo_nome")),
+                longValue(row.get("natureza_ato_id")),
+                stringValue(row.get("natureza_ato_nome")));
     }
 
     private static String stringValue(Object value) {

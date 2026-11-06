@@ -190,4 +190,32 @@ class DesignacaoMapperTest {
         assertEquals("ATO_INI_ENQUADRAMENTO_EFETIVOS", response.getDesignacoes().get(0).getAto());
         assertEquals(LocalDate.of(2025, 10, 22), response.getDesignacoes().get(0).getDataPublicacao());
     }
+
+    @Test
+    void mapeiaTeletrabalhoComoTituloESubtituloOrgao() {
+        DesignacaoAtivaRow row = new DesignacaoAtivaRow(
+                410549L,
+                "7014872",
+                "F",
+                "Função",
+                "EXERCER ATRIBUIÇÕES",
+                "DEPARTAMENTO DE DESENVOLVIMENTO DE SISTEMAS",
+                null,
+                LocalDate.of(2026, 6, 16),
+                LocalDate.of(2027, 6, 15),
+                LocalDate.of(2026, 6, 16),
+                "1902/2026",
+                false,
+                "S",
+                "Servidor",
+                2202L,
+                "TRABALHO EM CASA / HOME OFFICE");
+
+        DesignacoesAtivasResponse response = mapper.toResponse(List.of(row));
+
+        assertEquals("Teletrabalho", response.getDesignacoes().get(0).getTitulo());
+        assertEquals("DEPARTAMENTO DE DESENVOLVIMENTO DE SISTEMAS", response.getDesignacoes().get(0).getSubtitulo());
+        assertEquals("Teletrabalho", response.getDesignacoes().get(0).getNaturezaAto());
+        assertEquals("1902/2026", response.getDesignacoes().get(0).getAto());
+    }
 }

@@ -35,6 +35,7 @@ public class DesignacaoMapper {
         String titulo = titulo(row);
         String subtitulo = subtitulo(row, tipoDescricao);
         boolean publicacaoInicial = isPublicacaoInicial(row);
+        String naturezaAto = formatarNaturezaAto(row);
 
         return new DesignacaoAtivaItemResponse(
                 row.id(),
@@ -47,7 +48,8 @@ public class DesignacaoMapper {
                 row.dataInicial(),
                 row.dataFinal(),
                 publicacaoInicial ? null : row.atoNumero(),
-                publicacaoInicial ? null : row.dataPublicacao());
+                publicacaoInicial ? null : row.dataPublicacao(),
+                naturezaAto);
     }
 
     public String tipoUsuario(DesignacaoAtivaRow row) {
@@ -111,6 +113,9 @@ public class DesignacaoMapper {
     }
 
     private String titulo(DesignacaoAtivaRow row) {
+        if (isTeletrabalho(row)) {
+            return "Teletrabalho";
+        }
         if ("F".equalsIgnoreCase(row.tipoCodigo()) && isNotBlank(row.funcaoNome())) {
             return row.funcaoNome();
         }
@@ -121,6 +126,9 @@ public class DesignacaoMapper {
     }
 
     private String subtitulo(DesignacaoAtivaRow row, String tipoDescricao) {
+        if (isTeletrabalho(row)) {
+            return firstNonBlank(row.orgaoNome(), row.orgaoExecucaoNome());
+        }
         if ("Função".equals(tipoDescricao)) {
             String orgao = firstNonBlank(row.orgaoNome(), row.orgaoExecucaoNome());
             if (isNotBlank(orgao) && !orgao.equalsIgnoreCase(titulo(row))) {
@@ -128,6 +136,55 @@ public class DesignacaoMapper {
             }
         }
         return null;
+    }
+
+    private boolean isTeletrabalho(DesignacaoAtivaRow row) {
+        if (row.naturezaAtoId() != null && row.naturezaAtoId() == 2202L) {
+            return true;
+        }
+        String nat = safe(row.naturezaAtoNome()).toUpperCase();
+        if (nat.contains("TELETRABALHO") || nat.contains("TRABALHO EM CASA") || nat.contains("HOME OFFICE")) {
+            return true;
+        }
+        String func = safe(row.funcaoNome()).toUpperCase();
+        return func.contains("EXERCER ATRIBUIÇÕES") && nat.contains("TELETRABALHO");
+    }
+
+    public String formatarNaturezaAto(DesignacaoAtivaRow row) {
+        if (isTeletrabalho(row)) {
+            return "Teletrabalho";
+        }
+        String nome = row.naturezaAtoNome();
+        if (nome == null || nome.isBlank()) {
+            return null;
+        }
+        String limpo = nome.trim();
+        if ("LOTAR SERVIDOR".equalsIgnoreCase(limpo)) {
+            return "Lotação";
+        }
+        return capitalizarTexto(limpo);
+    }
+
+    private static String capitalizarTexto(String texto) {
+        if (texto == null || texto.isBlank()) {
+            return texto;
+        }
+        String[] partes = texto.toLowerCase().split("\\s+");
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < partes.length; i++) {
+            String p = partes[i];
+            if (p.isEmpty()) continue;
+            if (i > 0 && (p.equals("de") || p.equals("da") || p.equals("do") || p.equals("dos") || p.equals("das")
+                    || p.equals("e") || p.equals("em") || p.equals("para") || p.equals("por"))) {
+                sb.append(p);
+            } else {
+                sb.append(Character.toUpperCase(p.charAt(0))).append(p.substring(1));
+            }
+            if (i < partes.length - 1) {
+                sb.append(" ");
+            }
+        }
+        return sb.toString();
     }
 
     private static String firstNonBlank(String... values) {

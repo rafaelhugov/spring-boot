@@ -21,4 +21,21 @@ public class DesignacaoAtivaItemResponse {
     private LocalDate dataFinal;
     private String ato;
     private LocalDate dataPublicacao;
+    private String naturezaAto;
+
+    public DesignacaoAtivaItemResponse(
+            Long id,
+            String tipoCodigo,
+            String tipoDescricao,
+            String titulo,
+            String subtitulo,
+            String orgao,
+            String funcao,
+            LocalDate dataInicial,
+            LocalDate dataFinal,
+            String ato,
+            LocalDate dataPublicacao) {
+        this(id, tipoCodigo, tipoDescricao, titulo, subtitulo, orgao, funcao,
+                dataInicial, dataFinal, ato, dataPublicacao, null);
+    }
 }
