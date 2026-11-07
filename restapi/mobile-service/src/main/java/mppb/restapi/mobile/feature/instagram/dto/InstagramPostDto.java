@@ -34,3 +34,4 @@ public class InstagramPostDto {
     private String views;
     private Boolean isFixado;
 }
+

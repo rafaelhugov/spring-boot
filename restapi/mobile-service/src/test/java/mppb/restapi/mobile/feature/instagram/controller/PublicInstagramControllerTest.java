@@ -54,3 +54,4 @@ class PublicInstagramControllerTest {
         assertEquals(6, response.getBody().size());
     }
 }
+

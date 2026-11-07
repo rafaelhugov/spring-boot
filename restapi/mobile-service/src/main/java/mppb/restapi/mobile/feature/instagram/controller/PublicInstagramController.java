@@ -27,3 +27,4 @@ public class PublicInstagramController {
         return ResponseEntity.ok(instagramService.getPosts(limit));
     }
 }
+
