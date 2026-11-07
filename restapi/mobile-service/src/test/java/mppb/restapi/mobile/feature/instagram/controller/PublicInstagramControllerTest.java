@@ -37,12 +37,31 @@ class PublicInstagramControllerTest {
         assertEquals("VIDEO", post1.getMediaType());
         assertTrue(post1.getIsFixado());
         assertEquals("36,4 mil", post1.getViews());
+        assertTrue(post1.getMediaUrl().contains("post_1.jpg"));
 
         InstagramPostDto post2 = response.getBody().get(1);
         assertEquals("post_fixado_2", post2.getId());
         assertEquals("135 anos - A Casa é Sua!", post2.getTitulo());
         assertEquals("IMAGE", post2.getMediaType());
         assertTrue(post2.getIsFixado());
+        assertTrue(post2.getMediaUrl().contains("post_2.jpg"));
+    }
+
+    @Test
+    void deveCarregarImagemValida() {
+        ResponseEntity<byte[]> response = controller.getInstagramImage("post_1.jpg");
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().length > 0);
+    }
+
+    @Test
+    void deveRetornarNotFoundParaImagemInexistenteOuPathTraversal() {
+        ResponseEntity<byte[]> response = controller.getInstagramImage("inexistente.jpg");
+        assertEquals(404, response.getStatusCode().value());
+
+        ResponseEntity<byte[]> traversal = controller.getInstagramImage("../etc/passwd");
+        assertEquals(404, traversal.getStatusCode().value());
     }
 
     @Test

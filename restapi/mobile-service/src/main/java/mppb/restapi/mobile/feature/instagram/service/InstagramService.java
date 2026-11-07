@@ -152,18 +152,33 @@ public class InstagramService {
         return primeiraLinha;
     }
 
+    public byte[] carregarImagem(String filename) {
+        if (filename == null || filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
+            return null;
+        }
+        try (var is = getClass().getResourceAsStream("/images/instagram/" + filename)) {
+            if (is != null) {
+                return is.readAllBytes();
+            }
+        } catch (Exception e) {
+            log.warn("Erro ao carregar imagem do Instagram {}: {}", filename, e.getMessage());
+        }
+        return null;
+    }
+
     /**
      * Acervo institucional oficial com os 50 posts e reels do perfil @mppboficial
      */
     public List<InstagramPostDto> obterPostsOficiais() {
         List<InstagramPostDto> posts = new ArrayList<>();
+        final String baseUrl = "https://aplicativo-api.mppb.mp.br/api/public/instagram/image/";
 
         // 1. Post Fixado (Reel)
         posts.add(InstagramPostDto.builder()
                 .id("post_fixado_1")
                 .titulo("O que é o Ministério Público?")
                 .caption("Você sabe qual é o papel do Ministério Público da Paraíba na defesa da ordem jurídica, do regime democrático e dos interesses sociais e individuais indisponíveis? Conheça nossa missão institucional na garantia dos seus direitos fundamentais! #MPPB #Cidadania #Paraíba #Justiça")
-                .mediaUrl("https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800&auto=format&fit=crop")
+                .mediaUrl(baseUrl + "post_1.jpg")
                 .permalink(PERFIL_URL)
                 .mediaType("VIDEO")
                 .dataFormatada("Fixado")
@@ -179,7 +194,7 @@ public class InstagramService {
                 .id("post_fixado_2")
                 .titulo("135 anos - A Casa é Sua!")
                 .caption("Celebração histórica dos 135 anos do Ministério Público do Estado da Paraíba: memória, inovação e compromisso inegociável com os direitos de cada cidadão paraibano. A Casa é Sua! #MPPB135Anos #História #Cidadania #MPPB")
-                .mediaUrl("https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=800&auto=format&fit=crop")
+                .mediaUrl(baseUrl + "post_2.jpg")
                 .permalink(PERFIL_URL)
                 .mediaType("IMAGE")
                 .dataFormatada("Fixado")
@@ -195,7 +210,7 @@ public class InstagramService {
                 .id("post_2_luto")
                 .titulo("LUTO OFICIAL: Pesar pelo ex-PGJ José Fernandes de Andrade")
                 .caption("LUTO OFICIAL: O Ministério Público da Paraíba manifesta profundo pesar pelo falecimento do ex-Procurador-Geral de Justiça Dr. José Fernandes de Andrade, cuja integridade e dedicação à justiça deixam um legado eterno para o povo paraibano.")
-                .mediaUrl("https://images.unsplash.com/photo-1507679799987-c73779587ccf?q=80&w=800&auto=format&fit=crop")
+                .mediaUrl(baseUrl + "post_3.jpg")
                 .permalink(PERFIL_URL)
                 .mediaType("IMAGE")
                 .dataFormatada("Há 1 dia")
@@ -211,7 +226,7 @@ public class InstagramService {
                 .id("reel_1_resumo")
                 .titulo("MPPB em Ação: Resumo da Semana")
                 .caption("Confira as principais ações do Ministério Público: fiscalizações escolares, audiências de tutela coletiva e operações em defesa da sociedade em toda a Paraíba. #MPPBemAção #ResumoDaSemana")
-                .mediaUrl("https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=800&auto=format&fit=crop")
+                .mediaUrl(baseUrl + "post_4.jpg")
                 .permalink(PERFIL_URL)
                 .mediaType("VIDEO")
                 .dataFormatada("Há 2 dias")
@@ -227,7 +242,7 @@ public class InstagramService {
                 .id("post_1_crime")
                 .titulo("Combate ao Crime Organizado: MPPB denuncia 20 acusados")
                 .caption("MPPB denuncia 20 acusados de integrar facção que atuava no tráfico de drogas e fazia domínio territorial no Brejo e Agreste paraibano. Ação do GAECO reforça a segurança pública. #GAECO #SegurançaPública #MPPB")
-                .mediaUrl("https://images.unsplash.com/photo-1450133064473-71024230f91b?q=80&w=800&auto=format&fit=crop")
+                .mediaUrl(baseUrl + "post_5.jpg")
                 .permalink(PERFIL_URL)
                 .mediaType("VIDEO")
                 .dataFormatada("Há 2 dias")
@@ -243,7 +258,7 @@ public class InstagramService {
                 .id("reel_2_memoria")
                 .titulo("Memória MPPB: Trajetória do ex-PGJ José Fernandes")
                 .caption("Série Memória MPPB: Uma homenagem especial à história e às transformações institucionais promovidas pelo ex-Procurador-Geral de Justiça Dr. José Fernandes de Andrade na consolidação dos direitos na Paraíba. #MemóriaMPPB")
-                .mediaUrl("https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=800&auto=format&fit=crop")
+                .mediaUrl(baseUrl + "post_6.jpg")
                 .permalink(PERFIL_URL)
                 .mediaType("VIDEO")
                 .dataFormatada("Há 3 dias")
@@ -259,7 +274,7 @@ public class InstagramService {
                 .id("post_3_educacao")
                 .titulo("Educação 360 Graus: Piloto em Escola Pública de Caaporã")
                 .caption("MPPB lança piloto de projeto estratégico \"Educação 360 graus\", em escola pública de Caaporã. Fortalecimento da rede de proteção e combate à evasão escolar. #Educação #InfânciaEJuventude")
-                .mediaUrl("https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=800&auto=format&fit=crop")
+                .mediaUrl(baseUrl + "post_7.jpg")
                 .permalink(PERFIL_URL)
                 .mediaType("VIDEO")
                 .dataFormatada("Há 3 dias")
@@ -275,7 +290,7 @@ public class InstagramService {
                 .id("reel_humanidade")
                 .titulo("Mais tempo para o que importa: humanidade e conexão")
                 .caption("Mais tempo para o que importa: humanidade, presença, conexão com a sociedade. A modernização digital no MPPB impulsiona a proximidade e o acolhimento direto ao cidadão. #InovaçãoMPPB #Humanidade")
-                .mediaUrl("https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=800&auto=format&fit=crop")
+                .mediaUrl(baseUrl + "post_8.jpg")
                 .permalink(PERFIL_URL)
                 .mediaType("VIDEO")
                 .dataFormatada("Há 4 dias")
@@ -291,7 +306,7 @@ public class InstagramService {
                 .id("reel_resumo_anterior")
                 .titulo("MPPB em Ação: Resumo da Semana")
                 .caption("Resumo da Semana MPPB em Ação: confira as principais decisões judiciais, acordos de não persecução cível e fiscalizações de órgãos públicos. #MPPBemAção")
-                .mediaUrl("https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=800&auto=format&fit=crop")
+                .mediaUrl(baseUrl + "post_9.jpg")
                 .permalink(PERFIL_URL)
                 .mediaType("VIDEO")
                 .dataFormatada("Há 5 dias")
@@ -307,7 +322,7 @@ public class InstagramService {
                 .id("reel_mulheres_peito")
                 .titulo("Cristiane Araújo: Médica e fundadora da ONG Mulheres de Peito")
                 .caption("Conscientização e saúde pública: entrevista com a médica Cristiane Araújo sobre a importância da mamografia, diagnóstico ágil e o papel do MPPB no acesso a tratamentos pelo SUS. #OutubroRosa #MulheresDePeito")
-                .mediaUrl("https://images.unsplash.com/photo-1594824813627-c1097e3a9d9e?q=80&w=800&auto=format&fit=crop")
+                .mediaUrl(baseUrl + "post_10.jpg")
                 .permalink(PERFIL_URL)
                 .mediaType("VIDEO")
                 .dataFormatada("Há 6 dias")
@@ -323,7 +338,7 @@ public class InstagramService {
                 .id("reel_servidor")
                 .titulo("28 de Outubro: Dia do Servidor Público")
                 .caption("Homenagem e gratidão a todos os servidores e servidoras do Ministério Público da Paraíba. Dedicação e profissionalismo em favor de toda a sociedade. #DiaDoServidor #MPPB")
-                .mediaUrl("https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=800&auto=format&fit=crop")
+                .mediaUrl(baseUrl + "post_11.jpg")
                 .permalink(PERFIL_URL)
                 .mediaType("VIDEO")
                 .dataFormatada("Há 7 dias")
@@ -339,7 +354,7 @@ public class InstagramService {
                 .id("reel_clima")
                 .titulo("TÁ NA MÍDIA: Prevenção a eventos climáticos extremos")
                 .caption("TÁ NA MÍDIA: MPPB se destaca na prevenção e resposta integrada a eventos climáticos extremos na Paraíba. Proteção ambiental e segurança para as populações vulneráveis. #MeioAmbiente #TáNaMídia #MPPB")
-                .mediaUrl("https://images.unsplash.com/photo-1511497584788-87676104235f?q=80&w=800&auto=format&fit=crop")
+                .mediaUrl(baseUrl + "post_12.jpg")
                 .permalink(PERFIL_URL)
                 .mediaType("VIDEO")
                 .dataFormatada("Há 8 dias")
@@ -368,12 +383,13 @@ public class InstagramService {
             String tema = temas[(i - 13) % temas.length];
             boolean isVideo = (i % 3 == 0);
             int dias = 8 + (i - 12);
+            int imgNum = ((i - 1) % 12) + 1;
 
             posts.add(InstagramPostDto.builder()
                     .id("post_inst_" + i)
                     .titulo(tema)
                     .caption(tema + ". A atuação permanente do Ministério Público da Paraíba na defesa dos direitos do cidadão e na fiscalização das leis. Saiba mais no portal do MPPB. #MPPB #Direitos #Paraíba")
-                    .mediaUrl("https://images.unsplash.com/photo-1450133064473-71024230f91b?q=80&w=800&auto=format&fit=crop")
+                    .mediaUrl(baseUrl + "post_" + imgNum + ".jpg")
                     .permalink(PERFIL_URL)
                     .mediaType(isVideo ? "VIDEO" : "IMAGE")
                     .dataFormatada("Há " + dias + " dias")
