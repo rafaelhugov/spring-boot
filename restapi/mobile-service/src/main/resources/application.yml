@@ -158,3 +158,12 @@ biometria:
     encryption-key: ${BIOMETRIC_CREDENTIAL_ENCRYPTION_KEY:}
     ttl-days: ${BIOMETRIC_CREDENTIAL_TTL_DAYS:30}
     cleanup-cron: ${BIOMETRIC_CREDENTIAL_CLEANUP_CRON:0 15 3 * * *}
+
+app:
+  update:
+    min-build-android: ${APP_UPDATE_MIN_BUILD_ANDROID:0}
+    min-build-ios: ${APP_UPDATE_MIN_BUILD_IOS:0}
+    store-url-android: ${APP_UPDATE_URL_ANDROID:https://play.google.com/store/apps/details?id=br.mp.mppbapp.app}
+    store-url-ios: ${APP_UPDATE_URL_IOS:https://apps.apple.com/app/mppb/id6825377891}
+    mensagem: ${APP_UPDATE_MENSAGEM:Uma nova versão do MPPB+ está disponível com importantes melhorias e correções. Atualize para continuar utilizando o aplicativo.}
+
