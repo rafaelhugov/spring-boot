@@ -22,3 +22,4 @@ public class AppVersionWebConfig implements WebMvcConfigurer {
         registry.addInterceptor(appVersionInterceptor).addPathPatterns("/**");
     }
 }
+

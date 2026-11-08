@@ -96,3 +96,4 @@ public class AppVersionInterceptor implements HandlerInterceptor {
         response.getWriter().write(objectMapper.writeValueAsString(dto));
     }
 }
+

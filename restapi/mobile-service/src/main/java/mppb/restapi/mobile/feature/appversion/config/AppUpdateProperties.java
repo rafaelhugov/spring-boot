@@ -60,3 +60,4 @@ public class AppUpdateProperties {
         return storeUrlAndroid;
     }
 }
+

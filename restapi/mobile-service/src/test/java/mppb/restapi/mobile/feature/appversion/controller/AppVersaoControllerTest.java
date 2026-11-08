@@ -75,3 +75,4 @@ class AppVersaoControllerTest {
         assertFalse(response.getBody().isForceUpdate());
     }
 }
+
