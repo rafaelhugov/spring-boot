@@ -99,17 +99,35 @@ public class SyntheticSandboxStorage {
 
         ConcessaoFolgaDto c2 = new ConcessaoFolgaDto();
         c2.setId(1002L);
-        c2.setTipo("Compensatória");
-        c2.setDescricaoOriginal("Folga Plantão Eleitoral / Recesso");
+        c2.setTipo("PLANTÃO");
+        c2.setDescricaoOriginal("PLANTÃO 10/11/2025 - 16/11/2025");
         c2.setDiasConcedidos(5);
         c2.setSaldoRestante(5);
-        c2.setPeriodo(1);
-        c2.setAnoReferencia(2026);
-        c2.setInicioPeriodoAquisitivo(LocalDate.of(2026, 1, 1));
-        c2.setFinalPeriodoAquisitivo(LocalDate.of(2026, 12, 31));
+        c2.setInicioPeriodoAquisitivo(LocalDate.of(2025, 11, 10));
+        c2.setFinalPeriodoAquisitivo(LocalDate.of(2025, 11, 16));
+
+        ConcessaoFolgaDto c3 = new ConcessaoFolgaDto();
+        c3.setId(1003L);
+        c3.setTipo("LICENÇA");
+        c3.setDescricaoOriginal("LICENÇA 01/01/2015 - 31/12/2019");
+        c3.setDiasConcedidos(90);
+        c3.setSaldoRestante(60);
+        c3.setInicioPeriodoAquisitivo(LocalDate.of(2015, 1, 1));
+        c3.setFinalPeriodoAquisitivo(LocalDate.of(2019, 12, 31));
+
+        ConcessaoFolgaDto c4 = new ConcessaoFolgaDto();
+        c4.setId(1004L);
+        c4.setTipo("ELEITORAL");
+        c4.setDescricaoOriginal("ELEITORAL 1/2024");
+        c4.setDiasConcedidos(10);
+        c4.setSaldoRestante(10);
+        c4.setPeriodo(1);
+        c4.setAnoReferencia(2024);
 
         concessoesMembro.add(c1);
         concessoesMembro.add(c2);
+        concessoesMembro.add(c3);
+        concessoesMembro.add(c4);
         concessoesPorMatricula.put("900001", concessoesMembro);
 
         // Ausências Membro
@@ -125,22 +143,95 @@ public class SyntheticSandboxStorage {
         ausenciasMembro.add(a1);
         ausenciasPorMatricula.put("900001", ausenciasMembro);
 
-        // Inicializar Servidor (900002)
+        // Inicializar Servidor (900002) - Espelhado fielmente em dados reais de recursoshumanos.concessoes_vigentes_vw
         List<ConcessaoFolgaDto> concessoesServidor = new ArrayList<>();
+
+        // 1. FÉRIAS (2025) - Com solicitação agendada de 10 dias
         ConcessaoFolgaDto cs1 = new ConcessaoFolgaDto();
         cs1.setId(2001L);
-        cs1.setTipo("Férias");
-        cs1.setDescricaoOriginal("Férias Regulamentares");
+        cs1.setTipo("FÉRIAS");
+        cs1.setDescricaoOriginal("FÉRIAS 1/2025");
         cs1.setDiasConcedidos(30);
-        cs1.setSaldoRestante(30);
+        cs1.setSaldoRestante(20);
         cs1.setPeriodo(1);
         cs1.setAnoReferencia(2025);
-        cs1.setInicioPeriodoAquisitivo(LocalDate.of(2025, 3, 1));
-        cs1.setFinalPeriodoAquisitivo(LocalDate.of(2026, 2, 28));
+        cs1.setInicioPeriodoAquisitivo(LocalDate.of(2025, 1, 1));
+        cs1.setFinalPeriodoAquisitivo(LocalDate.of(2025, 12, 31));
+
+        SolicitacaoConcessaoDto ss1 = new SolicitacaoConcessaoDto();
+        ss1.setId(6001L);
+        ss1.setTipo("FÉRIAS");
+        ss1.setTipoOriginal("FÉRIAS");
+        ss1.setInicio(LocalDate.of(2026, 12, 1));
+        ss1.setFim(LocalDate.of(2026, 12, 10));
+        ss1.setStatus("HOMOLOGADA");
+        ss1.setStatusOriginal("HOMOLOGADA");
+        ss1.setDiasInformados(10);
+        cs1.getSolicitacoes().add(ss1);
+        solicitacoesPorId.put(ss1.getId(), ss1);
+        matriculaPorSolicitacaoId.put(ss1.getId(), "900002");
+
+        // 2. FÉRIAS (2024) - Período anterior com saldo remanescente
+        ConcessaoFolgaDto cs2 = new ConcessaoFolgaDto();
+        cs2.setId(2002L);
+        cs2.setTipo("FÉRIAS");
+        cs2.setDescricaoOriginal("FÉRIAS 2/2024");
+        cs2.setDiasConcedidos(30);
+        cs2.setSaldoRestante(10);
+        cs2.setPeriodo(2);
+        cs2.setAnoReferencia(2024);
+        cs2.setInicioPeriodoAquisitivo(LocalDate.of(2024, 1, 1));
+        cs2.setFinalPeriodoAquisitivo(LocalDate.of(2024, 12, 31));
+
+        // 3. LICENÇA (Licença Prêmio / Especial) - 90 concedidos, 60 restantes
+        ConcessaoFolgaDto cs3 = new ConcessaoFolgaDto();
+        cs3.setId(2003L);
+        cs3.setTipo("LICENÇA");
+        cs3.setDescricaoOriginal("LICENÇA 21/11/2016 - 20/11/2021");
+        cs3.setDiasConcedidos(90);
+        cs3.setSaldoRestante(60);
+        cs3.setInicioPeriodoAquisitivo(LocalDate.of(2016, 11, 21));
+        cs3.setFinalPeriodoAquisitivo(LocalDate.of(2021, 11, 20));
+
+        // 4. PLANTÃO (Folga de Plantão / Recesso) - 5 concedidos, 3 restantes
+        ConcessaoFolgaDto cs4 = new ConcessaoFolgaDto();
+        cs4.setId(2004L);
+        cs4.setTipo("PLANTÃO");
+        cs4.setDescricaoOriginal("PLANTÃO 10/11/2025 - 16/11/2025");
+        cs4.setDiasConcedidos(5);
+        cs4.setSaldoRestante(3);
+        cs4.setInicioPeriodoAquisitivo(LocalDate.of(2025, 11, 10));
+        cs4.setFinalPeriodoAquisitivo(LocalDate.of(2025, 11, 16));
+
+        // 5. ELEITORAL (Folga Eleitoral) - 8 concedidos, 8 restantes
+        ConcessaoFolgaDto cs5 = new ConcessaoFolgaDto();
+        cs5.setId(2005L);
+        cs5.setTipo("ELEITORAL");
+        cs5.setDescricaoOriginal("ELEITORAL 2/2024");
+        cs5.setDiasConcedidos(8);
+        cs5.setSaldoRestante(8);
+        cs5.setPeriodo(2);
+        cs5.setAnoReferencia(2024);
 
         concessoesServidor.add(cs1);
+        concessoesServidor.add(cs2);
+        concessoesServidor.add(cs3);
+        concessoesServidor.add(cs4);
+        concessoesServidor.add(cs5);
         concessoesPorMatricula.put("900002", concessoesServidor);
-        ausenciasPorMatricula.put("900002", new ArrayList<>());
+
+        // Ausências do Servidor para o Calendário
+        List<AusenciaCalendarioDto> ausenciasServidor = new ArrayList<>();
+        AusenciaCalendarioDto as1 = new AusenciaCalendarioDto();
+        as1.setId("AUS-002");
+        as1.setTipo("FÉRIAS");
+        as1.setDescricao("Férias Anuais - 1º Período 2025");
+        as1.setDataInicio(LocalDate.of(2026, 12, 1));
+        as1.setDataFim(LocalDate.of(2026, 12, 10));
+        as1.setStatus("HOMOLOGADA");
+        as1.setObservacao("Portaria Servidor UAT");
+        ausenciasServidor.add(as1);
+        ausenciasPorMatricula.put("900002", ausenciasServidor);
 
         log.info("[SANDBOX-SINTETICO] Datasets e sandbox de operacoes resetados com sucesso.");
     }
