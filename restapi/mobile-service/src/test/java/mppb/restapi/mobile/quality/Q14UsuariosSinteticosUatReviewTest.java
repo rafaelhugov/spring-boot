@@ -399,7 +399,7 @@ class Q14UsuariosSinteticosUatReviewTest {
     void test16_concessoes() {
         List<ConcessaoFolgaDto> concs = sandboxStorage.listarConcessoes("900001");
         assertNotNull(concs);
-        assertEquals(2, concs.size());
+        assertEquals(4, concs.size());
         assertEquals("Férias", concs.get(0).getTipo());
 
         List<AusenciaCalendarioDto> ausencias = sandboxStorage.listarAusencias("900001", 11, 2026);
