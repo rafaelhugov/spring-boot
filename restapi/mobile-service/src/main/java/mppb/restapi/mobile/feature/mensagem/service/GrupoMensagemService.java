@@ -49,7 +49,6 @@ public class GrupoMensagemService {
         }
         boolean callerUat = mppb.restapi.mobile.core.security.AutenticacaoAtual.login()
                 .flatMap(IdentidadeSintetica::porLogin)
-                .filter(IdentidadeSintetica::isUat)
                 .isPresent();
         String t = termo.trim().toLowerCase();
         boolean buscaExplicitaUat = t.startsWith("90000") || t.contains("uat");

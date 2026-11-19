@@ -115,7 +115,7 @@ public class SyntheticTokenAuthenticationProvider implements AuthenticationProvi
         permitidas.add(new FuncionalidadeAutorizadaResponseDto(4L, "Pagamentos", "mobile.pagamentos"));
         permitidas.add(new FuncionalidadeAutorizadaResponseDto(5L, "Designacoes", "mobile.designacoes"));
         permitidas.add(new FuncionalidadeAutorizadaResponseDto(6L, "Concessoes", "mobile.concessoes"));
-        if (identidade == IdentidadeSintetica.UAT_MEMBRO) {
+        if (identidade.getPerfil() == mppb.restapi.mobile.feature.synthetic.model.PerfilFuncional.MEMBRO) {
             permitidas.add(new FuncionalidadeAutorizadaResponseDto(
                     7L, "Gerenciar Mensagens e Avisos", "androidmppb.mensagens.admin"));
         }
