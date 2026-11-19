@@ -194,6 +194,7 @@ public class MensagemDestinatarioService {
                 aviso != null ? aviso.getModalidade() : null,
                 aviso != null && aviso.isExigeCiencia(),
                 aviso != null ? aviso.getRemetenteNome() : null,
+                aviso != null ? aviso.getRemetenteMatricula() : null,
                 aviso != null ? aviso.getDataEnvio() : null,
                 aviso != null ? aviso.getDataExpiracao() : null,
                 dest.getStatus(),

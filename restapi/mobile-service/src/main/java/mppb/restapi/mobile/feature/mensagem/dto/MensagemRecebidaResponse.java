@@ -15,6 +15,7 @@ public record MensagemRecebidaResponse(
         ModalidadeEnvio modalidade,
         boolean exigeCiencia,
         String remetenteNome,
+        String remetenteMatricula,
         LocalDateTime dataEnvio,
         LocalDateTime dataExpiracao,
         StatusDestinatario status,

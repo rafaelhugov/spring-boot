@@ -2,9 +2,11 @@ package mppb.restapi.mobile.feature.mensagem.controller;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourceRegion;
+import org.springframework.http.CacheControl;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRange;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import mppb.restapi.mobile.core.security.AutenticacaoAtual;
+import mppb.restapi.mobile.feature.carteirafuncional.service.CarteiraService;
 import mppb.restapi.mobile.feature.mensagem.dto.CaixaEntradaResponse;
 import mppb.restapi.mobile.feature.mensagem.dto.ConfirmarEntregaRequest;
 import mppb.restapi.mobile.feature.mensagem.dto.MensagemRecebidaResponse;
@@ -44,6 +47,20 @@ public class MensagemDestinatarioController {
     private final MensagemDestinatarioService destinatarioService;
     private final MensagemStorageService storageService;
     private final MensagemStorageProperties storageProperties;
+    private final CarteiraService carteiraService;
+
+    @GetMapping("/remetentes/{matricula}/foto")
+    public ResponseEntity<byte[]> fotoRemetente(@PathVariable String matricula) {
+        loginObrigatorio();
+        byte[] bytes = carteiraService.getBytesFotoPorMatricula(matricula);
+        if (bytes == null || bytes.length == 0) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .cacheControl(CacheControl.maxAge(1, TimeUnit.HOURS).cachePrivate())
+                .body(bytes);
+    }
 
     @GetMapping("/permissao-admin")
     public ResponseEntity<java.util.Map<String, Boolean>> permissaoAdmin() {
