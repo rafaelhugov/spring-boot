@@ -2,8 +2,10 @@ package mppb.restapi.mobile.feature.mensagem.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.springframework.data.domain.Page;
@@ -135,7 +137,10 @@ public class MensagemEnvioService {
         int processadas = 0;
         for (MensagemAviso aviso : pendentes) {
             CriteriosDestinatariosDto criterios = deserializarCriterios(aviso.getCriteriosJson());
-            List<DestinatarioRh> destinatarios = resolverDestinatarios(aviso.getModalidade(), criterios);
+            boolean remetenteUat = IdentidadeSintetica.UAT_MEMBRO.getMatricula()
+                    .equals(aviso.getRemetenteMatricula());
+            List<DestinatarioRh> destinatarios = resolverDestinatariosComUat(
+                    aviso.getModalidade(), criterios, remetenteUat);
             aviso.setStatusPublicacao(StatusPublicacao.ENVIADA);
             aviso.setDataEnvio(LocalDateTime.now());
             mensagemAvisoRepository.save(aviso);
@@ -177,14 +182,22 @@ public class MensagemEnvioService {
         List<String> matriculas = new ArrayList<>(destinatarios.size());
 
         for (DestinatarioRh item : destinatarios) {
+            if (item == null || item.matricula() == null || item.matricula().isBlank()) {
+                continue;
+            }
+            String matricula = item.matricula().trim();
             MensagemDestinatario dest = new MensagemDestinatario();
             dest.setMensagemId(aviso.getId());
-            dest.setDestinatarioMatricula(item.matricula());
+            dest.setDestinatarioMatricula(matricula);
             dest.setDestinatarioNome(item.nome());
             dest.setDestinatarioSetor(item.setorNome());
             dest.setStatus(StatusDestinatario.PENDENTE);
             registros.add(dest);
-            matriculas.add(item.matricula());
+            matriculas.add(matricula);
+        }
+
+        if (registros.isEmpty()) {
+            return;
         }
 
         mensagemDestinatarioRepository.saveAll(registros);
@@ -193,13 +206,14 @@ public class MensagemEnvioService {
 
     private List<DestinatarioRh> resolverDestinatarios(ModalidadeEnvio modalidade, CriteriosDestinatariosDto criterios) {
         if (modalidade == ModalidadeEnvio.BROADCAST) {
-            return rhDestinatarioRepository.listarTodosAtivos();
+            return filtrarDestinatariosValidos(rhDestinatarioRepository.listarTodosAtivos());
         }
         if (criterios == null) {
             return List.of();
         }
         if (modalidade == ModalidadeEnvio.UNICAST) {
-            return rhDestinatarioRepository.listarPorCriterios(null, null, null, null, criterios.matriculas());
+            return filtrarDestinatariosValidos(
+                    rhDestinatarioRepository.listarPorCriterios(null, null, null, null, criterios.matriculas()));
         }
 
         Set<String> matriculasCombinadas = new LinkedHashSet<>();
@@ -213,12 +227,27 @@ public class MensagemEnvioService {
                 }
             }
         }
-        return rhDestinatarioRepository.listarPorCriterios(
+        return filtrarDestinatariosValidos(rhDestinatarioRepository.listarPorCriterios(
                 criterios.tiposCargo(),
                 criterios.orgaoIds(),
                 criterios.setorIds(),
                 criterios.cargoIds(),
-                new ArrayList<>(matriculasCombinadas));
+                new ArrayList<>(matriculasCombinadas)));
+    }
+
+    private List<DestinatarioRh> filtrarDestinatariosValidos(List<DestinatarioRh> candidatos) {
+        if (candidatos == null || candidatos.isEmpty()) {
+            return List.of();
+        }
+        Map<String, DestinatarioRh> unicos = new LinkedHashMap<>();
+        for (DestinatarioRh item : candidatos) {
+            if (item == null || item.matricula() == null || item.matricula().isBlank()) {
+                continue;
+            }
+            String mat = item.matricula().trim();
+            unicos.putIfAbsent(mat, item);
+        }
+        return new ArrayList<>(unicos.values());
     }
 
     private List<DestinatarioRh> resolverDestinatariosComUat(
