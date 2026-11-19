@@ -180,7 +180,7 @@ Resultados devem ser informados com precisão. Verificações não executadas ou
 
 ### X. Controle de versão, branch dedicada por tarefa e proibição de trabalho ou merge direto na `master`/`main`
 
-Toda tarefa (nova funcionalidade, correção de bug, ajuste visual, script SQL, configuração ou documentação Spec Kit) deve obrigatoriamente iniciar com a criação de uma branch dedicada (`git checkout -b <tipo>/<slug>`) a partir da `master`/`main` antes de qualquer alteração em arquivos.
+Toda tarefa (nova funcionalidade, correção de bug, ajuste visual, script SQL, configuração ou documentação Spec Kit) deve obrigatoriamente iniciar atualizando a branch principal (`git checkout master && git pull`, ou `main`) e, a partir dela, criar uma branch dedicada (`git checkout -b <tipo>/<slug>`) antes de qualquer alteração em arquivos.
 
 É estritamente proibido trabalhar diretamente na branch `master` (ou `main`), realizar commit direto na `master`/`main`, executar `git merge` direto na `master`/`main` local ou publicar (`git push`) merges locais diretamente em `origin/master` ou `github/master`, em qualquer projeto ou subprojeto.
 
@@ -268,6 +268,6 @@ O versionamento deve seguir:
 
 A primeira versão será ratificada na data da aprovação explícita. Alterações posteriores devem preservar a data de ratificação e atualizar a data da última alteração.
 
-**Versão:** 1.2.0
+**Versão:** 1.3.0
 **Ratificação:** 2026-11-10
 **Última alteração:** 2026-11-19
