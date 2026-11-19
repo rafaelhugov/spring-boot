@@ -188,6 +188,10 @@ Todo trabalho deve ser realizado, comitado e publicado exclusivamente em sua bra
 
 A integração na `master`/`main` ocorre exclusivamente por meio de **Merge Request (GitLab)** e **Pull Request (GitHub)** revisados e aprovados pelo usuário. A branch `master`/`main` local somente pode ser atualizada por `git pull`/`git fetch` para refletir merges já consolidados remotamente pelo usuário.
 
+### XI. Uso obrigatório do Spec Kit para novos ajustes e evoluções
+
+Sempre que o usuário solicitar novos ajustes, correções de comportamento ou evoluções em qualquer funcionalidade, é obrigatório utilizar o **Spec Kit** (criando ou atualizando `specs/<NNN>-<funcionalidade>/spec.md`, `plan.md` e `tasks.md`) antes de iniciar a implementação.
+
 ## Organização das especificações e do Spec Kit
 
 A organização desejada é:
@@ -264,6 +268,6 @@ O versionamento deve seguir:
 
 A primeira versão será ratificada na data da aprovação explícita. Alterações posteriores devem preservar a data de ratificação e atualizar a data da última alteração.
 
-**Versão:** 1.1.0
+**Versão:** 1.2.0
 **Ratificação:** 2026-11-10
 **Última alteração:** 2026-11-19
