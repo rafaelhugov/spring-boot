@@ -88,12 +88,14 @@ public class MensagemEnvioService {
         }
 
         LocalDateTime agora = LocalDateTime.now();
-        if (request.dataExpiracao() != null && !request.dataExpiracao().isAfter(agora)) {
-            throw new IllegalArgumentException("A data de expiração deve ser futura.");
+        boolean agendar = request.dataAgendamento() != null && request.dataAgendamento().isAfter(agora);
+        LocalDateTime baseEnvio = agendar ? request.dataAgendamento() : agora;
+        if (request.dataExpiracao() != null && request.dataExpiracao().isBefore(baseEnvio.plusHours(1))) {
+            throw new IllegalArgumentException(
+                    "A data de expiração deve ter ao menos 1 hora de margem após o envio.");
         }
 
         boolean remetenteUat = sintetica.isPresent();
-        boolean agendar = request.dataAgendamento() != null && request.dataAgendamento().isAfter(agora);
         List<DestinatarioRh> destinatarios = agendar
                 ? List.of()
                 : resolverDestinatariosComUat(request.modalidade(), request.criterios(), remetenteUat);

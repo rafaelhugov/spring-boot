@@ -155,5 +155,21 @@ class MensagemEnvioTest {
         MockMultipartFile imgGrande = new MockMultipartFile("arquivo", "foto.png", "image/png", new byte[2048]);
         assertThrows(IllegalArgumentException.class, () -> storageService.armazenar(imgGrande));
     }
+
+    @Test
+    @DisplayName("Deve rejeitar expiração menor que 1 hora após a data de envio ou agendamento")
+    void deveRejeitarExpiracaoSemMargemMinima() {
+        PerfilUsuarioDto remetente = new PerfilUsuarioDto();
+        remetente.setMatricula("1001");
+        remetente.setNome("PGJ Teste");
+        when(perfilRepo.buscarPorLogin("pgj.teste")).thenReturn(remetente);
+
+        LocalDateTime agendamento = LocalDateTime.now().plusDays(1);
+        CriarMensagemRequest requestInvalido = new CriarMensagemRequest(
+                "Aviso", "Conteúdo", PrioridadeMensagem.NORMAL, ModalidadeEnvio.BROADCAST, false,
+                null, List.of(), agendamento, agendamento.plusMinutes(30));
+
+        assertThrows(IllegalArgumentException.class, () -> envioService.enviarOuAgendar("pgj.teste", requestInvalido));
+    }
 }
 
