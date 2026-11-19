@@ -115,6 +115,10 @@ public class SyntheticTokenAuthenticationProvider implements AuthenticationProvi
         permitidas.add(new FuncionalidadeAutorizadaResponseDto(4L, "Pagamentos", "mobile.pagamentos"));
         permitidas.add(new FuncionalidadeAutorizadaResponseDto(5L, "Designacoes", "mobile.designacoes"));
         permitidas.add(new FuncionalidadeAutorizadaResponseDto(6L, "Concessoes", "mobile.concessoes"));
+        if (identidade == IdentidadeSintetica.UAT_MEMBRO) {
+            permitidas.add(new FuncionalidadeAutorizadaResponseDto(
+                    7L, "Gerenciar Mensagens e Avisos", "androidmppb.mensagens.admin"));
+        }
 
         AcessoDataResponseDto acessoData = new AcessoDataResponseDto(null, permitidas, null, null);
 
