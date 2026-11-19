@@ -178,6 +178,14 @@ Registros de execução devem permitir diagnóstico e correlação de operaçõe
 
 Resultados devem ser informados com precisão. Verificações não executadas ou impedidas pelo ambiente não podem ser apresentadas como aprovadas.
 
+### X. Controle de versão e proibição de merge direto na `master`/`main`
+
+É estritamente proibido realizar commit direto ou `git merge` direto na branch `master` (ou `main`) local, bem como publicar (`git push`) merges locais diretamente em `origin/master` ou `github/master`, em qualquer projeto ou subprojeto.
+
+Todo trabalho (nova funcionalidade, correção de bug, ajuste visual, script SQL ou documentação Spec Kit) deve ser realizado, comitado e publicado exclusivamente em uma branch dedicada (`feat/...`, `fix/...`, `chore/...`).
+
+A integração na `master`/`main` ocorre exclusivamente por meio de **Merge Request (GitLab)** e **Pull Request (GitHub)** revisados e aprovados pelo usuário. A branch `master`/`main` local somente pode ser atualizada por `git pull`/`git fetch` para refletir merges já consolidados remotamente pelo usuário.
+
 ## Organização das especificações e do Spec Kit
 
 A organização desejada é:
@@ -254,6 +262,6 @@ O versionamento deve seguir:
 
 A primeira versão será ratificada na data da aprovação explícita. Alterações posteriores devem preservar a data de ratificação e atualizar a data da última alteração.
 
-**Versão:** 1.0.0
+**Versão:** 1.1.0
 **Ratificação:** 2026-11-10
-**Última alteração:** 2026-11-10
+**Última alteração:** 2026-11-19
