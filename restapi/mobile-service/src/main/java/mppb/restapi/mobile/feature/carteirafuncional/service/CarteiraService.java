@@ -176,6 +176,51 @@ public class CarteiraService {
         return bytes;
     }
 
+    public byte[] getBytesFotoPorMatricula(String matricula) {
+        if (matricula == null || matricula.isBlank()) {
+            return null;
+        }
+        String mat = matricula.trim();
+        if (syntheticDataService != null) {
+            if ("900001".equals(mat)) {
+                return syntheticDataService.getFotoByLogin("uat.membro");
+            }
+            if ("900002".equals(mat)) {
+                return syntheticDataService.getFotoByLogin("uat.servidor");
+            }
+        }
+
+        String sql = "select bytes, id, pathrepositorio, "
+                + "case when estanorepositorio is not null then estanorepositorio else false end as estanorepositorio "
+                + "from ged.arquivo where id = "
+                + "(select pf.id_fotoprincipal from pessoafisica pf "
+                + "join servidor ser on ser.id_pessoa = pf.id_pessoa "
+                + "where cast(ser.matricula as text) = ? and not ser.excluido "
+                + "order by ser.dataregistro desc limit 1)";
+
+        List<ArquivoTO> lista = jdbcTemplate.query(
+                sql,
+                BeanPropertyRowMapper.newInstance(ArquivoTO.class),
+                mat);
+
+        if (lista == null || lista.isEmpty()) {
+            return null;
+        }
+
+        ArquivoTO arquivo = lista.get(0);
+        byte[] bytes = arquivo.getBytes();
+        if ((bytes == null || bytes.length == 0)
+                && arquivo.getPathrepositorio() != null
+                && arquivo.getEstanorepositorio()) {
+            try {
+                bytes = jcrService.getBytes(arquivo.getPathrepositorio());
+            } catch (Exception e) {
+                log.error("Repositorio JCR ERRO ao recuperar foto da matricula {}: {}", mat, e.getMessage(), e);
+            }
+        }
+        return bytes;
+    }
+
     public byte[] getBytesFotoServidorPorCarteira(CarteiraFuncionalTO carteira) {
         if (carteira == null) {
             return null;
