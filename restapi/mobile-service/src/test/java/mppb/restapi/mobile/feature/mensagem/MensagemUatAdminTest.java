@@ -47,14 +47,16 @@ import mppb.restapi.mobile.feature.synthetic.config.SyntheticUsersProperties;
 class MensagemUatAdminTest {
 
     @Test
-    @DisplayName("Apenas uat.membro recebe authority androidmppb.mensagens.admin; uat.servidor permanece destinatário comum")
+    @DisplayName("Usuários sintéticos MEMBRO (uat.membro e membro.google) recebem authority androidmppb.mensagens.admin; SERVIDOR permanece destinatário comum")
     void deveConcederAdminApenasParaUatMembro() {
         SyntheticUsersProperties props = new SyntheticUsersProperties();
         props.setEnabled(true);
         props.setJwtSecret("segredo-uat-teste-muito-longo-1234567890");
         props.setPasswords(Map.of(
                 "uat-membro", "SenhaMembro123!",
-                "uat-servidor", "SenhaServidor123!"));
+                "uat-servidor", "SenhaServidor123!",
+                "google-review-membro", "SenhaGoogleMembro123!",
+                "google-review-servidor", "SenhaGoogleServidor123!"));
 
         AuditoriaUsuarioSintetico auditoria = new AuditoriaUsuarioSintetico();
         AutenticadorUsuarioSintetico autenticador = new AutenticadorUsuarioSintetico(props, auditoria);
@@ -65,9 +67,19 @@ class MensagemUatAdminTest {
         assertTrue(authMembro.getAuthorities().stream()
                 .anyMatch(a -> "androidmppb.mensagens.admin".equals(a.getAuthority())));
 
+        String tokenGoogleMembro = autenticador.autenticar("membro.google", "SenhaGoogleMembro123!").orElseThrow();
+        Authentication authGoogleMembro = provider.authenticate(new TokenAuthentication(tokenGoogleMembro));
+        assertTrue(authGoogleMembro.getAuthorities().stream()
+                .anyMatch(a -> "androidmppb.mensagens.admin".equals(a.getAuthority())));
+
         String tokenServidor = autenticador.autenticar("uat.servidor", "SenhaServidor123!").orElseThrow();
         Authentication authServidor = provider.authenticate(new TokenAuthentication(tokenServidor));
         assertFalse(authServidor.getAuthorities().stream()
+                .anyMatch(a -> "androidmppb.mensagens.admin".equals(a.getAuthority())));
+
+        String tokenGoogleServidor = autenticador.autenticar("servidor.google", "SenhaGoogleServidor123!").orElseThrow();
+        Authentication authGoogleServidor = provider.authenticate(new TokenAuthentication(tokenGoogleServidor));
+        assertFalse(authGoogleServidor.getAuthorities().stream()
                 .anyMatch(a -> "androidmppb.mensagens.admin".equals(a.getAuthority())));
     }
 

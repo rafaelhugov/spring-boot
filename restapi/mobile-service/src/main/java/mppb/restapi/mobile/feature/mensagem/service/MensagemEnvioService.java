@@ -60,7 +60,6 @@ public class MensagemEnvioService {
         }
         boolean remetenteUat = mppb.restapi.mobile.core.security.AutenticacaoAtual.login()
                 .flatMap(IdentidadeSintetica::porLogin)
-                .filter(IdentidadeSintetica::isUat)
                 .isPresent();
         List<DestinatarioRh> destinatarios = resolverDestinatariosComUat(
                 request.modalidade(), request.criterios(), remetenteUat);
@@ -93,7 +92,7 @@ public class MensagemEnvioService {
             throw new IllegalArgumentException("A data de expiração deve ser futura.");
         }
 
-        boolean remetenteUat = sintetica.filter(IdentidadeSintetica::isUat).isPresent();
+        boolean remetenteUat = sintetica.isPresent();
         boolean agendar = request.dataAgendamento() != null && request.dataAgendamento().isAfter(agora);
         List<DestinatarioRh> destinatarios = agendar
                 ? List.of()

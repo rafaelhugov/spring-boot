@@ -71,3 +71,27 @@ CREATE TABLE IF NOT EXISTS diariooficial.grupomensagemmembro (
     dataregistro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uk_grupo_mensagem_membro UNIQUE (grupo_id, matricula)
 );
+
+-- ============================================================================
+-- Permissoes para usuario da aplicacao (android)
+-- Executar nos bancos ATENDIMENTO (homologacao) e MPE (producao)
+-- ============================================================================
+
+GRANT USAGE ON SCHEMA diariooficial TO android;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE
+    diariooficial.mensagemaviso,
+    diariooficial.mensagemdestinatario,
+    diariooficial.mensagemanexo,
+    diariooficial.grupomensagem,
+    diariooficial.grupomensagemmembro
+TO android;
+
+GRANT USAGE, SELECT ON SEQUENCE
+    diariooficial.mensagemaviso_id_seq,
+    diariooficial.mensagemdestinatario_id_seq,
+    diariooficial.mensagemanexo_id_seq,
+    diariooficial.grupomensagem_id_seq,
+    diariooficial.grupomensagemmembro_id_seq
+TO android;
+
