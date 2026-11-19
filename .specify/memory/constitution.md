@@ -178,11 +178,13 @@ Registros de execução devem permitir diagnóstico e correlação de operaçõe
 
 Resultados devem ser informados com precisão. Verificações não executadas ou impedidas pelo ambiente não podem ser apresentadas como aprovadas.
 
-### X. Controle de versão e proibição de merge direto na `master`/`main`
+### X. Controle de versão, branch dedicada por tarefa e proibição de trabalho ou merge direto na `master`/`main`
 
-É estritamente proibido realizar commit direto ou `git merge` direto na branch `master` (ou `main`) local, bem como publicar (`git push`) merges locais diretamente em `origin/master` ou `github/master`, em qualquer projeto ou subprojeto.
+Toda tarefa (nova funcionalidade, correção de bug, ajuste visual, script SQL, configuração ou documentação Spec Kit) deve obrigatoriamente iniciar com a criação de uma branch dedicada (`git checkout -b <tipo>/<slug>`) a partir da `master`/`main` antes de qualquer alteração em arquivos.
 
-Todo trabalho (nova funcionalidade, correção de bug, ajuste visual, script SQL ou documentação Spec Kit) deve ser realizado, comitado e publicado exclusivamente em uma branch dedicada (`feat/...`, `fix/...`, `chore/...`).
+É estritamente proibido trabalhar diretamente na branch `master` (ou `main`), realizar commit direto na `master`/`main`, executar `git merge` direto na `master`/`main` local ou publicar (`git push`) merges locais diretamente em `origin/master` ou `github/master`, em qualquer projeto ou subprojeto.
+
+Todo trabalho deve ser realizado, comitado e publicado exclusivamente em sua branch dedicada (`feat/...`, `fix/...`, `chore/...`).
 
 A integração na `master`/`main` ocorre exclusivamente por meio de **Merge Request (GitLab)** e **Pull Request (GitHub)** revisados e aprovados pelo usuário. A branch `master`/`main` local somente pode ser atualizada por `git pull`/`git fetch` para refletir merges já consolidados remotamente pelo usuário.
 
