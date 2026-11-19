@@ -74,6 +74,41 @@ public class FcmSenderService {
         }
     }
 
+    public ResultadoEnvioFcm enviarAvisoInstitucional(
+            String tokenFcm,
+            Long mensagemId,
+            String titulo,
+            String corpo,
+            String prioridade) {
+        String token = obrigatorio(tokenFcm, "tokenFcm");
+        String tituloFinal = textoOuPadrao(titulo, "Novo aviso institucional", 100);
+        String corpoFinal = textoOuPadrao(corpo, "Você recebeu uma nova mensagem no MPPB+.", 220);
+        String rota = "/mensagens/" + mensagemId;
+        String tag = notificationTag("MENSAGEM_AVISO", mensagemId);
+
+        Message.Builder builder = Message.builder()
+                .setToken(token)
+                .setNotification(Notification.builder()
+                        .setTitle(tituloFinal)
+                        .setBody(corpoFinal)
+                        .build())
+                .putData("tipo_evento", "MENSAGEM_AVISO")
+                .putData("rota", rota)
+                .putData("mensagem_id", String.valueOf(mensagemId))
+                .setAndroidConfig(androidConfig(tituloFinal, corpoFinal, tag))
+                .setApnsConfig(apnsConfig(tag, true));
+        putDataIfPresent(builder, "prioridade", prioridade);
+
+        try {
+            String messageId = messagingClient.send(builder.build());
+            return ResultadoEnvioFcm.aceito(messageId);
+        } catch (FirebaseMessagingException e) {
+            return classificarErro(e);
+        } catch (RuntimeException e) {
+            return ResultadoEnvioFcm.falhaDesconhecida();
+        }
+    }
+
     public ResultadoEnvioFcm enviarNovaNoticiaTopico(String topic) {
         return enviarNovaNoticiaTopico(topic, null);
     }

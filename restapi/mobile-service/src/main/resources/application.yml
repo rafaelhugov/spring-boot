@@ -167,3 +167,11 @@ app:
     store-url-ios: ${APP_UPDATE_URL_IOS:https://apps.apple.com/app/mppb/id6825377891}
     mensagem: ${APP_UPDATE_MENSAGEM:Uma nova versão do MPPB+ está disponível com importantes melhorias e correções. Atualize para continuar utilizando o aplicativo.}
 
+mensagens:
+  authority-admin: ${MENSAGENS_AUTHORITY_ADMIN:androidmppb.mensagens.admin}
+  storage-path: ${MENSAGENS_STORAGE_PATH:/tmp/mppb-mensagens-storage}
+  max-imagem-bytes: ${MENSAGENS_MAX_IMAGEM_BYTES:10485760}
+  max-audio-bytes: ${MENSAGENS_MAX_AUDIO_BYTES:15728640}
+  max-documento-bytes: ${MENSAGENS_MAX_DOCUMENTO_BYTES:26214400}
+  max-video-bytes: ${MENSAGENS_MAX_VIDEO_BYTES:52428800}
+
