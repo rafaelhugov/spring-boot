@@ -39,6 +39,7 @@ import mppb.restapi.mobile.feature.mensagem.repository.RhDestinatarioRepository;
 import mppb.restapi.mobile.feature.mensagem.repository.RhDestinatarioRepository.DestinatarioRh;
 import mppb.restapi.mobile.feature.perfil.dto.PerfilUsuarioDto;
 import mppb.restapi.mobile.feature.perfil.repository.PerfilUsuarioRepository;
+import mppb.restapi.mobile.feature.synthetic.model.IdentidadeSintetica;
 
 @Service
 @RequiredArgsConstructor
@@ -57,7 +58,12 @@ public class MensagemEnvioService {
         if (request == null || request.modalidade() == null) {
             throw new IllegalArgumentException("A modalidade de envio é obrigatória.");
         }
-        List<DestinatarioRh> destinatarios = resolverDestinatarios(request.modalidade(), request.criterios());
+        boolean remetenteUat = mppb.restapi.mobile.core.security.AutenticacaoAtual.login()
+                .flatMap(IdentidadeSintetica::porLogin)
+                .filter(IdentidadeSintetica::isUat)
+                .isPresent();
+        List<DestinatarioRh> destinatarios = resolverDestinatariosComUat(
+                request.modalidade(), request.criterios(), remetenteUat);
         return new PreviaAlcanceResponse(destinatarios.size());
     }
 
@@ -69,7 +75,15 @@ public class MensagemEnvioService {
             throw new IllegalArgumentException("Informe um texto ou ao menos um anexo/mídia para enviar o aviso.");
         }
 
-        PerfilUsuarioDto perfil = perfilUsuarioRepository.buscarPorLogin(loginRemetente);
+        var sintetica = IdentidadeSintetica.porLogin(loginRemetente);
+        PerfilUsuarioDto perfil = sintetica.map(id -> {
+            PerfilUsuarioDto dto = new PerfilUsuarioDto();
+            dto.setLogin(id.getLogin());
+            dto.setMatricula(id.getMatricula());
+            dto.setNome(id.getNome());
+            return dto;
+        }).orElseGet(() -> perfilUsuarioRepository.buscarPorLogin(loginRemetente));
+
         if (perfil == null || perfil.getMatricula() == null || perfil.getMatricula().isBlank()) {
             throw new IllegalStateException("Não foi possível identificar a matrícula do remetente autenticado.");
         }
@@ -79,10 +93,11 @@ public class MensagemEnvioService {
             throw new IllegalArgumentException("A data de expiração deve ser futura.");
         }
 
+        boolean remetenteUat = sintetica.filter(IdentidadeSintetica::isUat).isPresent();
         boolean agendar = request.dataAgendamento() != null && request.dataAgendamento().isAfter(agora);
         List<DestinatarioRh> destinatarios = agendar
                 ? List.of()
-                : resolverDestinatarios(request.modalidade(), request.criterios());
+                : resolverDestinatariosComUat(request.modalidade(), request.criterios(), remetenteUat);
 
         if (!agendar && destinatarios.isEmpty()) {
             throw new IllegalArgumentException("Nenhum destinatário ativo foi encontrado para os critérios selecionados.");
@@ -203,6 +218,70 @@ public class MensagemEnvioService {
                 criterios.setorIds(),
                 criterios.cargoIds(),
                 new ArrayList<>(matriculasCombinadas));
+    }
+
+    private List<DestinatarioRh> resolverDestinatariosComUat(
+            ModalidadeEnvio modalidade,
+            CriteriosDestinatariosDto criterios,
+            boolean incluirUatEmBroadcastEMulticast) {
+
+        List<DestinatarioRh> base = new ArrayList<>(resolverDestinatarios(modalidade, criterios));
+        List<DestinatarioRh> candidatosUat = List.of(
+                new DestinatarioRh(
+                        IdentidadeSintetica.UAT_MEMBRO.getMatricula(),
+                        IdentidadeSintetica.UAT_MEMBRO.getNome(),
+                        "1ª Promotoria de Justiça (UAT)",
+                        "Promotor de Justiça",
+                        "M"),
+                new DestinatarioRh(
+                        IdentidadeSintetica.UAT_SERVIDOR.getMatricula(),
+                        IdentidadeSintetica.UAT_SERVIDOR.getNome(),
+                        "Diretoria de Tecnologia da Informação (UAT)",
+                        "Analista Ministerial",
+                        "S"));
+
+        Set<String> jaIncluidos = new LinkedHashSet<>();
+        for (DestinatarioRh d : base) {
+            jaIncluidos.add(d.matricula());
+        }
+
+        Set<String> matriculasSolicitadas = new LinkedHashSet<>();
+        if (criterios != null) {
+            if (criterios.matriculas() != null) {
+                matriculasSolicitadas.addAll(criterios.matriculas());
+            }
+            if (criterios.grupoPersonalizadoIds() != null) {
+                for (Long grupoId : criterios.grupoPersonalizadoIds()) {
+                    for (GrupoMensagemMembro m : grupoMensagemMembroRepository.findByGrupoId(grupoId)) {
+                        matriculasSolicitadas.add(m.getMatricula());
+                    }
+                }
+            }
+        }
+
+        for (DestinatarioRh uat : candidatosUat) {
+            if (jaIncluidos.contains(uat.matricula())) {
+                continue;
+            }
+            boolean elegivel = false;
+            if (modalidade == ModalidadeEnvio.BROADCAST && incluirUatEmBroadcastEMulticast) {
+                elegivel = true;
+            } else if (modalidade == ModalidadeEnvio.UNICAST) {
+                elegivel = matriculasSolicitadas.contains(uat.matricula());
+            } else if (modalidade == ModalidadeEnvio.MULTICAST) {
+                boolean porMatricula = matriculasSolicitadas.contains(uat.matricula());
+                boolean porTipo = incluirUatEmBroadcastEMulticast
+                        && criterios != null
+                        && criterios.tiposCargo() != null
+                        && criterios.tiposCargo().stream().anyMatch(t -> uat.tipoCargo().equalsIgnoreCase(t));
+                elegivel = porMatricula || porTipo;
+            }
+            if (elegivel) {
+                base.add(uat);
+                jaIncluidos.add(uat.matricula());
+            }
+        }
+        return base;
     }
 
     private List<MensagemAnexo> vincularAnexos(Long mensagemId, List<Long> anexoIds) {

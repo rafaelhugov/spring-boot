@@ -19,6 +19,7 @@ import mppb.restapi.mobile.feature.mensagem.repository.GrupoMensagemRepository;
 import mppb.restapi.mobile.feature.mensagem.repository.RhDestinatarioRepository;
 import mppb.restapi.mobile.feature.perfil.dto.PerfilUsuarioDto;
 import mppb.restapi.mobile.feature.perfil.repository.PerfilUsuarioRepository;
+import mppb.restapi.mobile.feature.synthetic.model.IdentidadeSintetica;
 
 @Service
 @RequiredArgsConstructor
@@ -40,9 +41,47 @@ public class GrupoMensagemService {
 
     @Transactional(readOnly = true)
     public List<DestinatarioRhResponse> buscarDestinatarios(String termo, int limite) {
-        return rhDestinatarioRepository.buscarPorTexto(termo, limite).stream()
+        List<DestinatarioRhResponse> doRh = rhDestinatarioRepository.buscarPorTexto(termo, limite).stream()
                 .map(DestinatarioRhResponse::from)
                 .toList();
+        if (termo == null || termo.isBlank()) {
+            return doRh;
+        }
+        boolean callerUat = mppb.restapi.mobile.core.security.AutenticacaoAtual.login()
+                .flatMap(IdentidadeSintetica::porLogin)
+                .filter(IdentidadeSintetica::isUat)
+                .isPresent();
+        String t = termo.trim().toLowerCase();
+        boolean buscaExplicitaUat = t.startsWith("90000") || t.contains("uat");
+        if (!callerUat && !buscaExplicitaUat) {
+            return doRh;
+        }
+        List<DestinatarioRhResponse> combinados = new java.util.ArrayList<>(doRh);
+        for (DestinatarioRhResponse uat : destinatariosUatPadrao()) {
+            boolean match = uat.nome().toLowerCase().contains(t)
+                    || uat.matricula().toLowerCase().contains(t)
+                    || t.contains("uat");
+            if (match && combinados.stream().noneMatch(d -> d.matricula().equals(uat.matricula()))) {
+                combinados.add(uat);
+            }
+        }
+        return combinados;
+    }
+
+    private List<DestinatarioRhResponse> destinatariosUatPadrao() {
+        return List.of(
+                new DestinatarioRhResponse(
+                        IdentidadeSintetica.UAT_MEMBRO.getMatricula(),
+                        IdentidadeSintetica.UAT_MEMBRO.getNome(),
+                        "1ª Promotoria de Justiça (UAT)",
+                        "Promotor de Justiça",
+                        "M"),
+                new DestinatarioRhResponse(
+                        IdentidadeSintetica.UAT_SERVIDOR.getMatricula(),
+                        IdentidadeSintetica.UAT_SERVIDOR.getNome(),
+                        "Diretoria de Tecnologia da Informação (UAT)",
+                        "Analista Ministerial",
+                        "S"));
     }
 
     @Transactional(readOnly = true)
@@ -54,10 +93,12 @@ public class GrupoMensagemService {
 
     @Transactional
     public GrupoPersonalizadoResponse criarPersonalizado(String login, GrupoPersonalizadoRequest request) {
-        PerfilUsuarioDto perfil = perfilUsuarioRepository.buscarPorLogin(login);
-        String matriculaCriador = (perfil != null && perfil.getMatricula() != null && !perfil.getMatricula().isBlank())
-                ? perfil.getMatricula()
-                : login;
+        var sintetica = IdentidadeSintetica.porLogin(login);
+        PerfilUsuarioDto perfil = sintetica.isPresent() ? null : perfilUsuarioRepository.buscarPorLogin(login);
+        String matriculaCriador = sintetica.map(IdentidadeSintetica::getMatricula)
+                .orElseGet(() -> (perfil != null && perfil.getMatricula() != null && !perfil.getMatricula().isBlank())
+                        ? perfil.getMatricula()
+                        : login);
 
         GrupoMensagem grupo = new GrupoMensagem();
         grupo.setNome(request.nome().trim());

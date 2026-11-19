@@ -25,6 +25,7 @@ import mppb.restapi.mobile.feature.mensagem.repository.MensagemAvisoRepository;
 import mppb.restapi.mobile.feature.mensagem.repository.MensagemDestinatarioRepository;
 import mppb.restapi.mobile.feature.perfil.dto.PerfilUsuarioDto;
 import mppb.restapi.mobile.feature.perfil.repository.PerfilUsuarioRepository;
+import mppb.restapi.mobile.feature.synthetic.model.IdentidadeSintetica;
 
 @Service
 @RequiredArgsConstructor
@@ -204,6 +205,10 @@ public class MensagemDestinatarioService {
     }
 
     private String resolverMatriculaObrigatoria(String login) {
+        var sintetica = IdentidadeSintetica.porLogin(login);
+        if (sintetica.isPresent()) {
+            return sintetica.get().getMatricula();
+        }
         PerfilUsuarioDto perfil = perfilUsuarioRepository.buscarPorLogin(login);
         if (perfil == null || perfil.getMatricula() == null || perfil.getMatricula().isBlank()) {
             throw new IllegalStateException("Matrícula do usuário autenticado não localizada.");
