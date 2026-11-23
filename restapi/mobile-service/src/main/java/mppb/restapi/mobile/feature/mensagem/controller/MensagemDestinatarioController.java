@@ -141,8 +141,7 @@ public class MensagemDestinatarioController {
 
     private ResourceRegion resolverRegiao(Resource resource, long tamanhoTotal, List<HttpRange> ranges) {
         if (ranges == null || ranges.isEmpty()) {
-            long count = Math.min(CHUNK_SIZE_PADRAO, tamanhoTotal);
-            return new ResourceRegion(resource, 0, count);
+            return new ResourceRegion(resource, 0, tamanhoTotal);
         }
         HttpRange range = ranges.get(0);
         long start = range.getRangeStart(tamanhoTotal);
