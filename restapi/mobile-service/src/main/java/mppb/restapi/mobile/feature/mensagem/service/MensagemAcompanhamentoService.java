@@ -6,6 +6,7 @@ import java.util.Locale;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,10 +33,15 @@ public class MensagemAcompanhamentoService {
     private final MensagemEnvioService mensagemEnvioService;
 
     @Transactional(readOnly = true)
-    public MensagensEnviadasPageResponse listarEnviadas(boolean arquivada, int pagina, int tamanho) {
+    public MensagensEnviadasPageResponse listarEnviadas(
+            String loginRemetente,
+            boolean arquivada,
+            int pagina,
+            int tamanho) {
+        String matricula = mensagemEnvioService.resolverMatriculaObrigatoria(loginRemetente);
         Pageable pageable = PageRequest.of(Math.max(0, pagina), Math.max(1, Math.min(tamanho, 50)));
         Page<MensagemAviso> page = mensagemAvisoRepository
-                .findByArquivadaRemetenteOrderByDataRegistroDesc(arquivada, pageable);
+                .findByRemetenteMatriculaAndArquivadaRemetenteOrderByDataRegistroDesc(matricula, arquivada, pageable);
 
         List<MensagemEnviadaResponse> itens = page.getContent().stream()
                 .map(aviso -> {
@@ -54,14 +60,19 @@ public class MensagemAcompanhamentoService {
 
     @Transactional(readOnly = true)
     public AcompanhamentoMensagemResponse detalhar(
+            String loginRemetente,
             Long id,
             StatusDestinatario status,
             String busca,
             int pagina,
             int tamanho) {
 
+        String matricula = mensagemEnvioService.resolverMatriculaObrigatoria(loginRemetente);
         MensagemAviso aviso = mensagemAvisoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Mensagem não encontrada."));
+        if (!matricula.equals(aviso.getRemetenteMatricula())) {
+            throw new AccessDeniedException("Você não tem permissão para acompanhar este aviso.");
+        }
 
         List<MensagemAnexo> anexos = mensagemAnexoRepository.findByMensagemIdOrderByIdAsc(aviso.getId());
         MensagemEnviadaResponse resumo = mensagemEnvioService.montarResumo(aviso, anexos);

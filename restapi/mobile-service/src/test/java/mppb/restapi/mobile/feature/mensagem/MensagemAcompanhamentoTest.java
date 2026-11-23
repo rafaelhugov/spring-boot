@@ -20,6 +20,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -83,7 +84,8 @@ class MensagemAcompanhamentoTest {
     @DisplayName("Deve listar mensagens enviadas paginadas com totais consolidados")
     void deveListarEnviadasComContadoresConsolidados() {
         MensagemAviso aviso = criarAviso(10L, "Aviso Geral");
-        when(avisoRepo.findByArquivadaRemetenteOrderByDataRegistroDesc(false, PageRequest.of(0, 20)))
+        when(avisoRepo.findByRemetenteMatriculaAndArquivadaRemetenteOrderByDataRegistroDesc(
+                "900001", false, PageRequest.of(0, 20)))
                 .thenReturn(new PageImpl<>(List.of(aviso), PageRequest.of(0, 20), 1));
 
         MensagemAnexo anexo = new MensagemAnexo();
@@ -99,7 +101,7 @@ class MensagemAcompanhamentoTest {
         when(destRepo.countByMensagemIdAndStatus(10L, StatusDestinatario.LIDO)).thenReturn(5L);
         when(destRepo.countByMensagemIdAndDataCienciaIsNotNull(10L)).thenReturn(4L);
 
-        MensagensEnviadasPageResponse resp = service.listarEnviadas(false, 0, 20);
+        MensagensEnviadasPageResponse resp = service.listarEnviadas("uat.membro", false, 0, 20);
 
         assertEquals(1, resp.itens().size());
         assertEquals(1L, resp.totalElementos());
@@ -139,7 +141,7 @@ class MensagemAcompanhamentoTest {
                 eq(PageRequest.of(0, 20))))
                 .thenReturn(new PageImpl<>(List.of(dest), PageRequest.of(0, 20), 1));
 
-        AcompanhamentoMensagemResponse resp = service.detalhar(10L, StatusDestinatario.LIDO, "  Maria ", 0, 20);
+        AcompanhamentoMensagemResponse resp = service.detalhar("uat.membro", 10L, StatusDestinatario.LIDO, "  Maria ", 0, 20);
 
         assertEquals(10L, resp.resumo().id());
         assertEquals(1, resp.destinatarios().size());
@@ -157,17 +159,20 @@ class MensagemAcompanhamentoTest {
         when(destRepo.filtrarAcompanhamento(eq(20L), isNull(), isNull(), any()))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 100), 0));
 
-        AcompanhamentoMensagemResponse resp = service.detalhar(20L, null, "   ", -1, 500);
+        AcompanhamentoMensagemResponse resp = service.detalhar("uat.membro", 20L, null, "   ", -1, 500);
         assertEquals(0, resp.destinatarios().size());
         verify(destRepo).filtrarAcompanhamento(20L, null, null, PageRequest.of(0, 100));
 
+        assertThrows(AccessDeniedException.class, () -> service.detalhar("uat.servidor", 20L, null, null, 0, 20));
+
         when(avisoRepo.findById(999L)).thenReturn(Optional.empty());
-        assertThrows(IllegalArgumentException.class, () -> service.detalhar(999L, null, null, 0, 20));
+        assertThrows(IllegalArgumentException.class, () -> service.detalhar("uat.membro", 999L, null, null, 0, 20));
     }
 
     private MensagemAviso criarAviso(Long id, String titulo) {
         MensagemAviso aviso = new MensagemAviso();
         aviso.setId(id);
+        aviso.setRemetenteMatricula("900001");
         aviso.setTitulo(titulo);
         aviso.setConteudo("Conteúdo do aviso");
         aviso.setPrioridade(PrioridadeMensagem.NORMAL);

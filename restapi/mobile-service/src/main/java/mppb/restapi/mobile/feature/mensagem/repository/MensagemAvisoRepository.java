@@ -19,5 +19,10 @@ public interface MensagemAvisoRepository extends JpaRepository<MensagemAviso, Lo
     Page<MensagemAviso> findByArquivadaRemetenteFalseOrderByDataRegistroDesc(Pageable pageable);
 
     Page<MensagemAviso> findByArquivadaRemetenteOrderByDataRegistroDesc(boolean arquivadaRemetente, Pageable pageable);
+
+    Page<MensagemAviso> findByRemetenteMatriculaAndArquivadaRemetenteOrderByDataRegistroDesc(
+            String remetenteMatricula,
+            boolean arquivadaRemetente,
+            Pageable pageable);
 }
 

@@ -73,7 +73,9 @@ public class MensagemRemetenteController {
 
     @PatchMapping("/{id}/cancelar")
     public ResponseEntity<Void> cancelar(@PathVariable Long id) {
-        mensagemEnvioService.cancelarAgendada(id);
+        String login = AutenticacaoAtual.login()
+                .orElseThrow(() -> new IllegalStateException("Usuário autenticado não identificado."));
+        mensagemEnvioService.cancelarAgendada(id, login);
         return ResponseEntity.noContent().build();
     }
 
@@ -81,7 +83,9 @@ public class MensagemRemetenteController {
     public ResponseEntity<Void> arquivar(
             @PathVariable Long id,
             @RequestParam(defaultValue = "true") boolean arquivada) {
-        mensagemEnvioService.arquivarRemetente(id, arquivada);
+        String login = AutenticacaoAtual.login()
+                .orElseThrow(() -> new IllegalStateException("Usuário autenticado não identificado."));
+        mensagemEnvioService.arquivarRemetente(id, arquivada, login);
         return ResponseEntity.noContent().build();
     }
 }
