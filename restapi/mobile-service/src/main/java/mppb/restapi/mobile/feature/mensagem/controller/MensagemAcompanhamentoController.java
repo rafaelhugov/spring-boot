@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.RequiredArgsConstructor;
+import mppb.restapi.mobile.core.security.AutenticacaoAtual;
 import mppb.restapi.mobile.feature.mensagem.dto.AcompanhamentoMensagemResponse;
 import mppb.restapi.mobile.feature.mensagem.dto.MensagensEnviadasPageResponse;
 import mppb.restapi.mobile.feature.mensagem.enums.StatusDestinatario;
@@ -27,7 +28,9 @@ public class MensagemAcompanhamentoController {
             @RequestParam(defaultValue = "false") boolean arquivada,
             @RequestParam(defaultValue = "0") int pagina,
             @RequestParam(defaultValue = "20") int tamanho) {
-        return ResponseEntity.ok(mensagemAcompanhamentoService.listarEnviadas(arquivada, pagina, tamanho));
+        String login = AutenticacaoAtual.login()
+                .orElseThrow(() -> new IllegalStateException("Usuário autenticado não identificado."));
+        return ResponseEntity.ok(mensagemAcompanhamentoService.listarEnviadas(login, arquivada, pagina, tamanho));
     }
 
     @GetMapping("/{id}/acompanhamento")
@@ -37,6 +40,8 @@ public class MensagemAcompanhamentoController {
             @RequestParam(required = false) String busca,
             @RequestParam(defaultValue = "0") int pagina,
             @RequestParam(defaultValue = "20") int tamanho) {
-        return ResponseEntity.ok(mensagemAcompanhamentoService.detalhar(id, status, busca, pagina, tamanho));
+        String login = AutenticacaoAtual.login()
+                .orElseThrow(() -> new IllegalStateException("Usuário autenticado não identificado."));
+        return ResponseEntity.ok(mensagemAcompanhamentoService.detalhar(login, id, status, busca, pagina, tamanho));
     }
 }

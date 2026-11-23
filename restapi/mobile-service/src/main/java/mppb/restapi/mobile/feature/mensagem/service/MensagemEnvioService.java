@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -154,10 +155,26 @@ public class MensagemEnvioService {
         return processadas;
     }
 
+    public String resolverMatriculaObrigatoria(String login) {
+        var sintetica = IdentidadeSintetica.porLogin(login);
+        if (sintetica.isPresent()) {
+            return sintetica.get().getMatricula();
+        }
+        PerfilUsuarioDto perfil = perfilUsuarioRepository.buscarPorLogin(login);
+        if (perfil == null || perfil.getMatricula() == null || perfil.getMatricula().isBlank()) {
+            throw new IllegalStateException("Não foi possível identificar a matrícula do remetente autenticado.");
+        }
+        return perfil.getMatricula();
+    }
+
     @Transactional
-    public void cancelarAgendada(Long id) {
+    public void cancelarAgendada(Long id, String loginRemetente) {
+        String matricula = resolverMatriculaObrigatoria(loginRemetente);
         MensagemAviso aviso = mensagemAvisoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Mensagem não encontrada."));
+        if (!matricula.equals(aviso.getRemetenteMatricula())) {
+            throw new AccessDeniedException("Você não tem permissão para cancelar este aviso.");
+        }
         if (aviso.getStatusPublicacao() != StatusPublicacao.AGENDADA) {
             throw new IllegalStateException("Somente mensagens agendadas podem ser canceladas.");
         }
@@ -166,9 +183,13 @@ public class MensagemEnvioService {
     }
 
     @Transactional
-    public void arquivarRemetente(Long id, boolean arquivada) {
+    public void arquivarRemetente(Long id, boolean arquivada, String loginRemetente) {
+        String matricula = resolverMatriculaObrigatoria(loginRemetente);
         MensagemAviso aviso = mensagemAvisoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Mensagem não encontrada."));
+        if (!matricula.equals(aviso.getRemetenteMatricula())) {
+            throw new AccessDeniedException("Você não tem permissão para arquivar este aviso.");
+        }
         aviso.setArquivadaRemetente(arquivada);
         mensagemAvisoRepository.save(aviso);
     }
