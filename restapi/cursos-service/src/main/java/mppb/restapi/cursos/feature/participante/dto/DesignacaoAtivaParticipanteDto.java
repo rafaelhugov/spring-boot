@@ -24,3 +24,4 @@ public class DesignacaoAtivaParticipanteDto {
     private LocalDate dataFinal;
     private LocalDate dataPublicacao;
 }
+

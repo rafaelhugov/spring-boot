@@ -10,7 +10,7 @@ No Sistema de Cursos (`cursos-service`), os participantes inscritos do tipo `INT
 - **RF-04 — Exportação Excel (`InscricaoExcelExporter`)**: O arquivo `.xlsx` exportado pelo endpoint de participantes deve incluir as colunas `Lotação` e `Designação`, preenchendo com o valor correspondente quando `INTERNO` (ou vazio `""` quando nulo ou `EXTERNO`).
 
 ## 3. Regras de Negócio e Fonte de Dados
-- **Lotação**: Obtida via `public.servidor` (`s.id_setor`) -> `public.setor st` (`st.excluido = false`) -> `public.orgao o` -> `public.pessoa po`, utilizando `COALESCE(NULLIF(TRIM(st.nome), ''), NULLIF(TRIM(po.nome), ''), NULLIF(TRIM(o.sigla), ''))`.
+- **Lotação**: Obtida via `diariooficial.mapa_por_membro_vw` (`ativo = 'A'`), utilizando `designacao_tipoletra = 'T'` (Titularidade) quando `Membro` e `designacao_tipoletra = 'L'` (Lotação) quando `Servidor` (com fallback para `public.setor` / `public.orgao`).
 - **Designação**: Obtida via `diariooficial.mapa_por_membro_vw m` com `m.ativo = 'A'` e `m.servidor_matricula::text = s.matricula`, retornando **todas** as designações ativas distintas concatenadas por `; ` utilizando apenas os campos `m.funcao_nome` e `m.orgao_nome` (ex.: `funcao_nome - orgao_nome` quando ambos existem e são distintos, ou apenas o campo preenchido).
 
 ## 4. Critérios de Aceitação

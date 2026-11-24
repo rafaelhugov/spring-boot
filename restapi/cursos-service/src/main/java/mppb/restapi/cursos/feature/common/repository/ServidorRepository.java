@@ -79,7 +79,21 @@ public interface ServidorRepository extends BaseRepository<Servidor, Long> {
                         "    CASE WHEN tc.tipo = 'S' THEN 'Servidor' ELSE 'Membro' END AS tipoCargoNome, " +
                         "    CASE WHEN s.ativo = 'A' THEN 'ATIVO' ELSE 'INATIVO' END   AS situacao, " +
                         "    s.datasaida                                              AS dataSaida, " +
-                        "    COALESCE(NULLIF(TRIM(st.nome), ''), NULLIF(TRIM(po.nome), ''), NULLIF(TRIM(o.sigla), '')) AS lotacaoNome, " +
+                        "    COALESCE( " +
+                        "        (SELECT STRING_AGG(lot, '; ') " +
+                        "         FROM ( " +
+                        "             SELECT DISTINCT " +
+                        "                 COALESCE(NULLIF(TRIM(m.orgao_nome), ''), NULLIF(TRIM(m.orgao_execucao_nome), ''), NULLIF(TRIM(m.funcao_nome), '')) AS lot " +
+                        "             FROM diariooficial.mapa_por_membro_vw m " +
+                        "             WHERE m.ativo = 'A' " +
+                        "               AND m.servidor_matricula::text = s.matricula " +
+                        "               AND UPPER(TRIM(m.designacao_tipoletra)) = CASE WHEN tc.tipo = 'S' THEN 'L' ELSE 'T' END " +
+                        "               AND (NULLIF(TRIM(m.orgao_nome), '') IS NOT NULL OR NULLIF(TRIM(m.orgao_execucao_nome), '') IS NOT NULL OR NULLIF(TRIM(m.funcao_nome), '') IS NOT NULL) " +
+                        "         ) sub_lot), " +
+                        "        NULLIF(TRIM(st.nome), ''), " +
+                        "        NULLIF(TRIM(po.nome), ''), " +
+                        "        NULLIF(TRIM(o.sigla), '') " +
+                        "    ) AS lotacaoNome, " +
                         "    (SELECT STRING_AGG(desig, '; ') " +
                         "     FROM ( " +
                         "         SELECT DISTINCT " +
