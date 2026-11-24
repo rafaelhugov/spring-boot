@@ -2,6 +2,7 @@ target/
 .env
 .env.dev
 .env.prod
+/.env_tpl
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
