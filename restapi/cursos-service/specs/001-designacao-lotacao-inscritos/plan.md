@@ -23,3 +23,4 @@ A solução aproveita o fluxo centralizado de enriquecimento em `ParticipanteSer
 
 ## 3. Verificação
 - Executar `mvn test -pl cursos-service` (ou `mvn -Dtest=... test`) no diretório `spring-boot/restapi`.
+

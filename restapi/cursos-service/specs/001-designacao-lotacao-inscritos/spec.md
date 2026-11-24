@@ -11,9 +11,10 @@ No Sistema de Cursos (`cursos-service`), os participantes inscritos do tipo `INT
 
 ## 3. Regras de Negócio e Fonte de Dados
 - **Lotação**: Obtida via `public.servidor` (`s.id_setor`) -> `public.setor st` (`st.excluido = false`) -> `public.orgao o` -> `public.pessoa po`, utilizando `COALESCE(NULLIF(TRIM(st.nome), ''), NULLIF(TRIM(po.nome), ''), NULLIF(TRIM(o.sigla), ''))`.
-- **Designação**: Obtida via `diariooficial.mapa_por_membro_vw m` com `m.ativo = 'A'` e `m.servidor_matricula::text = s.matricula`, priorizando função/titularidade/substituição (`F` > `T` > `S` > `L`) e data inicial mais recente (`m.designacao_data_inicial DESC NULLS LAST, m.designacao_id DESC`), retornando `COALESCE(NULLIF(TRIM(m.funcao_nome), ''), NULLIF(TRIM(m.orgao_execucao_nome), ''), NULLIF(TRIM(m.orgao_nome), ''))`.
+- **Designação**: Obtida via `diariooficial.mapa_por_membro_vw m` com `m.ativo = 'A'` e `m.servidor_matricula::text = s.matricula`, retornando **todas** as designações ativas distintas concatenadas por `; ` utilizando apenas os campos `m.funcao_nome` e `m.orgao_nome` (ex.: `funcao_nome - orgao_nome` quando ambos existem e são distintos, ou apenas o campo preenchido).
 
 ## 4. Critérios de Aceitação
 - `GET /api/cursos/{cursoId}/participantes` retorna `participante.lotacao` e `participante.designacao` preenchidos para inscritos `INTERNO` (quando existentes no banco) e `null` para inscritos `EXTERNO`.
 - `GET /api/cursos/{cursoId}/participantes/export` gera planilha Excel com as colunas `Lotação` e `Designação` (em branco para externos).
 - Todos os testes unitários e de compilação do `cursos-service` passam após as alterações.
+
