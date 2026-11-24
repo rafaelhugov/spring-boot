@@ -1,8 +1,10 @@
 package mppb.restapi.mobile.feature.mensagem.repository;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -102,16 +104,22 @@ public class RhDestinatarioRepository {
         return new ArrayList<>(deduplicados.values());
     }
 
+    private static final String ACENTUADAS = "áàâãäéèêëíìîïóòôõöúùûüçñýÿ";
+    private static final String SEM_ACENTO = "aaaaaeeeeiiiiooooouuuucnyy";
+
     public List<DestinatarioRh> buscarPorTexto(String termo, int limite) {
         if (termo == null || termo.isBlank()) {
             return List.of();
         }
-        String pattern = "%" + termo.trim().toLowerCase() + "%";
+        String termoNormalizado = Normalizer.normalize(termo.trim().toLowerCase(Locale.ROOT), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+        String pattern = "%" + termoNormalizado + "%";
         String sql = """
                 select * from (
                 """ + BASE_SELECT + """
-                  and (lower(coalesce(p.nome, '')) like :termo or lower(s.matricula) like :termo)
-                """ + ORDER_DISTINCT + """
+                  and (translate(lower(coalesce(p.nome, '')), '%s', '%s') like :termo
+                       or lower(s.matricula) like :termo)
+                """.formatted(ACENTUADAS, SEM_ACENTO) + ORDER_DISTINCT + """
                 ) sub
                 order by sub.nome asc
                 limit :limite

@@ -135,4 +135,37 @@ class GrupoMensagemTest {
         when(grupoRepo.findByIdAndAtivoTrue(999L)).thenReturn(Optional.empty());
         assertThrows(IllegalArgumentException.class, () -> service.removerPersonalizado(999L));
     }
+
+    @Test
+    @DisplayName("Deve configurar deleteByGrupoId com @Modifying flush/clear para evitar violação de chave ao editar grupo")
+    void deveConfigurarDeleteByGrupoIdComModifying() throws NoSuchMethodException {
+        var method = GrupoMensagemMembroRepository.class.getMethod("deleteByGrupoId", Long.class);
+        var modifying = method.getAnnotation(org.springframework.data.jpa.repository.Modifying.class);
+        var query = method.getAnnotation(org.springframework.data.jpa.repository.Query.class);
+        assertNotNull(modifying);
+        assertTrue(modifying.flushAutomatically());
+        assertTrue(modifying.clearAutomatically());
+        assertNotNull(query);
+    }
+
+    @Test
+    @DisplayName("Deve normalizar acentos ao buscar destinatários por texto no RH")
+    void deveNormalizarAcentosNaBuscaDeDestinatarios() {
+        var jdbc = mock(org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate.class);
+        var captorSql = org.mockito.ArgumentCaptor.forClass(String.class);
+        var captorParams = org.mockito.ArgumentCaptor.forClass(
+                org.springframework.jdbc.core.namedparam.MapSqlParameterSource.class);
+        when(jdbc.query(
+                captorSql.capture(),
+                captorParams.capture(),
+                any(org.springframework.jdbc.core.RowMapper.class)))
+                .thenReturn(List.of(new DestinatarioRh("2001", "João Pereira", "DTI", "Analista", "S")));
+
+        RhDestinatarioRepository repo = new RhDestinatarioRepository(jdbc);
+        List<DestinatarioRh> result = repo.buscarPorTexto("João", 20);
+
+        assertEquals(1, result.size());
+        assertTrue(captorSql.getValue().contains("translate(lower(coalesce(p.nome, ''))"));
+        assertEquals("%joao%", captorParams.getValue().getValue("termo"));
+    }
 }
