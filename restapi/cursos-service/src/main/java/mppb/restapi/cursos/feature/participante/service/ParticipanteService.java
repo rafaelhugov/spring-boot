@@ -10,6 +10,7 @@ import mppb.restapi.cursos.feature.curso.entity.Curso;
 import mppb.restapi.cursos.feature.curso.repository.CursoRepository;
 import mppb.restapi.cursos.feature.participante.converter.ParticipanteConverter;
 import mppb.restapi.cursos.feature.participante.dto.CriarInscricaoDto;
+import mppb.restapi.cursos.feature.participante.dto.DesignacaoAtivaParticipanteDto;
 import mppb.restapi.cursos.feature.participante.dto.InscricaoPublicaDto;
 import mppb.restapi.cursos.feature.participante.dto.ParticipanteDto;
 import mppb.restapi.cursos.feature.participante.dto.ParticipanteSearchResultDto;
@@ -119,6 +120,30 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
             dto.setDesignacao(null);
         }
         return dto;
+    }
+
+    /**
+     * Lista todas as designações ativas (GEP/Diário Oficial) de um servidor interno.
+     */
+    @Transactional(readOnly = true)
+    public List<DesignacaoAtivaParticipanteDto> buscarDesignacoesAtivasPorServidor(Integer idServidor) {
+        if (idServidor == null) {
+            return List.of();
+        }
+        return servidorService.buscarDesignacoesAtivasPorServidorId(idServidor).stream()
+                .map(p -> DesignacaoAtivaParticipanteDto.builder()
+                        .designacaoId(p.getDesignacaoId())
+                        .tipoLetra(p.getTipoLetra())
+                        .tipoDescricao(p.getTipoDescricao())
+                        .funcaoNome(p.getFuncaoNome())
+                        .orgaoNome(p.getOrgaoNome())
+                        .orgaoExecucaoNome(p.getOrgaoExecucaoNome())
+                        .atoNumero(p.getAtoNumero())
+                        .dataInicial(p.getDataInicial())
+                        .dataFinal(p.getDataFinal())
+                        .dataPublicacao(p.getDataPublicacao())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     /**

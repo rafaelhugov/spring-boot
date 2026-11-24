@@ -3,6 +3,7 @@ package mppb.restapi.cursos.feature.common.service;
 import jakarta.persistence.EntityManager;
 import mppb.restapi.common.core.service.AbstractService;
 import mppb.restapi.cursos.feature.common.entities.Servidor;
+import mppb.restapi.cursos.feature.common.projection.DesignacaoAtivaParticipanteProjection;
 import mppb.restapi.cursos.feature.curso.repository.CursoRepository;
 import org.springframework.transaction.annotation.Transactional;
 import mppb.restapi.cursos.feature.common.projection.ServidorProjection;
@@ -47,6 +48,11 @@ public class ServidorService extends AbstractService<Servidor, Long> {
     @Transactional(readOnly = true)
     public Optional<Integer> findIdServidorByLogin(String login) {
         return servidorRepository.findIdServidorByLogin(login);
+    }
+
+    @Transactional(readOnly = true)
+    public List<DesignacaoAtivaParticipanteProjection> buscarDesignacoesAtivasPorServidorId(Integer idServidor) {
+        return servidorRepository.buscarDesignacoesAtivasPorServidorId(idServidor);
     }
 
 }

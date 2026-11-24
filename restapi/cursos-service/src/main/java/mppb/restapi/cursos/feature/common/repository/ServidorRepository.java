@@ -2,6 +2,7 @@ package mppb.restapi.cursos.feature.common.repository;
 
 import mppb.restapi.common.core.repository.BaseRepository;
 import mppb.restapi.cursos.feature.common.entities.Servidor;
+import mppb.restapi.cursos.feature.common.projection.DesignacaoAtivaParticipanteProjection;
 import org.springframework.data.jpa.repository.Query;
 import mppb.restapi.cursos.feature.common.projection.ServidorProjection;
 import org.springframework.data.repository.query.Param;
@@ -144,5 +145,26 @@ public interface ServidorRepository extends BaseRepository<Servidor, Long> {
                         "AND s.ativo = 'A' " +
                         "LIMIT 1", nativeQuery = true)
         Optional<Integer> findIdServidorByLogin(@Param("login") String login);
+
+        @Query(value = "SELECT " +
+                        "    m.designacao_id AS designacaoId, " +
+                        "    TRIM(m.designacao_tipoletra) AS tipoLetra, " +
+                        "    m.designacao_tipo AS tipoDescricao, " +
+                        "    m.funcao_nome AS funcaoNome, " +
+                        "    m.orgao_nome AS orgaoNome, " +
+                        "    m.orgao_execucao_nome AS orgaoExecucaoNome, " +
+                        "    m.ato_numero AS atoNumero, " +
+                        "    m.designacao_data_inicial AS dataInicial, " +
+                        "    m.designacao_data_final AS dataFinal, " +
+                        "    m.diario_oficial_data_publicacao AS dataPublicacao " +
+                        "FROM public.servidor s " +
+                        "JOIN diariooficial.mapa_por_membro_vw m ON m.servidor_matricula::text = s.matricula " +
+                        "WHERE s.id = :idServidor " +
+                        "  AND m.ativo = 'A' " +
+                        "ORDER BY " +
+                        "    CASE WHEN UPPER(TRIM(m.designacao_tipoletra)) = 'F' THEN 0 ELSE 1 END, " +
+                        "    m.designacao_data_inicial DESC NULLS LAST, " +
+                        "    m.designacao_id DESC", nativeQuery = true)
+        List<DesignacaoAtivaParticipanteProjection> buscarDesignacoesAtivasPorServidorId(@Param("idServidor") Integer idServidor);
 
 }

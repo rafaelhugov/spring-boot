@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonView;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import mppb.restapi.cursos.feature.participante.dto.DesignacaoAtivaParticipanteDto;
 import mppb.restapi.cursos.feature.participante.dto.ParticipanteSearchResultDto;
 import mppb.restapi.cursos.feature.participante.dto.ParticipanteView;
 import mppb.restapi.cursos.feature.participante.service.ParticipanteService;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -46,5 +48,15 @@ public class ParticipanteController {
 
         List<ParticipanteSearchResultDto> results = participanteService.searchParticipantes(searchTerm, cursoId);
         return ResponseEntity.ok(results);
+    }
+
+    @Operation(
+            summary = "Lista as designações ativas de um servidor",
+            description = "Retorna as funções e designações ativas (GEP/Diário Oficial) do participante interno."
+    )
+    @GetMapping("/servidor/{idServidor}/designacoes-ativas")
+    public ResponseEntity<List<DesignacaoAtivaParticipanteDto>> buscarDesignacoesAtivas(
+            @PathVariable Integer idServidor) {
+        return ResponseEntity.ok(participanteService.buscarDesignacoesAtivasPorServidor(idServidor));
     }
 }
