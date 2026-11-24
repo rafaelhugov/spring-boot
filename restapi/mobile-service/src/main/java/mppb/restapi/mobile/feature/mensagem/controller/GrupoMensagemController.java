@@ -39,29 +39,33 @@ public class GrupoMensagemController {
 
     @GetMapping("/grupos/personalizados")
     public ResponseEntity<List<GrupoPersonalizadoResponse>> listarPersonalizados() {
-        return ResponseEntity.ok(grupoMensagemService.listarPersonalizados());
+        return ResponseEntity.ok(grupoMensagemService.listarPersonalizados(loginAutenticado()));
     }
 
     @PostMapping("/grupos/personalizados")
     public ResponseEntity<GrupoPersonalizadoResponse> criarPersonalizado(
             @Valid @RequestBody GrupoPersonalizadoRequest request) {
-        String login = AutenticacaoAtual.login()
-                .orElseThrow(() -> new IllegalStateException("Usuário autenticado não identificado."));
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(grupoMensagemService.criarPersonalizado(login, request));
+                .body(grupoMensagemService.criarPersonalizado(loginAutenticado(), request));
     }
 
     @PutMapping("/grupos/personalizados/{id}")
     public ResponseEntity<GrupoPersonalizadoResponse> atualizarPersonalizado(
             @PathVariable Long id,
             @Valid @RequestBody GrupoPersonalizadoRequest request) {
-        return ResponseEntity.ok(grupoMensagemService.atualizarPersonalizado(id, request));
+        return ResponseEntity.ok(
+                grupoMensagemService.atualizarPersonalizado(loginAutenticado(), id, request));
     }
 
     @DeleteMapping("/grupos/personalizados/{id}")
     public ResponseEntity<Void> removerPersonalizado(@PathVariable Long id) {
-        grupoMensagemService.removerPersonalizado(id);
+        grupoMensagemService.removerPersonalizado(loginAutenticado(), id);
         return ResponseEntity.noContent().build();
+    }
+
+    private String loginAutenticado() {
+        return AutenticacaoAtual.login()
+                .orElseThrow(() -> new IllegalStateException("Usuário autenticado não identificado."));
     }
 
     @GetMapping("/destinatarios/buscar")

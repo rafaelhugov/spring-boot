@@ -9,8 +9,8 @@ import mppb.restapi.mobile.feature.mensagem.entity.GrupoMensagem;
 
 public interface GrupoMensagemRepository extends JpaRepository<GrupoMensagem, Long> {
 
-    List<GrupoMensagem> findByAtivoTrueOrderByNomeAsc();
+    List<GrupoMensagem> findByAtivoTrueAndCriadoPorMatriculaOrderByNomeAsc(String criadoPorMatricula);
 
-    Optional<GrupoMensagem> findByIdAndAtivoTrue(Long id);
+    Optional<GrupoMensagem> findByIdAndAtivoTrueAndCriadoPorMatricula(Long id, String criadoPorMatricula);
 }
 

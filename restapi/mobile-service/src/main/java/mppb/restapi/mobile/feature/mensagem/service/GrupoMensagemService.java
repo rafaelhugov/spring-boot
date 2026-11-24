@@ -94,20 +94,16 @@ public class GrupoMensagemService {
     }
 
     @Transactional(readOnly = true)
-    public List<GrupoPersonalizadoResponse> listarPersonalizados() {
-        return grupoRepository.findByAtivoTrueOrderByNomeAsc().stream()
+    public List<GrupoPersonalizadoResponse> listarPersonalizados(String login) {
+        String matricula = resolverMatriculaUsuario(login);
+        return grupoRepository.findByAtivoTrueAndCriadoPorMatriculaOrderByNomeAsc(matricula).stream()
                 .map(this::toResponse)
                 .toList();
     }
 
     @Transactional
     public GrupoPersonalizadoResponse criarPersonalizado(String login, GrupoPersonalizadoRequest request) {
-        var sintetica = IdentidadeSintetica.porLogin(login);
-        PerfilUsuarioDto perfil = sintetica.isPresent() ? null : perfilUsuarioRepository.buscarPorLogin(login);
-        String matriculaCriador = sintetica.map(IdentidadeSintetica::getMatricula)
-                .orElseGet(() -> (perfil != null && perfil.getMatricula() != null && !perfil.getMatricula().isBlank())
-                        ? perfil.getMatricula()
-                        : login);
+        String matriculaCriador = resolverMatriculaUsuario(login);
 
         GrupoMensagem grupo = new GrupoMensagem();
         grupo.setNome(request.nome().trim());
@@ -121,8 +117,12 @@ public class GrupoMensagemService {
     }
 
     @Transactional
-    public GrupoPersonalizadoResponse atualizarPersonalizado(Long id, GrupoPersonalizadoRequest request) {
-        GrupoMensagem grupo = grupoRepository.findByIdAndAtivoTrue(id)
+    public GrupoPersonalizadoResponse atualizarPersonalizado(
+            String login,
+            Long id,
+            GrupoPersonalizadoRequest request) {
+        String matricula = resolverMatriculaUsuario(login);
+        GrupoMensagem grupo = grupoRepository.findByIdAndAtivoTrueAndCriadoPorMatricula(id, matricula)
                 .orElseThrow(() -> new IllegalArgumentException("Grupo personalizado não encontrado."));
         grupo.setNome(request.nome().trim());
         grupo.setDescricao(request.descricao() == null ? null : request.descricao().trim());
@@ -134,11 +134,21 @@ public class GrupoMensagemService {
     }
 
     @Transactional
-    public void removerPersonalizado(Long id) {
-        GrupoMensagem grupo = grupoRepository.findByIdAndAtivoTrue(id)
+    public void removerPersonalizado(String login, Long id) {
+        String matricula = resolverMatriculaUsuario(login);
+        GrupoMensagem grupo = grupoRepository.findByIdAndAtivoTrueAndCriadoPorMatricula(id, matricula)
                 .orElseThrow(() -> new IllegalArgumentException("Grupo personalizado não encontrado."));
         grupo.setAtivo(false);
         grupoRepository.save(grupo);
+    }
+
+    private String resolverMatriculaUsuario(String login) {
+        var sintetica = IdentidadeSintetica.porLogin(login);
+        PerfilUsuarioDto perfil = sintetica.isPresent() ? null : perfilUsuarioRepository.buscarPorLogin(login);
+        return sintetica.map(IdentidadeSintetica::getMatricula)
+                .orElseGet(() -> (perfil != null && perfil.getMatricula() != null && !perfil.getMatricula().isBlank())
+                        ? perfil.getMatricula()
+                        : login);
     }
 
     private void salvarMembros(Long grupoId, List<String> matriculas) {

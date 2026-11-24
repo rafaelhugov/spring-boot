@@ -7,3 +7,5 @@
 ## Requisitos
 1. Garantir exclusão imediata dos vínculos antigos (`@Modifying(clearAutomatically = true, flushAutomatically = true)`) e persistência completa de nome, descrição e membros na edição de grupos.
 2. Normalizar acentos no termo buscado e na coluna `p.nome` via `translate(...)` no PostgreSQL e `Normalizer` em Java.
+3. Isolar os grupos personalizados por usuário (`criadoPorMatricula`), impedindo compartilhamento, listagem, edição ou remoção entre usuários distintos.
+

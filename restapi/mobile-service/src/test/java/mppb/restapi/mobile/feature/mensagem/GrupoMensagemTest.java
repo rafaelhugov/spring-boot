@@ -117,23 +117,41 @@ class GrupoMensagemTest {
         GrupoMensagem existente = new GrupoMensagem();
         existente.setId(7L);
         existente.setNome("Comitê TI");
+        existente.setCriadoPorMatricula("1001");
         existente.setAtivo(true);
-        when(grupoRepo.findByIdAndAtivoTrue(7L)).thenReturn(Optional.of(existente));
+        when(grupoRepo.findByIdAndAtivoTrueAndCriadoPorMatricula(7L, "1001"))
+                .thenReturn(Optional.of(existente));
 
-        when(grupoRepo.findByAtivoTrueOrderByNomeAsc()).thenReturn(List.of(existente));
-        assertEquals(1, service.listarPersonalizados().size());
+        when(grupoRepo.findByAtivoTrueAndCriadoPorMatriculaOrderByNomeAsc("1001"))
+                .thenReturn(List.of(existente));
+        assertEquals(1, service.listarPersonalizados("admin.msg").size());
+
+        PerfilUsuarioDto outro = new PerfilUsuarioDto();
+        outro.setMatricula("9999");
+        when(perfilRepo.buscarPorLogin("outro.usuario")).thenReturn(outro);
+        when(grupoRepo.findByAtivoTrueAndCriadoPorMatriculaOrderByNomeAsc("9999")).thenReturn(List.of());
+        when(grupoRepo.findByIdAndAtivoTrueAndCriadoPorMatricula(7L, "9999")).thenReturn(Optional.empty());
+        assertEquals(0, service.listarPersonalizados("outro.usuario").size());
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> service.atualizarPersonalizado(
+                        "outro.usuario",
+                        7L,
+                        new GrupoPersonalizadoRequest("Invasão", null, List.of("2001"))));
+        assertThrows(IllegalArgumentException.class, () -> service.removerPersonalizado("outro.usuario", 7L));
 
         GrupoPersonalizadoResponse atualizado = service.atualizarPersonalizado(
+                "admin.msg",
                 7L,
                 new GrupoPersonalizadoRequest("Comitê TI v2", null, List.of("2001")));
         assertEquals("Comitê TI v2", atualizado.nome());
         verify(membroRepo).deleteByGrupoId(7L);
 
-        service.removerPersonalizado(7L);
+        service.removerPersonalizado("admin.msg", 7L);
         assertFalse(existente.isAtivo());
 
-        when(grupoRepo.findByIdAndAtivoTrue(999L)).thenReturn(Optional.empty());
-        assertThrows(IllegalArgumentException.class, () -> service.removerPersonalizado(999L));
+        when(grupoRepo.findByIdAndAtivoTrueAndCriadoPorMatricula(999L, "1001")).thenReturn(Optional.empty());
+        assertThrows(IllegalArgumentException.class, () -> service.removerPersonalizado("admin.msg", 999L));
     }
 
     @Test
