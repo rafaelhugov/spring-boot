@@ -1,7 +1,9 @@
 package mppb.restapi.mobile.feature.mensagem.service;
 
+import java.text.Normalizer;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import org.springframework.stereotype.Service;
@@ -50,21 +52,29 @@ public class GrupoMensagemService {
         boolean callerUat = mppb.restapi.mobile.core.security.AutenticacaoAtual.login()
                 .flatMap(IdentidadeSintetica::porLogin)
                 .isPresent();
-        String t = termo.trim().toLowerCase();
+        String t = normalizarTexto(termo);
         boolean buscaExplicitaUat = t.startsWith("90000") || t.contains("uat");
         if (!callerUat && !buscaExplicitaUat) {
             return doRh;
         }
         List<DestinatarioRhResponse> combinados = new java.util.ArrayList<>(doRh);
         for (DestinatarioRhResponse uat : destinatariosUatPadrao()) {
-            boolean match = uat.nome().toLowerCase().contains(t)
-                    || uat.matricula().toLowerCase().contains(t)
+            boolean match = normalizarTexto(uat.nome()).contains(t)
+                    || normalizarTexto(uat.matricula()).contains(t)
                     || t.contains("uat");
             if (match && combinados.stream().noneMatch(d -> d.matricula().equals(uat.matricula()))) {
                 combinados.add(uat);
             }
         }
         return combinados;
+    }
+
+    private static String normalizarTexto(String texto) {
+        if (texto == null) {
+            return "";
+        }
+        String nfd = Normalizer.normalize(texto.trim().toLowerCase(Locale.ROOT), Normalizer.Form.NFD);
+        return nfd.replaceAll("\\p{M}", "");
     }
 
     private List<DestinatarioRhResponse> destinatariosUatPadrao() {
