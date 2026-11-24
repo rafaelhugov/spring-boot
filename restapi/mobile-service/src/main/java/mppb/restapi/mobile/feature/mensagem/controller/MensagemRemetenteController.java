@@ -60,6 +60,7 @@ public class MensagemRemetenteController {
         anexo.setTamanhoBytes(armazenado.tamanhoBytes());
         anexo.setDuracaoSegundos(duracaoSegundos);
         anexo.setCaminhoStorage(armazenado.caminhoStorage());
+        anexo.setConteudoBytes(armazenado.conteudoBytes());
         anexo = mensagemAnexoRepository.save(anexo);
         return ResponseEntity.status(HttpStatus.CREATED).body(MensagemAnexoResponse.from(anexo));
     }
