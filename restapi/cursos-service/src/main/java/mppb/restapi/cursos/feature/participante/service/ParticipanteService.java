@@ -111,7 +111,12 @@ public class ParticipanteService extends AbstractService<Participante, Long> {
                 dto.setNome(servidor.getNome());
                 dto.setCargo(servidor.getCargoNome()); // Nome real do cargo
                 dto.setEmail(servidor.getEmail());
+                dto.setLotacao(servidor.getLotacaoNome());
+                dto.setDesignacao(servidor.getDesignacaoNome());
             });
+        } else {
+            dto.setLotacao(null);
+            dto.setDesignacao(null);
         }
         return dto;
     }

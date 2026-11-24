@@ -17,5 +17,7 @@ public class ParticipanteDto {
     private Integer idServidor;
     private TipoParticipanteEnum tipo;
     private String cargo;
+    private String lotacao;
+    private String designacao;
 
 }

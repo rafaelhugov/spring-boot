@@ -26,4 +26,8 @@ public interface ServidorProjection {
 
     LocalDate getDataSaida();
 
+    String getLotacaoNome();
+
+    String getDesignacaoNome();
+
 }

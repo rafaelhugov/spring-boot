@@ -77,12 +77,27 @@ public interface ServidorRepository extends BaseRepository<Servidor, Long> {
                         "    f.nome                                                  AS cargoNome, " +
                         "    CASE WHEN tc.tipo = 'S' THEN 'Servidor' ELSE 'Membro' END AS tipoCargoNome, " +
                         "    CASE WHEN s.ativo = 'A' THEN 'ATIVO' ELSE 'INATIVO' END   AS situacao, " +
-                        "    s.datasaida                                              AS dataSaida " +
+                        "    s.datasaida                                              AS dataSaida, " +
+                        "    COALESCE(NULLIF(TRIM(st.nome), ''), NULLIF(TRIM(po.nome), ''), NULLIF(TRIM(o.sigla), '')) AS lotacaoNome, " +
+                        "    (SELECT COALESCE(NULLIF(TRIM(m.funcao_nome), ''), NULLIF(TRIM(m.orgao_execucao_nome), ''), NULLIF(TRIM(m.orgao_nome), '')) " +
+                        "     FROM diariooficial.mapa_por_membro_vw m " +
+                        "     WHERE m.ativo = 'A' AND m.servidor_matricula::text = s.matricula " +
+                        "     ORDER BY CASE " +
+                        "         WHEN UPPER(TRIM(m.designacao_tipoletra)) = 'F' THEN 1 " +
+                        "         WHEN UPPER(TRIM(m.designacao_tipoletra)) = 'T' THEN 2 " +
+                        "         WHEN UPPER(TRIM(m.designacao_tipoletra)) = 'S' THEN 3 " +
+                        "         WHEN UPPER(TRIM(m.designacao_tipoletra)) = 'L' THEN 4 " +
+                        "         ELSE 5 END, " +
+                        "         m.designacao_data_inicial DESC NULLS LAST, m.designacao_id DESC " +
+                        "     LIMIT 1)                                               AS designacaoNome " +
                         "FROM public.servidor s " +
                         "LEFT JOIN public.pessoa p ON p.id = s.id_pessoa " +
                         "LEFT JOIN public.pessoafisica pf ON pf.id_pessoa = p.id " +
                         "LEFT JOIN recursoshumanos.funcao f ON f.id = s.id_cargo " +
                         "LEFT JOIN recursoshumanos.tipocargo tc ON tc.id = f.id_tipocargo " +
+                        "LEFT JOIN public.setor st ON st.id = s.id_setor AND st.excluido = false " +
+                        "LEFT JOIN public.orgao o ON o.id_pessoa = st.id_orgao AND o.excluido = false " +
+                        "LEFT JOIN public.pessoa po ON po.id = o.id_pessoa AND po.excluido = false " +
                         "WHERE s.id = :id " +
                         "LIMIT 1", nativeQuery = true)
         Optional<ServidorProjection> buscarServidorPorId(@Param("id") Integer id);

@@ -1,6 +1,8 @@
 package mppb.restapi.cursos.feature.inscricao.util;
 
 import mppb.restapi.cursos.feature.inscricao.dto.InscricaoDto;
+import mppb.restapi.cursos.feature.participante.dto.ParticipanteDto;
+import mppb.restapi.cursos.feature.participante.enums.TipoParticipanteEnum;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -12,7 +14,7 @@ import java.util.List;
 
 public class InscricaoExcelExporter {
 
-    private static final String[] HEADERS = {"Nome do Participante", "E-mail", "Cargo", "PcD", "Necessidade Especial", "Situação", "Data de Inscrição"};
+    private static final String[] HEADERS = {"Nome do Participante", "E-mail", "Cargo", "Lotação", "Designação", "PcD", "Necessidade Especial", "Situação", "Data de Inscrição"};
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
     public static ByteArrayInputStream exportToExcel(List<InscricaoDto> inscricoes) throws IOException {
@@ -39,16 +41,20 @@ public class InscricaoExcelExporter {
             int rowIdx = 1;
             for (InscricaoDto inscricao : inscricoes) {
                 Row row = sheet.createRow(rowIdx++);
+                ParticipanteDto participante = inscricao.getParticipante();
+                boolean isInterno = participante != null && TipoParticipanteEnum.INTERNO.equals(participante.getTipo());
 
-                row.createCell(0).setCellValue(inscricao.getParticipante().getNome());
-                row.createCell(1).setCellValue(inscricao.getParticipante().getEmail());
-                row.createCell(2).setCellValue(inscricao.getParticipante().getCargo());
-                row.createCell(3).setCellValue(Boolean.TRUE.equals(inscricao.getPcd()) ? "Sim" : "Não");
-                row.createCell(4).setCellValue(inscricao.getNecessidadeEspecial() != null ? inscricao.getNecessidadeEspecial() : "");
-                row.createCell(5).setCellValue(inscricao.getSituacao());
-                
+                row.createCell(0).setCellValue(participante != null && participante.getNome() != null ? participante.getNome() : "");
+                row.createCell(1).setCellValue(participante != null && participante.getEmail() != null ? participante.getEmail() : "");
+                row.createCell(2).setCellValue(participante != null && participante.getCargo() != null ? participante.getCargo() : "");
+                row.createCell(3).setCellValue(isInterno && participante.getLotacao() != null ? participante.getLotacao() : "");
+                row.createCell(4).setCellValue(isInterno && participante.getDesignacao() != null ? participante.getDesignacao() : "");
+                row.createCell(5).setCellValue(Boolean.TRUE.equals(inscricao.getPcd()) ? "Sim" : "Não");
+                row.createCell(6).setCellValue(inscricao.getNecessidadeEspecial() != null ? inscricao.getNecessidadeEspecial() : "");
+                row.createCell(7).setCellValue(inscricao.getSituacao() != null ? inscricao.getSituacao() : "");
+
                 if (inscricao.getDataInscricao() != null) {
-                    row.createCell(6).setCellValue(inscricao.getDataInscricao().format(DATE_FORMATTER));
+                    row.createCell(8).setCellValue(inscricao.getDataInscricao().format(DATE_FORMATTER));
                 }
             }
 

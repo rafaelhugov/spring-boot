@@ -339,6 +339,16 @@ class InscricaoServiceParticipanteInternoInativoTest {
             public LocalDate getDataSaida() {
                 return dataSaida;
             }
+
+            @Override
+            public String getLotacaoNome() {
+                return null;
+            }
+
+            @Override
+            public String getDesignacaoNome() {
+                return null;
+            }
         };
     }
 }
