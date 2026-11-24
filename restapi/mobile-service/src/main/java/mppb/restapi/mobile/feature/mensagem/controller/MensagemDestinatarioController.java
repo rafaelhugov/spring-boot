@@ -108,7 +108,7 @@ public class MensagemDestinatarioController {
 
         MensagemAnexo anexo = destinatarioService.buscarAnexoAutorizado(
                 loginObrigatorio(), usuarioEhAdmin(), mensagemId, anexoId);
-        Resource resource = storageService.carregarRecurso(anexo.getCaminhoStorage());
+        Resource resource = storageService.carregarRecurso(anexo);
         long tamanhoTotal = resource.contentLength();
         ResourceRegion region = resolverRegiao(resource, tamanhoTotal, headers.getRange());
 
@@ -130,10 +130,12 @@ public class MensagemDestinatarioController {
 
         MensagemAnexo anexo = destinatarioService.buscarAnexoAutorizado(
                 loginObrigatorio(), usuarioEhAdmin(), mensagemId, anexoId);
-        if (anexo.getCaminhoThumbnail() == null || anexo.getCaminhoThumbnail().isBlank()) {
+        boolean semThumbnailBytes = anexo.getThumbnailBytes() == null || anexo.getThumbnailBytes().length == 0;
+        boolean semThumbnailDisco = anexo.getCaminhoThumbnail() == null || anexo.getCaminhoThumbnail().isBlank();
+        if (semThumbnailBytes && semThumbnailDisco) {
             return ResponseEntity.notFound().build();
         }
-        Resource resource = storageService.carregarRecurso(anexo.getCaminhoThumbnail());
+        Resource resource = storageService.carregarThumbnail(anexo);
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_JPEG)
                 .body(resource);

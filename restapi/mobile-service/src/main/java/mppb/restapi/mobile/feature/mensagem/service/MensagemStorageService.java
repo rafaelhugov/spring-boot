@@ -1,22 +1,22 @@
 package mppb.restapi.mobile.feature.mensagem.service;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
+import mppb.restapi.mobile.feature.mensagem.entity.MensagemAnexo;
 import mppb.restapi.mobile.feature.mensagem.enums.CategoriaAnexo;
 
 @Service
@@ -28,7 +28,8 @@ public class MensagemStorageService {
             String nomeOriginal,
             String mimeType,
             long tamanhoBytes,
-            String caminhoStorage) {
+            String caminhoStorage,
+            byte[] conteudoBytes) {
     }
 
     private static final Map<String, CategoriaAnexo> EXTENSOES_PERMITIDAS = Map.ofEntries(
@@ -92,26 +93,40 @@ public class MensagemStorageService {
                     "Arquivo excede o limite permitido para " + categoria.name() + " (" + (limite / (1024 * 1024)) + " MB).");
         }
 
-        String nomeSeguro = UUID.randomUUID() + "." + extensao;
-        Path raiz = raizStorage();
-        Path destino = raiz.resolve(nomeSeguro).normalize();
-        if (!destino.startsWith(raiz)) {
-            throw new SecurityException("Caminho de destino inválido.");
-        }
-
-        try (InputStream in = arquivo.getInputStream()) {
-            Files.createDirectories(raiz);
-            Files.copy(in, destino, StandardCopyOption.REPLACE_EXISTING);
+        String nomeSeguro = "db://" + UUID.randomUUID() + "." + extensao;
+        byte[] bytes;
+        try {
+            bytes = arquivo.getBytes();
         } catch (IOException e) {
-            throw new IllegalStateException("Falha ao armazenar o arquivo de mídia.", e);
+            throw new IllegalStateException("Falha ao ler os bytes do arquivo de mídia.", e);
         }
 
-        return new ArquivoArmazenado(categoria, nomeOriginal, mimeType, tamanho, nomeSeguro);
+        return new ArquivoArmazenado(categoria, nomeOriginal, mimeType, tamanho, nomeSeguro, bytes);
+    }
+
+    public Resource carregarRecurso(MensagemAnexo anexo) {
+        if (anexo == null) {
+            throw new IllegalArgumentException("Anexo inválido.");
+        }
+        if (anexo.getConteudoBytes() != null && anexo.getConteudoBytes().length > 0) {
+            return new ByteArrayResource(anexo.getConteudoBytes());
+        }
+        return carregarRecurso(anexo.getCaminhoStorage());
+    }
+
+    public Resource carregarThumbnail(MensagemAnexo anexo) {
+        if (anexo == null) {
+            throw new IllegalArgumentException("Anexo inválido.");
+        }
+        if (anexo.getThumbnailBytes() != null && anexo.getThumbnailBytes().length > 0) {
+            return new ByteArrayResource(anexo.getThumbnailBytes());
+        }
+        return carregarRecurso(anexo.getCaminhoThumbnail());
     }
 
     public Resource carregarRecurso(String caminhoRelativo) {
-        if (caminhoRelativo == null || caminhoRelativo.isBlank()) {
-            throw new IllegalArgumentException("Caminho do anexo inválido.");
+        if (caminhoRelativo == null || caminhoRelativo.isBlank() || caminhoRelativo.startsWith("db://")) {
+            throw new IllegalArgumentException("Arquivo de mídia não encontrado.");
         }
         Path raiz = raizStorage();
         Path alvo = raiz.resolve(caminhoRelativo).normalize();

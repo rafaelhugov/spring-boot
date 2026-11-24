@@ -2,10 +2,12 @@ package mppb.restapi.mobile.feature.mensagem.entity;
 
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -51,6 +53,14 @@ public class MensagemAnexo {
 
     @Column(name = "caminhothumbnail", length = 500)
     private String caminhoThumbnail;
+
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "conteudobytes")
+    private byte[] conteudoBytes;
+
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "thumbnailbytes")
+    private byte[] thumbnailBytes;
 
     @Column(name = "dataregistro", nullable = false)
     private LocalDateTime dataRegistro;
