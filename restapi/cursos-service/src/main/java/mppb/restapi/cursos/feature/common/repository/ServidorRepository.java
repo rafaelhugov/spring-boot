@@ -80,35 +80,32 @@ public interface ServidorRepository extends BaseRepository<Servidor, Long> {
                         "    CASE WHEN s.ativo = 'A' THEN 'ATIVO' ELSE 'INATIVO' END   AS situacao, " +
                         "    s.datasaida                                              AS dataSaida, " +
                         "    COALESCE( " +
-                        "        (SELECT STRING_AGG(lot, '; ') " +
-                        "         FROM ( " +
-                        "             SELECT DISTINCT " +
-                        "                 COALESCE(NULLIF(TRIM(m.orgao_nome), ''), NULLIF(TRIM(m.orgao_execucao_nome), ''), NULLIF(TRIM(m.funcao_nome), '')) AS lot " +
-                        "             FROM diariooficial.mapa_por_membro_vw m " +
-                        "             WHERE m.ativo = 'A' " +
-                        "               AND m.servidor_matricula::text = s.matricula " +
-                        "               AND UPPER(TRIM(m.designacao_tipoletra)) = CASE WHEN tc.tipo = 'S' THEN 'L' ELSE 'T' END " +
-                        "               AND (NULLIF(TRIM(m.orgao_nome), '') IS NOT NULL OR NULLIF(TRIM(m.orgao_execucao_nome), '') IS NOT NULL OR NULLIF(TRIM(m.funcao_nome), '') IS NOT NULL) " +
-                        "         ) sub_lot), " +
+                        "        (SELECT COALESCE(NULLIF(TRIM(m.orgao_nome), ''), NULLIF(TRIM(m.orgao_execucao_nome), ''), NULLIF(TRIM(m.funcao_nome), '')) " +
+                        "         FROM diariooficial.mapa_por_membro_vw m " +
+                        "         WHERE m.ativo = 'A' " +
+                        "           AND m.servidor_matricula::text = s.matricula " +
+                        "           AND UPPER(TRIM(m.designacao_tipoletra)) = CASE WHEN tc.tipo = 'S' THEN 'L' ELSE 'T' END " +
+                        "           AND (NULLIF(TRIM(m.orgao_nome), '') IS NOT NULL OR NULLIF(TRIM(m.orgao_execucao_nome), '') IS NOT NULL OR NULLIF(TRIM(m.funcao_nome), '') IS NOT NULL) " +
+                        "         ORDER BY m.designacao_data_inicial DESC NULLS LAST, m.designacao_id DESC " +
+                        "         LIMIT 1), " +
                         "        NULLIF(TRIM(st.nome), ''), " +
                         "        NULLIF(TRIM(po.nome), ''), " +
                         "        NULLIF(TRIM(o.sigla), '') " +
                         "    ) AS lotacaoNome, " +
-                        "    (SELECT STRING_AGG(desig, '; ') " +
-                        "     FROM ( " +
-                        "         SELECT DISTINCT " +
-                        "             CASE " +
-                        "                 WHEN NULLIF(TRIM(m.funcao_nome), '') IS NOT NULL " +
-                        "                  AND NULLIF(TRIM(m.orgao_nome), '') IS NOT NULL " +
-                        "                  AND UPPER(TRIM(m.funcao_nome)) <> UPPER(TRIM(m.orgao_nome)) " +
-                        "                 THEN TRIM(m.funcao_nome) || ' - ' || TRIM(m.orgao_nome) " +
-                        "                 ELSE COALESCE(NULLIF(TRIM(m.funcao_nome), ''), NULLIF(TRIM(m.orgao_nome), '')) " +
-                        "             END AS desig " +
-                        "         FROM diariooficial.mapa_por_membro_vw m " +
-                        "         WHERE m.ativo = 'A' " +
-                        "           AND m.servidor_matricula::text = s.matricula " +
-                        "           AND (NULLIF(TRIM(m.funcao_nome), '') IS NOT NULL OR NULLIF(TRIM(m.orgao_nome), '') IS NOT NULL) " +
-                        "     ) sub)                                                 AS designacaoNome " +
+                        "    (SELECT " +
+                        "         CASE " +
+                        "             WHEN NULLIF(TRIM(m.funcao_nome), '') IS NOT NULL " +
+                        "              AND NULLIF(TRIM(m.orgao_nome), '') IS NOT NULL " +
+                        "              AND UPPER(TRIM(m.funcao_nome)) <> UPPER(TRIM(m.orgao_nome)) " +
+                        "             THEN TRIM(m.funcao_nome) || ' - ' || TRIM(m.orgao_nome) " +
+                        "             ELSE COALESCE(NULLIF(TRIM(m.funcao_nome), ''), NULLIF(TRIM(m.orgao_nome), '')) " +
+                        "         END " +
+                        "     FROM diariooficial.mapa_por_membro_vw m " +
+                        "     WHERE m.ativo = 'A' " +
+                        "       AND m.servidor_matricula::text = s.matricula " +
+                        "       AND (NULLIF(TRIM(m.funcao_nome), '') IS NOT NULL OR NULLIF(TRIM(m.orgao_nome), '') IS NOT NULL) " +
+                        "     ORDER BY m.designacao_data_inicial DESC NULLS LAST, m.designacao_id DESC " +
+                        "     LIMIT 1)                                               AS designacaoNome " +
                         "FROM public.servidor s " +
                         "LEFT JOIN public.pessoa p ON p.id = s.id_pessoa " +
                         "LEFT JOIN public.pessoafisica pf ON pf.id_pessoa = p.id " +
